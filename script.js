@@ -171,14 +171,16 @@ function maskCPF(input) {
 
   input.value = value;
 
+  // Remover QUALQUER manipulação de estilo relacionada à altura
+  // Apenas validar o CPF sem interferir em sua apresentação visual
+
   // Valida o CPF apenas quando estiver completo
   if (value.replace(/\D/g, '').length === 11) {
     const isValid = validateCPF(value);
 
-    // Feedback visual de CPF válido/inválido
+    // Feedback visual MÍNIMO de CPF válido/inválido
     if (isValid) {
-      // Feedback positivo para CPF válido
-      input.style.backgroundColor = '#d4edda'; // Verde claro
+      // Feedback positivo para CPF válido (apenas cor de borda)
       input.style.borderColor = '#c3e6cb';
       input.title = "CPF válido";
 
@@ -190,12 +192,10 @@ function maskCPF(input) {
 
       // Remover o feedback visual após 1 segundo
       setTimeout(() => {
-        input.style.backgroundColor = '';
         input.style.borderColor = '';
       }, 1000);
     } else {
-      // Feedback visual para CPF inválido
-      input.style.backgroundColor = '#fff3cd'; // Amarelo claro
+      // Feedback visual para CPF inválido (apenas cor de borda)
       input.style.borderColor = '#ffeeba';
       input.title = "CPF inválido. Por favor, verifique os números.";
 
@@ -215,7 +215,6 @@ function maskCPF(input) {
     }
   } else {
     // Remover quaisquer estilos e mensagens se o CPF estiver incompleto
-    input.style.backgroundColor = '';
     input.style.borderColor = '';
 
     const errorMessage = input.parentElement.querySelector('.cpf-error-message');
