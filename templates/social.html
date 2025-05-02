@@ -65,9 +65,9 @@
           <div class="flex justify-between items-center mb-3">
             <h4 class="text-blue-600 font-medium">Membros da Família</h4>
             <div class="flex items-center gap-2">
-              <!-- Botão Remover -->
-              <button type="button" id="remove-last-family-member-btn" class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1 transition-colors" title="Remover Último Membro" style="display: none;">
-                <i class="fas fa-minus text-xs"></i> Remover Último
+              <!-- Botão Remover (modificado) -->
+              <button type="button" id="remove-family-member-btn" class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1 transition-colors" title="Remover Membro" style="display: none;">
+                <i class="fas fa-minus text-xs"></i> Remover
               </button>
               <!-- Botão Adicionar -->
               <button type="button" id="add-family-member-btn" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1 transition-colors" title="Adicionar Membro da Família">
@@ -77,89 +77,160 @@
           </div>
           <!-- Lista de membros da família -->
           <div id="membros-familia-list" class="space-y-6">
-            <!-- Membros serão adicionados aqui via JS -->
+            <!-- O assistido será adicionado aqui automaticamente via JS -->
           </div>
         </div>
       </div>
 
-      <!-- Template para membro da família (oculto) -->
-      <div class="hidden">
-        <div id="membro-familia-template">
-          <div class="membro-familia mb-6 relative">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <!-- Nome do membro - 3 colunas -->
-              <div class="relative md:col-span-3">
-                <input type="text" name="familiar_nome[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome completo" />
-                <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-                  Nome completo
-                </label>
-              </div>
+      <!-- Template para o assistido (primeira linha fixa) -->
+      <template id="assistido-template">
+        <div class="membro-familia mb-6 relative assistido">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <!-- Nome do assistido - 3 colunas (preenchido automaticamente) -->
+            <div class="relative md:col-span-3">
+              <input type="text" name="familiar_nome[]" id="assistido_nome" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Nome do Assistido
+              </label>
+            </div>
 
-              <!-- CPF - 2 colunas -->
-              <div class="relative md:col-span-2">
-                <input type="text" name="familiar_cpf[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="000.000.000-00" oninput="maskCPF(this)" />
-                <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-                  CPF
-                </label>
-              </div>
+            <!-- CPF - 2 colunas (preenchido automaticamente) -->
+            <div class="relative md:col-span-2">
+              <input type="text" name="familiar_cpf[]" id="assistido_cpf" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                CPF
+              </label>
+            </div>
 
-              <!-- Idade - 1 coluna -->
-              <div class="relative md:col-span-1">
-                <input type="text" name="familiar_idade[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Idade" />
-                <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-                  Idade
-                </label>
-              </div>
+            <!-- Idade - 1 coluna (preenchido automaticamente) -->
+            <div class="relative md:col-span-1">
+              <input type="text" name="familiar_idade[]" id="assistido_idade" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Idade
+              </label>
+            </div>
 
-              <!-- Parentesco - 2 colunas -->
-              <div class="relative md:col-span-2">
-                <select name="familiar_parentesco[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
-                  <option value="" selected disabled>Selecione...</option>
-                  <option value="Cônjuge">Cônjuge</option>
-                  <option value="Filho(a)">Filho(a)</option>
-                  <option value="Pai/Mãe">Pai/Mãe</option>
-                  <option value="Irmão/Irmã">Irmão/Irmã</option>
-                  <option value="Outro">Outro</option>
-                </select>
-                <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none input-label">
-                  Parentesco
-                </label>
-              </div>
+            <!-- Parentesco - 2 colunas (fixo como "Assistido") -->
+            <div class="relative md:col-span-2">
+              <select name="familiar_parentesco[]" id="assistido_parentesco" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 transition-colors duration-200" disabled>
+                <option value="Assistido" selected>Assistido</option>
+              </select>
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Parentesco
+              </label>
+              <input type="hidden" name="familiar_parentesco[]" value="Assistido">
+            </div>
 
-              <!-- Estado Civil - 2 colunas -->
-              <div class="relative md:col-span-2">
-                <select name="familiar_estado_civil[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
-                  <option value="" selected disabled>Selecione...</option>
-                  <option value="Solteiro(a)">Solteiro(a)</option>
-                  <option value="Casado(a)">Casado(a)</option>
-                  <option value="União Estável">União Estável</option>
-                  <option value="Divorciado(a)">Divorciado(a)</option>
-                  <option value="Viúvo(a)">Viúvo(a)</option>
-                </select>
-                <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none input-label">
-                  Estado Civil
-                </label>
-              </div>
+            <!-- Estado Civil - 2 colunas (pode ser editado) -->
+            <div class="relative md:col-span-2">
+              <select name="familiar_estado_civil[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+                <option value="" selected disabled>Selecione...</option>
+                <option value="Solteiro(a)">Solteiro(a)</option>
+                <option value="Casado(a)">Casado(a)</option>
+                <option value="União Estável">União Estável</option>
+                <option value="Divorciado(a)">Divorciado(a)</option>
+                <option value="Viúvo(a)">Viúvo(a)</option>
+              </select>
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Estado Civil
+              </label>
+            </div>
 
-              <!-- Renda Mensal - 1 coluna -->
-              <div class="relative md:col-span-1">
-                <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Renda" />
-                <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-                  Renda
-                </label>
-              </div>
+            <!-- Renda Mensal - 1 coluna (pode ser editado) -->
+            <div class="relative md:col-span-1">
+              <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Renda" />
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Renda
+              </label>
+            </div>
 
-              <!-- CadÚnico - 1 coluna -->
-              <div class="relative md:col-span-1 flex items-center justify-center">
-                <input type="hidden" name="familiar_cadunico[]" value="Não">
-                <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?">
-                  CadÚnico
-                </button>
-              </div>
+            <!-- CadÚnico - 1 coluna (não pode ser removido) -->
+            <div class="relative md:col-span-1 flex items-center justify-center">
+              <input type="hidden" name="familiar_cadunico[]" value="Não">
+              <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?">
+                CadÚnico
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      </template>
+
+      <!-- Template para membro da família (oculto) -->
+      <template id="membro-familia-template">
+        <div class="membro-familia mb-6 relative">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <!-- Nome do membro - 3 colunas -->
+            <div class="relative md:col-span-3">
+              <input type="text" name="familiar_nome[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome completo" />
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Nome completo
+              </label>
+            </div>
+
+            <!-- CPF - 2 colunas -->
+            <div class="relative md:col-span-2">
+              <input type="text" name="familiar_cpf[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="000.000.000-00" oninput="maskCPF(this)" />
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                CPF
+              </label>
+            </div>
+
+            <!-- Idade - 1 coluna -->
+            <div class="relative md:col-span-1">
+              <input type="text" name="familiar_idade[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Idade" />
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Idade
+              </label>
+            </div>
+
+            <!-- Parentesco - 2 colunas -->
+            <div class="relative md:col-span-2">
+              <select name="familiar_parentesco[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+                <option value="" selected disabled>Selecione...</option>
+                <option value="Cônjuge">Cônjuge</option>
+                <option value="Filho(a)">Filho(a)</option>
+                <option value="Pai/Mãe">Pai/Mãe</option>
+                <option value="Irmão/Irmã">Irmão/Irmã</option>
+                <option value="Outro">Outro</option>
+              </select>
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Parentesco
+              </label>
+            </div>
+
+            <!-- Estado Civil - 2 colunas -->
+            <div class="relative md:col-span-2">
+              <select name="familiar_estado_civil[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+                <option value="" selected disabled>Selecione...</option>
+                <option value="Solteiro(a)">Solteiro(a)</option>
+                <option value="Casado(a)">Casado(a)</option>
+                <option value="União Estável">União Estável</option>
+                <option value="Divorciado(a)">Divorciado(a)</option>
+                <option value="Viúvo(a)">Viúvo(a)</option>
+              </select>
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Estado Civil
+              </label>
+            </div>
+
+            <!-- Renda Mensal - 1 coluna -->
+            <div class="relative md:col-span-1">
+              <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Renda" />
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Renda
+              </label>
+            </div>
+
+            <!-- CadÚnico - 1 coluna -->
+            <div class="relative md:col-span-1 flex items-center justify-center">
+              <input type="hidden" name="familiar_cadunico[]" value="Não">
+              <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?">
+                CadÚnico
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
 
       <!-- Observações sobre a situação social -->
       <div class="relative mt-6">
@@ -183,3 +254,5 @@
     </button>
   </div>
 </form>
+<!-- Scripts para o social -->
+<script src="js/social.js"></script>
