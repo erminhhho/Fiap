@@ -23,7 +23,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 relative">
             <!-- Nome -->
             <div class="relative">
-              <input type="text" id="nome" name="nome" required
+              <input type="text" id="nome" name="nome" required onblur="formatarNomeProprio(this)"
                 class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                 placeholder="Digite o nome completo" />
               <label for="nome"
@@ -68,7 +68,7 @@
           <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
             <!-- Apelido -->
             <div class="relative md:col-span-3">
-              <input type="text" id="apelido" name="apelido"
+              <input type="text" id="apelido" name="apelido" onblur="formatarNomeProprio(this)"
                 class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                 placeholder="Apelido (opcional)" />
               <label for="apelido"
@@ -127,7 +127,7 @@
         </div>
         <!-- Bairro -->
         <div class="relative md:col-span-4">
-          <input type="text" id="bairro" name="bairro"
+          <input type="text" id="bairro" name="bairro" onblur="formatarNomeProprio(this)"
             class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
             placeholder="Bairro" />
           <label for="bairro"
@@ -137,7 +137,7 @@
         </div>
         <!-- Cidade -->
         <div class="relative md:col-span-4">
-          <input type="text" id="cidade" name="cidade"
+          <input type="text" id="cidade" name="cidade" onblur="formatarNomeProprio(this)"
             class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
             placeholder="Cidade" />
           <label for="cidade"
@@ -161,7 +161,7 @@
       <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
         <!-- Endereço/Logradouro -->
         <div class="relative md:col-span-10">
-          <input type="text" id="endereco" name="endereco"
+          <input type="text" id="endereco" name="endereco" onblur="formatarNomeProprio(this)"
             class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
             placeholder="Rua, avenida, etc." />
           <label for="endereco"
@@ -184,7 +184,7 @@
 
       <!-- Observação -->
       <div class="relative">
-        <input type="text" id="Observação" name="Observação"
+        <input type="text" id="Observação" name="Observação" onblur="formatarNomeProprio(this)"
           class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
           placeholder="Possui outro endereço, mora há pouco tempo, etc." />
         <label for="Observação"

@@ -278,6 +278,36 @@ function destacarCamposPreenchidos() {
   });
 }
 
+// Função para formatar nomes próprios (primeira letra maiúscula)
+function formatarNomeProprio(input) {
+  // Lista de palavras que devem permanecer em minúsculo
+  const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'por', 'com'];
+
+  // Obter o texto e dividir em palavras
+  let texto = input.value.toLowerCase().trim();
+  if (!texto) return;
+
+  // Dividir o texto em palavras
+  let palavras = texto.split(' ');
+
+  // Processar cada palavra
+  for (let i = 0; i < palavras.length; i++) {
+    const palavra = palavras[i];
+
+    // Pular palavras vazias
+    if (!palavra) continue;
+
+    // Sempre colocar a primeira palavra com inicial maiúscula
+    // ou palavras que não estão na lista de exceções
+    if (i === 0 || !excecoes.includes(palavra)) {
+      palavras[i] = palavra.charAt(0).toUpperCase() + palavra.slice(1);
+    }
+  }
+
+  // Juntar as palavras novamente
+  input.value = palavras.join(' ');
+}
+
 // Funções para manipulação de Local Storage
 function salvarLocalStorage(dados) {
   const timestamp = new Date().getTime();
@@ -315,6 +345,7 @@ window.maskPhone = maskPhone;
 window.maskOnlyNumbers = maskOnlyNumbers;
 window.maskCurrency = maskCurrency;
 window.destacarCamposPreenchidos = destacarCamposPreenchidos;
+window.formatarNomeProprio = formatarNomeProprio;
 window.salvarLocalStorage = salvarLocalStorage;
 window.carregarLocalStorage = carregarLocalStorage;
 window.listarTodosRegistros = listarTodosRegistros;
