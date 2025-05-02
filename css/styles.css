@@ -152,6 +152,59 @@ h2 {
   filter: drop-shadow(0 0 2px rgba(37, 211, 102, 0.3));
 }
 
+/* Indicador de WhatsApp integrado no campo */
+.whatsapp-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.whatsapp-indicator input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.whatsapp-indicator label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+.whatsapp-indicator i {
+  font-size: 14px;
+  color: #9ca3af;
+  transition: all 0.2s ease;
+}
+
+/* Estado ativo do indicador */
+.whatsapp-indicator input:checked + label {
+  background-color: #dcf8c6;
+  border-color: #25D366;
+}
+
+.whatsapp-indicator input:checked + label i {
+  color: #128c7e;
+}
+
+/* Ajustar o padding do campo de telefone para acomodar o ícone */
+#telefone {
+  padding-right: 38px;
+}
+
 /* Estilos para a validação de CPF e CEP */
 .cpf-valid, .cep-valid, .field-valid {
   background-color: #d1fae5 !important;
@@ -241,6 +294,7 @@ h2 {
   font-weight: 500;
   cursor: pointer;
   padding-right: 1rem;
+  padding-left: 0.5rem;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -255,4 +309,90 @@ h2 {
   right: 0.5rem;
   transform: translateY(-50%);
   pointer-events: none;
+}
+
+/* Cores para as opções de relacionamento */
+.relationship-option {
+  padding: 6px 12px 6px 12px;
+  margin: 2px 0;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.relationship-option:hover {
+  background-color: #f3f6fb;
+}
+
+.relationship-option.titular {
+  border-left: 3px solid #3b82f6; /* azul */
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.relationship-option.requerente {
+  border-left: 3px solid #10b981; /* verde */
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
+.relationship-option.instituidor {
+  border-left: 3px solid #8b5cf6; /* roxo */
+  background-color: rgba(139, 92, 246, 0.05);
+}
+
+.relationship-option.dependente {
+  border-left: 3px solid #f97316; /* laranja */
+  background-color: rgba(249, 115, 22, 0.05);
+}
+
+.relationship-option.responsavel {
+  border-left: 3px solid #ef4444; /* vermelho */
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.relationship-option.procurador {
+  border-left: 3px solid #06b6d4; /* ciano */
+  background-color: rgba(6, 182, 212, 0.05);
+}
+
+.relationship-option.representante {
+  border-left: 3px solid #eab308; /* amarelo */
+  background-color: rgba(234, 179, 8, 0.05);
+}
+
+.relationship-option.beneficiario {
+  border-left: 3px solid #ec4899; /* rosa */
+  background-color: rgba(236, 72, 153, 0.05);
+}
+
+/* Aplicando as cores ao select para corresponder à opção selecionada */
+.relationship-select[data-selected="Titular"] {
+  border-left: 3px solid #3b82f6; /* azul */
+}
+
+.relationship-select[data-selected="Requerente"] {
+  border-left: 3px solid #10b981; /* verde */
+}
+
+.relationship-select[data-selected="Instituidor"] {
+  border-left: 3px solid #8b5cf6; /* roxo */
+}
+
+.relationship-select[data-selected="Dependente"] {
+  border-left: 3px solid #f97316; /* laranja */
+}
+
+.relationship-select[data-selected="Responsável"] {
+  border-left: 3px solid #ef4444; /* vermelho */
+}
+
+.relationship-select[data-selected="Procurador"] {
+  border-left: 3px solid #06b6d4; /* ciano */
+}
+
+.relationship-select[data-selected="Representante Legal"] {
+  border-left: 3px solid #eab308; /* amarelo */
+}
+
+.relationship-select[data-selected="Beneficiário"] {
+  border-left: 3px solid #ec4899; /* rosa */
 }

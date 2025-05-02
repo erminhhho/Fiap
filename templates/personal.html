@@ -14,16 +14,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative flex-grow">
               <!-- Nome com seletor de relacionamento -->
               <div class="relative">
-                <div class="relationship-select">
+                <div class="relationship-select" data-selected="Titular">
                   <select id="relationship_1" name="relationship_1" onchange="updateRelationshipLabel(this, 1)">
-                    <option value="Titular">Titular</option>
-                    <option value="Requerente">Requerente</option>
-                    <option value="Instituidor">Instituidor</option>
-                    <option value="Dependente">Dependente</option>
-                    <option value="Responsável">Responsável</option>
-                    <option value="Procurador">Procurador</option>
-                    <option value="Representante Legal">Representante Legal</option>
-                    <option value="Beneficiário">Beneficiário</option>
+                    <option value="Titular" class="relationship-option titular">Titular</option>
+                    <option value="Requerente" class="relationship-option requerente">Requerente</option>
+                    <option value="Instituidor" class="relationship-option instituidor">Instituidor</option>
+                    <option value="Dependente" class="relationship-option dependente">Dependente</option>
+                    <option value="Responsável" class="relationship-option responsavel">Responsável</option>
+                    <option value="Procurador" class="relationship-option procurador">Procurador</option>
+                    <option value="Representante Legal" class="relationship-option representante">Representante Legal</option>
+                    <option value="Beneficiário" class="relationship-option beneficiario">Beneficiário</option>
                   </select>
                 </div>
                 <input type="text" id="nome" name="nome" required onblur="formatarNomeProprio(this)"
@@ -90,8 +90,8 @@
 
               <!-- Telefone e Detalhes (alinhados com os campos CPF, Nascimento e Idade) -->
               <div class="grid grid-cols-12 gap-6">
-                <!-- Telefone (ocupa 6 colunas em vez de 4) -->
-                <div class="relative col-span-6">
+                <!-- Telefone (mesmo tamanho do CPF: col-span-4) -->
+                <div class="relative col-span-4">
                   <input type="text" id="telefone" name="telefone" oninput="maskPhone(this)"
                     class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                     placeholder="(00) 00000-0000" />
@@ -99,18 +99,18 @@
                     class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
                     Telefone
                   </label>
-                  <label class="whatsapp-toggle absolute right-2 top-1/2 -translate-y-1/2" for="whatsapp_check" title="É WhatsApp?">
+                  <div class="whatsapp-indicator">
                     <input type="checkbox" id="whatsapp_check" name="telefone_whatsapp" value="Sim">
-                    <span class="whatsapp-slider"></span>
-                    <i class="fab fa-whatsapp whatsapp-icon"></i>
-                  </label>
+                    <label for="whatsapp_check" title="Este telefone possui WhatsApp">
+                      <i class="fab fa-whatsapp"></i>
+                    </label>
+                  </div>
                 </div>
-
-                <!-- Detalhes do telefone (ocupa 6 colunas) -->
-                <div class="relative col-span-6">
+                <!-- Detalhes do telefone (ocupando o resto das colunas) -->
+                <div class="relative col-span-8">
                   <input type="text" id="telefone_detalhes" name="telefone_detalhes"
                     class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
-                    placeholder="Ex: número da mãe, vizinho, etc." />
+                    placeholder="Ex: trabalho, residencial, mãe, etc." />
                   <label for="telefone_detalhes"
                     class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
                     Detalhes
@@ -202,13 +202,13 @@
         </div>
       </div>
 
-      <!-- Observação -->
+      <!-- Observação - Convertido para textarea para aceitar múltiplos parágrafos -->
       <div class="relative">
-        <input type="text" id="Observação" name="Observação" onblur="formatarNomeProprio(this)"
-          class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
-          placeholder="Possui outro endereço, mora há pouco tempo, etc." />
-        <label for="Observação"
-          class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+        <textarea id="observacao" name="observacao" rows="3"
+          class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 resize-vertical"
+          placeholder="Possui outro endereço, mora há pouco tempo, etc."></textarea>
+        <label for="observacao"
+          class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
           Observação
         </label>
       </div>
@@ -221,3 +221,25 @@
     </button>
   </div>
 </form>
+
+<script>
+  // Script para melhorar a aparência do seletor de relacionamento usando um seletor personalizado
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar todos os selects de relacionamento
+    applyRelationshipStyles();
+
+    // Observer para detectar mudanças no DOM (quando novos autores são adicionados)
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          // Verificar se algum novo select de relacionamento foi adicionado
+          setTimeout(applyRelationshipStyles, 100); // Pequeno atraso para garantir que o DOM está atualizado
+        }
+      });
+    });
+
+    // Observar mudanças no container de autores
+    const authorsContainer = document.getElementById('authors-container');
+    observer.observe(authorsContainer, { childList: true, subtree: true });
+  });
+</script>

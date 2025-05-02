@@ -136,10 +136,50 @@ function updateRelationshipLabel(selectElement, authorId) {
   const nameField = document.getElementById(`nome_${authorId}`);
 
   // Atualizar o labelText do campo de nome com a relação selecionada
-  const nameLabel = document.querySelector(`label[for="nome_${authorId}"]`);
+  const nameLabel = document.querySelector(`label[for="nome_${authorId > 1 ? '_' + authorId : ''}"]`);
+
   if (nameLabel) {
     nameLabel.textContent = selectedValue;
   }
+
+  // Atualizar a cor do seletor baseada na opção selecionada
+  const relationshipSelect = selectElement.closest('.relationship-select');
+  if (relationshipSelect) {
+    relationshipSelect.setAttribute('data-selected', selectedValue);
+  }
+}
+
+// Função para aplicar as classes de estilo às opções do select
+function applyRelationshipStyles() {
+  // Procurar todos os selects de relacionamento
+  const relationshipSelects = document.querySelectorAll('.relationship-select select');
+
+  relationshipSelects.forEach(select => {
+    // Aplicar a classe inicialmente com base na opção selecionada
+    const selectedValue = select.value;
+    const container = select.closest('.relationship-select');
+    if (container) {
+      container.setAttribute('data-selected', selectedValue);
+    }
+
+    // Adicionar evento change se ainda não tiver
+    if (!select.dataset.styleInitialized) {
+      select.dataset.styleInitialized = true;
+
+      // Substituir os options com versões estilizadas
+      const options = select.querySelectorAll('option');
+      options.forEach(option => {
+        // Adicionar classe baseada no valor da opção
+        const value = option.value;
+        const className = value.toLowerCase()
+          .replace('representante legal', 'representante')
+          .replace('beneficiário', 'beneficiario')
+          .replace('responsável', 'responsavel');
+
+        option.className = `relationship-option ${className}`;
+      });
+    }
+  });
 }
 
 // Exportar funções para o escopo global
@@ -151,6 +191,7 @@ window.updateRelationshipLabel = updateRelationshipLabel;
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
   setupEvents();
+  applyRelationshipStyles(); // Adicionar chamada para aplicar estilos
 };
 
 // Função para configurar eventos do módulo
