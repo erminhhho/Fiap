@@ -1,0 +1,203 @@
+<form id="personal-form" autocomplete="off">
+  <!-- Card principal -->
+  <div class="bg-white rounded-2xl shadow p-8 mb-8">
+    <!-- Identificação e Contato -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between gap-2 mb-4">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-user-circle text-blue-500 text-2xl"></i>
+          <h2 class="text-lg font-semibold text-blue-600">Identificação e Contato</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" class="text-white bg-blue-600 hover:bg-blue-700 p-1.5 rounded-md transition-colors flex items-center justify-center" title="Adicionar autor" onclick="addAuthor()">
+            <i class="fas fa-user-plus"></i>
+          </button>
+          <button type="button" class="text-white bg-red-500 hover:bg-red-600 p-1.5 rounded-md transition-colors flex items-center justify-center" title="Remover último autor" onclick="removeLastAuthor()" id="btn-remove-author" style="display: none;">
+            <i class="fas fa-user-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div id="authors-container">
+        <!-- Primeiro autor (principal) -->
+        <div class="author-row" id="author-1">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 relative">
+            <!-- Nome -->
+            <div class="relative">
+              <input type="text" id="nome" name="nome" required
+                class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                placeholder="Digite o nome completo" />
+              <label for="nome"
+                class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                Nome
+              </label>
+            </div>
+            <!-- Nascimento, Idade e CPF -->
+            <div class="grid grid-cols-12 gap-6">
+              <!-- CPF -->
+              <div class="relative col-span-4">
+                <input type="text" id="cpf" name="cpf" required oninput="maskCPF(this)" maxlength="14"
+                  class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                  placeholder="000.000.000-00" />
+                <label for="cpf"
+                  class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                  CPF
+                </label>
+              </div>
+              <!-- Nascimento -->
+              <div class="relative col-span-4">
+                <input type="text" id="nascimento" name="nascimento" required oninput="maskDate(this)"
+                  class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                  placeholder="dd/mm/aaaa" data-target-age="idade" />
+                <label for="nascimento"
+                  class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                  Nascimento
+                </label>
+              </div>
+              <!-- Idade -->
+              <div class="relative col-span-4">
+                <input type="text" id="idade" name="idade" readonly
+                  class="peer w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 cursor-not-allowed"
+                  placeholder="Idade" />
+                <label for="idade"
+                  class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                  Idade
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <!-- Apelido -->
+            <div class="relative md:col-span-3">
+              <input type="text" id="apelido" name="apelido"
+                class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                placeholder="Apelido (opcional)" />
+              <label for="apelido"
+                class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                Apelido
+              </label>
+            </div>
+            <!-- Telefone -->
+            <div class="relative md:col-span-3">
+              <input type="text" id="telefone" name="telefone" oninput="maskPhone(this)"
+                class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                placeholder="(00) 00000-0000" />
+              <label for="telefone"
+                class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                Telefone
+              </label>
+              <label class="whatsapp-toggle absolute right-2 top-1/2 -translate-y-1/2" for="whatsapp_check" title="É WhatsApp?">
+                <input type="checkbox" id="whatsapp_check" name="telefone_whatsapp" value="Sim">
+                <span class="whatsapp-slider"></span>
+                <i class="fab fa-whatsapp whatsapp-icon"></i>
+              </label>
+            </div>
+            <!-- Detalhes do telefone -->
+            <div class="relative md:col-span-6">
+              <input type="text" id="telefone_detalhes" name="telefone_detalhes"
+                class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                placeholder="Ex: número da mãe, vizinho, etc." />
+              <label for="telefone_detalhes"
+                class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                Detalhes do telefone
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Endereço -->
+    <div>
+      <div class="flex items-center gap-2 mb-4">
+        <i class="fas fa-map-marker-alt text-blue-500 text-2xl"></i>
+        <h2 class="text-lg font-semibold text-blue-600">Endereço</h2>
+      </div>
+
+      <!-- CEP, Bairro, Cidade e UF -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+        <!-- CEP -->
+        <div class="relative md:col-span-2">
+          <input type="text" id="cep" name="cep" onblur="consultarCEP(this.value)"
+            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+            placeholder="00000-000" />
+          <label for="cep"
+            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+            CEP
+          </label>
+        </div>
+        <!-- Bairro -->
+        <div class="relative md:col-span-4">
+          <input type="text" id="bairro" name="bairro"
+            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+            placeholder="Bairro" />
+          <label for="bairro"
+            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+            Bairro
+          </label>
+        </div>
+        <!-- Cidade -->
+        <div class="relative md:col-span-4">
+          <input type="text" id="cidade" name="cidade"
+            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+            placeholder="Cidade" />
+          <label for="cidade"
+            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+            Cidade
+          </label>
+        </div>
+        <!-- UF -->
+        <div class="relative md:col-span-2">
+          <input type="text" id="uf" name="uf" maxlength="2"
+            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 uppercase"
+            placeholder="UF" />
+          <label for="uf"
+            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+            UF
+          </label>
+        </div>
+      </div>
+
+      <!-- Logradouro e Número -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+        <!-- Endereço/Logradouro -->
+        <div class="relative md:col-span-10">
+          <input type="text" id="endereco" name="endereco"
+            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+            placeholder="Rua, avenida, etc." />
+          <label for="endereco"
+            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+            Endereço
+          </label>
+        </div>
+
+        <!-- Número -->
+        <div class="relative md:col-span-2">
+          <input type="text" id="numero" name="numero"
+            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+            placeholder="Nº" />
+          <label for="numero"
+            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+            Número
+          </label>
+        </div>
+      </div>
+
+      <!-- Observação -->
+      <div class="relative">
+        <input type="text" id="Observação" name="Observação"
+          class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+          placeholder="Possui outro endereço, mora há pouco tempo, etc." />
+        <label for="Observação"
+          class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+          Observação
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end mt-8">
+    <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="btn-next">
+      Próximo <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+</form>

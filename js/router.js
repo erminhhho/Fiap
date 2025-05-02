@@ -1,0 +1,204 @@
+/**
+ * Sistema simples de rotas para SPA
+ */
+
+// Definição das rotas disponíveis
+const routes = {
+  personal: {
+    title: 'Dados Pessoais',
+    templateUrl: 'templates/personal.html',
+    scriptUrl: 'modules/personal.js',
+    step: 1
+  },
+  social: {
+    title: 'Perfil Social',
+    templateUrl: 'templates/social.html',
+    scriptUrl: 'modules/social.js',
+    step: 2
+  },
+  incapacity: {
+    title: 'Incapacidades',
+    templateUrl: 'templates/incapacity.html',
+    scriptUrl: 'modules/incapacity.js',
+    step: 3
+  },
+  insurance: {
+    title: 'Segurado Especial',
+    templateUrl: 'templates/insurance.html',
+    scriptUrl: 'modules/insurance.js',
+    step: 4
+  },
+  professional: {
+    title: 'Atividades Profissionais',
+    templateUrl: 'templates/professional.html',
+    scriptUrl: 'modules/professional.js',
+    step: 5
+  },
+  documents: {
+    title: 'Documentos e Conclusão',
+    templateUrl: 'templates/documents.html',
+    scriptUrl: 'modules/documents.js',
+    step: 6
+  }
+};
+
+// Estado atual da navegação
+let currentRoute = null;
+
+// Função para navegar para uma rota
+function navigateTo(routeName) {
+  if (!routes[routeName]) {
+    console.error(`Rota "${routeName}" não encontrada`);
+    return false;
+  }
+
+  const route = routes[routeName];
+  currentRoute = routeName;
+
+  // Atualizar a URL com hash
+  window.location.hash = routeName;
+
+  // Atualizar título da página
+  document.title = `FIAP - ${route.title}`;
+
+  // Marcar o link ativo na navegação
+  document.querySelectorAll('.step-link').forEach(link => {
+    if (link.getAttribute('href') === `#${routeName}`) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+
+  // Atualizar o slider da barra de navegação
+  updateNavSlider();
+
+  // Carregar o conteúdo do módulo usando o template HTML
+  loadModuleWithTemplate(route);
+
+  return true;
+}
+
+// Função para carregar um módulo via template HTML e script
+async function loadModuleWithTemplate(route) {
+  const appContent = document.getElementById('app-content');
+
+  // Mostrar indicador de carregamento
+  appContent.innerHTML = `
+    <div class="flex items-center justify-center h-64">
+      <div class="text-center">
+        <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-4"></i>
+        <p class="text-gray-600">Carregando...</p>
+      </div>
+    </div>
+  `;
+
+  try {
+    // Carregar o template HTML
+    const templateHTML = await loadTemplate(route.templateUrl);
+
+    // Renderizar o template no container
+    appContent.innerHTML = templateHTML;
+
+    // Carregar e executar o script do módulo
+    await loadScript(route.scriptUrl);
+
+    // Inicializar o módulo se a função estiver definida
+    if (typeof window.initModule === 'function') {
+      window.initModule();
+    }
+
+  } catch (error) {
+    console.error('Erro ao carregar módulo:', error);
+    appContent.innerHTML = `
+      <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+        <h3 class="font-bold mb-2">Erro ao carregar módulo</h3>
+        <p>${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// Função para carregar um script JS de forma assíncrona
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = url;
+
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Não foi possível carregar o script: ${url}`));
+
+    document.body.appendChild(script);
+  });
+}
+
+// Cache de templates para evitar múltiplas requisições
+const templateCache = {};
+
+// Função para carregar um template HTML de forma assíncrona com cache
+function loadTemplate(url) {
+  // Verificar se o template já está em cache
+  if (templateCache[url]) {
+    return Promise.resolve(templateCache[url]);
+  }
+
+  // Se não estiver em cache, carregar via fetch
+  return fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        console.error(`Erro ao carregar template: ${url} - Status: ${response.status}`);
+        throw new Error(`Não foi possível carregar o template: ${url}`);
+      }
+      return response.text();
+    })
+    .then(html => {
+      // Armazenar em cache para uso futuro
+      templateCache[url] = html;
+      return html;
+    });
+}
+
+// Função para atualizar o slider da barra de navegação
+function updateNavSlider() {
+  const activeLink = document.querySelector('.step-link.active');
+  const slider = document.querySelector('.nav-slider');
+
+  if (activeLink && slider) {
+    const rect = activeLink.getBoundingClientRect();
+    const containerRect = activeLink.parentElement.getBoundingClientRect();
+
+    slider.style.width = `${rect.width}px`;
+    slider.style.left = `${rect.left - containerRect.left}px`;
+  }
+}
+
+// Inicialização do router
+function initRouter() {
+  // Adicionar listeners para os links de navegação
+  document.querySelectorAll('.step-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const route = this.getAttribute('href').substring(1); // Remover o # do início
+      navigateTo(route);
+    });
+  });
+
+  // Ouvir mudanças na hash da URL
+  window.addEventListener('hashchange', function() {
+    const route = window.location.hash.substring(1);
+    if (route && routes[route]) {
+      navigateTo(route);
+    }
+  });
+
+  // Navegar para a rota inicial
+  const initialRoute = window.location.hash.substring(1);
+  navigateTo(initialRoute && routes[initialRoute] ? initialRoute : 'personal');
+
+  // Ajustar o slider quando a janela for redimensionada
+  window.addEventListener('resize', updateNavSlider);
+}
+
+// Exportar funções
+window.navigateTo = navigateTo;
+window.initRouter = initRouter;

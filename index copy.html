@@ -1,0 +1,2192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ficha de Atendimento Previdenciário</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Adicionado Tailwind CSS e ícones via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            whatsapp: '#25D366',
+            'form-bg': '#f3f6fb',
+            'filled-bg': '#f7f9ff'  // Nova
+          },
+          gridTemplateColumns: {
+            // Adicionando o grid de 24 colunas ao Tailwind
+            '24': 'repeat(24, minmax(0, 1fr))',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <style>
+    /* Estilo específico para garantir que os campos em foco tenham borda azul e fundo da mesma cor do container */
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb !important; /* blue-600 no Tailwind */
+      outline: none;
+      background-color: #f3f6fb !important; /* Mesma cor do container */
+      box-shadow: none !important; /* Removendo a sombra */
+    }
+
+    /* MODIFICAÇÃO: Label inicialmente sem sombra ou fundo */
+    .peer:placeholder-shown + label {
+      background-color: transparent !important;
+      box-shadow: none !important;
+      color: transparent !important;
+    }
+
+    /* NOVA ABORDAGEM: Label com gradiente da cor do container para branco (topo) */
+    .peer:not(:placeholder-shown) + label,
+    .peer:focus + label {
+      top: -0.75rem !important;
+      font-size: 0.875rem !important;
+      color: #2563eb !important;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, #f3f6fb 70%) !important; /* Gradiente invertido: branco no topo para a cor do container embaixo */
+      box-shadow: none !important; /* Removendo a sombra */
+      border-radius: 0.5rem !important;
+      padding: 0 0.3rem !important; /* Reduzido de 0.5rem para 0.3rem */
+      z-index: 10;
+    }
+
+    /* Campo preenchido mantém a mesma cor de fundo do container */
+    .peer:not(:placeholder-shown) {
+      background-color: #f3f6fb !important; /* Mesma cor do container */
+    }
+
+    /* NOVO: Estilo padrão do label antes de ativar */
+    .input-label {
+      transition: all 0.3s ease;
+    }
+
+    /* Remover sublinhado dos títulos */
+    h2 {
+      text-decoration: none !important;
+    }
+
+    /* NOVA NAVBAR COM EFEITO SLIDE */
+    .nav-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .step-link {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+      color: #6B7280; /* gray-500 */
+      z-index: 2;
+    }
+
+    .step-link i {
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .step-link:hover {
+      color: #2563eb; /* blue-600 */
+    }
+
+    .step-link.active {
+      color: #2563eb; /* blue-600 */
+    }
+
+    .step-link.active i {
+      transform: translateY(-2px);
+    }
+
+    .nav-slider {
+      position: absolute;
+      height: 3px;
+      background-color: #2563eb; /* blue-600 */
+      bottom: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+      border-radius: 3px;
+      z-index: 1;
+    }
+
+    /* NOVO: Toggle Switch para WhatsApp - AJUSTADO */
+    .whatsapp-toggle {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .whatsapp-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .whatsapp-slider {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 36px; /* Reduzido de 48px para 36px (25% menor) */
+      height: 18px; /* Reduzido de 24px para 18px (25% menor) */
+      border-radius: 18px;
+      background-color: #e5e7eb;
+      transition: 0.4s;
+      margin-right: 3px; /* Reduzido de 4px para 3px */
+    }
+
+    .whatsapp-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px; /* Reduzido de 18px para 14px */
+      width: 14px; /* Reduzido de 18px para 14px */
+      left: 2px; /* Reduzido de 3px para 2px */
+      bottom: 2px; /* Reduzido de 3px para 2px */
+      background-color: white;
+      border-radius: 50%;
+      transition: 0.4s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .whatsapp-toggle input:checked + .whatsapp-slider {
+      background-color: #25D366; /* Cor do WhatsApp */
+    }
+
+    .whatsapp-toggle input:checked + .whatsapp-slider:before {
+      transform: translateX(18px); /* Reduzido de 24px para 18px */
+    }
+
+    /* Ícone de WhatsApp agora aparece APÓS o seletor */
+    .whatsapp-icon {
+      font-size: 20px; /* Aumentado de 14px para 20px */
+      color: #25D366;
+      margin-left: 3px;
+      opacity: 0.5;
+      transition: opacity 0.3s ease;
+    }
+
+    /* NOVO: Quando o checkbox está marcado, aumentar a opacidade do ícone */
+    .whatsapp-toggle input:checked ~ .whatsapp-icon {
+      opacity: 1;
+      color: #25D366;
+      filter: drop-shadow(0 0 2px rgba(37, 211, 102, 0.3));
+    }
+
+    /* NOVO: Botões para adicionar e remover autores */
+    .author-control-button {
+      position: absolute;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 5;
+    }
+
+    .add-author-btn {
+      background-color: #2563eb; /* blue-600 */
+      color: white;
+    }
+
+    .add-author-btn:hover {
+      background-color: #1d4ed8; /* blue-700 */
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    .remove-author-btn {
+      background-color: #ef4444; /* red-500 */
+      color: white;
+    }
+
+    .remove-author-btn:hover {
+      background-color: #dc2626; /* red-600 */
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    .author-row {
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .author-divider {
+      margin: 1rem 0;
+      border-top: 1px dashed #e5e7eb;
+      position: relative;
+    }
+
+    .author-divider::after {
+      content: "Coautor";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0 8px;
+      background-color: white;
+      color: #6B7280;
+      font-size: 0.75rem;
+    }
+
+    /* Estilos para a validação de CPF e CEP */
+    .cpf-valid, .cep-valid, .field-valid {
+      background-color: #d1fae5 !important;
+      border-color: #10b981 !important;
+      transition: all 0.3s ease;
+    }
+
+    .cpf-invalid, .cep-invalid, .field-invalid {
+      background-color: #fee2e2 !important;
+      border-color: #ef4444 !important;
+      transition: all 0.3s ease;
+    }
+
+    .validation-message {
+      position: absolute;
+      font-size: 0.75rem;
+      bottom: -1.25rem;
+      left: 0;
+      z-index: 10;
+      transition: opacity 0.3s ease;
+    }
+
+    .validation-message.valid {
+      color: #10b981;
+    }
+
+    .validation-message.invalid {
+      color: #ef4444;
+    }
+
+    /* Estilo para campos preenchidos */
+    .field-filled {
+      background-color: #d1fae5 !important;
+      border-color: #10b981 !important;
+      transition: all 0.3s ease;
+    }
+
+    /* MODIFICADO: Estilos para o botão CadÚnico - texto mais destacado, sem hover quando ativo */
+    .cadunico-btn {
+      transition: all 0.2s ease;
+      padding: 0.75rem 0.6rem;
+      font-size: 0.85rem; /* Aumentado de 0.75rem para 0.85rem */
+      font-weight: 600; /* Negrito adicionado */
+      height: calc(1.5rem + 2 * 0.75rem + 2px);
+      box-sizing: border-box;
+      text-align: center;
+      width: 100%;
+    }
+    .cadunico-btn.active {
+      background-color: #2563eb; /* blue-600 */
+      border-color: #2563eb; /* blue-600 */
+      color: white !important; /* Texto branco quando ativo, com !important para garantir */
+    }
+    .cadunico-btn:not(.active):hover {
+      background-color: #f3f4f6; /* gray-100 */
+      color: #2563eb; /* Texto azul no hover quando não ativo */
+    }
+    /* Remover hover quando ativo */
+    .cadunico-btn.active:hover {
+      background-color: #2563eb; /* Mantém a mesma cor de fundo */
+      color: white !important; /* Mantém o texto branco */
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- Navbar fixa no topo com ícones maiores e mais espaçados -->
+  <div class="fixed top-0 left-0 right-0 bg-white shadow-sm border-b z-50" style="scrollbar-gutter: stable;">
+    <div class="max-w-7xl mx-auto px-4 py-2">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center shadow-sm">
+            <span class="font-bold text-lg">FIAP</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-semibold text-gray-600 text-sm">Ficha Inteligente de</span>
+            <span class="font-semibold text-gray-600 text-sm">Atendimento Previdenciário</span>
+          </div>
+        </div>
+
+        <!-- Navegação centralizada -->
+        <div class="flex-grow flex justify-center">
+          <div class="nav-container" id="step-map">
+            <a href="#step-1" class="step-link" data-step="1" title="Dados Pessoais">
+              <i class="fas fa-user"></i>
+            </a>
+            <a href="#step-2" class="step-link" data-step="2" title="Perfil Social">
+              <i class="fas fa-users"></i>
+            </a>
+            <a href="#step-3" class="step-link" data-step="3" title="Saúde">
+              <i class="fas fa-heartbeat"></i>
+            </a>
+            <a href="#step-4" class="step-link" data-step="4" title="Segurado Especial">
+              <i class="fas fa-shield-alt"></i>
+            </a>
+            <a href="#step-5" class="step-link" data-step="5" title="Atividades Profissionais">
+              <i class="fas fa-briefcase"></i>
+            </a>
+            <a href="#step-6" class="step-link" data-step="6" title="Documentos e Conclusão">
+              <i class="fas fa-file-alt"></i>
+            </a>
+            <div class="nav-slider"></div>
+          </div>
+        </div>
+
+        <!-- Botões de ação no canto superior direito -->
+        <div class="flex items-center gap-3">
+          <button type="button" class="text-gray-500 hover:text-blue-600 transition" title="Limpar formulário" id="limpar-form">
+            <i class="fas fa-eraser text-lg"></i>
+          </button>
+          <button type="button" class="text-gray-500 hover:text-blue-600 transition" title="Novo formulário" id="novo-form">
+            <i class="fas fa-file-medical text-lg"></i>
+          </button>
+          <button type="button" class="text-gray-500 hover:text-blue-600 transition" title="Salvar formulário" id="salvar-form">
+            <i class="fas fa-save text-lg"></i>
+          </button>
+          <button type="button" class="text-gray-500 hover:text-blue-600 transition" title="Imprimir formulário" id="imprimir-form">
+            <i class="fas fa-print text-lg"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Adicionado padding top para compensar a navbar fixa -->
+  <div class="pt-16">
+    <div class="max-w-7xl mx-auto p-4">
+      <div class="content-wrapper">
+        <form id="multiStepForm" autocomplete="off">
+          <!-- ETAPA 1: Dados Pessoais -->
+          <div class="section step" id="step-1">
+            <!-- Card principal -->
+            <div class="bg-white rounded-2xl shadow p-8 mb-8">
+              <!-- Identificação e Contato -->
+              <div class="mb-8">
+                <div class="flex items-center justify-between gap-2 mb-4">
+                  <div class="flex items-center gap-2">
+                    <i class="fas fa-user-circle text-blue-500 text-2xl"></i>
+                    <h2 class="text-lg font-semibold text-blue-600">Identificação e Contato</h2>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button type="button" class="text-white bg-blue-600 hover:bg-blue-700 p-1.5 rounded-md transition-colors flex items-center justify-center" title="Adicionar autor" onclick="addAuthor()">
+                      <i class="fas fa-user-plus"></i>
+                    </button>
+                    <button type="button" class="text-white bg-red-500 hover:bg-red-600 p-1.5 rounded-md transition-colors flex items-center justify-center" title="Remover último autor" onclick="removeLastAuthor()" id="btn-remove-author" style="display: none;">
+                      <i class="fas fa-user-minus"></i>
+                    </button>
+                  </div>
+                </div>
+                <div id="authors-container">
+                  <!-- Primeiro autor (principal) -->
+                  <div class="author-row" id="author-1">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 relative">
+                      <!-- Nome -->
+                      <div class="relative">
+                        <input type="text" id="nome" name="nome" required
+                          class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                          placeholder="Digite o nome completo" />
+                        <label for="nome"
+                          class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                          Nome
+                        </label>
+                      </div>
+                      <!-- Nascimento, Idade e CPF (mudado de lugar) -->
+                      <div class="grid grid-cols-12 gap-6">
+                        <!-- CPF -->
+                        <div class="relative col-span-4">
+                          <input type="text" id="cpf" name="cpf" required oninput="maskCPF(this)" maxlength="14"
+                            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                            placeholder="000.000.000-00" />
+                          <label for="cpf"
+                            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                            CPF
+                          </label>
+                        </div>
+                        <!-- Nascimento -->
+                        <div class="relative col-span-4">
+                          <input type="text" id="nascimento" name="nascimento" required oninput="maskDate(this)"
+                            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                            placeholder="dd/mm/aaaa" />
+                          <label for="nascimento"
+                            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                            Nascimento
+                          </label>
+                        </div>
+                        <!-- Idade -->
+                        <div class="relative col-span-4">
+                          <input type="text" id="idade" name="idade" readonly
+                            class="peer w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 cursor-not-allowed"
+                            placeholder="Idade" />
+                          <label for="idade"
+                            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                            Idade
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                      <!-- Apelido (movido para cá - 3 colunas) -->
+                      <div class="relative md:col-span-3">
+                        <input type="text" id="apelido" name="apelido"
+                          class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                          placeholder="Apelido (opcional)" />
+                        <label for="apelido"
+                          class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                          Apelido
+                        </label>
+                      </div>
+                      <!-- Telefone - 3 colunas (mantido) -->
+                      <div class="relative md:col-span-3">
+                        <input type="text" id="telefone" name="telefone" oninput="maskPhone(this)"
+                          class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                          placeholder="(00) 00000-0000" />
+                        <label for="telefone"
+                          class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                          Telefone
+                        </label>
+                        <label class="whatsapp-toggle absolute right-2 top-1/2 -translate-y-1/2" for="whatsapp_check" title="É WhatsApp?">
+                          <input type="checkbox" id="whatsapp_check" name="telefone_whatsapp" value="Sim">
+                          <span class="whatsapp-slider"></span>
+                          <i class="fab fa-whatsapp whatsapp-icon"></i>
+                        </label>
+                      </div>
+                      <!-- NOVO: Detalhes do telefone - 6 colunas (aumentado) -->
+                      <div class="relative md:col-span-6">
+                        <input type="text" id="telefone_detalhes" name="telefone_detalhes"
+                          class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                          placeholder="Ex: número da mãe, vizinho, etc." />
+                        <label for="telefone_detalhes"
+                          class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                          Detalhes do telefone
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Autores adicionais serão inseridos aqui -->
+                </div>
+              </div>
+
+              <!-- Endereço -->
+              <div>
+                <div class="flex items-center gap-2 mb-4">
+                  <i class="fas fa-map-marker-alt text-blue-500 text-2xl"></i>
+                  <h2 class="text-lg font-semibold text-blue-600">Endereço</h2>
+                </div>
+
+                <!-- Primeira linha do grid: CEP, Bairro, Cidade e UF -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                  <!-- CEP - 2 colunas -->
+                  <div class="relative md:col-span-2">
+                    <input type="text" id="cep" name="cep" onblur="consultarCEP(this.value)"
+                      class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                      placeholder="00000-000" />
+                    <label for="cep"
+                      class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      CEP
+                    </label>
+                  </div>
+
+                  <!-- Bairro - 4 colunas -->
+                  <div class="relative md:col-span-4">
+                    <input type="text" id="bairro" name="bairro"
+                      class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                      placeholder="Bairro" />
+                    <label for="bairro"
+                      class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      Bairro
+                    </label>
+                  </div>
+
+                  <!-- Cidade - 4 colunas (diminuído em 1) -->
+                  <div class="relative md:col-span-4">
+                    <input type="text" id="cidade" name="cidade"
+                      class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                      placeholder="Cidade" />
+                    <label for="cidade"
+                      class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      Cidade
+                    </label>
+                  </div>
+
+                  <!-- UF - 2 colunas (aumentado em 1) -->
+                  <div class="relative md:col-span-2">
+                    <input type="text" id="uf" name="uf" maxlength="2"
+                      class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 uppercase"
+                      placeholder="UF" />
+                    <label for="uf"
+                      class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      UF
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Segunda linha do grid: Logradouro e Número -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                  <!-- Endereço/Logradouro - 10 colunas (diminuído em 1) -->
+                  <div class="relative md:col-span-10">
+                    <input type="text" id="endereco" name="endereco"
+                      class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                      placeholder="Rua, avenida, etc." />
+                    <label for="endereco"
+                      class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      Endereço
+                    </label>
+                  </div>
+
+                  <!-- Número - 2 colunas (aumentado em 1) -->
+                  <div class="relative md:col-span-2">
+                    <input type="text" id="numero" name="numero"
+                      class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                      placeholder="Nº" />
+                    <label for="numero"
+                      class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      Número
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Observação -->
+                <div class="relative">
+                  <input type="text" id="Observação" name="Observação"
+                    class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                    placeholder="Possui outro endereço, mora há pouco tempo, etc." />
+                  <label for="Observação"
+                    class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Observação
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end mt-8">
+              <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="next-1">
+                Próximo <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ETAPA 2: Perfil Social -->
+          <div class="section step" id="step-2" style="display: none;">
+            <!-- Card do Perfil Social -->
+            <div class="bg-white rounded-2xl shadow p-8 mb-8">
+              <div class="mb-8">
+                <div class="flex items-center gap-2 mb-4">
+                  <i class="fas fa-users text-blue-500 text-2xl"></i>
+                  <h2 class="text-lg font-semibold text-blue-600">Perfil Social</h2>
+                </div>
+
+                <!-- NOVA Seção CadÚnico simplificada com botões horizontais -->
+                <div class="bg-gray-50 rounded-xl p-3 mb-6">
+                  <label class="block text-gray-700 text-sm font-medium mb-2">Situação do CadÚnico</label>
+                  <div class="flex flex-wrap gap-2">
+                    <label class="inline-flex items-center cursor-pointer px-3 py-2 rounded-full border border-gray-200 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400 focus-within:border-blue-600">
+                      <input type="radio" name="cadunico_status" value="Atualizado" class="sr-only peer" required>
+                      <span class="peer-checked:text-blue-700 peer-checked:font-semibold peer-checked:bg-blue-100 peer-checked:border-blue-500 transition-all">Atualizado</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer px-3 py-2 rounded-full border border-gray-200 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400 focus-within:border-blue-600">
+                      <input type="radio" name="cadunico_status" value="Desatualizado" class="sr-only peer">
+                      <span class="peer-checked:text-amber-700 peer-checked:font-semibold peer-checked:bg-amber-100 peer-checked:border-amber-500 transition-all">Desatualizado</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer px-3 py-2 rounded-full border border-gray-200 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400 focus-within:border-blue-600">
+                      <input type="radio" name="cadunico_status" value="Não possui" class="sr-only peer">
+                      <span class="peer-checked:text-red-700 peer-checked:font-semibold peer-checked:bg-red-100 peer-checked:border-red-500 transition-all">Não possui</span>
+                    </label>
+                    <label class="inline-flex items-center cursor-pointer px-3 py-2 rounded-full border border-gray-200 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400 focus-within:border-blue-600">
+                      <input type="radio" name="cadunico_status" value="Não sabe informar" class="sr-only peer">
+                      <span class="peer-checked:text-gray-700 peer-checked:font-semibold peer-checked:bg-gray-200 peer-checked:border-gray-400 transition-all">Não sabe informar</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Seção de Membros da Família -->
+                <div class="mb-8">
+                  <!-- Container para os membros da família (começa oculto) -->
+                  <div id="membros-familia-container">
+                    <div class="flex justify-between items-center mb-3">
+                      <h4 class="text-blue-600 font-medium">Membros da Família</h4>
+                      <div class="flex items-center gap-2">
+                        <!-- Botão Remover movido para a esquerda -->
+                        <button type="button" id="remove-last-family-member-btn" class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1 transition-colors" title="Remover Último Membro" style="display: none;">
+                          <i class="fas fa-minus text-xs"></i> Remover Último
+                        </button>
+                        <!-- Botão Adicionar -->
+                        <button type="button" id="add-family-member-btn" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold py-1.5 px-3 rounded-lg flex items-center gap-1 transition-colors" title="Adicionar Membro da Família">
+                          <i class="fas fa-plus text-xs"></i> Adicionar
+                        </button>
+                      </div>
+                    </div>
+                    <!-- Lista de membros da família -->
+                    <div id="membros-familia-list" class="space-y-6">
+                      <!-- Membros serão adicionados aqui via JS -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Template para membro da família (oculto) -->
+                <div class="hidden">
+                  <div id="membro-familia-template">
+                    <div class="membro-familia mb-6 relative">
+                      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <!-- Nome do membro - 3 colunas -->
+                        <div class="relative md:col-span-3">
+                          <input type="text" name="familiar_nome[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome completo" />
+                          <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                            Nome completo
+                          </label>
+                        </div>
+
+                        <!-- CPF - 2 colunas -->
+                        <div class="relative md:col-span-2">
+                          <input type="text" name="familiar_cpf[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="000.000.000-00" oninput="maskCPF(this)" />
+                          <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                            CPF
+                          </label>
+                        </div>
+
+                        <!-- Idade - 1 coluna (reduzida) -->
+                        <div class="relative md:col-span-1">
+                          <input type="text" name="familiar_idade[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Idade" />
+                          <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                            Idade
+                          </label>
+                        </div>
+
+                        <!-- Parentesco - 2 colunas -->
+                        <div class="relative md:col-span-2">
+                          <select name="familiar_parentesco[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+                            <option value="" selected disabled>Selecione...</option>
+                            <option value="Cônjuge">Cônjuge</option>
+                            <option value="Filho(a)">Filho(a)</option>
+                            <option value="Pai/Mãe">Pai/Mãe</option>
+                            <option value="Irmão/Irmã">Irmão/Irmã</option>
+                            <option value="Avô/Avó">Avô/Avó</option>
+                            <option value="Neto(a)">Neto(a)</option>
+                            <option value="Sobrinho(a)">Sobrinho(a)</option>
+                            <option value="Tio(a)">Tio(a)</option>
+                            <option value="Outro">Outro</option>
+                          </select>
+                          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none input-label">
+                            Parentesco
+                          </label>
+                        </div>
+
+                        <!-- Estado Civil - 2 colunas (aumentado) -->
+                        <div class="relative md:col-span-2">
+                          <select name="familiar_estado_civil[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+                            <option value="" selected disabled>Selecione...</option>
+                            <option value="Solteiro(a)">Solteiro(a)</option>
+                            <option value="Casado(a)">Casado(a)</option>
+                            <option value="União Estável">União Estável</option>
+                            <option value="Divorciado(a)">Divorciado(a)</option>
+                            <option value="Separado(a)">Separado(a)</option>
+                            <option value="Viúvo(a)">Viúvo(a)</option>
+                          </select>
+                          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none input-label">
+                            Estado Civil
+                          </label>
+                        </div>
+
+                        <!-- Renda Mensal - 1 coluna -->
+                        <div class="relative md:col-span-1">
+                          <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Renda" oninput="maskOnlyNumbers(this)" />
+                          <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                            Renda
+                          </label>
+                        </div>
+
+                        <!-- CadÚnico - 1 coluna -->
+                        <div class="relative md:col-span-1 flex items-center justify-center">
+                          <input type="hidden" name="familiar_cadunico[]" value="Não">
+                          <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?">
+                            CadÚnico
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Informações adicionais do perfil social -->
+                    <div class="mt-8">
+                      <!-- NOVA Seção de vulnerabilidades socioeconômicas organizada em categorias -->
+                      <div class="mb-8">
+                        <h4 class="text-blue-600 font-medium mb-3">Situações de Vulnerabilidade Socioeconômica</h4>
+
+                        <!-- Vulnerabilidades Econômicas -->
+                        <h5 class="text-gray-700 font-medium mb-2 border-b border-gray-200 pb-1">Renda e Situação Econômica</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div class="flex items-center">
+                            <input id="vuln_extrema_pobreza" type="checkbox" name="vulnerabilidades[]" value="Extrema Pobreza" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_extrema_pobreza" class="ml-2 text-sm font-medium text-gray-700">Extrema Pobreza (< ¼ SM)</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_baixa_renda" type="checkbox" name="vulnerabilidades[]" value="Baixa Renda" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_baixa_renda" class="ml-2 text-sm font-medium text-gray-700">Baixa Renda (< ½ SM)</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_desemprego" type="checkbox" name="vulnerabilidades[]" value="Desemprego" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_desemprego" class="ml-2 text-sm font-medium text-gray-700">Desemprego</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_sem_aposentadoria" type="checkbox" name="vulnerabilidades[]" value="Sem Aposentadoria ou Pensão" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_sem_aposentadoria" class="ml-2 text-sm font-medium text-gray-700">Sem Aposentadoria/Pensão</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_endividamento" type="checkbox" name="vulnerabilidades[]" value="Endividamento/Inadimplência" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_endividamento" class="ml-2 text-sm font-medium text-gray-700">Endividamento/Inadimplência</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_despesas_altas" type="checkbox" name="vulnerabilidades[]" value="Despesas Fixas Elevadas" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_despesas_altas" class="ml-2 text-sm font-medium text-gray-700">Despesas Fixas Elevadas</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_outro_economico" type="checkbox" name="vulnerabilidades[]" value="Outro Econômico" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_outro_economico" class="ml-2 text-sm font-medium text-gray-700">Outro</label>
+                            <input type="text" id="outro_economico_input" name="outro_economico_desc" class="ml-2 w-48 rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-2 py-1 text-sm text-gray-800 bg-gray-50" placeholder="Outro" style="display: none;">
+                          </div>
+                        </div>
+
+                        <!-- Vulnerabilidades Habitacionais -->
+                        <h5 class="text-gray-700 font-medium mb-2 border-b border-gray-200 pb-1">Condições de Moradia</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div class="flex items-center">
+                            <input id="vuln_moradia_precaria" type="checkbox" name="vulnerabilidades[]" value="Moradia Precária" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_moradia_precaria" class="ml-2 text-sm font-medium text-gray-700">Moradia Precária</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_area_risco" type="checkbox" name="vulnerabilidades[]" value="Área de Risco" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_area_risco" class="ml-2 text-sm font-medium text-gray-700">Área de Risco</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_sem_saneamento" type="checkbox" name="vulnerabilidades[]" value="Sem Saneamento Básico" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_sem_saneamento" class="ml-2 text-sm font-medium text-gray-700">Sem Saneamento Básico</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_moradia_irregular" type="checkbox" name="vulnerabilidades[]" value="Moradia Irregular" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_moradia_irregular" class="ml-2 text-sm font-medium text-gray-700">Alugada/Cedida/Irregular</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_outro_habitacional" type="checkbox" name="vulnerabilidades[]" value="Outro Habitacional" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_outro_habitacional" class="ml-2 text-sm font-medium text-gray-700">Outro</label>
+                            <input type="text" id="outro_habitacional_input" name="outro_habitacional_desc" class="ml-2 w-48 rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-2 py-1 text-sm text-gray-800 bg-gray-50" placeholder="Outro" style="display: none;">
+                          </div>
+                        </div>
+
+                        <!-- Vulnerabilidades Sociais e Pessoais -->
+                        <h5 class="text-gray-700 font-medium mb-2 border-b border-gray-200 pb-1">Condições Sociais e Pessoais</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div class="flex items-center">
+                            <input id="vuln_saude_grave" type="checkbox" name="vulnerabilidades[]" value="Problema de Saúde Grave" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_saude_grave" class="ml-2 text-sm font-medium text-gray-700">Problema de Saúde Grave</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_isolamento" type="checkbox" name="vulnerabilidades[]" value="Isolamento Social" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_isolamento" class="ml-2 text-sm font-medium text-gray-700">Isolamento Social</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_sem_apoio" type="checkbox" name="vulnerabilidades[]" value="Sem Rede de Apoio" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_sem_apoio" class="ml-2 text-sm font-medium text-gray-700">Sem Rede de Apoio</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_analfabetismo" type="checkbox" name="vulnerabilidades[]" value="Analfabetismo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_analfabetismo" class="ml-2 text-sm font-medium text-gray-700">Analfabetismo/Baixa Escolaridade</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_violencia" type="checkbox" name="vulnerabilidades[]" value="Violência Doméstica" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_violencia" class="ml-2 text-sm font-medium text-gray-700">Violência Doméstica</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_trabalho_informal" type="checkbox" name="vulnerabilidades[]" value="Histórico de Trabalho Informal" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_trabalho_informal" class="ml-2 text-sm font-medium text-gray-700">Trabalho Informal</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_exclusao_digital" type="checkbox" name="vulnerabilidades[]" value="Exclusão Digital" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_exclusao_digital" class="ml-2 text-sm font-medium text-gray-700">Exclusão Digital</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_inseguranca_alimentar" type="checkbox" name="vulnerabilidades[]" value="Insegurança Alimentar" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_inseguranca_alimentar" class="ml-2 text-sm font-medium text-gray-700">Insegurança Alimentar</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_familia_vulneravel" type="checkbox" name="vulnerabilidades[]" value="Família em Vulnerabilidade" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_familia_vulneravel" class="ml-2 text-sm font-medium text-gray-700">Família em Vulnerabilidade</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="vuln_outro_social" type="checkbox" name="vulnerabilidades[]" value="Outro Social" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="vuln_outro_social" class="ml-2 text-sm font-medium text-gray-700">Outro</label>
+                            <input type="text" id="outro_social_input" name="outro_social_desc" class="ml-2 w-48 rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-2 py-1 text-sm text-gray-800 bg-gray-50" placeholder="Outro" style="display: none;">
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Benefícios sociais revisados e compactados -->
+                      <div class="mb-8">
+                        <h4 class="text-blue-600 font-medium mb-3">Benefícios e Programas Assistenciais</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div class="flex items-center">
+                            <input id="beneficio_bolsa_familia" type="checkbox" name="beneficios_sociais[]" value="Bolsa Família" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="beneficio_bolsa_familia" class="ml-2 text-sm font-medium text-gray-700">Bolsa Família</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="beneficio_bpc" type="checkbox" name="beneficios_sociais[]" value="BPC/LOAS" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="beneficio_bpc" class="ml-2 text-sm font-medium text-gray-700">BPC/LOAS</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="beneficio_vale_gas" type="checkbox" name="beneficios_sociais[]" value="Vale Gás" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="beneficio_vale_gas" class="ml-2 text-sm font-medium text-gray-700">Vale Gás</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="beneficio_tarifa_social" type="checkbox" name="beneficios_sociais[]" value="Tarifa Social de Energia" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="beneficio_tarifa_social" class="ml-2 text-sm font-medium text-gray-700">Tarifa Social de Energia</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="beneficio_farmacia_popular" type="checkbox" name="beneficios_sociais[]" value="Medicamento Gratuito" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="beneficio_farmacia_popular" class="ml-2 text-sm font-medium text-gray-700">Medicamento Gratuito</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="beneficio_cras" type="checkbox" name="beneficios_sociais[]" value="Acompanhamento CRAS" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="beneficio_cras" class="ml-2 text-sm font-medium text-gray-700">Acompanhamento CRAS</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="beneficio_habitacao" type="checkbox" name="beneficios_sociais[]" value="Programa Habitacional" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="beneficio_habitacao" class="ml-2 text-sm font-medium text-gray-700">Programa Habitacional</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="beneficio_cesta_basica" type="checkbox" name="beneficios_sociais[]" value="Cesta Básica" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="beneficio_cesta_basica" class="ml-2 text-sm font-medium text-gray-700">Cesta Básica</label>
+                          </div>
+                          <div class="flex items-center">
+                            <input id="beneficio_outro" type="checkbox" name="beneficios_sociais[]" value="Outro Benefício" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="beneficio_outro" class="ml-2 text-sm font-medium text-gray-700">Outro</label>
+                            <input type="text" id="outro_beneficio_input" name="outro_beneficio_desc" class="ml-2 w-48 rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-2 py-1 text-sm text-gray-800 bg-gray-50" placeholder="Outro" style="display: none;">
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Observações sobre a situação social -->
+                      <div class="relative">
+                        <textarea id="obs_sociais" name="obs_sociais" rows="3"
+                          class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                          placeholder="Observações relevantes sobre a situação socioeconômica do assistido e sua família..."></textarea>
+                        <label for="obs_sociais"
+                          class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+                          Observações Sociais
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-between mt-8">
+              <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-gray-300 flex items-center gap-2" id="back-2">
+                <i class="fas fa-arrow-left"></i> Anterior
+              </button>
+              <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="next-2">
+                Próximo <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ETAPA 3: Saúde -->
+          <div class="section step" id="step-3" style="display: none;">
+            <div class="bg-white rounded-2xl shadow p-8 mb-8">
+              <div class="flex items-center gap-2 mb-6">
+                <i class="fas fa-heartbeat text-blue-500 text-2xl"></i>
+                <h2 class="text-lg font-semibold text-blue-600">Condições de Saúde</h2>
+              </div>
+
+              <!-- Seção de cartão SUS e diagnósticos -->
+              <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <!-- Cartão SUS -->
+                  <div class="relative">
+                    <input type="text" id="sus" name="sus" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Número do Cartão SUS" maxlength="15" oninput="maskOnlyNumbers(this)" />
+                    <label for="sus" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      Cartão SUS
+                    </label>
+                  </div>
+
+                  <!-- CID principal -->
+                  <div class="relative">
+                    <input type="text" id="cid_principal" name="cid_principal" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="CID principal (Ex: F70, G80.0)" />
+                    <label for="cid_principal" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      CID Principal
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Diagnóstico principal -->
+                <div class="relative mb-6">
+                  <input type="text" id="diagnostico_principal" name="diagnostico_principal" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Diagnóstico principal (Ex: Deficiência intelectual leve, Paralisia cerebral)" />
+                  <label for="diagnostico_principal" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Diagnóstico Principal
+                  </label>
+                </div>
+
+                <!-- CIDs secundários -->
+                <div class="relative mb-4">
+                  <input type="text" id="cid_secundarios" name="cid_secundarios" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="CIDs secundários (Ex: F90.0, F81)" />
+                  <label for="cid_secundarios" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    CIDs Secundários
+                  </label>
+                </div>
+              </div>
+
+              <!-- Histórico de saúde e condições -->
+              <div class="mb-6">
+                <h4 class="text-blue-600 font-medium mb-3">Histórico e Acompanhamento</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <!-- Início dos sintomas -->
+                  <div class="relative">
+                    <input type="text" id="inicio_sintomas" name="inicio_sintomas" oninput="maskDate(this)" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="dd/mm/aaaa" />
+                    <label for="inicio_sintomas" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      Início dos Sintomas
+                    </label>
+                  </div>
+
+                  <!-- Diagnóstico em -->
+                  <div class="relative">
+                    <input type="text" id="data_diagnostico" name="data_diagnostico" oninput="maskDate(this)" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="dd/mm/aaaa" />
+                    <label for="data_diagnostico" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      Data do Diagnóstico
+                    </label>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <!-- Local de tratamento -->
+                  <div class="relative">
+                    <input type="text" id="local_tratamento" name="local_tratamento" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Local de Tratamento" />
+                    <label for="local_tratamento" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder```html
+                    <label for="local_tratamento" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      Local de Tratamento
+                    </label>
+                  </div>
+
+                  <!-- Médico Responsável -->
+                  <div class="relative">
+                    <input type="text" id="medico_responsavel" name="medico_responsavel" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do médico responsável" />
+                    <label for="medico_responsavel" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                      Médico Responsável
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status de tratamento -->
+              <div class="mb-6">
+                <h4 class="text-blue-600 font-medium mb-3">Situação do Tratamento</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <!-- Status de Tratamento - opções -->
+                  <div class="flex items-center">
+                    <input id="tratamento_continuo" type="checkbox" name="tratamento_status[]" value="Tratamento Contínuo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="tratamento_continuo" class="ml-2 text-sm font-medium text-gray-700">Tratamento Contínuo</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="tratamento_medicamentoso" type="checkbox" name="tratamento_status[]" value="Tratamento Medicamentoso" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="tratamento_medicamentoso" class="ml-2 text-sm font-medium text-gray-700">Tratamento Medicamentoso</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="tratamento_fisioterapia" type="checkbox" name="tratamento_status[]" value="Fisioterapia" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="tratamento_fisioterapia" class="ml-2 text-sm font-medium text-gray-700">Fisioterapia</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="tratamento_psicoterapia" type="checkbox" name="tratamento_status[]" value="Psicoterapia" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="tratamento_psicoterapia" class="ml-2 text-sm font-medium text-gray-700">Psicoterapia</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="tratamento_terapiaocupacional" type="checkbox" name="tratamento_status[]" value="Terapia Ocupacional" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="tratamento_terapiaocupacional" class="ml-2 text-sm font-medium text-gray-700">Terapia Ocupacional</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="tratamento_fonoaudiologia" type="checkbox" name="tratamento_status[]" value="Fonoaudiologia" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="tratamento_fonoaudiologia" class="ml-2 text-sm font-medium text-gray-700">Fonoaudiologia</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="tratamento_caps" type="checkbox" name="tratamento_status[]" value="Acompanhamento CAPS" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="tratamento_caps" class="ml-2 text-sm font-medium text-gray-700">Acompanhamento CAPS</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="tratamento_cras" type="checkbox" name="tratamento_status[]" value="Acompanhamento CRAS" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="tratamento_cras" class="ml-2 text-sm font-medium text-gray-700">Acompanhamento CRAS</label>
+                  </div>
+                  <div class="flex items-center">
+                    <input id="tratamento_outro" type="checkbox" name="tratamento_status[]" value="Outro Tratamento" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="tratamento_outro" class="ml-2 text-sm font-medium text-gray-700">Outro</label>
+                    <input type="text" id="outro_tratamento_input" name="outro_tratamento_desc" class="ml-2 w-48 rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-2 py-1 text-sm text-gray-800 bg-gray-50" placeholder="Especifique" style="display: none;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Grau de comprometimento -->
+              <div class="mb-6">
+                <h4 class="text-blue-600 font-medium mb-3">Grau de Comprometimento Funcional</h4>
+
+                <div class="flex flex-wrap gap-3 mb-4">
+                  <label class="inline-flex items-center p-3 border rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <input type="radio" name="grau_comprometimento" value="Leve" class="sr-only peer">
+                    <div class="peer-checked:text-blue-600 peer-checked:font-semibold transition-all">
+                      <div class="flex items-center mb-1">
+                        <div class="w-3 h-3 bg-blue-200 rounded-full mr-2"></div>
+                        <span class="font-medium">Leve</span>
+                      </div>
+                      <p class="text-xs text-gray-600">Comprometimento mínimo. Consegue realizar atividades diárias com pouca ou nenhuma dificuldade.</p>
+                    </div>
+                  </label>
+                  <label class="inline-flex items-center p-3 border rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <input type="radio" name="grau_comprometimento" value="Moderado" class="sr-only peer">
+                    <div class="peer-checked:text-blue-600 peer-checked:font-semibold transition-all">
+                      <div class="flex items-center mb-1">
+                        <div class="w-3 h-3 bg-blue-400 rounded-full mr-2"></div>
+                        <span class="font-medium">Moderado</span>
+                      </div>
+                      <p class="text-xs text-gray-600">Consegue realizar atividades diárias com alguma dificuldade, pode necessitar de assistência parcial.</p>
+                    </div>
+                  </label>
+                  <label class="inline-flex items-center p-3 border rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <input type="radio" name="grau_comprometimento" value="Grave" class="sr-only peer">
+                    <div class="peer-checked:text-blue-600 peer-checked:font-semibold transition-all">
+                      <div class="flex items-center mb-1">
+                        <div class="w-3 h-3 bg-blue-600 rounded-full mr-2"></div>
+                        <span class="font-medium">Grave</span>
+                      </div>
+                      <p class="text-xs text-gray-600">Dificuldade significativa para realizar atividades diárias, necessita de assistência regular.</p>
+                    </div>
+                  </label>
+                  <label class="inline-flex items-center p-3 border rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <input type="radio" name="grau_comprometimento" value="Completo" class="sr-only peer">
+                    <div class="peer-checked:text-blue-600 peer-checked:font-semibold transition-all">
+                      <div class="flex items-center mb-1">
+                        <div class="w-3 h-3 bg-blue-800 rounded-full mr-2"></div>
+                        <span class="font-medium">Completo</span>
+                      </div>
+                      <p class="text-xs text-gray-600">Dependência total para atividades diárias, requer cuidados constantes.</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Uso de medicamentos -->
+              <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                <h4 class="text-blue-600 font-medium mb-3">Uso de Medicamentos</h4>
+
+                <div id="medicamentos-list" class="space-y-4 mb-3">
+                  <!-- O primeiro medicamento fixo -->
+                  <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="relative md:col-span-5">
+                      <input type="text" name="medicamento[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do medicamento" />
+                      <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                        Medicamento
+                      </label>
+                    </div>
+                    <div class="relative md:col-span-3">
+                      <input type="text" name="posologia[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Dose e frequência" />
+                      <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                        Posologia
+                      </label>
+                    </div>
+                    <div class="relative md:col-span-3">
+                      <input type="text" name="tempo_uso[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Tempo de uso" />
+                      <label class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                        Tempo de Uso
+                      </label>
+                    </div>
+                    <div class="md:col-span-1 flex items-center justify-center">
+                      <button type="button" class="bg-red-50 border border-red-200 text-red-500 hover:bg-red-100 p-2 rounded-lg transition-colors" title="Remover" onclick="this.closest('.grid').remove()">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex justify-center">
+                  <button type="button" id="add-medicamento-btn" class="bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm font-medium py-2 px-4 rounded-lg flex items-center gap-1 transition-colors border border-blue-200">
+                    <i class="fas fa-plus text-xs"></i> Adicionar Medicamento
+                  </button>
+                </div>
+              </div>
+
+              <!-- Observações sobre a situação de saúde -->
+              <div class="relative">
+                <textarea id="obs_saude" name="obs_saude" rows="3"
+                  class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                  placeholder="Observações relevantes sobre a situação de saúde, histórico médico, dificuldades, barreiras, etc."></textarea>
+                <label for="obs_saude"
+                  class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+                  Observações sobre Saúde
+                </label>
+              </div>
+            </div>
+
+            <div class="flex justify-between mt-8">
+              <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-gray-300 flex items-center gap-2" id="back-3">
+                <i class="fas fa-arrow-left"></i> Anterior
+              </button>
+              <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="next-3">
+                Próximo <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ETAPA 4: Segurado Especial -->
+          <div class="section step" id="step-4" style="display: none;">
+            <div class="bg-white rounded-2xl shadow p-8 mb-8">
+              <h2 class="text-lg font-semibold text-blue-600 mb-4">Segurado Especial</h2>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div class="relative md:col-span-6">
+                  <input type="text" id="segurado_numero" name="segurado_numero" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Número do Segurado" />
+                  <label for="segurado_numero" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Número do Segurado
+                  </label>
+                </div>
+
+                <div class="relative md:col-span-6">
+                  <input type="text" id="segurado_categoria" name="segurado_categoria" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Categoria do Segurado" />
+                  <label for="segurado_categoria" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Categoria do Segurado
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div class="relative md:col-span-6">
+                  <input type="text" id="segurado_data_admissao" name="segurado_data_admissao" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Data de Admissão" />
+                  <label for="segurado_data_admissao" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Data de Admissão
+                  </label>
+                </div>
+
+                <div class="relative md:col-span-6">
+                  <input type="text" id="segurado_data_desligamento" name="segurado_data_desligamento" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Data de Desligamento" />
+                  <label for="segurado_data_desligamento" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Data de Desligamento
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div class="relative md:col-span-6">
+                  <input type="text" id="segurado_motivo_desligamento" name="segurado_motivo_desligamento" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Motivo do Desligamento" />
+                  <label for="segurado_motivo_desligamento" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Motivo do Desligamento
+                  </label>
+                </div>
+
+                <div class="relative md:col-span-6">
+                  <input type="text" id="segurado_telefone" name="segurado_telefone" oninput="maskPhone(this)" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="(00) 00000-0000" />
+                  <label for="segurado_telefone" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Telefone
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-between mt-8">
+              <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-gray-300 flex items-center gap-2" id="back-4">
+                <i class="fas fa-arrow-left"></i> Anterior
+              </button>
+              <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="next-4">
+                Próximo <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ETAPA 5: Atividades Profissionais -->
+          <div class="section step" id="step-5" style="display: none;">
+            <div class="bg-white rounded-2xl shadow p-8 mb-8">
+              <h2 class="text-lg font-semibold text-blue-600 mb-4">Atividades Profissionais</h2>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div class="relative md:col-span-6">
+                  <input type="text" id="atividade_profissional" name="atividade_profissional" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Atividade Profissional" />
+                  <label for="atividade_profissional" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Atividade Profissional
+                  </label>
+                </div>
+
+                <div class="relative md:col-span-6">
+                  <input type="text" id="empresa" name="empresa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome da Empresa" />
+                  <label for="empresa" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Nome da Empresa
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div class="relative md:col-span-6">
+                  <input type="text" id="cargo" name="cargo" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Cargo/Função" />
+                  <label for="cargo" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Cargo/Função
+                  </label>
+                </div>
+
+                <div class="relative md:col-span-6">
+                  <input type="text" id="tempo_servico" name="tempo_servico" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Tempo de Serviço" />
+                  <label for="tempo_servico" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Tempo de Serviço
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div class="relative md:col-span-6">
+                  <input type="text" id="renda" name="renda" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Renda" oninput="maskOnlyNumbers(this)" />
+                  <label for="renda" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Renda
+                  </label>
+                </div>
+
+                <div class="relative md:col-span-6">
+                  <select name="tipo_contrato" id="tipo_contrato" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+                    <option value="" selected disabled>Tipo de Contrato</option>
+                    <option value="CLT">CLT</option>
+                    <option value="PJ">PJ</option>
+                    <option value="Estágio">Estágio</option>
+                    <option value="Temporário">Temporário</option>
+                    <option value="Autônomo">Autônomo</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                  <label for="tipo_contrato" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none input-label">
+                    Tipo de Contrato
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-between mt-8">
+              <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-gray-300 flex items-center gap-2" id="back-5">
+                <i class="fas fa-arrow-left"></i> Anterior
+              </button>
+              <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="next-5">
+                Próximo <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ETAPA 6: Documentos e Conclusão -->
+          <div class="section step" id="step-6" style="display: none;">
+            <div class="bg-white rounded-2xl shadow p-8 mb-8">
+              <h2 class="text-lg font-semibold text-blue-600 mb-4">Documentos e Conclusão</h2>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div class="relative md:col-span-6">
+                  <input type="text" id="documento1" name="documento1" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do Documento" />
+                  <label for="documento1" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Nome do Documento
+                  </label>
+                </div>
+
+                <div class="relative md:col-span-6">
+                  <input type="text" id="documento2" name="documento2" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do Documento" />
+                  <label for="documento2" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Nome do Documento
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                <div class="relative md:col-span-6">
+                  <input type="text" id="documento3" name="documento3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do Documento" />
+                  <label for="documento3" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Nome do Documento
+                  </label>
+                </div>
+
+                <div class="relative md:col-span-6">
+                  <input type="text" id="documento4" name="documento4" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do Documento" />
+                  <label for="documento4" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                    Nome do Documento
+                  </label>
+                </div>
+              </div>
+
+              <div class="flex justify-end mt-8">
+                <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-gray-300 flex items-center gap-2" id="back-6">
+                  <i class="fas fa-arrow-left"></i> Anterior
+                </button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="submit-form">
+                  Enviar <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="address.js"></script>
+  <script>
+    // Sobrescrever a função calcularIdadeAutomatica para mostrar a idade em anos e meses
+    function calcularIdadeAutomatica() {
+      const nascimentoInput = document.getElementById('nascimento');
+      const idadeInput = document.getElementById('idade');
+
+      // Verificar se o campo de nascimento tem valor válido
+      if (nascimentoInput.value.length === 10) {
+        const partes = nascimentoInput.value.split('/');
+        if (partes.length === 3) {
+          const dataNascimento = new Date(partes[2], partes[1] - 1, partes[0]);
+          const hoje = new Date();
+
+          // Calcular diferença em anos
+          let idadeAnos = hoje.getFullYear() - dataNascimento.getFullYear();
+
+          // Calcular diferença em meses
+          let idadeMeses = hoje.getMonth() - dataNascimento.getMonth();
+
+          // Ajustar se ainda não chegou no dia do mês do aniversário
+          if (hoje.getDate() < dataNascimento.getDate()) {
+            idadeMeses--;
+          }
+
+          // Ajustar os meses e anos se necessário
+          if (idadeMeses < 0) {
+            idadeMeses += 12;
+            idadeAnos--;
+          }
+
+          // Formatação da idade para mostrar anos e meses
+          let idadeFormatada = idadeAnos + " anos";
+          if (idadeMeses > 0) {
+            idadeFormatada += " e " + idadeMeses + " meses";
+          }
+
+          // Definir valor da idade no campo correspondente
+          idadeInput.value = idadeFormatada;
+        }
+      }
+    }
+
+    // NOVA FUNÇÃO: Cálculo de idade para qualquer conjunto de campos (coautores)
+    function calcularIdadePersonalizada(nascimentoId, idadeId) {
+      const nascimentoInput = document.getElementById(nascimentoId);
+      const idadeInput = document.getElementById(idadeId);
+
+      // Verificar se o campo de nascimento tem valor válido
+      if (nascimentoInput.value.length === 10) {
+        const partes = nascimentoInput.value.split('/');
+        if (partes.length === 3) {
+          const dataNascimento = new Date(partes[2], partes[1] - 1, partes[0]);
+          const hoje = new Date();
+
+          // Calcular diferença em anos
+          let idadeAnos = hoje.getFullYear() - dataNascimento.getFullYear();
+
+          // Calcular diferença em meses
+          let idadeMeses = hoje.getMonth() - dataNascimento.getMonth();
+
+          // Ajustar se ainda não chegou no dia do mês do aniversário
+          if (hoje.getDate() < dataNascimento.getDate()) {
+            idadeMeses--;
+          }
+
+          // Ajustar os meses e anos se necessário
+          if (idadeMeses < 0) {
+            idadeMeses += 12;
+            idadeAnos--;
+          }
+
+          // Formatação da idade para mostrar anos e meses
+          let idadeFormatada = idadeAnos + " anos";
+          if (idadeMeses > 0) {
+            idadeFormatada += " e " + idadeMeses + " meses";
+          }
+
+          // Definir valor da idade no campo correspondente
+          idadeInput.value = idadeFormatada;
+        }
+      }
+    }
+
+    // Modificando a função maskDate para calcular a idade automaticamente
+    function maskDate(input) {
+      let value = input.value.replace(/\D/g, '');
+
+      if (value.length > 8) value = value.substring(0, 8);
+
+      value = value.replace(/^(\d{2})(\d)/, '$1/$2');
+      value = value.replace(/^(\d{2})\/(\d{2})(\d)/, '$1/$2/$3');
+
+      input.value = value;
+
+      // Calcular idade automaticamente quando o campo for preenchido por completo
+      if (value.length === 10) {
+        // Se for o campo principal de nascimento
+        if (input.id === 'nascimento') {
+          calcularIdadeAutomatica();
+        }
+        // Se for um campo de nascimento de coautor
+        else if (input.id.startsWith('nascimento-')) {
+          const idadeId = input.id.replace('nascimento-', 'idade-');
+          calcularIdadePersonalizada(input.id, idadeId);
+        }
+      }
+    }
+
+    // Função para destacar campos preenchidos com feedback visual verde
+    function destacarCamposPreenchidos() {
+      // Seleciona todos os inputs, selects e textareas (exceto os readonly que não são o campo de idade)
+      const campos = document.querySelectorAll('input:not([readonly]):not([type="hidden"]):not([type="button"]):not([type="submit"]), select, textarea, input[id^="idade"]');
+
+      campos.forEach(campo => {
+        // Função para verificar e atualizar o estilo quando o valor mudar
+        function verificarPreenchimento() {
+          if (campo.value.trim() !== '') {
+            // Campo preenchido - aplicar estilo verde
+            campo.classList.add('field-filled');
+            campo.classList.remove('bg-gray-50');
+            campo.classList.remove('bg-filled-bg');
+          } else {
+            // Campo vazio - restaurar o estilo original
+            campo.classList.remove('field-filled');
+            campo.classList.add('bg-gray-50');
+          }
+        }
+
+        // Verificar o preenchimento inicial
+        verificarPreenchimento();
+
+        // Adicionar listeners para verificar quando o valor mudar
+        campo.addEventListener('input', verificarPreenchimento);
+        campo.addEventListener('change', verificarPreenchimento);
+        campo.addEventListener('blur', verificarPreenchimento);
+      });
+
+      // Verificar campos que são preenchidos programaticamente
+      document.querySelectorAll('input[id^="idade"], #bairro, #cidade, #uf, #endereco').forEach(campo => {
+        if (campo.value.trim() !== '') {
+          campo.classList.add('field-filled');
+          campo.classList.remove('bg-gray-50');
+          campo.classList.remove('bg-filled-bg');
+        }
+      });
+    }
+
+    // Função para validar CPF
+    function validateCPF(cpf) {
+      // Remove caracteres não numéricos
+      cpf = cpf.replace(/\D/g, '');
+
+      // Verifica se o CPF tem 11 dígitos
+      if (cpf.length !== 11) return false;
+
+      // Verifica se todos os      // Verifica se todos osdígitos são iguais (caso contrário é inválido)
+      if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+      // Validação do primeiro dígito verificador
+      let sum = 0;
+      for (let i = 0; i < 9; i++) {
+        sum += parseInt(cpf.charAt(i)) * (10 - i);
+      }
+      let remainder = sum % 11;
+      let digit1 = remainder < 2 ? 0 : 11 - remainder;
+
+      // Validação do segundo dígito verificador - CORREÇÃO DO BUG
+      sum = 0;
+      for (let i = 0; i < 10; i++) { // Corrigido o loop que estava: for (let i = 0; 9; i++)
+        sum += parseInt(cpf.charAt(i)) * (11 - i);
+      }
+      remainder = sum % 11;
+      let digit2 = remainder < 2 ? 0 : 11 - remainder;
+
+      // Verifica se os dígitos calculados são iguais aos dígitos informados
+      return (parseInt(cpf.charAt(9)) === digit1 && parseInt(cpf.charAt(10)) === digit2);
+    }
+
+    // Máscara para CPF com validação visual
+    function maskCPF(input) {
+      let value = input.value.replace(/\D/g, '');
+      if (value.length > 11) value = value.substring(0, 11);
+
+      value = value.replace(/^(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+      value = value.replace(/\.(\d{3})(\d)/, '.$1-$2');
+
+      input.value = value;
+
+      // Remover classes de validação existentes
+      input.classList.remove('cpf-valid', 'cpf-invalid');
+
+      // Remover mensagem de validação anterior, se existir
+      const parentDiv = input.parentElement;
+      const prevMessage = parentDiv.querySelector('.validation-message');
+      if (prevMessage) prevMessage.remove();
+
+      // Validar apenas se o CPF estiver completo (11 dígitos)
+      if (value.replace(/\D/g, '').length === 11) {
+        const isValid = validateCPF(value);
+
+        if (isValid) {
+          // CPF válido          // CPFválido - feedback visual verde
+          input.classList.add('cpf-valid');
+
+          // Adicionar mensagem de confirmação
+          const validMessage = document.createElement('div');
+          validMessage.className = 'validation-message valid';
+          validMessage.innerHTML = '<i class="fas fa-check-circle"></i> CPF válido';
+          parentDiv.appendChild(validMessage);
+
+          // Remover depois de 1.5 segundos
+          setTimeout(() => {
+            input.classList.remove('cpf-valid');
+            if (validMessage.parentElement) validMessage.remove();
+          }, 1500);
+        } else {
+          // CPF inválido - feedback visual vermelho
+          input.classList.add('cpf-invalid');
+
+          // Adicionar mensagem de erro
+          const invalidMessage = document.createElement('div');
+          invalidMessage.className = 'validation-message invalid';
+          invalidMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> CPF inválido';
+          parentDiv.appendChild(invalidMessage);
+        }
+      }
+    }
+
+    // Máscara para CEP com validação visual
+    function maskCEP(input) {
+      let value = input.value.replace(/\D/g, '');
+      if (value.length > 8) value = value.substring(0, 8);
+
+      if (value.length > 5) {
+        value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+      }
+
+      input.value = value;
+
+      // Remover classes de validação existentes
+      input.classList.remove('cep-valid', 'cep-invalid');
+
+      // Remover mensagem de validação anterior, se existir
+      const parentDiv = input.parentElement;
+      const prevMessage = parentDiv.querySelector('.validation-message');
+      if (prevMessage) prevMessage.remove();
+    }
+
+    // Consultar CEP com validação visual
+    function consultarCEP(cep) {
+      cep = cep.replace(/\D/g, '');
+      if (cep.length !== 8) return;
+
+      const cepInput = document.getElementById('cep');
+
+      // Feedback visual de carregamento
+      cepInput.classList.remove('cep-valid', 'cep-invalid');
+      cepInput.style.backgroundImage = "url('data:image/svg+xml;charset=utf8,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cpath fill=\"%232563eb\" d=\"M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50\"%3E%3CanimateTransform attributeName=\"transform\" attributeType=\"XML\" type=\"rotate\" dur=\"1s\" from=\"0 50 50\" to=\"360 50 50\" repeatCount=\"indefinite\" /%3E%3C/path%3E%3C/svg%3E')";
+      cepInput.style.backgroundRepeat = "no-repeat";
+      cepInput.style.backgroundPosition = "right 10px center";
+      cepInput.style.backgroundSize = "20px 20px";
+
+      // Remover mensagem de validação anterior, se existir
+      const parentDiv = cepInput.parentElement;
+      const prevMessage = parentDiv.querySelector('.validation-message');
+      if (prevMessage) prevMessage.remove();
+
+      fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(response => response.json())
+        .then(data => {
+          // Remover indicador de carregamento
+          cepInput.style.backgroundImage = "none";
+
+          if (data.erro) {
+            // CEP inválido ou não encontrado
+            cepInput.classList.add('cep-invalid');
+
+            // Adicionar mensagem de erro
+            const invalidMessage = document.createElement('div');
+            invalidMessage.className = 'validation-message invalid';
+            invalidMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> CEP não encontrado';
+            parentDiv.appendChild(invalidMessage);
+            return;
+          }
+
+          // CEP válido - feedback visual verde
+          cepInput.classList.add('cep-valid');
+
+          // Adicionar mensagem de confirmação
+          const validMessage = document.createElement('div');
+          validMessage.className = 'validation-message valid';
+          validMessage.innerHTML = '<i class="fas fa-check-circle"></i> CEP encontrado';
+          parentDiv.appendChild(validMessage);
+
+          // Preencher campos de endereço
+          document.getElementById('bairro').value = data.bairro || '';
+          document.getElementById('cidade').value = data.localidade || '';
+          document.getElementById('uf').value = data.uf || '';
+          document.getElementById('endereco').value = data.logradouro || '';
+
+          // Focar campo de número após preenchimento
+          if (data.logradouro) {
+            document.getElementById('numero').focus();
+          }
+
+          // Remover feedback visual depois de 1.5 segundos
+          setTimeout(() => {
+            cepInput.classList.remove('cep-valid');
+            if (validMessage.parentElement) validMessage.remove();
+          }, 1500);
+        })
+        .catch(error => {
+          // Remover indicador de carregamento
+          cepInput.style.backgroundImage = "none";
+
+          // Erro na consulta
+          cepInput.classList.add('cep-invalid');
+
+          // Adicionar mensagem de erro
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'validation-message invalid';
+          errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro ao consultar CEP';
+          parentDiv.appendChild(errorMessage);
+        });
+    }
+
+    // NOVA FUNÇÃO: Contador para manter registro de autores adicionados
+    let authorCounter = 1;
+
+    // NOVA FUNÇÃO: Remover o último autor
+    function removeLastAuthor() {
+      // Só remove se houver mais de um autor
+      if (authorCounter > 1) {
+        // Encontrar o último autor e seu divisor
+        const lastAuthor = document.getElementById(`author-${authorCounter}`);
+        const prevElement = lastAuthor.previousElementSibling;
+
+        // Remover o divisor e o elemento do autor
+        if (prevElement && prevElement.className.includes('author-divider')) {
+          prevElement.remove();
+        }
+        lastAuthor.remove();
+
+        // Decrementar o contador
+        authorCounter--;
+
+        // Verificar se ainda há autores extras e mostrar/esconder o botão de remover
+        updateRemoveButton();
+      }
+    }
+
+    // NOVA FUNÇÃO: Atualizar visibilidade do botão de remover
+    function updateRemoveButton() {
+      const removeButton = document.getElementById('btn-remove-author');
+      if (authorCounter > 1) {
+        removeButton.style.display = 'flex';
+      } else {
+        removeButton.style.display = 'none';
+      }
+    }
+
+    // Modificando a função addAuthor para adicionar apenas a primeira linha
+    function addAuthor() {
+      authorCounter++;
+      const authorsContainer = document.getElementById('authors-container');
+
+      // Criar div para o divisor
+      const dividerDiv = document.createElement('div');
+      dividerDiv.className = 'author-divider';
+      authorsContainer.appendChild(dividerDiv);
+
+      // Criar container para o novo autor
+      const newAuthorDiv = document.createElement('div');
+      newAuthorDiv.className = 'author-row';
+      newAuthorDiv.id = `author-${authorCounter}`;
+
+      // Apenas a primeira linha: Nome, Nascimento, Idade, CPF
+      let html = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 relative">
+          <!-- Nome -->
+          <div class="relative">
+            <input type="text" id="nome-${authorCounter}" name="nome-${authorCounter}"
+              class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+              placeholder="Digite o nome completo" />
+            <label for="nome-${authorCounter}"
+              class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+              Nome
+            </label>
+          </div>
+          <!-- Nascimento, Idade e CPF -->
+          <div class="grid grid-cols-12 gap-6">
+            <!-- CPF -->
+            <div class="relative col-span-4">
+              <input type="text" id="cpf-${authorCounter}" name="cpf-${authorCounter}" oninput="maskCPF(this)" maxlength="14"
+                class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                placeholder="000.000.000-00" />
+              <label for="cpf-${authorCounter}"
+                class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                CPF
+              </label>
+            </div>
+            <!-- Nascimento -->
+            <div class="relative col-span-4">
+              <input type="text" id="nascimento-${authorCounter}" name="nascimento-${authorCounter}" oninput="maskDate(this)"
+                class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                placeholder="dd/mm/aaaa" />
+              <label for="nascimento-${authorCounter}"
+                class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                Nascimento
+              </label>
+            </div>
+            <!-- Idade -->
+            <div class="relative col-span-4">
+              <input type="text" id="idade-${authorCounter}" name="idade-${authorCounter}" readonly
+                class="peer w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 cursor-not-allowed"
+                placeholder="Idade" />
+              <label for="idade-${authorCounter}"
+                class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                Idade
+              </label>
+            </div>
+          </div>
+        </div>
+      `;
+
+      newAuthorDiv.innerHTML = html;
+      authorsContainer.appendChild(newAuthorDiv);
+
+      // Aplicar a formatação de texto ao campo nome do coautor
+      const nomeCoautor = document.getElementById(`nome-${authorCounter}`);
+      if (nomeCoautor) {
+        nomeCoautor.addEventListener('blur', function() {
+          applyCapitalization(this);
+        });
+      }
+
+      // Atualizar destaque de campos preenchidos
+      destacarCamposPreenchidos();
+
+      // Mostrar botão de remover
+      updateRemoveButton();
+    }
+
+    // NOVA FUNÇÃO: Remover autor
+    function removeAuthor(authorId) {
+      const authorElement = document.getElementById(`author-${authorId}`);
+      // Encontrar o divisor anterior
+      const prevElement = authorElement.previousElementSibling;
+
+      // Remover o divisor e o elemento do autor
+      if (prevElement && prevElement.className.includes('author-divider')) {
+        prevElement.remove();
+      }
+      authorElement.remove();
+    }
+
+    // NOVA FUNÇÃO: Alternar estado do botão CadÚnico
+    function toggleCadUnico(button) {
+      button.classList.toggle('active');
+      const hiddenInput = button.previousElementSibling; // Pega o input hidden antes do botão
+      if (hiddenInput && hiddenInput.type === 'hidden') {
+        hiddenInput.value = button.classList.contains('active') ? 'Sim' : 'Não';
+      }
+    }
+
+    // NOVA FUNÇÃO: Adicionar membro da família
+    function addFamilyMember() {
+        const container = document.getElementById('membros-familia-container');
+        const list = document.getElementById('membros-familia-list');
+        const templateNode = document.getElementById('membro-familia-template');
+
+        if (!templateNode) {
+            console.error("Template de membro da família não encontrado!");
+            return;
+        }
+        const template = templateNode.innerHTML;
+
+        // Tornar container visível se for o primeiro membro
+        if (list.children.length === 0) {
+            // container.classList.remove('hidden'); // Se começar hidden
+        }
+
+        const memberDiv = document.createElement('div');
+        memberDiv.innerHTML = template.trim();
+        const newMemberElement = memberDiv.firstChild;
+
+        if (newMemberElement) {
+            list.appendChild(newMemberElement);
+
+            // Reaplicar máscaras e validações se necessário
+            newMemberElement.querySelectorAll('input[oninput^="mask"]').forEach(input => {
+                if (input.getAttribute('oninput') === 'maskCPF(this)') {
+                }
+                 if (input.getAttribute('oninput') === 'maskOnlyNumbers(this)') {
+                }
+            });
+            destacarCamposPreenchidos();
+            updateRemoveMemberButton();
+        } else {
+            console.error("Falha ao criar o elemento do novo membro a partir do template.");
+        }
+    }
+
+    // NOVA FUNÇÃO: Remover o último membro da família
+    function removeLastFamilyMember() {
+        const list = document.getElementById('membros-familia-list');
+        // Só remove se houver mais de um membro (o primeiro é o assistido)
+        if (list.children.length > 1) {
+            list.lastElementChild.remove();
+            updateRemoveMemberButton(); // Atualiza visibilidade do botão remover
+        }
+    }
+
+    // NOVA FUNÇÃO: Atualizar visibilidade do botão de remover membro
+    function updateRemoveMemberButton() {
+        const removeButton = document.getElementById('remove-last-family-member-btn');
+        const list = document.getElementById('membros-familia-list');
+        if (removeButton && list) {
+            // Mostra o botão se houver mais de 1 membro
+            removeButton.style.display = list.children.length > 1 ? 'flex' : 'none';
+        }
+    }
+
+    // Modificando a função addAssistidoAutomaticamente para garantir o preenchimento correto
+    function addAssistidoAutomaticamente() {
+      const list = document.getElementById('membros-familia-list');
+      const templateNode = document.getElementById('membro-familia-template');
+
+      // Não criar se já existir um membro
+      if (!templateNode || list.children.length > 0) return;
+
+      const template = templateNode.innerHTML;
+      const memberDiv = document.createElement('div');
+      memberDiv.innerHTML = template.trim();
+      const assistidoElement = memberDiv.firstChild;
+
+      if (assistidoElement) {
+        list.appendChild(assistidoElement);
+
+        // Preencher automaticamente o campo de nome com o nome do assistido
+        const nomeAssistido = document.getElementById('nome').value || '';
+        const cpfAssistido = document.getElementById('cpf').value || '';
+        const idadeAssistido = document.getElementById('idade').value || '';
+
+        // Selecionar os campos do primeiro membro (assistido)
+        const inputNome = assistidoElement.querySelector('input[name="familiar_nome[]"]');
+        const inputCPF = assistidoElement.querySelector('input[name="familiar_cpf[]"]');
+        const inputIdade = assistidoElement.querySelector('input[name="familiar_idade[]"]');
+        const selectParentesco = assistidoElement.querySelector('select[name="familiar_parentesco[]"]');
+
+        // Preencher e desabilitar os campos
+        if (inputNome) {
+          inputNome.value = nomeAssistido;
+          inputNome.readOnly = true;
+        }
+
+        if (inputCPF) {
+          inputCPF.value = cpfAssistido;
+          inputCPF.readOnly = true;
+        }
+
+        if (inputIdade) {
+          // Extrair apenas os anos da idade (remover "e X meses" se presente)
+          const anosMatch = idadeAssistido.match(/(\d+)\s*anos/);
+          const anosIdade = anosMatch ? anosMatch[1] + " anos" : idadeAssistido;
+          inputIdade.value = anosIdade;
+          inputIdade.readOnly = true;
+        }
+
+        if (selectParentesco) {
+          // Verificar se a opção "Assistido(a)" já existe
+          let assistidoOption = null;
+          for (let i = 0; i < selectParentesco.options.length; i++) {
+            if (selectParentesco.options[i].value === "Assistido(a)") {
+              assistidoOption = selectParentesco.options[i];
+              break;
+            }
+          }
+
+          // Se não existir, criar a opção
+          if (!assistidoOption) {
+            assistidoOption = document.createElement('option');
+            assistidoOption.value = "Assistido(a)";
+            assistidoOption.text = "Assistido(a)";
+            selectParentesco.add(assistidoOption, 0);
+          }
+
+          // Selecionar a opção "Assistido(a)"
+          selectParentesco.value = "Assistido(a)";
+          selectParentesco.disabled = true;
+        }
+
+        destacarCamposPreenchidos();
+        updateRemoveMemberButton();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      destacarCamposPreenchidos();
+
+      const cpfOriginal = document.getElementById('cpf');
+      if (cpfOriginal) {
+        cpfOriginal.className = "peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100";
+      }
+
+      setInterval(destacarCamposPreenchidos, 2000);
+
+      const cpfInput = document.getElementById('cpf');
+      if (cpfInput) {
+        cpfInput.addEventListener('blur', function() {
+          if (this.value.replace(/\D/g, '').length === 11) {
+            const isValid = validateCPF(this.value);
+            this.classList.toggle('cpf-valid', isValid);
+            this.classList.toggle('cpf-invalid', !isValid);
+          }
+        });
+      }
+
+      const cepInput = document.getElementById('cep');
+      if (cepInput) {
+        cepInput.addEventListener('input', function() {
+          maskCEP(this);
+        });
+
+        cepInput.addEventListener('blur', function() {
+          if (this.value.replace(/\D/g, '').length === 8) {
+            consultarCEP(this.value);
+          }
+        });
+      }
+
+      const addMemberBtn = document.getElementById('add-family-member-btn');
+      if (addMemberBtn) {
+          addMemberBtn.addEventListener('click', addFamilyMember);
+      }
+
+      const removeLastMemberBtn = document.getElementById('remove-last-family-member-btn');
+      if (removeLastMemberBtn) {
+          removeLastMemberBtn.addEventListener('click', removeLastFamilyMember);
+      }
+
+      const membrosList = document.getElementById('membros-familia-list');
+      if (membrosList) {
+          membrosList.addEventListener('click', function(event) {
+              const cadUnicoButton = event.target.closest('.cadunico-btn');
+              if (cadUnicoButton) {
+                  toggleCadUnico(cadUnicoButton);
+              }
+          });
+      }
+
+      // Adicionar funcionalidade para campos "Outro"
+      document.getElementById('vuln_outro_economico').addEventListener('change', function() {
+        document.getElementById('outro_economico_input').style.display = this.checked ? 'inline-block' : 'none';
+      });
+
+      document.getElementById('vuln_outro_habitacional').addEventListener('change', function() {
+        document.getElementById('outro_habitacional_input').style.display = this.checked ? 'inline-block' : 'none';
+      });
+
+      document.getElementById('vuln_outro_social').addEventListener('change', function() {
+        document.getElementById('outro_social_input').style.display = this.checked ? 'inline-block' : 'none';
+      });
+
+      document.getElementById('beneficio_outro').addEventListener('change', function() {
+        document.getElementById('outro_beneficio_input').style.display = this.checked ? 'inline-block' : 'none';
+      });
+
+      // Criar automaticamente o membro assistido quando os dados pessoais forem preenchidos
+      document.getElementById('next-1').addEventListener('click', function() {
+        // Verificar se há dados preenchidos nos campos de identificação
+        const nome = document.getElementById('nome').value;
+        const cpf = document.getElementById('cpf').value;
+
+        if (nome && cpf) {
+          // Adicionar o assistido automaticamente se os dados estiverem preenchidos
+          setTimeout(function() {
+            addAssistidoAutomaticamente();
+          }, 100);
+        }
+      });
+
+      // Adicionar listener para atualizar o assistido quando dados pessoais mudarem
+      document.getElementById('nome').addEventListener('change', function() {
+        const list = document.getElementById('membros-familia-list');
+        if (list && list.children.length > 0) {
+          const firstMember = list.firstElementChild;
+          const inputNome = firstMember.querySelector('input[name="familiar_nome[]"]');
+          if (inputNome) {
+            inputNome.value = this.value;
+          }
+        }
+      });
+
+      document.getElementById('cpf').addEventListener('change', function() {
+        const list = document.getElementById('membros-familia-list');
+        if (list && list.children.length > 0) {
+          const firstMember = list.firstElementChild;
+          const inputCPF = firstMember.querySelector('input[name="familiar_cpf[]"]');
+          if (inputCPF) {
+            inputCPF.value = this.value;
+          }
+        }
+      });
+
+      document.getElementById('nascimento').addEventListener('change', function() {
+        const list = document.getElementById('membros-familia-list');
+        if (list && list.children.length > 0) {
+          const firstMember = list.firstElementChild;
+          const inputIdade = firstMember.querySelector('input[name="familiar_idade[]"]');
+          const idadeAssistido = document.getElementById('idade').value;
+          if (inputIdade) {
+            // Extrair apenas os anos da idade (remover "e X meses" se presente)
+            const anosMatch = idadeAssistido.match(/(\d+)\s*anos/);
+            const anosIdade = anosMatch ? anosMatch[1] + " anos" : idadeAssistido;
+            inputIdade.value = anosIdade;
+          }
+        }
+      });
+
+      // Adicionar evento de input (não apenas change) para o campo de nascimento
+      document.getElementById('nascimento').addEventListener('input', function() {
+        if (this.value.length === 10) {
+          calcularIdadeAutomatica();
+        }
+      });
+
+      // Novo código para mostrar etapas e criar assistido automaticamente
+      const stepLinks = document.querySelectorAll('.step-link');
+      if (stepLinks.length > 0) {
+        stepLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const stepId = this.getAttribute('href');
+            const stepNumber = this.dataset.step;
+
+            // Se clicar na etapa 2 (perfil social)
+            if (stepNumber === '2') {
+              // Mostrar a etapa 2 e ocultar as outras
+              document.querySelectorAll('.step').forEach(step => {
+                step.style.display = 'none';
+              });
+              document.querySelector(stepId).style.display = 'block';
+
+              // Criar assistido automaticamente
+              setTimeout(function() {
+                addAssistidoAutomaticamente();
+              }, 100);
+            }
+          });
+        });
+      }
+
+      // Também adicionar o assistido quando o botão "Próximo" for clicado
+      document.getElementById('next-1').addEventListener('click', function() {
+        // Mostrar a etapa 2 e ocultar a etapa 1
+        document.getElementById('step-1').style.display = 'none';
+        document.getElementById('step-2').style.display = 'block';
+
+        // Criar assistido automaticamente após breve delay para permitir a transição
+        setTimeout(function() {
+          addAssistidoAutomaticamente();
+        }, 100);
+      });
+    });
+
+    function maskOnlyNumbers(input) {
+      let value = input.value.replace(/\D/g, ''); // Remove não-dígitos
+      input.value = value;
+    }
+
+    // NOVA FUNÇÃO: Máscara para formato mm/aaaa
+    function maskYearMonth(input) {
+      let value = input.value.replace(/\D/g, ''); // Remove não-dígitos
+
+      if (value.length > 6) value = value.substring(0, 6);
+
+      // Formatação mm/aaaa
+      if (value.length > 2) {
+        value = value.replace(/^(\d{2})(\d)/, '$1/$2');
+      }
+
+      input.value = value;
+    }
+
+    // NOVA FUNÇÃO: Selecionar opção de CadÚnico
+    function selectCadunicoOption(button) {
+      // Remover classes ativas de todos os botões
+      document.querySelectorAll('.cadunico-option').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.remove('bg-blue-600');
+        btn.classList.remove('text-white');
+        btn.classList.remove('border-blue-600');
+        btn.classList.remove('shadow-md');
+        // Resetar a transformação e sombra
+        btn.style.transform = '';
+        btn.style.boxShadow = '';
+      });
+
+      // Adicionar classes e estilos ao botão selecionado
+      button.classList.add('active', 'bg-blue-600', 'text-white', 'border-blue-600');
+      button.classList.add('shadow-md');
+      // Efeito sutilmente elevado
+      button.style.transform = 'translateY(-2px)';
+      button.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+
+      // Atualizar o campo oculto com o valor selecionado
+      const value = button.getAttribute('data-value');
+      document.getElementById('cadunico_status').value = value;
+
+      // Feedback visual com animação suave
+      button.classList.add('scale-105');
+      setTimeout(() => {
+        button.classList.remove('scale-105');
+      }, 200);
+    }
+
+    // NOVA FUNÇÃO: Máscara para valores em moeda (R$)
+    function maskCurrency(input) {
+      let value = input.value.replace(/\D/g, '');
+      value = (parseInt(value) / 100).toFixed(2) + '';
+      value = value.replace(".", ",");
+      value = value.replace(/(\d)(\d{3})(\,)/g, "$1.$2$3");
+      value = value.replace(/(\d)(\d{3})(\.\d{3})/g, "$1.$2$3");
+      input.value = 'R$ ' + value;
+    }
+
+    // NOVA FUNÇÃO: Mostrar/Esconder campo de aluguel```html
+    // NOVA FUNÇÃO: Mostrar/Esconder campo de aluguel
+    function toggleAluguelField() {
+      const situacaoPosse = document.querySelectorAll('input[name="situacao_posse"]');
+      const aluguelField = document.querySelector('.aluguel-field');
+
+      situacaoPosse.forEach(radio => {
+        radio.addEventListener('change', function() {
+          if (this.value === 'Alugada') {
+            aluguelField.style.display = 'block';
+          } else {
+            aluguelField.style.display = 'none';
+          }
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Código existente...
+
+      // Inicializar funcionalidade do aluguel
+      toggleAluguelField();
+
+    });
+  </script>
+</body>
+</html>
+```

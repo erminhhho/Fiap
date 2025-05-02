@@ -1,0 +1,45 @@
+/* Estilos para componentes de busca */
+
+/* Estilo do dropdown */
+.cid-dropdown,
+.doenca-dropdown {
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(209, 213, 219, 1);
+  z-index: 50;
+}
+
+/* Scrollbar personalizada */
+.cid-dropdown::-webkit-scrollbar,
+.doenca-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cid-dropdown::-webkit-scrollbar-track,
+.doenca-dropdown::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.cid-dropdown::-webkit-scrollbar-thumb,
+.doenca-dropdown::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.cid-dropdown::-webkit-scrollbar-thumb:hover,
+.doenca-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cid-dropdown, .doenca-dropdown {
+  animation: fadeIn 0.2s ease-out;
+}

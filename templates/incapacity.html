@@ -1,0 +1,147 @@
+<form id="incapacity-form" autocomplete="off">
+  <div class="bg-white rounded-2xl shadow p-8 mb-8">
+    <div class="flex items-center gap-2 mb-6">
+      <i class="fas fa-heartbeat text-blue-500 text-2xl"></i>
+      <h2 class="text-lg font-semibold text-blue-600">Dados de Incapacidade</h2>
+    </div>
+    <p class="text-gray-500 mb-6">Informações médicas e periciais relevantes para o processo.</p>
+
+    <!-- Doenças e CIDs - Removido o fundo cinza e simplificado o layout -->
+    <div class="mb-6">
+      <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Doenças e CIDs</h3>
+      <div id="doencasList">
+        <div class="mb-4 border-b border-gray-200 pb-4">
+          <!-- Layout otimizado: todos os campos na mesma linha -->
+          <div class="flex items-center">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 flex-grow">
+              <!-- Documento (agora é o primeiro) -->
+              <div class="relative md:col-span-2">
+                <select class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200" id="tipoDocumento1" name="tipoDocumentos[]" data-index="1">
+                  <option value="" selected disabled>Selecione</option>
+                  <option value="exame">Exame</option>
+                  <option value="atestado">Atestado</option>
+                  <option value="laudo">Laudo</option>
+                  <option value="pericia">Perícia</option>
+                  <option value="receita">Receita</option>
+                  <option value="outro">Outro</option>
+                </select>
+                <label for="tipoDocumento1" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+                  Documento
+                </label>
+              </div>
+
+              <!-- CID (segundo campo) -->
+              <div class="relative md:col-span-4">
+                <input type="text" class="cid-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="cid1" placeholder="CID" name="cids[]" data-index="1" autocomplete="off">
+                <label for="cid1" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                  CID
+                </label>
+                <div class="cid-dropdown hidden absolute z-10 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown1"></div>
+              </div>
+
+              <!-- Doença (terceiro campo) -->
+              <div class="relative md:col-span-4">
+                <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="doenca1" placeholder="Doença ou condição" name="doencas[]" data-index="1" autocomplete="off">
+                <label for="doenca1" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                  Doença
+                </label>
+                <div class="doenca-dropdown hidden absolute z-10 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="doencaDropdown1"></div>
+              </div>
+
+              <!-- Data (último campo) -->
+              <div class="relative md:col-span-2">
+                <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento1" name="dataDocumentos[]" data-index="1" placeholder="dd/mm/aa" oninput="maskDate(this)">
+                <label for="dataDocumento1" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+                  Data
+                </label>
+              </div>
+            </div>
+            <button type="button" class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 ml-2 flex items-center justify-center w-8 h-8 self-center" id="addDoenca" title="Adicionar CID/Doença">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Informações da Perícia -->
+    <div class="bg-gray-50 rounded-xl p-6 mb-6">
+      <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Informações da Perícia</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="relative">
+          <input type="text" id="nomePerito" name="nomePerito" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do perito">
+          <label for="nomePerito" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+            Nome do Perito
+          </label>
+        </div>
+
+        <div class="relative">
+          <select id="conclusaoPericia" name="conclusaoPericia" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" data-other-target="outraConclusao">
+            <option value="" selected disabled>Selecione...</option>
+            <option value="favoravel">Favorável à incapacidade</option>
+            <option value="desfavoravel">Desfavorável à incapacidade</option>
+            <option value="parcial">Incapacidade parcial</option>
+            <option value="temporaria">Incapacidade temporária</option>
+            <option value="definitiva">Incapacidade definitiva</option>
+            <option value="outro">Outro...</option>
+          </select>
+          <label for="conclusaoPericia" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+            Conclusão da Perícia
+          </label>
+          <div id="outraConclusao" class="relative mt-2 hidden outro-field">
+            <input type="text" id="outraConclusaoInput" name="outraConclusao" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Especifique a conclusão">
+            <label for="outraConclusaoInput" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+              Especifique a conclusão
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative mb-6">
+        <select id="tipoIncapacidade" name="tipoIncapacidade" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" data-other-target="outroTipoIncapacidade">
+          <option value="" selected disabled>Selecione...</option>
+          <option value="total-temporaria">Total e Temporária</option>
+          <option value="total-permanente">Total e Permanente</option>
+          <option value="parcial-temporaria">Parcial e Temporária</option>
+          <option value="parcial-permanente">Parcial e Permanente</option>
+          <option value="sem-incapacidade">Sem Incapacidade</option>
+          <option value="outro">Outro...</option>
+        </select>
+        <label for="tipoIncapacidade" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+          Tipo de Incapacidade
+        </label>
+        <div id="outroTipoIncapacidade" class="relative mt-2 hidden outro-field">
+          <input type="text" id="outroTipoIncapacidadeInput" name="outroTipoIncapacidade" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Especifique o tipo">
+          <label for="outroTipoIncapacidadeInput" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+            Especifique o tipo
+          </label>
+        </div>
+      </div>
+
+      <div class="relative">
+        <textarea id="observacoesPericia" name="observacoesPericia" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações da perícia"></textarea>
+        <label for="observacoesPericia" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+          Observações da Perícia
+        </label>
+      </div>
+    </div>
+
+    <!-- Observações -->
+    <div class="relative">
+      <textarea id="observacoesIncapacidade" name="observacoesIncapacidade" rows="4" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre a incapacidade"></textarea>
+      <label for="observacoesIncapacidade" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+        Observações sobre a Incapacidade
+      </label>
+    </div>
+  </div>
+
+  <!-- Botões de navegação -->
+  <div class="flex justify-between mt-8">
+    <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-gray-300 flex items-center gap-2" id="btn-back">
+      <i class="fas fa-arrow-left"></i> Anterior
+    </button>
+    <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="btn-next">
+      Próximo <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+</form>
