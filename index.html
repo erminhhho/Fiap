@@ -119,6 +119,11 @@
       // Inicia o router
       initRouter();
 
+      // Inicializar o sistema de destaque de campos
+      if (typeof setupFieldHighlighting === 'function') {
+        setupFieldHighlighting();
+      }
+
       // Configuração dos botões da navbar
       document.getElementById('btn-clear').addEventListener('click', clearForm);
       document.getElementById('btn-new').addEventListener('click', newForm);

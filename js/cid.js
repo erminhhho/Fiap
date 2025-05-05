@@ -365,10 +365,8 @@ class CID {
           cidDropdown.classList.add('hidden');
           doencaDropdown.classList.add('hidden');
 
-          // Destacar campos se a função existir
-          if (typeof destacarCamposPreenchidos === 'function') {
-            setTimeout(destacarCamposPreenchidos, 10);
-          }
+          // Destacar campos - usando a função global padronizada
+          destacarCamposPreenchidos();
         }
       });
 
@@ -435,10 +433,8 @@ class CID {
           cidDropdown.classList.add('hidden');
           doencaDropdown.classList.add('hidden');
 
-          // Destacar campos se a função existir
-          if (typeof destacarCamposPreenchidos === 'function') {
-            setTimeout(destacarCamposPreenchidos, 10);
-          }
+          // Destacar campos - usando a função global padronizada
+          destacarCamposPreenchidos();
         }
       });
     }

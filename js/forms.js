@@ -803,6 +803,11 @@ document.addEventListener('DOMContentLoaded', function() {
   setupRightLabels();
   setupLiveValidation();
 
+  // Configurar o destaque de campos preenchidos
+  if (typeof setupFieldHighlighting === 'function') {
+    setupFieldHighlighting();
+  }
+
   // Verificar se há um formulário salvo para carregar automaticamente
   const currentFormId = localStorage.getItem('currentFormId');
   if (currentFormId) {
