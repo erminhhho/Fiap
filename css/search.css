@@ -9,6 +9,19 @@
   border-radius: 0.5rem;
   border: 1px solid rgba(209, 213, 219, 1);
   z-index: 50;
+  background-color: white;
+}
+
+/* Garantir que os itens dos dropdowns tenham cor visível */
+.cid-dropdown .dropdown-item,
+.doenca-dropdown .dropdown-item,
+.cid-dropdown div,
+.doenca-dropdown div,
+.dropdown-item,
+select option,
+.dropdown-menu li,
+.dropdown-menu a {
+  color: #333333 !important; /* Cor escura para o texto dos itens */
 }
 
 /* Scrollbar personalizada */

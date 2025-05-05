@@ -55,6 +55,16 @@ input:focus, select:focus, textarea:focus {
   margin-bottom: 20px;
 }
 
+/* Garantir que todos os menus dropdown no sistema tenham texto visível */
+select,
+select option,
+.dropdown-menu,
+.dropdown-menu li,
+.dropdown-menu a,
+.dropdown-item {
+  color: #333333 !important;
+}
+
 .form-control {
   width: 100%;
   padding: 10px;
@@ -62,11 +72,6 @@ input:focus, select:focus, textarea:focus {
   border-bottom: 1px solid #ddd;
   background: transparent;
   transition: all 0.3s;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #3498db;
 }
 
 /* Novo estilo de label posicionado no canto superior direito */
