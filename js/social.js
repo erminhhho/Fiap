@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!socialFormInitialized) {
     initSocialForm();
   }
+
+  // Inicializar os event listeners das etiquetas WhatsApp
+  setupWhatsAppTagListeners();
 });
 
 // Função principal de inicialização do formulário social
@@ -413,5 +416,21 @@ function setupCadUnicoOptions() {
         }, 200);
       });
     }
+  });
+}
+
+// Função para configurar os ouvintes de eventos das etiquetas WhatsApp
+function setupWhatsAppTagListeners() {
+  document.querySelectorAll('.whatsapp-tag').forEach(tag => {
+    tag.addEventListener('click', function() {
+      // Alternar a classe 'active' para mudar a aparência
+      this.classList.toggle('active');
+
+      // Atualizar o estado interno (se necessário para processamento futuro)
+      const isActive = this.classList.contains('active');
+      if (this.dataset) {
+        this.dataset.active = isActive ? 'true' : 'false';
+      }
+    });
   });
 }

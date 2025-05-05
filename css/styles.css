@@ -1,8 +1,8 @@
-/* Estilos específicos para garantir que os campos em foco tenham borda azul e fundo da mesma cor do container */
+/* Estilos específicos para garantir que os campos em foco tenham borda azul e fundo transparente */
 input:focus, select:focus, textarea:focus {
   border-color: #2563eb !important; /* blue-600 no Tailwind */
   outline: none;
-  background-color: #f3f6fb !important; /* Mesma cor do container */
+  background-color: transparent !important; /* Fundo transparente */
   box-shadow: none !important; /* Removendo a sombra */
 }
 
@@ -40,10 +40,10 @@ input:focus, select:focus, textarea:focus {
   position: absolute;
   right: 10px;
   top: 0px;
-  font-size: 0.85rem; /* Fonte um pouco maior */
+  font-size: 0.7rem; /* Fonte reduzida */
   color: #2563EB;
-  background-color: rgba(255, 255, 255, 0.75); /* 25% de transparência */
-  padding: 0 0.4rem; /* Padding vertical mínimo, mais espaço horizontal */
+  background-color: transparent; /* Fundo transparente */
+  padding: 0 0.2rem; /* Padding reduzido */
   pointer-events: none;
   transition: all 0.2s;
   transform: translateY(-50%);
@@ -72,14 +72,14 @@ input:focus, select:focus, textarea:focus {
 /* Novo estilo de label posicionado no canto superior direito */
 .form-group label {
   position: absolute;
-  top: 0; /* Ajustado para alinhar com a borda */
+  top: 0;
   right: 0;
-  font-size: 0.7rem; /* Tamanho da fonte reduzido */
+  font-size: 0.65rem; /* Tamanho da fonte ainda mais reduzido */
   color: #777;
   transition: all 0.3s;
-  transform: translateY(-50%); /* Centraliza a etiqueta com a linha da borda */
-  padding: 0 0.25rem; /* Padding padronizado com um valor único e menor */
-  background-color: white;
+  transform: translateY(-50%);
+  padding: 0 0.2rem; /* Padding reduzido */
+  background-color: transparent; /* Fundo transparente */
 }
 
 .form-control:focus ~ label,
@@ -88,30 +88,37 @@ input:focus, select:focus, textarea:focus {
   font-weight: 500;
 }
 
-/* Mensagens de validação */
+/* Mensagens de validação - Definição consolidada */
 .validation-message {
   position: absolute;
+  font-size: 0.75rem;
   right: 0;
-  top: 100%;
-  font-size: 11px;
-  margin-top: 2px;
+  bottom: -20px;
+  color: #10B981; /* Verde para mensagens de sucesso */
+  transition: all 0.3s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.validation-success {
-  color: #2ecc71;
+/* Variações de estados para mensagens de validação */
+.validation-message.error,
+.validation-message.validation-error {
+  color: #EF4444; /* Vermelho para erros */
 }
 
-.validation-error {
-  color: #e74c3c;
+.validation-message.warning {
+  color: #F59E0B; /* Amarelo para avisos */
 }
 
-/* Status dos campos com validação */
-.form-control.field-valid {
-  border-color: #2ecc71;
+.validation-message.success,
+.validation-message:not(.validation-error):not(.warning) {
+  color: #10B981; /* Verde para sucesso */
 }
 
-.form-control.field-invalid {
-  border-color: #e74c3c;
+.validation-message i {
+  font-size: 0.85rem;
 }
 
 /* Animação sutil para feedback visual */
@@ -122,6 +129,43 @@ input:focus, select:focus, textarea:focus {
 
 .validation-message {
   animation: validationPulse 0.3s ease-out;
+}
+
+/* Visibilidade das mensagens de validação */
+.validation-message {
+  opacity: 0;
+}
+
+.validation-message.validation-active,
+.validated .validation-message.success,
+.invalid .validation-message.error,
+.warning .validation-message.warning {
+  opacity: 1;
+  display: flex;
+}
+
+/* Ajuste para input com mensagem de validação */
+.with-validation {
+  padding-right: 100px !important; /* Espaço para a mensagem de validação */
+}
+
+/* Status dos campos com validação - modificado para usar transparência */
+.form-control.field-valid,
+.cpf-valid,
+.cep-valid,
+.field-valid {
+  border-color: #10b981 !important;
+  background-color: transparent !important;
+  transition: all 0.3s ease;
+}
+
+.form-control.field-invalid,
+.cpf-invalid,
+.cep-invalid,
+.field-invalid {
+  border-color: #ef4444 !important;
+  background-color: transparent !important;
+  transition: all 0.3s ease;
 }
 
 /* Estilo para mensagens de validação */
@@ -135,8 +179,8 @@ input:focus, select:focus, textarea:focus {
   transition: opacity 0.3s;
 }
 
-.validation-error {
-  color: #EF4444;  /* Cor vermelha para erros de validação */
+.validation-message.error {
+  color: #EF4444; /* Vermelho para erros */
 }
 
 .validation-active {
@@ -203,6 +247,7 @@ input:focus, select:focus, textarea:focus {
   border-top: none;
   border-left: none;
   border-right: none;
+  background-color: transparent !important;
 }
 
 /* Ajustar tamanho do container de campo para acomodar o novo layout */
@@ -217,23 +262,22 @@ input:focus, select:focus, textarea:focus {
   color: transparent !important;
 }
 
-/* Label sem transparência e com padding reduzido */
+/* Remover borda das labels e torná-las mais minimalistas */
 .peer:not(:placeholder-shown) + label,
 .peer:focus + label {
-  top: 0 !important; /* Ajustado para alinhar com a borda */
-  font-size: 0.85rem !important; /* Fonte um pouco maior */
+  top: 0 !important;
+  font-size: 0.7rem !important; /* Tamanho de fonte reduzido */
   color: #2563eb !important;
-  background-color: rgba(255, 255, 255, 0.75) !important; /* 25% de transparência */
-  box-shadow: none !important;
-  border-radius: 0.25rem !important;
-  padding: 0 0.4rem !important; /* Padding vertical mínimo, mais espaço horizontal */
+  background-color: transparent !important; /* Fundo totalmente transparente */
+  border: none !important; /* Remover borda */
+  padding: 0 0.2rem !important; /* Padding reduzido */
   z-index: 10;
-  transform: translateY(-50%) !important; /* Centraliza a etiqueta com a linha da borda */
+  transform: translateY(-50%) !important;
 }
 
-/* Campo preenchido mantém a mesma cor de fundo do container */
+/* Campo preenchido mantém fundo transparente */
 .peer:not(:placeholder-shown) {
-  background-color: #f3f6fb !important;
+  background-color: transparent !important;
 }
 
 /* Estilo padrão do label antes de ativar */
@@ -370,39 +414,28 @@ h2 {
 }
 
 .whatsapp-indicator input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
+  display: none; /* Ocultar completamente o checkbox */
 }
 
 .whatsapp-indicator label {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: #f3f4f6;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #D1D5DB; /* Mesma borda dos campos de input */
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  background-color: #f1f5f9;
+  color: #64748b;
 }
 
-.whatsapp-indicator i {
-  font-size: 14px;
-  color: #9ca3af;
-  transition: all 0.2s ease;
-}
-
-/* Estado ativo do indicador */
+/* Estado ativo do indicador de WhatsApp */
 .whatsapp-indicator input:checked + label {
-  background-color: #dcf8c6;
-  border-color: #25D366;
-}
-
-.whatsapp-indicator input:checked + label i {
-  color: #128c7e;
+  background-color: #e5f7eb;
+  color: #0d9f6e;
+  border-color: #10b981;
 }
 
 /* Ajustar o padding do campo de telefone para acomodar o ícone */
@@ -415,178 +448,102 @@ h2 {
   position: absolute;
   top: 0;
   right: 8px;
-  font-size: 0.85rem; /* Fonte um pouco maior */
+  font-size: 0.75rem;
   font-weight: 600;
-  border: none;
-  border-radius: 0.25rem;
-  padding: 0 0.4rem; /* Padding vertical mínimo, mais espaço horizontal */
+  border-radius: 12px; /* Bordas bem arredondadas */
+  padding: 2px 10px; /* Padding horizontal maior para melhor legibilidade */
   height: auto;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
   z-index: 10;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   transform: translateY(-50%);
-  background-color: rgba(255, 255, 255, 0.75); /* 25% de transparência */
+  border: none; /* Sem bordas */
+  color: white; /* Texto branco para todas as etiquetas */
 }
 
-/* Adicionar texto visível dentro da etiqueta */
-.relationship-select:before {
-  content: attr(data-value); /* Usa o atributo data-value como texto */
-  display: inline-block;
-}
-
-/* Completamente esconder o select original para evitar o fundo cinza, mas manter os eventos de clique */
-.relationship-select select {
-  position: absolute;
-  opacity: 0;
-  width: 100%; /* Largura total para capturar cliques */
-  height: 100%; /* Altura total para capturar cliques */
-  top: 0;
-  left: 0;
-  cursor: pointer;
-  z-index: 20; /* Z-index maior para capturar eventos de clique */
-}
-
-/* Remover o background e bordas padrão do select mesmo quando está em foco */
-.relationship-select select:focus,
-.relationship-select select:active {
-  outline: none;
-  border: none;
-  box-shadow: none;
-  background-color: transparent !important;
-}
-
-/* Estilo hover mantém o mesmo background mas com efeito sutil */
-.whatsapp-tag:hover, .relationship-select:hover {
-  filter: brightness(1.05);
-  box-shadow: 0 2px 3px rgba(0,0,0,0.15);
-}
-
-.whatsapp-tag i {
-  font-size: 0.75rem;
-}
-
-/* WhatsApp tag agora também com transparência */
+/* WhatsApp tag com cor mais escura */
 .whatsapp-tag {
-  background-color: rgba(220, 248, 198, 0.8); /* DCF8C6 com 80% de opacidade */
-  color: #128c7e;
-  box-shadow: 0 0 0 1px #25D366;
+  background-color: #128c7e; /* Verde WhatsApp mais escuro */
+  color: white;
 }
 
-/* Cores para as etiquetas de relacionamento - aplicando apenas o estilo de transparência para todos, com menor transparência */
-.relationship-select[data-value="Titular"] {
-  background-color: rgba(59, 130, 246, 0.4); /* Azul com 40% de opacidade */
-  color: #1e40af; /* Cor do texto mais escura */
-  box-shadow: 0 0 0 1px #3b82f6;
+/* WhatsApp tag quando inativa com cor mais escura */
+.whatsapp-tag:not(.active) {
+  background-color: #64748b; /* Cinza slate-500 mais escuro */
+  color: white;
 }
 
+/* Cores para as etiquetas de relacionamento - design minimalista corporativo com cores mais escuras */
 .relationship-select[data-value="Requerente"] {
-  background-color: rgba(16, 185, 129, 0.4); /* Verde com 40% de opacidade */
-  color: #065f46; /* Cor do texto mais escura */
-  box-shadow: 0 0 0 1px #10b981;
+  background-color: #059669; /* Verde mais escuro */
+  color: white;
 }
 
 .relationship-select[data-value="Instituidor"] {
-  background-color: rgba(139, 92, 246, 0.4); /* Roxo com 40% de opacidade */
-  color: #5b21b6; /* Cor do texto mais escura */
-  box-shadow: 0 0 0 1px #8b5cf6;
+  background-color: #7c3aed; /* Roxo mais escuro */
+  color: white;
 }
 
 .relationship-select[data-value="Dependente"] {
-  background-color: rgba(249, 115, 22, 0.4); /* Laranja com 40% de opacidade */
-  color: #9a3412; /* Cor do texto mais escura */
-  box-shadow: 0 0 0 1px #f97316;
+  background-color: #ea580c; /* Laranja mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Representante"] {
+  background-color: #ca8a04; /* Amarelo mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Requerente Rep."] {
+  background-color: #0284c7; /* Azul ciano mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Litsconsorte"] {
+  background-color: #1d4ed8; /* Azul mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Titular"] {
+  background-color: #1d4ed8; /* Azul mais escuro */
+  color: white;
 }
 
 .relationship-select[data-value="Responsável"] {
-  background-color: rgba(239, 68, 68, 0.4); /* Vermelho com 40% de opacidade */
-  color: #b91c1c; /* Cor do texto mais escura */
-  box-shadow: 0 0 0 1px #ef4444;
+  background-color: #b91c1c; /* Vermelho mais escuro */
+  color: white;
 }
 
 .relationship-select[data-value="Procurador"] {
-  background-color: rgba(6, 182, 212, 0.4); /* Ciano com 40% de opacidade */
-  color: #0e7490; /* Cor do texto mais escura */
-  box-shadow: 0 0 0 1px #06b6d4;
+  background-color: #0369a1; /* Azul turquesa mais escuro */
+  color: white;
 }
 
 .relationship-select[data-value="Representante Legal"] {
-  background-color: rgba(234, 179, 8, 0.4); /* Amarelo com 40% de opacidade */
-  color: #854d0e; /* Cor do texto mais escura */
-  box-shadow: 0 0 0 1px #eab308;
+  background-color: #ca8a04; /* Amarelo mais escuro */
+  color: white;
 }
 
 .relationship-select[data-value="Beneficiário"] {
-  background-color: rgba(236, 72, 153, 0.4); /* Rosa com 40% de opacidade */
-  color: #9d174d; /* Cor do texto mais escura */
-  box-shadow: 0 0 0 1px #ec4899;
+  background-color: #be185d; /* Rosa mais escuro */
+  color: white;
 }
 
 /* Estilos para a validação de CPF e CEP */
 .cpf-valid, .cep-valid, .field-valid {
-  background-color: #d1fae5 !important;
+  background-color: transparent !important;
   border-color: #10b981 !important;
   transition: all 0.3s ease;
 }
 
 .cpf-invalid, .cep-invalid, .field-invalid {
-  background-color: #fee2e2 !important;
+  background-color: transparent !important;
   border-color: #ef4444 !important;
   transition: all 0.3s ease;
-}
-
-.validation-message {
-  position: absolute;
-  font-size: 0.75rem;
-  bottom: -1.25rem;
-  left: 0;
-  z-index: 10;
-  transition: opacity 0.3s ease;
-}
-
-.validation-message.valid {
-  color: #10b981;
-}
-
-.validation-message.invalid {
-  color: #ef4444;
-}
-
-/* Estilos para mensagens de validação */
-.validation-message {
-  position: absolute;
-  bottom: -18px;
-  right: 0;
-  font-size: 11px;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.validation-message.validation-active {
-  opacity: 1;
-}
-
-.validation-message.validation-error {
-  color: #e53935;
-}
-
-.validation-message:not(.validation-error) {
-  color: #4caf50;
-}
-
-/* Estilos para campos com validação */
-input.cpf-valid,
-input.cep-valid {
-  border-bottom-color: #4caf50 !important;
-}
-
-input.cpf-invalid,
-input.cep-invalid {
-  border-bottom-color: #e53935 !important;
 }
 
 /* Botão CadÚnico */

@@ -196,10 +196,37 @@ function applyRelationshipStyles() {
     // Aplicar a classe inicialmente com base na opção selecionada
     const selectedValue = select.value;
     const container = select.closest('.relationship-select');
+
     if (container) {
       // Garantir que tanto data-selected quanto data-value estejam configurados
       container.setAttribute('data-selected', selectedValue);
       container.setAttribute('data-value', selectedValue);
+
+      // Remover o retângulo cinza fazendo o select ficar invisível mas funcional
+      select.style.opacity = "0";
+      select.style.position = "absolute";
+      select.style.width = "100%";
+      select.style.height = "100%";
+      select.style.left = "0";
+      select.style.top = "0";
+      select.style.cursor = "pointer";
+
+      // Garantir que o texto da etiqueta está visível
+      container.style.color = "white";
+      container.style.display = "flex";
+      container.style.alignItems = "center";
+      container.style.justifyContent = "center";
+      container.style.zIndex = "20";
+
+      // Adicionar o texto da etiqueta diretamente no container
+      if (!container.querySelector('.relationship-label')) {
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'relationship-label';
+        labelSpan.textContent = selectedValue;
+        container.appendChild(labelSpan);
+      } else {
+        container.querySelector('.relationship-label').textContent = selectedValue;
+      }
     }
 
     // Adicionar evento change se ainda não tiver
@@ -214,20 +241,13 @@ function applyRelationshipStyles() {
           // Atualizar tanto data-selected quanto data-value para manter a consistência visual
           container.setAttribute('data-selected', newValue);
           container.setAttribute('data-value', newValue);
+
+          // Atualizar também o texto da etiqueta
+          const labelSpan = container.querySelector('.relationship-label');
+          if (labelSpan) {
+            labelSpan.textContent = newValue;
+          }
         }
-      });
-
-      // Substituir os options com versões estilizadas
-      const options = select.querySelectorAll('option');
-      options.forEach(option => {
-        // Adicionar classe baseada no valor da opção
-        const value = option.value;
-        const className = value.toLowerCase()
-          .replace('representante legal', 'representante')
-          .replace('beneficiário', 'beneficiario')
-          .replace('responsável', 'responsavel');
-
-        option.className = `relationship-option ${className}`;
       });
     }
   });
