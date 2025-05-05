@@ -12,14 +12,24 @@ function maskCPF(input) {
   value = value.replace(/\.(\d{3})(\d)/, '.$1-$2');
 
   input.value = value;
+  validateCPF(input);
 }
 
 // Função para validar CPF
 function validateCPF(input) {
   let cpf = input.value.replace(/\D/g, '');
 
-  // Verificações básicas
+  // Remover classes de validação existentes
+  input.classList.remove('cpf-valid', 'cpf-invalid');
+
+  // Remover mensagem de validação anterior
+  const parentDiv = input.parentElement;
+  const prevMessage = parentDiv.querySelector('.validation-message');
+  if (prevMessage) prevMessage.remove();
+
   if (cpf.length !== 11) return false;
+
+  // Verificar se todos os dígitos são iguais
   if (/^(\d)\1{10}$/.test(cpf)) return false;
 
   // Validação do primeiro dígito verificador
@@ -39,7 +49,35 @@ function validateCPF(input) {
   let digit2 = remainder < 2 ? 0 : 11 - remainder;
 
   // Verificar se os dígitos calculados são iguais aos dígitos informados
-  return (parseInt(cpf.charAt(9)) === digit1 && parseInt(cpf.charAt(10)) === digit2);
+  const isValid = (parseInt(cpf.charAt(9)) === digit1 && parseInt(cpf.charAt(10)) === digit2);
+
+  if (isValid) {
+    // CPF válido - feedback visual verde
+    input.classList.add('cpf-valid');
+
+    // Adicionar mensagem de confirmação com etiqueta de status
+    const validMessage = document.createElement('div');
+    validMessage.className = 'validation-message valid';
+    validMessage.innerHTML = '<span class="status-tag success"><i class="fas fa-check-circle"></i> CPF válido</span>';
+    parentDiv.appendChild(validMessage);
+
+    // Remover depois de 1.5 segundos
+    setTimeout(() => {
+      input.classList.remove('cpf-valid');
+      if (validMessage.parentElement) validMessage.remove();
+    }, 1500);
+  } else {
+    // CPF inválido - feedback visual vermelho
+    input.classList.add('cpf-invalid');
+
+    // Adicionar mensagem de erro com etiqueta de status
+    const invalidMessage = document.createElement('div');
+    invalidMessage.className = 'validation-message invalid';
+    invalidMessage.innerHTML = '<span class="status-tag error"><i class="fas fa-exclamation-circle"></i> CPF inválido</span>';
+    parentDiv.appendChild(invalidMessage);
+  }
+
+  return isValid;
 }
 
 // Função para formatar CEP
@@ -52,6 +90,14 @@ function maskCEP(input) {
   }
 
   input.value = value;
+
+  // Remover classes de validação existentes
+  input.classList.remove('cep-valid', 'cep-invalid');
+
+  // Remover mensagem de validação anterior
+  const parentDiv = input.parentElement;
+  const prevMessage = parentDiv.querySelector('.validation-message');
+  if (prevMessage) prevMessage.remove();
 }
 
 // Função para consultar CEP na API ViaCEP
@@ -60,40 +106,45 @@ function consultarCEP(cep) {
   if (cep.length !== 8) return;
 
   const cepInput = document.getElementById('cep');
-  const parentElement = cepInput.parentElement;
 
-  // Procurar etiqueta existente ou criar nova
-  let cepTag = parentElement.querySelector('.tag-cep');
-  if (!cepTag) {
-    cepTag = createTag({
-      text: 'Consultando CEP...',
-      color: 'blue',
-      size: 'sm',
-      position: 'float-right',
-      animated: true
-    });
-    cepTag.classList.add('tag-cep');
-    parentElement.appendChild(cepTag);
-  } else {
-    cepTag.className = 'tag tag-blue tag-sm tag-float-right tag-animated tag-cep';
-    updateTagText(cepTag, 'Consultando CEP...');
-    cepTag.style.display = 'inline-flex';
-    cepTag.style.opacity = '1';
-  }
+  // Feedback visual de carregamento
+  cepInput.classList.remove('cep-valid', 'cep-invalid');
+  cepInput.style.backgroundImage = "url('data:image/svg+xml;charset=utf8,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cpath fill=\"%232563eb\" d=\"M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50\"%3E%3CanimateTransform attributeName=\"transform\" attributeType=\"XML\" type=\"rotate\" dur=\"1s\" from=\"0 50 50\" to=\"360 50 50\" repeatCount=\"indefinite\" /%3E%3C/path%3E%3C/svg%3E')";
+  cepInput.style.backgroundRepeat = "no-repeat";
+  cepInput.style.backgroundPosition = "right 10px center";
+  cepInput.style.backgroundSize = "20px 20px";
+
+  // Remover mensagem de validação anterior
+  const parentDiv = cepInput.parentElement;
+  const prevMessage = parentDiv.querySelector('.validation-message');
+  if (prevMessage) prevMessage.remove();
 
   fetch(`https://viacep.com.br/ws/${cep}/json/`)
     .then(response => response.json())
     .then(data => {
+      // Remover indicador de carregamento
+      cepInput.style.backgroundImage = "none";
+
       if (data.erro) {
-        // CEP inválido
-        cepTag.className = 'tag tag-invalid tag-sm tag-float-right tag-animated tag-cep';
-        updateTagText(cepTag, 'CEP não encontrado');
+        // CEP inválido ou não encontrado
+        cepInput.classList.add('cep-invalid');
+
+        // Adicionar mensagem de erro com etiqueta de status
+        const invalidMessage = document.createElement('div');
+        invalidMessage.className = 'validation-message invalid';
+        invalidMessage.innerHTML = '<span class="status-tag error"><i class="fas fa-exclamation-circle"></i> CEP não encontrado</span>';
+        parentDiv.appendChild(invalidMessage);
         return;
       }
 
-      // CEP válido
-      cepTag.className = 'tag tag-valid tag-sm tag-float-right tag-animated tag-cep';
-      updateTagText(cepTag, 'CEP encontrado');
+      // CEP válido - feedback visual verde
+      cepInput.classList.add('cep-valid');
+
+      // Adicionar mensagem de confirmação com etiqueta de status
+      const validMessage = document.createElement('div');
+      validMessage.className = 'validation-message valid';
+      validMessage.innerHTML = '<span class="status-tag success"><i class="fas fa-check-circle"></i> CEP encontrado</span>';
+      parentDiv.appendChild(validMessage);
 
       // Preencher campos de endereço
       document.getElementById('bairro').value = data.bairro || '';
@@ -106,18 +157,24 @@ function consultarCEP(cep) {
         document.getElementById('numero').focus();
       }
 
-      // Remover tag de confirmação após 3 segundos
+      // Remover feedback visual depois de 1.5 segundos
       setTimeout(() => {
-        cepTag.style.opacity = '0';
-        setTimeout(() => {
-          cepTag.style.display = 'none';
-        }, 300);
-      }, 3000);
+        cepInput.classList.remove('cep-valid');
+        if (validMessage.parentElement) validMessage.remove();
+      }, 1500);
     })
     .catch(error => {
+      // Remover indicador de carregamento
+      cepInput.style.backgroundImage = "none";
+
       // Erro na consulta
-      cepTag.className = 'tag tag-invalid tag-sm tag-float-right tag-animated tag-cep';
-      updateTagText(cepTag, 'Erro ao consultar CEP');
+      cepInput.classList.add('cep-invalid');
+
+      // Adicionar mensagem de erro com etiqueta de status
+      const errorMessage = document.createElement('div');
+      errorMessage.className = 'validation-message invalid';
+      errorMessage.innerHTML = '<span class="status-tag error"><i class="fas fa-exclamation-triangle"></i> Erro ao consultar CEP</span>';
+      parentDiv.appendChild(errorMessage);
     });
 }
 
@@ -278,160 +335,110 @@ function listarTodosRegistros() {
 }
 
 /**
- * Funções para o sistema de etiquetas (tags)
+ * Sistema de etiquetas de status globais
+ * Permite criar mensagens padronizadas em todo o sistema
  */
 
-// Criar uma tag
-function createTag(options) {
-  const {
-    text,
-    icon,
-    color = 'neutral',
-    size = 'md',
-    position = 'inline',
-    clickable = false,
-    active = false,
-    animated = false,
-    onClick = null
-  } = options;
+/**
+ * Cria uma etiqueta de status padronizada
+ * @param {string} message - Mensagem a ser exibida
+ * @param {string} type - Tipo de etiqueta: success, error, warning, info
+ * @param {string} icon - Ícone Font Awesome (sem o 'fa-')
+ * @param {Element} container - Elemento onde a etiqueta será adicionada
+ * @param {number} timeout - Tempo em ms para remover a etiqueta (0 para não remover)
+ * @returns {Element} - O elemento de etiqueta criado
+ */
+function createStatusTag(message, type = 'info', icon, container, timeout = 0) {
+  // Definir ícones padrão para cada tipo
+  const defaultIcons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  };
 
-  // Criar elemento div para a tag
-  const tag = document.createElement('div');
+  // Usar ícone específico ou o padrão para o tipo
+  const iconClass = icon || defaultIcons[type] || 'info-circle';
 
-  // Classes base
-  let classes = ['tag', `tag-${color}`, `tag-${size}`, `tag-${position}`];
+  // Remover etiquetas anteriores do mesmo tipo no container
+  removeStatusTags(container, type);
 
-  // Classes opcionais
-  if (clickable) classes.push('tag-clickable');
-  if (active) classes.push('active');
-  if (animated) classes.push('tag-animated');
+  // Criar elemento da etiqueta
+  const statusTag = document.createElement('span');
+  statusTag.className = `status-tag ${type}`;
+  statusTag.innerHTML = `<i class="fas fa-${iconClass}"></i> ${message}`;
 
-  // Aplicar classes
-  tag.className = classes.join(' ');
-
-  // Adicionar ícone, se especificado
-  if (icon) {
-    const iconElement = document.createElement('i');
-    iconElement.className = icon;
-    tag.appendChild(iconElement);
+  // Adicionar etiqueta ao container
+  if (container) {
+    container.appendChild(statusTag);
   }
 
-  // Adicionar o texto
-  const textSpan = document.createElement('span');
-  textSpan.textContent = text;
-  tag.appendChild(textSpan);
-
-  // Adicionar evento de clique, se especificado
-  if (onClick) {
-    tag.addEventListener('click', onClick);
-  }
-
-  return tag;
-}
-
-// Função para alternar o estado ativo de uma tag
-function toggleTag(tag, active = null) {
-  if (active === null) {
-    // Alternar o estado atual
-    tag.classList.toggle('active');
-  } else if (active) {
-    // Forçar estado ativo
-    tag.classList.add('active');
-  } else {
-    // Forçar estado inativo
-    tag.classList.remove('active');
-  }
-}
-
-// Atualizar texto de uma tag
-function updateTagText(tag, newText) {
-  const textSpan = tag.querySelector('span');
-  if (textSpan) {
-    textSpan.textContent = newText;
-  }
-}
-
-// Criar uma tag de validação para um campo de formulário
-function createValidationTag(inputField, position = 'float-right') {
-  // Criar a tag
-  const tag = createTag({
-    text: 'Verificando...',
-    color: 'neutral',
-    size: 'sm',
-    position: position
-  });
-
-  // Adicionar à página
-  const parentElement = inputField.parentElement;
-  parentElement.style.position = 'relative';
-  parentElement.appendChild(tag);
-
-  // Inicialmente ocultar
-  tag.style.display = 'none';
-
-  return tag;
-}
-
-// Atualizar tag de validação
-function updateValidationTag(tag, isValid, message) {
-  // Mostrar a tag
-  tag.style.display = 'inline-flex';
-
-  // Atualizar classes com base na validação
-  if (isValid) {
-    tag.className = tag.className.replace(/tag-\w+/g, 'tag-valid');
-  } else {
-    tag.className = tag.className.replace(/tag-\w+/g, 'tag-invalid');
-  }
-
-  // Atualizar texto
-  updateTagText(tag, message);
-
-  // Adicionar animação
-  tag.classList.add('tag-animated');
-
-  // Se quiser que a tag desapareça após alguns segundos
-  setTimeout(() => {
-    tag.style.opacity = '0';
+  // Configurar remoção automática após timeout
+  if (timeout > 0) {
     setTimeout(() => {
-      tag.style.display = 'none';
-      tag.style.opacity = '1';
-    }, 300);
-  }, 3000);
+      if (statusTag.parentElement) {
+        statusTag.remove();
+      }
+    }, timeout);
+  }
+
+  return statusTag;
 }
 
-// Criar uma tag WhatsApp
-function createWhatsAppTag(inputField) {
-  // Criar a tag
-  const tag = createTag({
-    text: 'WhatsApp',
-    icon: 'fab fa-whatsapp',
-    color: 'whatsapp',
-    size: 'sm',
-    position: 'float-right',
-    clickable: true
-  });
+/**
+ * Remove etiquetas de status de um container
+ * @param {Element} container - O container das etiquetas
+ * @param {string} type - Tipo específico a remover (opcional)
+ */
+function removeStatusTags(container, type = null) {
+  if (!container) return;
 
-  // Adicionar checkbox oculto
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.name = inputField.name + '_whatsapp';
-  checkbox.value = 'Sim';
-  checkbox.style.display = 'none';
-  tag.appendChild(checkbox);
+  const selector = type ?
+    `.status-tag.${type}` :
+    '.status-tag';
 
-  // Adicionar evento de clique para alternar o estado
-  tag.addEventListener('click', () => {
-    toggleTag(tag);
-    checkbox.checked = tag.classList.contains('active');
-  });
+  const tags = container.querySelectorAll(selector);
+  tags.forEach(tag => tag.remove());
+}
 
-  // Adicionar à página
-  const parentElement = inputField.parentElement;
-  parentElement.style.position = 'relative';
-  parentElement.appendChild(tag);
+/**
+ * Cria uma etiqueta de sucesso
+ * @param {string} message - Mensagem de sucesso
+ * @param {Element} container - Container para adicionar a etiqueta
+ * @param {number} timeout - Tempo para remover automaticamente (ms)
+ */
+function showSuccess(message, container, timeout = 3000) {
+  return createStatusTag(message, 'success', null, container, timeout);
+}
 
-  return tag;
+/**
+ * Cria uma etiqueta de erro
+ * @param {string} message - Mensagem de erro
+ * @param {Element} container - Container para adicionar a etiqueta
+ * @param {number} timeout - Tempo para remover automaticamente (ms)
+ */
+function showError(message, container, timeout = 0) {
+  return createStatusTag(message, 'error', null, container, timeout);
+}
+
+/**
+ * Cria uma etiqueta de aviso
+ * @param {string} message - Mensagem de aviso
+ * @param {Element} container - Container para adicionar a etiqueta
+ * @param {number} timeout - Tempo para remover automaticamente (ms)
+ */
+function showWarning(message, container, timeout = 5000) {
+  return createStatusTag(message, 'warning', null, container, timeout);
+}
+
+/**
+ * Cria uma etiqueta de informação
+ * @param {string} message - Mensagem informativa
+ * @param {Element} container - Container para adicionar a etiqueta
+ * @param {number} timeout - Tempo para remover automaticamente (ms)
+ */
+function showInfo(message, container, timeout = 4000) {
+  return createStatusTag(message, 'info', null, container, timeout);
 }
 
 // Funções de exportação
@@ -449,9 +456,13 @@ window.formatarNomeProprio = formatarNomeProprio;
 window.salvarLocalStorage = salvarLocalStorage;
 window.carregarLocalStorage = carregarLocalStorage;
 window.listarTodosRegistros = listarTodosRegistros;
-window.createTag = createTag;
-window.toggleTag = toggleTag;
-window.updateTagText = updateTagText;
-window.createValidationTag = createValidationTag;
-window.updateValidationTag = updateValidationTag;
-window.createWhatsAppTag = createWhatsAppTag;
+window.createStatusTag = createStatusTag;
+window.removeStatusTags = removeStatusTags;
+window.createSuccessTag = createSuccessTag;
+window.createErrorTag = createErrorTag;
+window.createWarningTag = createWarningTag;
+window.createInfoTag = createInfoTag;
+window.showSuccess = showSuccess;
+window.showError = showError;
+window.showWarning = showWarning;
+window.showInfo = showInfo;

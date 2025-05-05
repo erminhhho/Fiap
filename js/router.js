@@ -42,6 +42,16 @@ const routes = {
   }
 };
 
+// Mapa de rotas com seus respectivos números de etapas
+const routeSteps = {
+  'personal': 1,
+  'social': 2,
+  'incapacity': 3,
+  'insurance': 4,
+  'professional': 5,
+  'documents': 6
+};
+
 // Estado atual da navegação
 let currentRoute = null;
 
@@ -172,6 +182,56 @@ function updateNavSlider() {
   }
 }
 
+// Função para navegar para a próxima etapa
+function navigateToNextStep() {
+  // Obtém a rota atual
+  const currentRoute = window.location.hash.substring(1) || 'personal';
+
+  // Obtém o número da etapa atual
+  const currentStep = routeSteps[currentRoute];
+
+  // Encontra a próxima rota baseada no número da etapa
+  let nextRoute = '';
+  Object.entries(routeSteps).forEach(([route, step]) => {
+    if (step === currentStep + 1) {
+      nextRoute = route;
+    }
+  });
+
+  // Se encontrou uma próxima rota, navega para ela
+  if (nextRoute) {
+    window.location.hash = nextRoute;
+    return true;
+  }
+
+  return false; // Não há próxima etapa
+}
+
+// Função para navegar para a etapa anterior
+function navigateToPrevStep() {
+  // Obtém a rota atual
+  const currentRoute = window.location.hash.substring(1) || 'personal';
+
+  // Obtém o número da etapa atual
+  const currentStep = routeSteps[currentRoute];
+
+  // Encontra a rota anterior baseada no número da etapa
+  let prevRoute = '';
+  Object.entries(routeSteps).forEach(([route, step]) => {
+    if (step === currentStep - 1) {
+      prevRoute = route;
+    }
+  });
+
+  // Se encontrou uma rota anterior, navega para ela
+  if (prevRoute) {
+    window.location.hash = prevRoute;
+    return true;
+  }
+
+  return false; // Não há etapa anterior
+}
+
 // Inicialização do router
 function initRouter() {
   // Adicionar listeners para os links de navegação
@@ -202,3 +262,6 @@ function initRouter() {
 // Exportar funções
 window.navigateTo = navigateTo;
 window.initRouter = initRouter;
+window.navigateToNextStep = navigateToNextStep;
+window.navigateToPreviousStep = navigateToPreviousStep;
+window.navigateToPrevStep = navigateToPrevStep;

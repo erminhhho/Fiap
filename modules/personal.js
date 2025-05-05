@@ -9,7 +9,7 @@ window.initModule = null;
 let authorCount = 1;
 
 // Array com etiquetas para os autores adicionais
-const authorLabels = ['Requerente', 'Instituidor', 'Dependente', 'Responsável', 'Procurador', 'Representante Legal', 'Titular', 'Beneficiário'];
+const authorLabels = ['Requerente', 'Instituidor', 'Dependente', 'Representante', 'Requerente Rep.', 'Litsconsorte'];
 
 // Função para adicionar um novo autor
 function addAuthor() {
@@ -32,7 +32,7 @@ function addAuthor() {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative flex-grow">
         <!-- Nome com seletor de relacionamento -->
         <div class="relative">
-          <div class="relationship-select" data-selected="${authorLabels[0]}">
+          <div class="relationship-select" data-selected="${authorLabels[0]}" onclick="toggleRelationshipTag(this)">
             <select id="relationship_${authorCount}" name="relationship_${authorCount}" onchange="updateRelationshipLabel(this, ${authorCount})">
               ${relationshipOptions}
             </select>
@@ -116,6 +116,26 @@ function toggleWhatsAppTag(element) {
   }
 }
 
+// Função para ativar/desativar a etiqueta de relacionamento
+function toggleRelationshipTag(element) {
+  // Obter o tipo de relacionamento atual
+  const currentRelationship = element.getAttribute('data-selected');
+  const relationshipValue = element.getAttribute('data-value') || element.querySelector('select').value;
+
+  // Garantir que sempre tenhamos o data-value para aplicar a cor correta
+  if (!element.hasAttribute('data-value')) {
+    element.setAttribute('data-value', relationshipValue);
+  }
+
+  // Se já tem um relacionamento selecionado, vamos deixá-lo no formato padrão
+  if (currentRelationship) {
+    element.removeAttribute('data-selected');
+  } else {
+    // Caso contrário, vamos usar o valor do data-value como o tipo de relacionamento selecionado
+    element.setAttribute('data-selected', relationshipValue);
+  }
+}
+
 // Função para remover um autor específico pelo seu ID
 function removeSpecificAuthor(authorId) {
   if (authorCount <= 1) return; // Sempre manter pelo menos um autor
@@ -163,6 +183,7 @@ function updateRelationshipLabel(selectElement, authorId) {
   const relationshipSelect = selectElement.closest('.relationship-select');
   if (relationshipSelect) {
     relationshipSelect.setAttribute('data-selected', selectedValue);
+    relationshipSelect.setAttribute('data-value', selectedValue); // Atualizar o data-value para exibir o texto correto
   }
 }
 
@@ -176,12 +197,25 @@ function applyRelationshipStyles() {
     const selectedValue = select.value;
     const container = select.closest('.relationship-select');
     if (container) {
+      // Garantir que tanto data-selected quanto data-value estejam configurados
       container.setAttribute('data-selected', selectedValue);
+      container.setAttribute('data-value', selectedValue);
     }
 
     // Adicionar evento change se ainda não tiver
     if (!select.dataset.styleInitialized) {
       select.dataset.styleInitialized = true;
+
+      // Adicionar um evento onchange para atualizar o data-value quando a seleção mudar
+      select.addEventListener('change', function() {
+        const newValue = this.value;
+        const container = this.closest('.relationship-select');
+        if (container) {
+          // Atualizar tanto data-selected quanto data-value para manter a consistência visual
+          container.setAttribute('data-selected', newValue);
+          container.setAttribute('data-value', newValue);
+        }
+      });
 
       // Substituir os options com versões estilizadas
       const options = select.querySelectorAll('option');
@@ -205,12 +239,12 @@ window.removeLastAuthor = removeLastAuthor;
 window.removeSpecificAuthor = removeSpecificAuthor;
 window.updateRelationshipLabel = updateRelationshipLabel;
 window.toggleWhatsAppTag = toggleWhatsAppTag;
+window.toggleRelationshipTag = toggleRelationshipTag;
 
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
   setupEvents();
-  applyRelationshipStyles();
-  setupValidationTags(); // Adicionamos esta linha
+  applyRelationshipStyles(); // Adicionar chamada para aplicar estilos
 };
 
 // Função para configurar eventos do módulo
@@ -241,87 +275,5 @@ function setupEvents() {
     cepInput.addEventListener('input', function() {
       maskCEP(this);
     });
-
-    cepInput.addEventListener('blur', function() {
-      // Ao sair do campo CEP, mostrar tag de validação
-      if (this.value.replace(/\D/g, '').length === 8) {
-        const cepTag = this.parentElement.querySelector('.tag-cep-validating') ||
-                      createTag({
-                        text: 'Consultando CEP...',
-                        color: 'blue',
-                        size: 'sm',
-                        position: 'float-right',
-                        animated: true
-                      });
-
-        cepTag.className = 'tag tag-blue tag-sm tag-float-right tag-animated tag-cep-validating';
-        updateTagText(cepTag, 'Consultando CEP...');
-        this.parentElement.appendChild(cepTag);
-      }
-    });
   }
-
-  // Ao preencher CPF, mostrar tag de validação
-  const cpfInput = document.getElementById('cpf');
-  if (cpfInput) {
-    cpfInput.addEventListener('blur', function() {
-      if (this.value.replace(/\D/g, '').length === 11) {
-        const isValid = validateCPF(this);
-
-        // Ao invés de usar a função antiga de validação, usamos nosso novo sistema de etiquetas
-        const cpfTag = this.parentElement.querySelector('.tag-cpf-validation') ||
-                      createTag({
-                        text: isValid ? 'CPF válido' : 'CPF inválido',
-                        icon: isValid ? 'fas fa-check-circle' : 'fas fa-times-circle',
-                        color: isValid ? 'valid' : 'invalid',
-                        size: 'sm',
-                        position: 'float-right',
-                        animated: true
-                      });
-
-        cpfTag.className = `tag tag-${isValid ? 'valid' : 'invalid'} tag-sm tag-float-right tag-animated tag-cpf-validation`;
-        updateTagText(cpfTag, isValid ? 'CPF válido' : 'CPF inválido');
-
-        if (!this.parentElement.querySelector('.tag-cpf-validation')) {
-          this.parentElement.appendChild(cpfTag);
-        }
-
-        // Mostrar por 3 segundos e ocultar se for válido
-        if (isValid) {
-          setTimeout(() => {
-            cpfTag.style.opacity = '0';
-            setTimeout(() => {
-              if (cpfTag.parentElement) {
-                cpfTag.remove();
-              }
-            }, 300);
-          }, 3000);
-        }
-      }
-    });
-  }
-}
-
-// Configurar etiquetas de validação para campos
-function setupValidationTags() {
-  // Configurar os campos onde queremos etiquetas de validação
-  const fieldsToSetup = [
-    { id: 'cpf', type: 'cpf' },
-    { id: 'cep', type: 'cep' },
-    { id: 'telefone', type: 'phone' }
-  ];
-
-  fieldsToSetup.forEach(fieldInfo => {
-    const field = document.getElementById(fieldInfo.id);
-    if (field) {
-      // Se for campo de telefone, adicionar etiqueta de WhatsApp
-      if (fieldInfo.type === 'phone') {
-        // A etiqueta já foi adicionada no HTML, não precisamos adicionar via JS
-      }
-      // Para campos CPF e CEP, preparamos para adicionar etiquetas de validação quando necessário
-    }
-  });
-
-  // Atualizar a função de validação de CPF original para usar nossas etiquetas
-  // (Isso é feito diretamente no evento 'blur' configurado acima)
 }

@@ -14,7 +14,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative flex-grow">
               <!-- Nome com seletor de relacionamento -->
               <div class="relative">
-                <div class="relationship-select" data-selected="Titular">
+                <div class="relationship-select" data-selected="Titular" data-value="Titular" onclick="toggleRelationshipTag(this)">
                   <select id="relationship_1" name="relationship_1" onchange="updateRelationshipLabel(this, 1)">
                     <option value="Titular" class="relationship-option titular">Titular</option>
                     <option value="Requerente" class="relationship-option requerente">Requerente</option>
@@ -99,9 +99,9 @@
                     class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
                     Telefone
                   </label>
-                  <!-- Usamos a nova API de tags para WhatsApp -->
-                  <div class="tag tag-whatsapp tag-sm tag-float-right tag-clickable" onclick="toggleWhatsAppTag(this)">
-                    <input type="checkbox" id="whatsapp_check" name="telefone_whatsapp" value="Sim" style="display:none;">
+                  <!-- Etiqueta WhatsApp no canto superior direito -->
+                  <div class="whatsapp-tag" onclick="toggleWhatsAppTag(this)">
+                    <input type="checkbox" id="whatsapp_check" name="telefone_whatsapp" value="Sim">
                     <i class="fab fa-whatsapp"></i>
                     <span>WhatsApp</span>
                   </div>
