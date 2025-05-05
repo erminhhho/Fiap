@@ -6,6 +6,59 @@ input:focus, select:focus, textarea:focus {
   box-shadow: none !important; /* Removendo a sombra */
 }
 
+/* SOLUÇÃO DEFINITIVA PARA COR DO TEXTO */
+html body form input:not([type="button"]):not([type="submit"]):not([type="reset"]),
+html body form select,
+html body form textarea,
+html body form .peer,
+html body *[class*="field-"],
+html body *[class*="cep-"],
+html body *[class*="cpf-"] {
+  color: #1F2937 !important;
+  -webkit-text-fill-color: #1F2937 !important;
+}
+
+/* Garantir cor de texto visível em todos os estados dos campos */
+input, select, textarea,
+input.field-filled,
+input.field-valid,
+input.field-invalid,
+input.cpf-valid,
+input.cpf-invalid,
+input.cep-valid,
+input.cep-invalid,
+.peer,
+.peer:focus,
+.peer:not(:placeholder-shown) {
+  color: #1F2937 !important; /* Cinza escuro para garantir contraste e visibilidade */
+}
+
+/* Solução mais robusta para a cor do texto em campos preenchidos */
+input:not([type="button"]):not([type="submit"]):not([type="reset"]),
+select,
+textarea {
+  color: #1F2937 !important; /* Cinza escuro para todos os campos */
+}
+
+/* Forçar especificamente para os campos quando têm classes de validação */
+input.field-valid, input.cpf-valid, input.cep-valid,
+input.field-invalid, input.cpf-invalid, input.cep-invalid,
+input.field-filled {
+  color: #1F2937 !important;
+}
+
+/* Forçar ainda mais prioridade para campos preenchidos */
+body input:not(:placeholder-shown),
+body select:not(:placeholder-shown),
+body textarea:not(:placeholder-shown) {
+  color: #1F2937 !important;
+}
+
+/* Para selects que podem ter regras específicas */
+select, select option {
+  color: #1F2937 !important;
+}
+
 /* Novo estilo para labels posicionadas no canto superior direito */
 .form-field {
   position: relative;
@@ -97,17 +150,18 @@ select option,
 .validation-message {
   position: absolute;
   font-size: 0.75rem;
-  right: 0;
-  bottom: -20px;
-  color: #10B981; /* Verde para mensagens de sucesso */
-  transition: all 0.3s ease;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  left: 0; /* Alinhado à esquerda */
+  bottom: -1.25rem; /* Pequena margem abaixo do campo */
+  transition: all 0.2s ease;
+  z-index: 5;
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  display: block; /* Alterado de flex para block */
 }
 
-/* Variações de estados para mensagens de validação */
+/* Variações de estados para mensagens de validação - apenas cores diferenciadas */
 .validation-message.error,
 .validation-message.validation-error {
   color: #EF4444; /* Vermelho para erros */
@@ -122,18 +176,27 @@ select option,
   color: #10B981; /* Verde para sucesso */
 }
 
-.validation-message i {
-  font-size: 0.85rem;
+/* Ícone dentro do campo alinhado à direita */
+.validation-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  font-size: 1rem;
+  pointer-events: none;
 }
 
-/* Animação sutil para feedback visual */
-@keyframes validationPulse {
-  0% { opacity: 0; transform: translateY(-5px); }
-  100% { opacity: 1; transform: translateY(0); }
+.validation-icon.error {
+  color: #EF4444;
 }
 
-.validation-message {
-  animation: validationPulse 0.3s ease-out;
+.validation-icon.warning {
+  color: #F59E0B;
+}
+
+.validation-icon.success {
+  color: #10B981;
 }
 
 /* Visibilidade das mensagens de validação */
@@ -146,22 +209,36 @@ select option,
 .invalid .validation-message.error,
 .warning .validation-message.warning {
   opacity: 1;
-  display: flex;
+  display: block; /* Alterado de flex para block */
 }
 
 /* Ajuste para input com mensagem de validação */
-.with-validation {
-  padding-right: 100px !important; /* Espaço para a mensagem de validação */
+.field-valid,
+.cpf-valid,
+.cep-valid {
+  border-color: #10b981 !important;
+  padding-right: 2.5rem !important; /* Espaço para o ícone */
 }
 
-/* Status dos campos com validação - modificado para usar transparência */
+.field-invalid,
+.cpf-invalid,
+.cep-invalid {
+  border-color: #ef4444 !important;
+  padding-right: 2.5rem !important; /* Espaço para o ícone */
+}
+
+/* Remover o padding-right específico da classe .with-validation */
+.with-validation {
+  padding-right: inherit !important;
+}
+
+/* Status dos campos com validação - apenas bordas coloridas */
 .form-control.field-valid,
 .cpf-valid,
 .cep-valid,
 .field-valid {
   border-color: #10b981 !important;
   background-color: transparent !important;
-  transition: all 0.3s ease;
 }
 
 .form-control.field-invalid,
@@ -170,63 +247,6 @@ select option,
 .field-invalid {
   border-color: #ef4444 !important;
   background-color: transparent !important;
-  transition: all 0.3s ease;
-}
-
-/* Estilo para mensagens de validação */
-.validation-message {
-  position: absolute;
-  bottom: -20px;
-  right: 10px;
-  font-size: 0.75rem;
-  color: #10B981;  /* Cor verde para validações bem-sucedidas */
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.validation-message.error {
-  color: #EF4444; /* Vermelho para erros */
-}
-
-.validation-active {
-  opacity: 1;
-}
-
-/* Estilo para mensagens de validação */
-.validation-message {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.75rem;
-  color: #10B981; /* Verde para mensagens de sucesso */
-  display: none;
-  align-items: center;
-  gap: 4px;
-}
-
-.validation-message.error {
-  color: #EF4444; /* Vermelho para erros */
-}
-
-.validation-message.warning {
-  color: #F59E0B; /* Amarelo para avisos */
-}
-
-.validation-message i {
-  font-size: 0.85rem;
-}
-
-/* Mostrar mensagem de validação quando o campo possui a classe validado ou invalido */
-.validated .validation-message.success,
-.invalid .validation-message.error,
-.warning .validation-message.warning {
-  display: flex;
-}
-
-/* Ajuste para input com mensagem de validação */
-.with-validation {
-  padding-right: 100px !important; /* Espaço para a mensagem de validação */
 }
 
 /* Estilo da linha do campo como suporte para o texto */
@@ -260,98 +280,66 @@ select option,
   margin-top: 1rem;
 }
 
-/* Design de títulos de input aprimorado */
+/* Float Label - Sem padding vertical e cor de fundo igual ao card */
 .input-label {
   position: absolute;
-  left: 0.75rem; /* 12px */
+  left: 1rem;
   top: 0;
-  font-size: 0.75rem; /* 12px */
-  font-weight: 500;
-  color: #64748b; /* slate-500 */
-  background: white;
-  padding: 0 0.35rem;
   transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #6b7280;
+  pointer-events: none;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: white; /* Cor de fundo do card */
+  padding: 0 0.2rem; /* Apenas padding horizontal, sem vertical */
+  z-index: 10;
   border-radius: 4px;
   letter-spacing: 0.01em;
-  pointer-events: none;
-  z-index: 10;
-  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  box-shadow: none; /* Removendo sombra */
 }
 
-/* Estilo quando o campo está em foco */
-.peer:focus ~ .input-label {
-  color: #2563eb; /* blue-600 */
-  font-weight: 600;
-  background: #eff6ff;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
-  letter-spacing: 0.02em;
-  transform: translateY(-50%) scale(1.02);
+/* Garantir que todos os estados mantenham o label exatamente sobre a borda */
+.peer:focus ~ .input-label,
+.peer:not(:placeholder-shown) ~ .input-label,
+.peer-focus ~ .input-label,
+.field-filled ~ .input-label,
+.field-invalid ~ .input-label,
+.field-valid ~ .input-label,
+.cpf-valid ~ .input-label,
+.cpf-invalid ~ .input-label,
+.cep-valid ~ .input-label,
+.cep-invalid ~ .input-label {
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  background-color: white !important; /* Garantindo a cor de fundo igual ao card */
+  padding: 0 0.2rem !important; /* Garantindo apenas padding horizontal */
 }
 
-/* Estilo quando o campo está preenchido */
-.peer:not(:placeholder-shown) ~ .input-label {
-  color: #334155; /* slate-700 */
-  font-weight: 500;
-  background: white;
-  transform: translateY(-50%);
+/* Ajustar a altura e padding dos campos */
+.peer {
+  height: 3rem;
+  padding: 0 0.75rem;
 }
 
-/* Substituir todas as regras conflitantes */
-.peer:placeholder-shown + label {
-  background: transparent;
-  color: transparent;
-  box-shadow: none;
+/* Ajuste para áreas de texto */
+textarea.peer {
+  padding: 1rem 0.75rem;
+  height: auto;
 }
 
-.peer:not(:placeholder-shown) + label,
-.peer:focus + label {
-  background: white;
-  border-radius: 4px;
-  border: none !important;
-}
-
-/* Para títulos de campos com erro de validação */
+/* Estados de validação - mantém mesmo posicionamento na borda superior */
 .field-invalid ~ .input-label,
 .cpf-invalid ~ .input-label,
 .cep-invalid ~ .input-label {
-  color: #ef4444 !important; /* red-500 */
-  background: #fef2f2 !important;
-  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
+  color: #ef4444;
+  font-weight: 500;
 }
 
-/* Para títulos de campos válidos após validação */
 .field-valid ~ .input-label,
 .cpf-valid ~ .input-label,
 .cep-valid ~ .input-label {
-  color: #10b981 !important; /* green-500 */
-  background: #f0fdfa !important;
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2) !important;
-}
-
-/* Indicação visual para campos obrigatórios - desabilitado */
-.input-required .input-label::after {
-  content: none; /* Removendo o asterisco */
-}
-
-/* Remover borda das labels e torná-las mais minimalistas */
-.peer:not(:placeholder-shown) {
-  background-color: transparent !important;
-}
-
-/* Estilo padrão do label antes de ativar */
-.input-label {
-  transition: all 0.3s ease;
-}
-
-/* Campo obrigatório - desabilitado */
-.required-field::after {
-  content: none; /* Removendo o asterisco */
-}
-
-/* Remover sublinhado dos títulos */
-h2 {
-  text-decoration: none !important;
+  color: #10b981;
+  font-weight: 500;
 }
 
 /* NAVBAR COM EFEITO SLIDE */

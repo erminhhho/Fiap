@@ -501,24 +501,65 @@ function validatePhone(field, msgElement) {
 }
 
 // Função para exibir mensagem de validação
-function showValidationMessage(element, message, isError = false) {
-  if (!element) return;
+function showValidationMessage(field, message, isValid) {
+    const messageId = `${field.id}-validation-message`;
+    const messageElement = document.getElementById(messageId);
 
-  element.textContent = message;
-  element.classList.add('validation-active');
+    if (messageElement) {
+        // Atualiza o estilo do campo
+        field.classList.remove('field-valid', 'field-invalid');
+        field.classList.add(isValid ? 'field-valid' : 'field-invalid');
 
-  if (isError) {
-    element.classList.add('validation-error');
-  } else {
-    element.classList.remove('validation-error');
-    element.classList.add('validation-success');
+        // Atualiza a mensagem de validação (apenas texto, sem background, sem borda)
+        messageElement.textContent = message;
+        messageElement.classList.remove('validation-error', 'validation-success');
+        messageElement.classList.add('validation-active');
+        messageElement.classList.add(isValid ? 'validation-success' : 'validation-error');
 
-    // Esconder a mensagem de sucesso após 3 segundos
-    setTimeout(() => {
-      element.classList.remove('validation-active', 'validation-success');
-      element.textContent = '';
-    }, 3000);
-  }
+        // Adicionar ícone dentro do campo alinhado à direita
+        let iconId = `${field.id}-validation-icon`;
+        let iconElement = document.getElementById(iconId);
+
+        // Se não existir, criar o ícone
+        if (!iconElement) {
+            iconElement = document.createElement('i');
+            iconElement.id = iconId;
+            iconElement.className = 'validation-icon';
+            field.parentElement.appendChild(iconElement);
+        }
+
+        // Limpar classes anteriores do ícone
+        iconElement.className = 'validation-icon';
+
+        // Adicionar o ícone apropriado
+        if (isValid) {
+            iconElement.className += ' success fas fa-check';
+        } else {
+            iconElement.className += ' error fas fa-exclamation-circle';
+        }
+    }
+}
+
+/**
+ * Limpa a validação de um campo
+ * @param {HTMLElement} field - O campo a ser limpo
+ */
+function clearValidation(field) {
+    const messageId = `${field.id}-validation-message`;
+    const messageElement = document.getElementById(messageId);
+    const iconId = `${field.id}-validation-icon`;
+    const iconElement = document.getElementById(iconId);
+
+    if (messageElement) {
+        field.classList.remove('field-valid', 'field-invalid');
+        messageElement.classList.remove('validation-active', 'validation-error', 'validation-success');
+        messageElement.textContent = '';
+    }
+
+    // Remover o ícone se existir
+    if (iconElement) {
+        iconElement.remove();
+    }
 }
 
 // Função para validação dinâmica de campos enquanto o usuário digita
@@ -723,7 +764,7 @@ function validateField(field) {
 }
 
 /**
- * Mostra uma mensagem de validação para um campo
+ * Mostra uma mensagem de validação para um campo e adiciona ícone dentro do campo
  * @param {HTMLElement} field - O campo relacionado
  * @param {string} message - A mensagem a ser exibida
  * @param {boolean} isValid - Se o campo é válido ou não
@@ -737,11 +778,33 @@ function showValidationMessage(field, message, isValid) {
         field.classList.remove('field-valid', 'field-invalid');
         field.classList.add(isValid ? 'field-valid' : 'field-invalid');
 
-        // Atualiza a mensagem de validação
+        // Atualiza a mensagem de validação (apenas texto, sem background, sem borda)
         messageElement.textContent = message;
         messageElement.classList.remove('validation-error', 'validation-success');
         messageElement.classList.add('validation-active');
         messageElement.classList.add(isValid ? 'validation-success' : 'validation-error');
+
+        // Adicionar ícone dentro do campo alinhado à direita
+        let iconId = `${field.id}-validation-icon`;
+        let iconElement = document.getElementById(iconId);
+
+        // Se não existir, criar o ícone
+        if (!iconElement) {
+            iconElement = document.createElement('i');
+            iconElement.id = iconId;
+            iconElement.className = 'validation-icon';
+            field.parentElement.appendChild(iconElement);
+        }
+
+        // Limpar classes anteriores do ícone
+        iconElement.className = 'validation-icon';
+
+        // Adicionar o ícone apropriado
+        if (isValid) {
+            iconElement.className += ' success fas fa-check';
+        } else {
+            iconElement.className += ' error fas fa-exclamation-circle';
+        }
     }
 }
 
@@ -752,11 +815,18 @@ function showValidationMessage(field, message, isValid) {
 function clearValidation(field) {
     const messageId = `${field.id}-validation-message`;
     const messageElement = document.getElementById(messageId);
+    const iconId = `${field.id}-validation-icon`;
+    const iconElement = document.getElementById(iconId);
 
     if (messageElement) {
         field.classList.remove('field-valid', 'field-invalid');
         messageElement.classList.remove('validation-active', 'validation-error', 'validation-success');
         messageElement.textContent = '';
+    }
+
+    // Remover o ícone se existir
+    if (iconElement) {
+        iconElement.remove();
     }
 }
 
