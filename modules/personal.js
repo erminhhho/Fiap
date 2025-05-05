@@ -202,31 +202,12 @@ function applyRelationshipStyles() {
       container.setAttribute('data-selected', selectedValue);
       container.setAttribute('data-value', selectedValue);
 
-      // Remover o retângulo cinza fazendo o select ficar invisível mas funcional
-      select.style.opacity = "0";
-      select.style.position = "absolute";
-      select.style.width = "100%";
-      select.style.height = "100%";
-      select.style.left = "0";
-      select.style.top = "0";
-      select.style.cursor = "pointer";
+      // Remover estilos inline que possam estar causando conflitos
+      container.removeAttribute('style');
+      select.removeAttribute('style');
 
-      // Garantir que o texto da etiqueta está visível
-      container.style.color = "white";
-      container.style.display = "flex";
-      container.style.alignItems = "center";
-      container.style.justifyContent = "center";
-      container.style.zIndex = "20";
-
-      // Adicionar o texto da etiqueta diretamente no container
-      if (!container.querySelector('.relationship-label')) {
-        const labelSpan = document.createElement('span');
-        labelSpan.className = 'relationship-label';
-        labelSpan.textContent = selectedValue;
-        container.appendChild(labelSpan);
-      } else {
-        container.querySelector('.relationship-label').textContent = selectedValue;
-      }
+      // Garantir que o texto da etiqueta está sempre atualizado
+      // Não precisamos mais adicionar o texto manualmente porque estamos usando ::after no CSS
     }
 
     // Adicionar evento change se ainda não tiver
@@ -241,16 +222,21 @@ function applyRelationshipStyles() {
           // Atualizar tanto data-selected quanto data-value para manter a consistência visual
           container.setAttribute('data-selected', newValue);
           container.setAttribute('data-value', newValue);
-
-          // Atualizar também o texto da etiqueta
-          const labelSpan = container.querySelector('.relationship-label');
-          if (labelSpan) {
-            labelSpan.textContent = newValue;
-          }
         }
       });
     }
   });
+
+  // Adicionar também um evento que reaplicará os estilos ao voltar de outra página
+  if (!window.relationshipStylesEventSet) {
+    window.addEventListener('pageshow', function(event) {
+      // Se a página foi carregada do cache (ao navegar com o botão voltar)
+      if (event.persisted) {
+        setTimeout(applyRelationshipStyles, 100); // Aplicar estilos com um pequeno delay
+      }
+    });
+    window.relationshipStylesEventSet = true;
+  }
 }
 
 // Exportar funções para o escopo global

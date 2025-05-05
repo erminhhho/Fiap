@@ -260,27 +260,81 @@ select option,
   margin-top: 1rem;
 }
 
-/* Label inicialmente sem sombra ou fundo */
+/* Design de títulos de input aprimorado */
+.input-label {
+  position: absolute;
+  left: 0.75rem; /* 12px */
+  top: 0;
+  font-size: 0.75rem; /* 12px */
+  font-weight: 500;
+  color: #64748b; /* slate-500 */
+  background: white;
+  padding: 0 0.35rem;
+  transform: translateY(-50%);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 4px;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+}
+
+/* Estilo quando o campo está em foco */
+.peer:focus ~ .input-label {
+  color: #2563eb; /* blue-600 */
+  font-weight: 600;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+  letter-spacing: 0.02em;
+  transform: translateY(-50%) scale(1.02);
+}
+
+/* Estilo quando o campo está preenchido */
+.peer:not(:placeholder-shown) ~ .input-label {
+  color: #334155; /* slate-700 */
+  font-weight: 500;
+  background: white;
+  transform: translateY(-50%);
+}
+
+/* Substituir todas as regras conflitantes */
 .peer:placeholder-shown + label {
-  background-color: transparent !important;
-  box-shadow: none !important;
-  color: transparent !important;
+  background: transparent;
+  color: transparent;
+  box-shadow: none;
+}
+
+.peer:not(:placeholder-shown) + label,
+.peer:focus + label {
+  background: white;
+  border-radius: 4px;
+  border: none !important;
+}
+
+/* Para títulos de campos com erro de validação */
+.field-invalid ~ .input-label,
+.cpf-invalid ~ .input-label,
+.cep-invalid ~ .input-label {
+  color: #ef4444 !important; /* red-500 */
+  background: #fef2f2 !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Para títulos de campos válidos após validação */
+.field-valid ~ .input-label,
+.cpf-valid ~ .input-label,
+.cep-valid ~ .input-label {
+  color: #10b981 !important; /* green-500 */
+  background: #f0fdfa !important;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Indicação visual para campos obrigatórios - desabilitado */
+.input-required .input-label::after {
+  content: none; /* Removendo o asterisco */
 }
 
 /* Remover borda das labels e torná-las mais minimalistas */
-.peer:not(:placeholder-shown) + label,
-.peer:focus + label {
-  top: 0 !important;
-  font-size: 0.7rem !important; /* Tamanho de fonte reduzido */
-  color: #2563eb !important;
-  background-color: transparent !important; /* Fundo totalmente transparente */
-  border: none !important; /* Remover borda */
-  padding: 0 0.2rem !important; /* Padding reduzido */
-  z-index: 10;
-  transform: translateY(-50%) !important;
-}
-
-/* Campo preenchido mantém fundo transparente */
 .peer:not(:placeholder-shown) {
   background-color: transparent !important;
 }
@@ -288,6 +342,11 @@ select option,
 /* Estilo padrão do label antes de ativar */
 .input-label {
   transition: all 0.3s ease;
+}
+
+/* Campo obrigatório - desabilitado */
+.required-field::after {
+  content: none; /* Removendo o asterisco */
 }
 
 /* Remover sublinhado dos títulos */
@@ -536,6 +595,86 @@ h2 {
 .relationship-select[data-value="Beneficiário"] {
   background-color: #be185d; /* Rosa mais escuro */
   color: white;
+}
+
+/* Reforçando estilos das etiquetas de relacionamento - versão corrigida */
+.relationship-select {
+  position: absolute !important;
+  top: 0 !important;
+  right: 8px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  padding: 2px 10px !important;
+  min-width: 90px !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  z-index: 20 !important;
+  white-space: nowrap !important;
+  transform: translateY(-50%) !important;
+  border: none !important;
+  color: white !important;
+}
+
+/* Estilo específico para o conteúdo de texto usando pseudoelemento */
+.relationship-select::after {
+  content: attr(data-value);
+  display: block;
+  color: white;
+}
+
+/* Garantir que o select dentro do relationship-select seja sempre transparente mas ativo */
+.relationship-select select {
+  opacity: 0 !important;
+  position: absolute !important;
+  width: 100% !important;
+  height: 100% !important;
+  left: 0 !important;
+  top: 0 !important;
+  cursor: pointer !important;
+  z-index: 21 !important; /* Acima do container para capturar cliques */
+}
+
+/* Garantir que o texto sempre apareça */
+.relationship-label {
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  pointer-events: none !important; /* Permitir que cliques passem para o select */
+}
+
+/* Cores específicas para cada tipo de relacionamento - com !important para sobrescrever estilos inline */
+.relationship-select[data-value="Requerente"] {
+  background-color: #059669 !important; /* Verde mais escuro */
+  color: white !important;
+}
+
+.relationship-select[data-value="Instituidor"] {
+  background-color: #7c3aed !important; /* Roxo mais escuro */
+  color: white !important;
+}
+
+.relationship-select[data-value="Dependente"] {
+  background-color: #ea580c !important; /* Laranja mais escuro */
+  color: white !important;
+}
+
+.relationship-select[data-value="Representante"] {
+  background-color: #ca8a04 !important; /* Amarelo mais escuro */
+  color: white !important;
+}
+
+.relationship-select[data-value="Requerente Rep."] {
+  background-color: #0284c7 !important; /* Azul ciano mais escuro */
+  color: white !important;
+}
+
+.relationship-select[data-value="Litsconsorte"] {
+  background-color: #1d4ed8 !important; /* Azul mais escuro */
+  color: white !important;
 }
 
 /* Estilos para a validação de CPF e CEP */
@@ -824,11 +963,4 @@ h2 {
 
 .validation-active {
     animation: fadeIn 0.3s ease;
-}
-
-/* Campo obrigatório */
-.required-field::after {
-    content: "*";
-    color: #dc3545;
-    margin-left: 2px;
 }
