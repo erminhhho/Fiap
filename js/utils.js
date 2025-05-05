@@ -395,6 +395,13 @@ FIAP.ui = {
           campo.classList.add('filled');
         }
 
+        // Encontrar o label associado e garantir que seja visível
+        const label = campo.parentElement.querySelector('.input-label');
+        if (label && label.classList.contains('text-transparent')) {
+          label.classList.remove('text-transparent');
+          label.classList.add('text-gray-700');
+        }
+
         // Disparar evento para notificar mudança de estado
         campo.dispatchEvent(new Event('field-highlight', { bubbles: true }));
       } else {
