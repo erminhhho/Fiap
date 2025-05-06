@@ -254,21 +254,42 @@ function setupFieldValidation(field, msgElement) {
 
 // Função para validar CPF
 function validateCPF(field, msgElement) {
+  // Verificar se o campo está vazio
+  if (field.value.trim() === '') {
+    // Campo vazio não é considerado erro
+    field.classList.remove('cpf-valid', 'cpf-invalid', 'field-invalid');
+
+    // Se houver mensagem de validação, limpar
+    if (msgElement) {
+      msgElement.textContent = '';
+      msgElement.classList.remove('validation-error', 'validation-success');
+    }
+
+    // Garantir que a label volte à cor padrão
+    const label = field.parentElement.querySelector('label');
+    if (label) {
+      label.classList.remove('text-red-500', 'text-white');
+      label.classList.add('text-gray-700');
+    }
+
+    return true;
+  }
+
   let cpf = field.value.replace(/\D/g, '');
 
   if (cpf.length !== 11) {
     field.classList.remove('cpf-valid');
     field.classList.add('cpf-invalid');
-    showValidationMessage(msgElement, 'CPF incompleto', true);
-    return;
+    if (msgElement) showValidationMessage(msgElement, 'CPF incompleto', true);
+    return false;
   }
 
   // Verificar se todos os dígitos são iguais
   if (/^(\d)\1{10}$/.test(cpf)) {
     field.classList.remove('cpf-valid');
     field.classList.add('cpf-invalid');
-    showValidationMessage(msgElement, 'CPF inválido', true);
-    return;
+    if (msgElement) showValidationMessage(msgElement, 'CPF inválido', true);
+    return false;
   }
 
   // Algoritmo de validação do CPF
@@ -289,17 +310,14 @@ function validateCPF(field, msgElement) {
   if (dv1 == cpf.charAt(9) && dv2 == cpf.charAt(10)) {
     field.classList.remove('cpf-invalid');
     field.classList.add('cpf-valid');
-    showValidationMessage(msgElement, 'CPF válido');
+    if (msgElement) showValidationMessage(msgElement, 'CPF válido');
+    return true;
   } else {
     field.classList.remove('cpf-valid');
     field.classList.add('cpf-invalid');
-    showValidationMessage(msgElement, 'CPF inválido', true);
-    return;
+    if (msgElement) showValidationMessage(msgElement, 'CPF inválido', true);
+    return false;
   }
-
-  field.classList.remove('cpf-invalid');
-  field.classList.add('cpf-valid');
-  showValidationMessage(msgElement, 'CPF válido');
 }
 
 // Função para validar CEP

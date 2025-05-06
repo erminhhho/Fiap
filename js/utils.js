@@ -659,6 +659,10 @@ FIAP.validation = {
       // Remover qualquer estilo de borda no input
       input.style.borderColor = '';
 
+      // Garantir que o campo não tenha borda vermelha
+      input.classList.remove('field-invalid');
+      input.classList.remove('cpf-invalid');
+
       return true; // Campo vazio não é considerado erro
     }
 
