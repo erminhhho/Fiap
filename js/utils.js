@@ -36,14 +36,26 @@ FIAP.masks = {
    * @param {HTMLInputElement} input - Campo de entrada do CEP
    */
   cep: function(input) {
+    // Guardar posição do cursor antes da formatação
+    const cursorPos = input.selectionStart;
+    const oldValue = input.value;
+
     let value = input.value.replace(/\D/g, '');
     if (value.length > 8) value = value.substring(0, 8);
 
+    // Aplicar formatação
     if (value.length > 5) {
       value = value.replace(/^(\d{5})(\d)/, '$1-$2');
     }
 
+    // Atualizar valor
     input.value = value;
+
+    // Restaurar posição do cursor considerando a adição do hífen
+    if (cursorPos < oldValue.length) {
+      const newPos = cursorPos + (value.length - oldValue.length);
+      input.setSelectionRange(newPos, newPos);
+    }
 
     // Remover classes de validação existentes
     input.classList.remove('cep-valid', 'cep-invalid');
@@ -52,6 +64,17 @@ FIAP.masks = {
     const parentDiv = input.parentElement;
     const prevMessage = parentDiv.querySelector('.validation-message');
     if (prevMessage) prevMessage.remove();
+
+    // Se não estiver completo, remover ícones de validação existentes
+    if (value.length < 8) {
+      FIAP.validation.removeValidationIcon(input);
+    }
+
+    // PONTO CHAVE: Se atingiu exatamente 8 dígitos, consultar CEP imediatamente
+    if (value.replace(/\D/g, '').length === 8) {
+      // Consultar imediatamente, sem timeout
+      FIAP.api.consultarCEP(value);
+    }
   },
 
   /**
@@ -81,7 +104,7 @@ FIAP.masks = {
   },
 
   /**
-   * Formata telefone no formato (00) 00000-0000
+   * Formata telefone no formato (00) 00000-0000 com indicador de WhatsApp
    * @param {HTMLInputElement} input - Campo de entrada do telefone
    */
   phone: function(input) {
@@ -96,6 +119,63 @@ FIAP.masks = {
     }
 
     input.value = value;
+
+    // Adicionar ícone de WhatsApp se ainda não existir
+    this.addWhatsAppToggle(input);
+  },
+
+  /**
+   * Adiciona ícone de toggle para WhatsApp em um campo de telefone
+   * @param {HTMLInputElement} input - Campo de entrada do telefone
+   */
+  addWhatsAppToggle: function(input) {
+    const parentDiv = input.parentElement;
+    if (!parentDiv) return;
+
+    // Verificar se já existe um ícone de WhatsApp
+    let whatsappIcon = parentDiv.querySelector('.whatsapp-toggle');
+
+    if (!whatsappIcon) {
+      // Criar o ícone do WhatsApp
+      whatsappIcon = document.createElement('span');
+      whatsappIcon.className = 'whatsapp-toggle';
+      whatsappIcon.innerHTML = '<i class="fab fa-whatsapp"></i>';
+
+      // Estilo do ícone
+      whatsappIcon.style.position = 'absolute';
+      whatsappIcon.style.right = '12px';
+      whatsappIcon.style.top = '50%';
+      whatsappIcon.style.transform = 'translateY(-50%)';
+      whatsappIcon.style.cursor = 'pointer';
+      whatsappIcon.style.zIndex = '10';
+      whatsappIcon.style.color = '#aaa'; // Cor inicial (inativo)
+      whatsappIcon.style.fontSize = '1.2rem';
+      whatsappIcon.style.transition = 'color 0.2s ease';
+
+      // Adicionar dados ao input para rastrear se é WhatsApp
+      input.dataset.whatsapp = 'false';
+
+      // Adicionar padding extra à direita para evitar sobreposição com o texto
+      input.style.paddingRight = '2.5rem';
+
+      // Adicionar o ícone ao container
+      parentDiv.style.position = 'relative'; // Garantir posicionamento correto
+      parentDiv.appendChild(whatsappIcon);
+
+      // Adicionar evento de clique
+      whatsappIcon.addEventListener('click', function() {
+        // Alternar estado de WhatsApp
+        const isWhatsapp = input.dataset.whatsapp === 'true';
+        input.dataset.whatsapp = isWhatsapp ? 'false' : 'true';
+
+        // Atualizar visual do ícone
+        whatsappIcon.style.color = isWhatsapp ? '#aaa' : '#25D366';
+        whatsappIcon.title = isWhatsapp ? 'Marcar como WhatsApp' : 'Marcado como WhatsApp';
+      });
+
+      // Definir tooltip inicial
+      whatsappIcon.title = 'Marcar como WhatsApp';
+    }
   },
 
   /**
@@ -614,12 +694,12 @@ FIAP.api = {
     const cepInput = document.getElementById('cep');
     const parentDiv = cepInput.parentElement;
 
-    // Feedback visual de carregamento
+    // Remover classes de validação e ícones anteriores
     cepInput.classList.remove('cep-valid', 'cep-invalid');
-    cepInput.style.backgroundImage = "url('data:image/svg+xml;charset=utf8,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cpath fill=\"%232563eb\" d=\"M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50\"%3E%3CanimateTransform attributeName=\"transform\" attributeType=\"XML\" type=\"rotate\" dur=\"1s\" from=\"0 50 50\" to=\"360 50 50\" repeatCount=\"indefinite\" /%3E%3C/path%3E%3C/svg%3E')";
-    cepInput.style.backgroundRepeat = "no-repeat";
-    cepInput.style.backgroundPosition = "right 10px center";
-    cepInput.style.backgroundSize = "20px 20px";
+    FIAP.validation.removeValidationIcon(cepInput);
+
+    // Feedback visual de carregamento com ícone de spinner
+    FIAP.validation.addValidationIcon(cepInput, 'spinner', 'text-blue-500 fa-spin');
 
     // Remover mensagem de validação anterior
     const prevMessage = parentDiv.querySelector('.validation-message');
@@ -628,19 +708,19 @@ FIAP.api = {
     fetch(`https://viacep.com.br/ws/${cep}/json/`)
       .then(response => response.json())
       .then(data => {
-        // Remover indicador de carregamento
-        cepInput.style.backgroundImage = "none";
+        // Remover ícone de carregamento
+        FIAP.validation.removeValidationIcon(cepInput);
 
         if (data.erro) {
           // CEP inválido ou não encontrado
           cepInput.classList.add('cep-invalid');
-          FIAP.ui.showError('CEP não encontrado', parentDiv);
+          FIAP.validation.addValidationIcon(cepInput, 'times-circle', 'text-red-500');
           return;
         }
 
         // CEP válido - feedback visual verde
         cepInput.classList.add('cep-valid');
-        FIAP.ui.showSuccess('CEP encontrado', parentDiv, 1500);
+        FIAP.validation.addValidationIcon(cepInput, 'check-circle', 'text-green-500');
 
         // Preencher campos de endereço
         document.getElementById('bairro').value = data.bairro || '';
@@ -653,18 +733,19 @@ FIAP.api = {
           document.getElementById('numero').focus();
         }
 
-        // Remover feedback visual depois de 1.5 segundos
+        // Remover feedback visual depois de 2 segundos
         setTimeout(() => {
           cepInput.classList.remove('cep-valid');
-        }, 1500);
+          FIAP.validation.removeValidationIcon(cepInput);
+        }, 2000);
       })
       .catch(error => {
-        // Remover indicador de carregamento
-        cepInput.style.backgroundImage = "none";
+        // Remover ícone de carregamento
+        FIAP.validation.removeValidationIcon(cepInput);
 
         // Erro na consulta
         cepInput.classList.add('cep-invalid');
-        FIAP.ui.showError('Erro ao consultar CEP', parentDiv);
+        FIAP.validation.addValidationIcon(cepInput, 'exclamation-triangle', 'text-amber-500');
       });
   }
 };
@@ -951,4 +1032,21 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }, 200);
+
+  // Configuração da consulta automática de CEP
+  const cepInput = document.getElementById('cep');
+  if (cepInput) {
+    // Adicionar evento para garantir que máscaras e formatações de CEP não bloqueiem a consulta
+    cepInput.addEventListener('blur', function() {
+      const cepNumerico = this.value.replace(/\D/g, '');
+      if (cepNumerico.length === 8) {
+        FIAP.api.consultarCEP(cepNumerico);
+      }
+    });
+  }
+
+  // Inicializar ícones de WhatsApp em todos os campos de telefone existentes
+  document.querySelectorAll('input[id*="telefone"], input[id*="phone"], input[name*="telefone"], input[name*="phone"]').forEach(input => {
+    FIAP.masks.addWhatsAppToggle(input);
+  });
 });
