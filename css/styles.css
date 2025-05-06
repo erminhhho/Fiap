@@ -997,3 +997,30 @@ input:focus ~ .age-classification-tag {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   cursor: help;
 }
+
+/* Estilos para o dropdown de sugestões de cidade */
+.cidade-dropdown {
+  z-index: 100;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-radius: 0.5rem;
+  margin-top: 2px;
+}
+
+.cidade-item {
+  transition: all 0.2s ease;
+}
+
+.cidade-item:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.cidade-item:not(:last-child) {
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+/* Garantir que o dropdown não seja cortado por outros elementos */
+.relative {
+  position: relative;
+}
