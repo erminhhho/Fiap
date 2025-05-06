@@ -11,7 +11,7 @@ const FIAP = {};
  */
 FIAP.masks = {
   /**
-   * Formata CPF no formato 000.000.000-00
+   * Formata CPF no formato 000.000.000-00 e valida em tempo real
    * @param {HTMLInputElement} input - Campo de entrada do CPF
    */
   cpf: function(input) {
@@ -23,7 +23,12 @@ FIAP.masks = {
     value = value.replace(/\.(\d{3})(\d)/, '.$1-$2');
 
     input.value = value;
-    FIAP.validation.cpf(input);
+
+    // Realizar validação em tempo real após 3 dígitos ou se estiver completo
+    if (value.length >= 3 || (value.length > 0 && input.dataset.validated === 'true')) {
+      input.dataset.validated = 'true';
+      FIAP.validation.cpfRealTime(input);
+    }
   },
 
   /**
@@ -50,7 +55,7 @@ FIAP.masks = {
   },
 
   /**
-   * Formata data no formato DD/MM/AAAA
+   * Formata data no formato DD/MM/AAAA e valida
    * @param {HTMLInputElement} input - Campo de entrada da data
    */
   date: function(input) {
@@ -63,8 +68,14 @@ FIAP.masks = {
 
     input.value = value;
 
-    // Se tiver campo de idade associado, calcular
-    if (value.length === 10 && input.dataset.targetAge) {
+    // Realizar validação em tempo real após ter pelo menos dia e mês completos
+    if (value.length >= 5) {
+      input.dataset.validated = 'true';
+      FIAP.validation.dateOfBirthRealTime(input);
+    }
+
+    // Se tiver campo de idade associado, calcular apenas se a data for válida
+    if (value.length === 10 && input.dataset.targetAge && input.classList.contains('date-valid')) {
       FIAP.calculation.age(input.value, input.dataset.targetAge);
     }
   },
@@ -139,6 +150,23 @@ FIAP.masks = {
 
     // Juntar as palavras novamente
     input.value = palavras.join(' ');
+  },
+
+  /**
+   * Formata UF para aceitar apenas letras e converter para maiúsculo
+   * @param {HTMLInputElement} input - Campo de entrada da UF
+   */
+  uf: function(input) {
+    // Remove qualquer caractere que não seja letra
+    let value = input.value.replace(/[^A-Za-z]/g, '');
+
+    // Converte para maiúsculo (reforçando, mesmo que o campo já tenha a classe uppercase)
+    value = value.toUpperCase();
+
+    // Limitar a 2 caracteres (redundante com maxlength, mas para garantir)
+    if (value.length > 2) value = value.substring(0, 2);
+
+    input.value = value;
   }
 };
 
@@ -147,25 +175,41 @@ FIAP.masks = {
  */
 FIAP.validation = {
   /**
-   * Valida CPF usando algoritmo oficial
+   * Valida CPF em tempo real mostrando feedback visual
    * @param {HTMLInputElement} input - Campo de entrada do CPF
-   * @returns {boolean} - Indica se o CPF é válido
    */
-  cpf: function(input) {
-    let cpf = input.value.replace(/\D/g, '');
-
-    // Remover classes de validação existentes
-    input.classList.remove('cpf-valid', 'cpf-invalid');
-
-    // Remover mensagem de validação anterior
+  cpfRealTime: function(input) {
+    const cpf = input.value.replace(/\D/g, '');
     const parentDiv = input.parentElement;
-    const prevMessage = parentDiv.querySelector('.validation-message');
-    if (prevMessage) prevMessage.remove();
 
-    if (cpf.length !== 11) return false;
+    // Remover ícones e status anteriores
+    this.removeValidationIcon(input);
+
+    // Validação progressiva
+    if (cpf.length === 0) {
+      // Campo vazio - remover qualquer indicação
+      input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
+      this.removeValidationMessage(parentDiv);
+      return;
+    } else if (cpf.length < 11) {
+      // CPF incompleto - sempre remove status de erro/sucesso quando volta a ser incompleto
+      input.classList.remove('cpf-valid', 'cpf-invalid');
+      input.classList.add('cpf-validating');
+
+      // Usar ícone de digitação (keyboard) com cor azul para indicar digitação em andamento
+      this.addValidationIcon(input, 'keyboard', 'text-blue-500');
+      this.showValidationMessage(parentDiv, `Digite os ${11-cpf.length} dígitos restantes`, 'info');
+      return;
+    }
 
     // Verificar se todos os dígitos são iguais
-    if (/^(\d)\1{10}$/.test(cpf)) return false;
+    if (/^(\d)\1{10}$/.test(cpf)) {
+      input.classList.remove('cpf-validating', 'cpf-valid');
+      input.classList.add('cpf-invalid');
+      this.addValidationIcon(input, 'times-circle', 'text-red-500');
+      this.showValidationMessage(parentDiv, 'CPF inválido', 'error');
+      return;
+    }
 
     // Validação do primeiro dígito verificador
     let sum = 0;
@@ -187,20 +231,239 @@ FIAP.validation = {
     const isValid = (parseInt(cpf.charAt(9)) === digit1 && parseInt(cpf.charAt(10)) === digit2);
 
     if (isValid) {
-      // CPF válido - feedback visual verde
+      // CPF válido
+      input.classList.remove('cpf-validating', 'cpf-invalid');
       input.classList.add('cpf-valid');
-
-      // Adicionar mensagem de confirmação com etiqueta de status
-      FIAP.ui.showSuccess('CPF válido', parentDiv, 1500);
+      this.addValidationIcon(input, 'check-circle', 'text-green-500');
+      this.showValidationMessage(parentDiv, 'CPF válido', 'success');
     } else {
-      // CPF inválido - feedback visual vermelho
+      // CPF inválido
+      input.classList.remove('cpf-validating', 'cpf-valid');
       input.classList.add('cpf-invalid');
+      this.addValidationIcon(input, 'times-circle', 'text-red-500');
+      this.showValidationMessage(parentDiv, 'Dígitos verificadores incorretos', 'error');
+    }
+  },
 
-      // Adicionar mensagem de erro com etiqueta de status
-      FIAP.ui.showError('CPF inválido', parentDiv);
+  /**
+   * Valida data de nascimento em tempo real
+   * @param {HTMLInputElement} input - Campo de entrada da data
+   */
+  dateOfBirthRealTime: function(input) {
+    const dateValue = input.value;
+    const parentDiv = input.parentElement;
+
+    // Remover ícones e status anteriores
+    this.removeValidationIcon(input);
+
+    // Verificar se está vazio
+    if (!dateValue || dateValue.length === 0) {
+      input.classList.remove('date-valid', 'date-invalid', 'date-validating');
+      this.removeValidationMessage(parentDiv);
+      return;
     }
 
-    return isValid;
+    // Se ainda não está no formato completo (DD/MM/AAAA)
+    if (dateValue.length < 10) {
+      input.classList.remove('date-valid', 'date-invalid');
+      input.classList.add('date-validating');
+      this.addValidationIcon(input, 'keyboard', 'text-blue-500');
+      this.showValidationMessage(parentDiv, `Continue digitando...`, 'info');
+      return;
+    }
+
+    // Fazer o parse da data
+    const parts = dateValue.split('/');
+    if (parts.length !== 3) {
+      input.classList.remove('date-validating', 'date-valid');
+      input.classList.add('date-invalid');
+      this.addValidationIcon(input, 'times-circle', 'text-red-500');
+      this.showValidationMessage(parentDiv, 'Data em formato inválido', 'error');
+      return;
+    }
+
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+
+    // Verificar valores básicos
+    if (month < 1 || month > 12) {
+      input.classList.remove('date-validating', 'date-valid');
+      input.classList.add('date-invalid');
+      this.addValidationIcon(input, 'times-circle', 'text-red-500');
+      this.showValidationMessage(parentDiv, 'Mês inválido', 'error');
+      return;
+    }
+
+    // Verificar dias por mês
+    const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    // Ajuste para ano bissexto
+    if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) {
+      daysInMonth[2] = 29;
+    }
+
+    if (day < 1 || day > daysInMonth[month]) {
+      input.classList.remove('date-validating', 'date-valid');
+      input.classList.add('date-invalid');
+      this.addValidationIcon(input, 'times-circle', 'text-red-500');
+      this.showValidationMessage(parentDiv, 'Dia inválido para este mês', 'error');
+      return;
+    }
+
+    // Verificar se é uma data no futuro
+    const currentDate = new Date();
+    const inputDate = new Date(year, month - 1, day);
+
+    if (inputDate > currentDate) {
+      input.classList.remove('date-validating', 'date-valid');
+      input.classList.add('date-invalid');
+      this.addValidationIcon(input, 'times-circle', 'text-red-500');
+      this.showValidationMessage(parentDiv, 'Data não pode ser no futuro', 'error');
+      return;
+    }
+
+    // Verificar se não é uma data muito antiga (150 anos atrás)
+    const minDate = new Date();
+    minDate.setFullYear(currentDate.getFullYear() - 150);
+
+    if (inputDate < minDate) {
+      input.classList.remove('date-validating', 'date-valid');
+      input.classList.add('date-invalid');
+      this.addValidationIcon(input, 'times-circle', 'text-red-500');
+      this.showValidationMessage(parentDiv, 'Data muito antiga', 'error');
+      return;
+    }
+
+    // Validar se a pessoa é maior de idade (opcional, comentado)
+    /*
+    const adultDate = new Date();
+    adultDate.setFullYear(currentDate.getFullYear() - 18);
+
+    if (inputDate > adultDate) {
+      input.classList.remove('date-validating');
+      input.classList.remove('date-invalid');
+      input.classList.add('date-valid');
+      this.addValidationIcon(input, 'exclamation-triangle', 'text-amber-500');
+      this.showValidationMessage(parentDiv, 'Pessoa menor de idade', 'warning');
+      return;
+    }
+    */
+
+    // Tudo ok
+    input.classList.remove('date-validating', 'date-invalid');
+    input.classList.add('date-valid');
+    this.addValidationIcon(input, 'check-circle', 'text-green-500');
+    this.showValidationMessage(parentDiv, 'Data válida', 'success');
+
+    // Calcular idade se necessário
+    if (input.dataset.targetAge) {
+      FIAP.calculation.age(input.value, input.dataset.targetAge);
+    }
+  },
+
+  /**
+   * Valida data de nascimento quando o campo perde o foco
+   * @param {HTMLInputElement} input - Campo de entrada da data
+   * @returns {boolean} - Indica se a data é válida
+   */
+  dateOfBirth: function(input) {
+    // Executar a validação em tempo real para garantir feedback consistente
+    this.dateOfBirthRealTime(input);
+
+    // Verificar se o campo está marcado como válido
+    return input.classList.contains('date-valid');
+  },
+
+  /**
+   * Adiciona um ícone de validação dentro do campo
+   * @param {HTMLInputElement} input - Campo de entrada
+   * @param {string} icon - Nome do ícone FontAwesome sem o prefixo 'fa-'
+   * @param {string} colorClass - Classe de cor para o ícone
+   */
+  addValidationIcon: function(input, icon, colorClass) {
+    this.removeValidationIcon(input);
+
+    // Criar span para o ícone
+    const iconSpan = document.createElement('span');
+    iconSpan.className = `validation-field-icon absolute right-3 top-1/2 transform -translate-y-1/2 ${colorClass}`;
+    iconSpan.innerHTML = `<i class="fas fa-${icon}"></i>`;
+    iconSpan.style.zIndex = "20"; // Garantir que o ícone esteja acima de outros elementos
+
+    // Adicionar o ícone após o input (mas dentro do container)
+    input.parentElement.appendChild(iconSpan);
+
+    // Adicionar padding extra à direita para evitar sobreposição
+    input.style.paddingRight = '2.5rem';
+  },
+
+  /**
+   * Remove ícone de validação do campo
+   * @param {HTMLInputElement} input - Campo de entrada
+   */
+  removeValidationIcon: function(input) {
+    const parent = input.parentElement;
+    const existingIcon = parent.querySelector('.validation-field-icon');
+
+    if (existingIcon) {
+      existingIcon.remove();
+    }
+
+    // Restaurar padding original
+    input.style.paddingRight = '';
+  },
+
+  /**
+   * Exibe mensagem de validação abaixo do campo
+   * @param {HTMLElement} parentDiv - Elemento pai onde a mensagem será exibida
+   * @param {string} message - Mensagem a ser exibida
+   * @param {string} type - Tipo de mensagem: 'error', 'success', 'info', 'warning'
+   */
+  showValidationMessage: function(parentDiv, message, type = 'info') {
+    this.removeValidationMessage(parentDiv);
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `validation-message text-xs ${type === 'error' ? 'text-red-500' :
+                                                      type === 'success' ? 'text-green-500' :
+                                                      type === 'warning' ? 'text-amber-500' : 'text-blue-500'}`;
+    messageDiv.innerHTML = message;
+
+    // Estilo minimalista para a mensagem
+    messageDiv.style.marginTop = "1px";
+    messageDiv.style.paddingLeft = "2px";
+    messageDiv.style.background = "transparent";
+    messageDiv.style.position = "absolute";
+    messageDiv.style.left = "0";
+    messageDiv.style.bottom = "-16px"; // Ajuste fino para ficar próximo ao campo
+    messageDiv.style.fontWeight = "normal"; // Garantir que não seja em negrito
+
+    // Adicionar a mensagem após o campo de entrada
+    parentDiv.appendChild(messageDiv);
+  },
+
+  /**
+   * Remove mensagem de validação
+   * @param {HTMLElement} parentDiv - Elemento pai que contém a mensagem
+   */
+  removeValidationMessage: function(parentDiv) {
+    const existingMessage = parentDiv.querySelector('.validation-message');
+
+    if (existingMessage) {
+      existingMessage.remove();
+    }
+  },
+
+  /**
+   * Valida CPF quando o campo perde o foco
+   * @param {HTMLInputElement} input - Campo de entrada do CPF
+   * @returns {boolean} - Indica se o CPF é válido
+   */
+  cpf: function(input) {
+    // Executar a validação em tempo real para garantir feedback consistente
+    this.cpfRealTime(input);
+
+    // Verificar se o campo está marcado como válido
+    return input.classList.contains('cpf-valid');
   }
 };
 
@@ -247,6 +510,91 @@ FIAP.calculation = {
 
       // Definir valor da idade no campo correspondente
       idadeInput.value = idadeFormatada;
+
+      // Adicionar tag apenas no campo idade
+      this.addAgeClassificationTag(idadeAnos, idadeMeses, idadeInput);
+    }
+  },
+
+  /**
+   * Adiciona uma tag indicando a classificação etária judicial
+   * @param {number} anos - Idade em anos
+   * @param {number} meses - Idade em meses
+   * @param {HTMLElement} targetInput - Campo onde adicionar a tag (opcional)
+   */
+  addAgeClassificationTag: function(anos, meses, targetInput) {
+    try {
+      // Buscar o campo de idade se não fornecido explicitamente
+      const input = targetInput || document.querySelector('input[id^="idade"]');
+      if (!input) return;
+
+      const parentElement = input.parentElement;
+      if (!parentElement) return;
+
+      // Remover tag anterior se existir
+      const existingTag = parentElement.querySelector('.age-classification-tag');
+      if (existingTag) existingTag.remove();
+
+      // Determinar a classificação com base na idade
+      let classificacao = '';
+      let tipoClassificacao = '';
+
+      if (anos === 0 && meses < 1) {
+        classificacao = 'Nascituro';
+        tipoClassificacao = 'nascituro';
+      } else if (anos < 7) {
+        classificacao = 'Infante';
+        tipoClassificacao = 'infante';
+      } else if (anos < 12) {
+        classificacao = 'Impúbere';
+        tipoClassificacao = 'impubere';
+      } else if (anos < 16) {
+        classificacao = 'Púbere';
+        tipoClassificacao = 'pubere';
+      } else if (anos < 18) {
+        classificacao = 'Rel. Incapaz';
+        tipoClassificacao = 'rel-incapaz';
+      } else if (anos >= 60) {
+        classificacao = 'Idoso';
+        tipoClassificacao = 'idoso';
+      } else {
+        classificacao = 'Capaz';
+        tipoClassificacao = 'capaz';
+      }
+
+      // Criar a tag usando o mesmo padrão das tags de relacionamento
+      const tagElement = document.createElement('span');
+
+      // Aplicar a mesma estrutura de classes das tags de relacionamento
+      tagElement.className = 'age-classification-tag relationship-tag';
+
+      // Adicionar atributos de dados para estilo consistente com as tags de relacionamento
+      tagElement.setAttribute('data-value', tipoClassificacao);
+      tagElement.setAttribute('data-selected', tipoClassificacao);
+
+      // Texto da tag
+      tagElement.innerText = classificacao;
+
+      // Tooltip com detalhes
+      tagElement.title = `Classificação: ${classificacao} (${anos} anos e ${meses} meses)`;
+
+      // Posicionamento consistente com as tags de relacionamento
+      tagElement.style.position = 'absolute';
+      tagElement.style.right = '12px';
+      tagElement.style.top = '0';
+      tagElement.style.transform = 'translateY(-50%)';
+      tagElement.style.zIndex = '10';
+
+      // Garantir posicionamento relativo no container
+      parentElement.style.position = 'relative';
+
+      // Adicionar a tag ao container
+      parentElement.appendChild(tagElement);
+
+      return tagElement;
+    } catch (error) {
+      console.error("Erro ao adicionar tag de classificação etária:", error);
+      return null;
     }
   }
 };
@@ -318,6 +666,70 @@ FIAP.api = {
         cepInput.classList.add('cep-invalid');
         FIAP.ui.showError('Erro ao consultar CEP', parentDiv);
       });
+  }
+};
+
+/**
+ * Módulo de navegação entre telas/passos
+ */
+FIAP.navigation = {
+  /**
+   * Armazena o histórico de navegação entre passos
+   */
+  history: [],
+
+  /**
+   * Navega para um passo específico
+   * @param {string} step - ID do passo para navegação
+   * @param {boolean} addToHistory - Se deve adicionar ao histórico
+   */
+  navigateToStep: function(step, addToHistory = true) {
+    if (!step) return;
+
+    // Ocultar todos os passos
+    const steps = document.querySelectorAll('.step-content');
+    steps.forEach(s => s.classList.add('hidden'));
+
+    // Mostrar o passo solicitado
+    const targetStep = document.getElementById(step);
+    if (targetStep) {
+      targetStep.classList.remove('hidden');
+
+      // Adicionar ao histórico se necessário
+      if (addToHistory) {
+        this.history.push(step);
+      }
+
+      // Disparar evento de mudança de passo
+      document.dispatchEvent(new CustomEvent('stepChanged', {
+        detail: { step: step }
+      }));
+    }
+  },
+
+  /**
+   * Navega para o passo anterior no histórico
+   * @returns {boolean} - Indica se a navegação foi bem-sucedida
+   */
+  navigateToPreviousStep: function() {
+    // Remover o passo atual (último)
+    if (this.history.length > 1) {
+      this.history.pop();
+
+      // Navegar para o passo anterior sem adicionar ao histórico
+      const previousStep = this.history[this.history.length - 1];
+      this.navigateToStep(previousStep, false);
+      return true;
+    }
+
+    // Se não há histórico suficiente, voltar para o início
+    if (this.history.length === 1) {
+      this.navigateToStep('personal', false);
+      this.history = ['personal'];
+      return true;
+    }
+
+    return false;
   }
 };
 
@@ -490,27 +902,53 @@ FIAP.ui = {
 // Aliases para compatibilidade com código legado
 // Estes aliases mantêm a retrocompatibilidade enquanto promovem o novo padrão
 window.maskCPF = FIAP.masks.cpf;
-window.validateCPF = FIAP.validation.cpf;
+window.validateCPF = FIAP.validation.cpf.bind(FIAP.validation);
+window.validateCPFRealTime = FIAP.validation.cpfRealTime.bind(FIAP.validation);
 window.maskCEP = FIAP.masks.cep;
 window.consultarCEP = FIAP.api.consultarCEP;
 window.maskDate = FIAP.masks.date;
+window.validateDateOfBirth = FIAP.validation.dateOfBirth.bind(FIAP.validation);
+window.validateDateOfBirthRealTime = FIAP.validation.dateOfBirthRealTime.bind(FIAP.validation);
 window.calcularIdade = FIAP.calculation.age;
 window.maskPhone = FIAP.masks.phone;
 window.maskOnlyNumbers = FIAP.masks.onlyNumbers;
 window.maskCurrency = FIAP.masks.currency;
 window.destacarCamposPreenchidos = FIAP.ui.highlightFields.bind(FIAP.ui);
 window.setupFieldHighlighting = FIAP.ui.setupFieldHighlighting.bind(FIAP.ui);
-window.formatarNomeProprio = FIAP.masks.properName;
-window.createStatusTag = FIAP.ui.createStatusTag.bind(FIAP.ui);
-window.removeStatusTags = FIAP.ui.removeStatusTags.bind(FIAP.ui);
-window.showSuccess = FIAP.ui.showSuccess.bind(FIAP.ui);
-window.showError = FIAP.ui.showError.bind(FIAP.ui);
-window.showWarning = FIAP.ui.showWarning.bind(FIAP.ui);
-window.showInfo = FIAP.ui.showInfo.bind(FIAP.ui);
-window.createSuccessTag = FIAP.ui.showSuccess.bind(FIAP.ui);
-window.createErrorTag = FIAP.ui.showError.bind(FIAP.ui);
-window.createWarningTag = FIAP.ui.showWarning.bind(FIAP.ui);
-window.createInfoTag = FIAP.ui.showInfo.bind(FIAP.ui);
-
-// Exportar namespace FIAP para uso global
 window.FIAP = FIAP;
+window.addAgeClassificationTag = FIAP.calculation.addAgeClassificationTag;
+window.navigateToPreviousStep = FIAP.navigation.navigateToPreviousStep.bind(FIAP.navigation);
+window.navigateToStep = FIAP.navigation.navigateToStep.bind(FIAP.navigation);
+window.createInfoTag = FIAP.ui.showInfo.bind(FIAP.ui);
+window.createWarningTag = FIAP.ui.showWarning.bind(FIAP.ui);
+window.createErrorTag = FIAP.ui.showError.bind(FIAP.ui);
+window.createSuccessTag = FIAP.ui.showSuccess.bind(FIAP.ui);
+window.showInfo = FIAP.ui.showInfo.bind(FIAP.ui);
+window.showWarning = FIAP.ui.showWarning.bind(FIAP.ui);
+window.showError = FIAP.ui.showError.bind(FIAP.ui);
+window.showSuccess = FIAP.ui.showSuccess.bind(FIAP.ui);
+window.removeStatusTags = FIAP.ui.removeStatusTags.bind(FIAP.ui);
+window.createStatusTag = FIAP.ui.createStatusTag.bind(FIAP.ui);
+window.maskUF = FIAP.masks.uf;
+window.formatarNomeProprio = FIAP.masks.properName;
+
+// Inicializar após o carregamento do DOM
+document.addEventListener('DOMContentLoaded', function() {
+  // Verificar se existem campos de idade preenchidos e adicionar as tags etárias
+  setTimeout(() => {
+    const idadeInputs = document.querySelectorAll('input[id^="idade"]');
+
+    idadeInputs.forEach(input => {
+      if (input.value && input.value.includes('anos')) {
+        const idadeText = input.value;
+        const anosMatch = idadeText.match(/(\d+)\s*anos/);
+        const mesesMatch = idadeText.match(/(\d+)\s*meses/);
+
+        const anos = anosMatch ? parseInt(anosMatch[1]) : 0;
+        const meses = mesesMatch ? parseInt(mesesMatch[1]) : 0;
+
+        FIAP.calculation.addAgeClassificationTag(anos, meses, input);
+      }
+    });
+  }, 200);
+});

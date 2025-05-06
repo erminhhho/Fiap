@@ -12,6 +12,13 @@ input:focus, select:focus, textarea:focus {
   opacity: 0.7 !important; /* Reduzindo a opacidade para suavizar ainda mais */
 }
 
+/* Remove o negrito das labels e campos */
+.input-label, .cpf-valid ~ .input-label, .cep-valid ~ .input-label, .field-valid ~ .input-label,
+.cpf-invalid ~ .input-label, .cep-invalid ~ .input-label, .field-invalid ~ .input-label,
+.validation-message, .status-tag {
+  font-weight: normal !important;
+}
+
 /* Novo estilo para labels posicionadas no canto superior direito */
 .form-field {
   position: relative;
@@ -92,6 +99,45 @@ select option,
   border: none;
   box-shadow: none;
   display: block; /* Alterado de flex para block */
+}
+
+/* Novos estilos para validação em tempo real */
+.validation-field-icon {
+  z-index: 10;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  font-size: 0.875rem;
+  font-weight: normal !important;
+}
+
+.validation-message {
+  font-size: 0.7rem;
+  animation: fadeIn 0.2s ease-in-out;
+  z-index: 5;
+  max-width: calc(100% - 10px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Estados dos campos durante validação */
+.cpf-validating {
+  border-color: #3b82f6 !important; /* Azul enquanto digita */
+}
+
+.cpf-valid, .cep-valid, .field-valid {
+  background-color: transparent !important;
+  border-color: #10b981 !important;
+  transition: all 0.3s ease;
+}
+
+.cpf-invalid, .cep-invalid, .field-invalid {
+  background-color: transparent !important;
+  border-color: #ef4444 !important;
+  transition: all 0.3s ease;
 }
 
 /* Variações de estados para mensagens de validação - apenas cores diferenciadas */
@@ -640,7 +686,7 @@ textarea.peer {
   align-items: center;
   gap: 4px;
   font-size: 0.75rem; /* Fonte menor */
-  font-weight: 600;
+  font-weight: normal !important;
   border-radius: 12px;
   padding: 0.05rem 0.6rem; /* Padding vertical uniforme e reduzido */
   height: 1.4rem;
@@ -879,4 +925,75 @@ textarea.peer {
 
 .validation-active {
     animation: fadeIn 0.3s ease;
+}
+
+/* Estilos para as tags de classificação etária judicial */
+.age-classification-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.age-classification-tag:hover {
+  transform: translate(0, -54%) scale(1.05);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  cursor: help;
+}
+
+/* Quando o input do nome está em foco, garantir que a tag fique visível */
+input:focus ~ .age-classification-tag {
+  z-index: 30;
+}
+
+/* Estilos das tags de classificação etária - usando o mesmo padrão das tags de relacionamento */
+.age-classification-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+/* Cores específicas para cada tipo de classificação etária */
+.age-classification-tag[data-selected="nascituro"] {
+  background-color: #6d28d9; /* bg-purple-700 */
+}
+
+.age-classification-tag[data-selected="infante"] {
+  background-color: #ec4899; /* bg-pink-500 */
+}
+
+.age-classification-tag[data-selected="impubere"] {
+  background-color: #f97316; /* bg-orange-500 */
+}
+
+.age-classification-tag[data-selected="pubere"] {
+  background-color: #eab308; /* bg-yellow-500 */
+}
+
+.age-classification-tag[data-selected="rel-incapaz"] {
+  background-color: #22c55e; /* bg-green-500 */
+}
+
+.age-classification-tag[data-selected="idoso"] {
+  background-color: #a855f7; /* bg-purple-500 */
+}
+
+.age-classification-tag[data-selected="capaz"] {
+  background-color: #2563eb; /* bg-blue-600 */
+}
+
+/* Efeito de hover similar ao das tags de relacionamento */
+.age-classification-tag:hover {
+  transform: translate(0, -54%) scale(1.05);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  cursor: help;
 }

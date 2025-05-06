@@ -46,7 +46,10 @@
                 </div>
                 <!-- Nascimento -->
                 <div class="relative col-span-4">
-                  <input type="text" id="nascimento" name="nascimento" oninput="maskDate(this); calcularIdade(this.value, 'idade')"
+                  <input type="text" id="nascimento" name="nascimento"
+                    oninput="maskDate(this)"
+                    onblur="validateDateOfBirth(this)"
+                    data-target-age="idade"
                     class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                     placeholder="dd/mm/aaaa" />
                   <label for="nascimento"
@@ -164,7 +167,7 @@
         </div>
         <!-- UF -->
         <div class="relative md:col-span-2">
-          <input type="text" id="uf" name="uf" maxlength="2"
+          <input type="text" id="uf" name="uf" maxlength="2" oninput="maskUF(this)"
             class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 uppercase"
             placeholder="UF" />
           <label for="uf"
