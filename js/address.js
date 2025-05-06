@@ -226,7 +226,7 @@ async function buscarCidades(input) {
       }
     } else {
       // Buscar em todos os estados, começando pelos mais populosos
-      const estadosPrioritarios = ['SP', 'RJ', 'MG', 'BA', 'RS', 'PR', 'PE', 'CE', 'SC'];
+      const estadosPrioritarios = ['SP', 'RJ', 'MG', 'BA', 'RS', 'PR', 'PE', 'CE', 'SC', 'GO', 'ES', 'PA', 'PB', 'MS', 'MT'];
 
       for (const sigla of estadosPrioritarios) {
         const estado = estados.find(e => e.sigla === sigla);
@@ -238,12 +238,12 @@ async function buscarCidades(input) {
         // Adicionar ao resultado total
         resultados = [...resultados, ...cidadesFiltradas];
 
-        // Limitar a 10 resultados no total
-        if (resultados.length >= 10) break;
+        // Limitar a 20 resultados no total para busca mais abrangente
+        if (resultados.length >= 20) break;
       }
 
-      // Limitar a 10 resultados
-      resultados = resultados.slice(0, 10);
+      // Limitar a 20 resultados
+      resultados = resultados.slice(0, 20);
     }
 
     // Remover indicador de carregamento
@@ -272,7 +272,8 @@ async function buscarCidades(input) {
 function filtrarCidades(cidades, texto) {
   const textoNormalizado = removerAcentos(texto.toLowerCase());
 
-  return cidades
+  // Primeiro, tentar correspondência completa ou parcial no nome da cidade
+  const resultados = cidades
     .filter(cidade => {
       const nomeNormalizado = removerAcentos(cidade.nome.toLowerCase());
       return nomeNormalizado.includes(textoNormalizado);
@@ -292,10 +293,28 @@ function filtrarCidades(cidades, texto) {
       if (aComecaCom && !bComecaCom) return -1;
       if (!aComecaCom && bComecaCom) return 1;
 
-      // Depois ordenar alfabeticamente
+      // Cidades que contêm o texto como palavra inteira vêm depois
+      const aContemPalavra = new RegExp(`\\b${textoNormalizado}\\b`, 'i').test(aNome);
+      const bContemPalavra = new RegExp(`\\b${textoNormalizado}\\b`, 'i').test(bNome);
+
+      if (aContemPalavra && !bContemPalavra) return -1;
+      if (!aContemPalavra && bContemPalavra) return 1;
+
+      // Por fim, ordenar alfabeticamente
       return a.nome.localeCompare(b.nome);
     })
-    .slice(0, 10); // Limitar a 10 resultados por estado
+    .slice(0, 20); // Aumentar o limite para 20 resultados por estado
+
+  // Se o texto for mais curto (2 ou 3 caracteres), filtrar para cidades mais relevantes
+  if (texto.length <= 3) {
+    // Para textos curtos, damos mais peso para cidades que começam com o texto
+    return resultados.filter((cidade, index, arr) => {
+      const nomeNormalizado = removerAcentos(cidade.nome.toLowerCase());
+      return nomeNormalizado.startsWith(textoNormalizado) || index < 10;
+    }).slice(0, 15);
+  }
+
+  return resultados;
 }
 
 /**
@@ -727,35 +746,8 @@ class CEPFinder {
       }
     }
 
-    // Tentativa 3: Usar um CEP genérico do estado como último recurso
-    const genericCEP = this.getGenericStateCEP(uf);
-    if (genericCEP) {
-      console.log(`Usando CEP genérico para ${uf}: ${genericCEP}`);
-      this.cache[cacheKey] = genericCEP;
-      this.saveCache();
-      return genericCEP;
-    }
-
+    // Se nenhuma API funcionou, retornar null
     return null;
-  }
-
-  /**
-   * Retorna um CEP genérico para o estado (último recurso)
-   * @param {string} uf - Sigla do estado
-   * @returns {string|null} - CEP genérico ou null
-   */
-  getGenericStateCEP(uf) {
-    const genericCEPs = {
-      'AC': '69900000', 'AL': '57000000', 'AM': '69000000', 'AP': '68900000',
-      'BA': '40000000', 'CE': '60000000', 'DF': '70000000', 'ES': '29000000',
-      'GO': '74000000', 'MA': '65000000', 'MG': '30000000', 'MS': '79000000',
-      'MT': '78000000', 'PA': '66000000', 'PB': '58000000', 'PE': '50000000',
-      'PI': '64000000', 'PR': '80000000', 'RJ': '20000000', 'RN': '59000000',
-      'RO': '76800000', 'RR': '69300000', 'RS': '90000000', 'SC': '88000000',
-      'SE': '49000000', 'SP': '01000000', 'TO': '77000000'
-    };
-
-    return genericCEPs[uf.toUpperCase()] || null;
   }
 
   /**
@@ -818,7 +810,7 @@ class CEPFinder {
 
     const data = await response.json();
     if (data && data.length > 0) {
-      // Extrair o CEP (se disponível) ou gerar um CEP válido para a região
+      // Extrair o CEP (se disponível)
       let poscode = null;
 
       if (data[0].address && data[0].address.postcode) {
@@ -833,8 +825,7 @@ class CEPFinder {
         }
       }
 
-      // Se não encontrou CEP, usar o genérico do estado
-      return this.getGenericStateCEP(uf);
+      return null;
     }
 
     return null;
