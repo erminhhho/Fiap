@@ -120,62 +120,151 @@ FIAP.masks = {
 
     input.value = value;
 
-    // Adicionar ícone de WhatsApp se ainda não existir
-    this.addWhatsAppToggle(input);
+    // Garantir que o ícone de WhatsApp seja adicionado
+    this.addWhatsAppIcon(input);
   },
 
   /**
-   * Adiciona ícone de toggle para WhatsApp em um campo de telefone
+   * Adiciona ícone de WhatsApp clicável ao campo de telefone
    * @param {HTMLInputElement} input - Campo de entrada do telefone
    */
-  addWhatsAppToggle: function(input) {
-    const parentDiv = input.parentElement;
-    if (!parentDiv) return;
+  addWhatsAppIcon: function(input) {
+    if (!input || !input.parentElement) return;
 
-    // Verificar se já existe um ícone de WhatsApp
-    let whatsappIcon = parentDiv.querySelector('.whatsapp-toggle');
+    // Verificação mais rigorosa - evitar campos que são detalhes ou descrições de telefone
+    const isExcluded = (
+      (input.id && (input.id.includes('_detalhes') || input.id.includes('_descricao'))) ||
+      (input.name && (input.name.includes('_detalhes') || input.name.includes('_descricao'))) ||
+      (input.placeholder && (input.placeholder.includes('detalhe') || input.placeholder.includes('descrição')))
+    );
 
-    if (!whatsappIcon) {
-      // Criar o ícone do WhatsApp
-      whatsappIcon = document.createElement('span');
-      whatsappIcon.className = 'whatsapp-toggle';
-      whatsappIcon.innerHTML = '<i class="fab fa-whatsapp"></i>';
+    if (isExcluded) return;
 
-      // Estilo do ícone
-      whatsappIcon.style.position = 'absolute';
-      whatsappIcon.style.right = '12px';
-      whatsappIcon.style.top = '50%';
-      whatsappIcon.style.transform = 'translateY(-50%)';
-      whatsappIcon.style.cursor = 'pointer';
-      whatsappIcon.style.zIndex = '10';
-      whatsappIcon.style.color = '#aaa'; // Cor inicial (inativo)
-      whatsappIcon.style.fontSize = '1.2rem';
-      whatsappIcon.style.transition = 'color 0.2s ease';
+    // Verificar se é realmente um campo principal de telefone
+    const isPhoneField =
+      (input.id && (input.id === 'telefone' || input.id.includes('phone') || input.id.match(/telefone[0-9]*/))) ||
+      (input.name && (input.name === 'telefone' || input.name.includes('phone') || input.name.match(/telefone[0-9]*/))) ||
+      input.type === 'tel' ||
+      (input.placeholder && (
+        input.placeholder.includes('(') &&
+        input.placeholder.includes(')') &&
+        input.placeholder.includes('-')
+      ));
 
-      // Adicionar dados ao input para rastrear se é WhatsApp
-      input.dataset.whatsapp = 'false';
+    // Se não for campo de telefone ou for excluído, não adicionar ícone
+    if (!isPhoneField) return;
 
-      // Adicionar padding extra à direita para evitar sobreposição com o texto
-      input.style.paddingRight = '2.5rem';
+    // Remover antigas tags de WhatsApp (compatibilidade com sistemas antigos)
+    const oldWhatsAppTags = input.parentElement.querySelectorAll('.whatsapp-tag');
+    oldWhatsAppTags.forEach(tag => tag.remove());
 
-      // Adicionar o ícone ao container
-      parentDiv.style.position = 'relative'; // Garantir posicionamento correto
-      parentDiv.appendChild(whatsappIcon);
+    // Forçar posicionamento relativo do container
+    input.parentElement.style.position = 'relative';
 
-      // Adicionar evento de clique
-      whatsappIcon.addEventListener('click', function() {
-        // Alternar estado de WhatsApp
-        const isWhatsapp = input.dataset.whatsapp === 'true';
-        input.dataset.whatsapp = isWhatsapp ? 'false' : 'true';
+    // Verificar se já existe um ícone e remover para evitar duplicação
+    const existingIcon = input.parentElement.querySelector('.whatsapp-icon-toggle');
+    if (existingIcon) existingIcon.remove();
 
-        // Atualizar visual do ícone
-        whatsappIcon.style.color = isWhatsapp ? '#aaa' : '#25D366';
-        whatsappIcon.title = isWhatsapp ? 'Marcar como WhatsApp' : 'Marcado como WhatsApp';
-      });
+    // Criar o ícone de WhatsApp
+    const whatsappIcon = document.createElement('div');
+    whatsappIcon.className = 'whatsapp-icon-toggle';
+    whatsappIcon.innerHTML = '<i class="fab fa-whatsapp"></i>';
 
-      // Definir tooltip inicial
-      whatsappIcon.title = 'Marcar como WhatsApp';
-    }
+    // CSS direto para design equilibrado - inspirado em botões de ação
+    Object.assign(whatsappIcon.style, {
+      position: 'absolute',
+      right: '10px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      cursor: 'pointer',
+      width: '24px',
+      height: '24px',
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#f5f5f5',
+      color: '#888',
+      fontSize: '14px',
+      zIndex: '100',
+      transition: 'all 0.2s ease',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+      border: '1px solid #ddd'
+    });
+
+    // Efeito de hover
+    whatsappIcon.addEventListener('mouseenter', function() {
+      if (input.dataset.whatsapp !== 'true') {
+        this.style.background = '#e9e9e9';
+        this.style.boxShadow = '0 2px 3px rgba(0,0,0,0.15)';
+      }
+    });
+
+    whatsappIcon.addEventListener('mouseleave', function() {
+      if (input.dataset.whatsapp !== 'true') {
+        this.style.background = '#f5f5f5';
+        this.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
+      }
+    });
+
+    // Configurar estado inicial e data attribute
+    input.dataset.whatsapp = 'false';
+
+    // Adicionar o ícone ao container
+    input.parentElement.appendChild(whatsappIcon);
+
+    // Configurar padding para não sobrepor o texto
+    input.style.paddingRight = '40px';
+
+    // Adicionar evento de clique com handler robusto
+    whatsappIcon.addEventListener('click', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      // Alternar estado de WhatsApp
+      const currentState = input.dataset.whatsapp === 'true';
+      const newState = !currentState;
+
+      // Atualizar data attribute
+      input.dataset.whatsapp = newState ? 'true' : 'false';
+
+      // Atualização visual - equilibrada mas identificável
+      if (newState) {
+        // Estado ativo: estilo mais evidente sem ser exagerado
+        Object.assign(whatsappIcon.style, {
+          backgroundColor: '#25D366', // Verde WhatsApp reconhecível
+          color: 'white',
+          transform: 'translateY(-50%)',
+          boxShadow: '0 2px 4px rgba(37, 211, 102, 0.3)',
+          border: '1px solid #20b559'
+        });
+
+        // Usar apenas o ícone limpo com um check pequeno integrado
+        whatsappIcon.innerHTML = '<i class="fab fa-whatsapp"></i>';
+
+        // Adicionar um sutil indicador visual - uma borda brilhante em vez da bolinha
+        whatsappIcon.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.7), 0 2px 4px rgba(37, 211, 102, 0.3)';
+      } else {
+        // Estado inativo
+        Object.assign(whatsappIcon.style, {
+          backgroundColor: '#f5f5f5',
+          color: '#888',
+          transform: 'translateY(-50%)',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+          border: '1px solid #ddd'
+        });
+
+        // Remover badge
+        whatsappIcon.innerHTML = '<i class="fab fa-whatsapp"></i>';
+      }
+
+      whatsappIcon.title = newState ? 'Este é um número de WhatsApp (clique para desmarcar)' : 'Marcar como WhatsApp';
+    });
+
+    // Tooltip inicial
+    whatsappIcon.title = 'Marcar como WhatsApp';
+
+    return whatsappIcon;
   },
 
   /**
@@ -269,6 +358,17 @@ FIAP.validation = {
     if (cpf.length === 0) {
       // Campo vazio - remover qualquer indicação
       input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
+
+      // Remover qualquer estilo de validação do parent que possa estar afetando a label
+      parentDiv.classList.remove('invalid-parent', 'valid-parent');
+
+      // Garantir que a label mantenha sua cor original
+      const label = parentDiv.querySelector('label');
+      if (label) {
+        label.classList.remove('text-red-500', 'text-white');
+        label.classList.add('text-gray-700'); // Cor padrão para labels
+      }
+
       this.removeValidationMessage(parentDiv);
       return;
     } else if (cpf.length < 11) {
@@ -539,10 +639,31 @@ FIAP.validation = {
    * @returns {boolean} - Indica se o CPF é válido
    */
   cpf: function(input) {
-    // Executar a validação em tempo real para garantir feedback consistente
-    this.cpfRealTime(input);
+    // Se o campo estiver vazio, limpar todos os estados de validação
+    if (input.value.trim() === '' || input.value.replace(/\D/g, '') === '') {
+      input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
 
-    // Verificar se o campo está marcado como válido
+      // Garantir que a label volte à cor padrão
+      const label = input.parentElement.querySelector('label');
+      if (label) {
+        label.classList.remove('text-red-500', 'text-white');
+        label.classList.add('text-gray-700');
+      }
+
+      // Remover ícone de validação
+      this.removeValidationIcon(input);
+
+      // Remover qualquer mensagem de validação
+      this.removeValidationMessage(input.parentElement);
+
+      // Remover qualquer estilo de borda no input
+      input.style.borderColor = '';
+
+      return true; // Campo vazio não é considerado erro
+    }
+
+    // Se não estiver vazio, executar a validação normal
+    this.cpfRealTime(input);
     return input.classList.contains('cpf-valid');
   }
 };
@@ -1047,6 +1168,85 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Inicializar ícones de WhatsApp em todos os campos de telefone existentes
   document.querySelectorAll('input[id*="telefone"], input[id*="phone"], input[name*="telefone"], input[name*="phone"]').forEach(input => {
-    FIAP.masks.addWhatsAppToggle(input);
+    setTimeout(() => FIAP.masks.phone(input), 100);
   });
+
+  // INICIALIZAÇÃO APENAS DOS CAMPOS DE TELEFONE PRINCIPAIS
+  function initializePhoneFields() {
+    // Remover todas as tags antigas de WhatsApp
+    document.querySelectorAll('.whatsapp-tag').forEach(tag => tag.remove());
+
+    // Seletor mais específico e restritivo para campos de telefone
+    const phoneFields = Array.from(document.querySelectorAll('input')).filter(input => {
+      // Excluir explicitamente campos de detalhes/descrições
+      if (
+        (input.id && (input.id.includes('_detalhes') || input.id.includes('descricao'))) ||
+        (input.name && (input.name.includes('_detalhes') || input.name.includes('descricao'))) ||
+        (input.placeholder && input.placeholder.includes('descreva'))
+      ) {
+        return false;
+      }
+
+      // Critérios positivos para identificar um campo de telefone principal
+      return (
+        (input.id && (
+          input.id === 'telefone' ||
+          input.id.match(/^telefone[0-9]*$/) ||
+          input.id.match(/^phone[0-9]*$/)
+        )) ||
+        (input.name && (
+          input.name === 'telefone' ||
+          input.name.match(/^telefone[0-9]*$/) ||
+          input.name.match(/^phone[0-9]*$/)
+        )) ||
+        input.type === 'tel' ||
+        (input.placeholder && input.placeholder.match(/\(\d{2}\)\s*\d{4,5}-\d{4}/))
+      );
+    });
+
+    // Aplicar o ícone apenas aos campos específicos de telefone principal
+    phoneFields.forEach(phone => {
+      FIAP.masks.addWhatsAppIcon(phone);
+    });
+  }
+
+  // Inicializar os campos após um atraso para garantir renderização completa
+  setTimeout(initializePhoneFields, 500);
+
+  // Observar mudanças no DOM para campos adicionados dinamicamente
+  const observer = new MutationObserver(mutations => {
+    let shouldInitialize = false;
+
+    // Verificar por nodes adicionados que possam ser campos de telefone
+    for (let mutation of mutations) {
+      if (mutation.addedNodes.length) {
+        for (let node of mutation.addedNodes) {
+          if (node.nodeType === 1 && (node.tagName === 'INPUT' || node.querySelector && node.querySelector('input'))) {
+            shouldInitialize = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (shouldInitialize) {
+      setTimeout(initializePhoneFields, 100);
+    }
+  });
+
+  // Iniciar observação com configurações mais específicas
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['id', 'name', 'type', 'placeholder']
+  });
+
+  // Desativar qualquer função antiga de toggle WhatsApp
+  if (window.toggleWhatsAppTag) {
+    window.toggleWhatsAppTag = function() {
+      console.log('Antiga função toggleWhatsAppTag substituída');
+      return false;
+    };
+  }
 });
