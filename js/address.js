@@ -334,32 +334,87 @@ function selecionarCidade(cidade, input) {
     ufInput.classList.add('field-filled');
   }
 
-  // Como não podemos buscar o CEP por causa do CORS, apenas destacamos o campo para o usuário
-  // e mostramos uma mensagem incentivando a completar o CEP
+  // Buscar e preencher o CEP principal da cidade
   const cepInput = document.getElementById('cep');
   if (cepInput) {
     // Limpar o campo para não manter valores antigos
     cepInput.value = '';
 
-    // Focar no campo CEP para que o usuário possa digitá-lo
-    setTimeout(() => {
-      cepInput.focus();
+    // Adicionar indicador de carregamento
+    cepInput.classList.add('cep-validating');
+    if (window.FIAP && window.FIAP.validation) {
+      FIAP.validation.removeValidationIcon(cepInput);
+      FIAP.validation.addValidationIcon(cepInput, 'spinner', 'text-blue-500 fa-spin');
+    }
 
-      // Adicionar mensagem transitória como placeholder
-      const originalPlaceholder = cepInput.placeholder;
-      cepInput.placeholder = "Digite o CEP para completar";
+    // Buscar CEP da cidade
+    buscarCEPCidade(cidade.nome, cidade.uf)
+      .then(cep => {
+        if (cep) {
+          // Formatar o CEP (00000-000)
+          const cepFormatado = cep.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+          cepInput.value = cepFormatado;
+          cepInput.classList.add('field-filled', 'cep-valid');
 
-      // Restaurar o placeholder original depois de um tempo
-      setTimeout(() => {
-        cepInput.placeholder = originalPlaceholder;
-      }, 3000);
+          // Adicionar ícone de sucesso
+          if (window.FIAP && window.FIAP.validation) {
+            FIAP.validation.removeValidationIcon(cepInput);
+            FIAP.validation.addValidationIcon(cepInput, 'check-circle', 'text-green-500');
+          }
 
-      // Adicionar classe visual transitória para chamar atenção
-      cepInput.classList.add('cep-highlight');
-      setTimeout(() => {
-        cepInput.classList.remove('cep-highlight');
-      }, 1500);
-    }, 100);
+          // Consultar dados do CEP para completar endereço
+          consultarCEP(cepFormatado);
+        } else {
+          // Focar no campo CEP para que o usuário possa digitá-lo
+          cepInput.focus();
+          cepInput.classList.add('cep-highlight');
+
+          // Remover classes temporárias
+          setTimeout(() => {
+            cepInput.classList.remove('cep-highlight');
+            cepInput.classList.remove('cep-validating');
+            if (window.FIAP && window.FIAP.validation) {
+              FIAP.validation.removeValidationIcon(cepInput);
+            }
+          }, 1500);
+        }
+      })
+      .catch(() => {
+        // Em caso de erro, voltar ao comportamento original
+        cepInput.focus();
+        cepInput.classList.remove('cep-validating');
+        if (window.FIAP && window.FIAP.validation) {
+          FIAP.validation.removeValidationIcon(cepInput);
+        }
+        cepInput.classList.add('cep-highlight');
+        setTimeout(() => {
+          cepInput.classList.remove('cep-highlight');
+        }, 1500);
+      });
+  }
+}
+
+/**
+ * Busca o CEP principal da cidade
+ * @param {string} cidade - Nome da cidade
+ * @param {string} uf - Sigla da UF
+ * @returns {Promise<string|null>} - Retorna o CEP ou null se não encontrado
+ */
+async function buscarCEPCidade(cidade, uf) {
+  try {
+    // Remover acentos e normalizar a cidade para a busca
+    const cidadeNormalizada = removerAcentos(cidade).toLowerCase();
+    const response = await fetch(`https://viacep.com.br/ws/${uf}/${cidadeNormalizada}/json/`);
+    const dados = await response.json();
+
+    if (Array.isArray(dados) && dados.length > 0) {
+      // Retornar o primeiro CEP (geralmente o centro da cidade)
+      return dados[0].cep.replace(/\D/g, '');
+    }
+    return null;
+  } catch (error) {
+    console.error('Erro ao buscar CEP da cidade:', error);
+    return null;
   }
 }
 
