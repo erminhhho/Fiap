@@ -45,266 +45,134 @@ function clearForm(showConfirmation = true) {
 
 // Função para criar um novo formulário
 function newForm() {
-  if (confirm('Deseja iniciar um novo formulário? Todos os dados não salvos serão perdidos.')) {
-    // Limpar o formulário
-    clearForm();
-
-    // Redirecionar para a primeira etapa
-    navigateTo('personal');
-
-    alert('Novo formulário iniciado com sucesso!');
+  if (confirm('Deseja iniciar um novo formulário? Os dados não salvos serão perdidos.')) {
+    clearForm(false);
+    showSuccess('Novo formulário iniciado!', null, { duration: 3000 });
   }
 }
 
 // Função para salvar o formulário com feedback visual
 function saveForm() {
-  // Coletar todos os dados do formulário
-  const formData = {};
-  document.querySelectorAll('input:not([type="button"]):not([type="submit"]), select, textarea').forEach(field => {
-    if (field.name) {
-      formData[field.name] = field.value;
-    }
-  });
-
-  // Salvar dados específicos de listas dinâmicas
-  formData.familiares = [];
-  document.querySelectorAll('#membros-familia-list .membro-familia').forEach(membro => {
-    const familiar = {};
-    membro.querySelectorAll('input, select').forEach(field => {
-      if (field.name) {
-        // Remover os colchetes do nome do campo para obter a chave
-        const key = field.name.replace('[]', '');
-        familiar[key] = field.value;
-      }
-    });
-    if (Object.keys(familiar).length > 0) {
-      formData.familiares.push(familiar);
-    }
-  });
-
-  // Gerar um ID único baseado na data ou usar um existente
-  const formId = localStorage.getItem('currentFormId') || 'form_' + Date.now();
-  localStorage.setItem('currentFormId', formId);
-  localStorage.setItem(formId, JSON.stringify(formData));
-
-  // Salvar a data da última alteração
-  const dataAtual = new Date();
-  const dataFormatada = dataAtual.toLocaleString('pt-BR');
-  localStorage.setItem(formId + '_lastSaved', dataFormatada);
-
-  // Mostrar mensagem de sucesso usando o showSuccess
-  showSuccess('Formulário salvo com sucesso!', null, {
+  // Feedback apenas para simular funcionalidade
+  showSuccess('Funcionalidade de salvamento será implementada em breve!', null, {
     duration: 3000,
     position: 'top-right'
   });
-
-  return formId;
 }
 
-// Função para configurar salvamento automático
-function setupAutoSave(intervalMinutes = 2) {
-  let timer;
-  const intervalMs = intervalMinutes * 60 * 1000;
-  const statusIndicator = document.getElementById('save-status-indicator');
-  const statusText = document.getElementById('save-status-text');
-
-  // Atualiza o indicador de status
-  const updateSaveStatus = (status, isAuto = false) => {
-    if (!statusIndicator || !statusText) return;
-
-    const now = new Date();
-    const timeFormatted = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-
-    if (status === 'saving') {
-      statusIndicator.classList.add('bg-blue-50');
-      statusText.textContent = 'Salvando...';
-    } else if (status === 'saved') {
-      statusIndicator.classList.remove('bg-blue-50');
-      statusText.textContent = `${isAuto ? 'Auto-save' : 'Salvo'} às ${timeFormatted}`;
-    } else if (status === 'error') {
-      statusIndicator.classList.add('bg-red-50');
-      statusText.textContent = `Erro ao salvar às ${timeFormatted}`;
-      setTimeout(() => {
-        statusIndicator.classList.remove('bg-red-50');
-      }, 5000);
-    }
-  };
-
-  // Inicializar o status
-  const lastSavedTime = localStorage.getItem('lastFormSaveTime');
-  if (lastSavedTime) {
-    const formattedTime = new Date(lastSavedTime).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-    statusText.textContent = `Último salvamento: ${formattedTime}`;
-  } else {
-    statusText.textContent = 'Nenhum salvamento ainda';
-  }
-
-  // Função que realiza o salvamento automático
-  const autoSave = () => {
-    // Verificar se há dados para salvar
-    const camposPreenchidos = Array.from(
-      document.querySelectorAll('input:not([type="button"]):not([type="submit"]), select, textarea')
-    ).some(field => field.value.trim() !== '');
-
-    if (camposPreenchidos) {
-      try {
-        updateSaveStatus('saving');
-        const formId = saveForm(false); // Não exibir mensagem visual de sucesso
-        localStorage.setItem('lastFormSaveTime', new Date().toString());
-        updateSaveStatus('saved', true);
-        console.log(`Auto-save realizado: ${new Date().toLocaleTimeString()}`);
-      } catch (error) {
-        console.error('Erro no auto-save:', error);
-        updateSaveStatus('error');
-      }
-    }
-  };
-
-  // Iniciar o timer quando houver interação com o formulário
-  const resetTimer = () => {
-    clearTimeout(timer);
-    timer = setTimeout(autoSave, intervalMs);
-  };
-
-  // Adicionar listeners para eventos de interação com o formulário
-  const formElements = document.querySelectorAll('input, select, textarea');
-  formElements.forEach(element => {
-    element.addEventListener('change', resetTimer);
-    element.addEventListener('input', resetTimer);
-  });
-
-  // Iniciar o timer quando a função for chamada
-  resetTimer();
-
-  return {
-    stop: () => clearTimeout(timer),
-    forceNow: autoSave,
-    updateStatus: updateSaveStatus
-  };
-}
-
-// Função para carregar um formulário salvo
-function loadForm(formId) {
-  const savedData = localStorage.getItem(formId);
-  if (!savedData) {
-    showError('Formulário não encontrado!', null, { duration: 3000 });
-    return false;
-  }
-
-  try {
-    const formData = JSON.parse(savedData);
-
-    // Limpar formulário atual antes de carregar
-    clearForm(false);
-
-    // Preencher os campos simples
-    Object.keys(formData).forEach(key => {
-      if (key !== 'familiares' && typeof formData[key] === 'string') {
-        const field = document.querySelector(`[name="${key}"]`);
-        if (field) {
-          field.value = formData[key];
-          field.classList.add('field-filled');
-        }
-      }
-    });
-
-    // Preencher listas dinâmicas como membros da família
-    if (formData.familiares && Array.isArray(formData.familiares)) {
-      const membrosList = document.getElementById('membros-familia-list');
-      if (membrosList) {
-        // Limpar a lista atual
-        membrosList.innerHTML = '';
-
-        // Adicionar cada membro da família
-        formData.familiares.forEach(familiar => {
-          addFamilyMember();
-          const lastMember = membrosList.lastElementChild;
-
-          // Preencher os campos do membro
-          Object.keys(familiar).forEach(key => {
-            const field = lastMember.querySelector(`[name="${key}[]"]`);
-            if (field) {
-              field.value = familiar[key];
-              field.classList.add('field-filled');
-            }
-          });
-        });
-      }
-    }
-
-    // Atualizar a interface após o carregamento
-    destacarCamposPreenchidos();
-    updateRemoveMemberButton();
-
-    // Mostrar informação da última vez que foi salvo
-    const lastSaved = localStorage.getItem(formId + '_lastSaved');
-    if (lastSaved) {
-      showInfo(`Formulário carregado (Última modificação: ${lastSaved})`, null, {
-        duration: 5000,
-        position: 'top-right'
-      });
-    } else {
-      showSuccess('Formulário carregado com sucesso!', null, { duration: 3000 });
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Erro ao carregar formulário:', error);
-    showError('Erro ao carregar o formulário!', null, { duration: 3000 });
-    return false;
-  }
-}
-
-// Função para imprimir o formulário
+// Função para impressão do formulário
 function printForm() {
   window.print();
 }
 
-// Função para adicionar membro da família
+// Função para adicionar um novo membro à família
 function addFamilyMember() {
-  const container = document.getElementById('membros-familia-container');
-  const list = document.getElementById('membros-familia-list');
-  const template = document.getElementById('membro-familia-template').innerHTML;
+  const membrosList = document.getElementById('membros-familia-list');
+  if (!membrosList) return;
 
-  const memberDiv = document.createElement('div');
-  memberDiv.innerHTML = template.trim();
-  const newMemberElement = memberDiv.firstChild;
+  // Clone do template ou crie um novo se não existir
+  let template = document.getElementById('membro-familia-template');
 
-  list.appendChild(newMemberElement);
+  if (!template) {
+    // Criar novo modelo se não existir um explícito
+    template = membrosList.querySelector('.membro-familia');
+    if (!template) return; // Se não houver nada para clonar, sair
+  }
 
-  // Aplicar máscaras aos novos campos
-  newMemberElement.querySelectorAll('input[name="familiar_cpf[]"]').forEach(input => {
-    input.addEventListener('input', function() {
-      maskCPF(this);
-    });
+  // Clonar o template
+  const novoMembro = template.cloneNode(true);
+  novoMembro.classList.remove('hidden');
+  novoMembro.removeAttribute('id');
+
+  // Limpar os campos do novo membro
+  novoMembro.querySelectorAll('input, select').forEach(campo => {
+    campo.value = '';
+    campo.classList.remove('field-filled', 'cpf-valid', 'cpf-invalid');
   });
 
-  // Destacar campos
-  destacarCamposPreenchidos();
+  // Adicionar à lista
+  membrosList.appendChild(novoMembro);
+
+  // Atualizar os botões de remoção
   updateRemoveMemberButton();
+
+  return novoMembro;
 }
 
-// Função para adicionar autor
+// Adicionar novo participante (usado na tela de autores)
 function addAuthor() {
-  // Implementação baseada na lógica existente...
-  console.log("Adicionar autor - Funcionalidade a ser implementada");
+  const authorsContainer = document.getElementById('authors-container');
+  if (!authorsContainer) return;
+
+  // Calcular o próximo ID de autor
+  const existentes = authorsContainer.querySelectorAll('.author-row');
+  const proximoId = existentes.length + 1;
+
+  // Clone do modelo do primeiro autor
+  const primeiroAutor = authorsContainer.querySelector('.author-row');
+  if (!primeiroAutor) return;
+
+  const novoAutor = primeiroAutor.cloneNode(true);
+
+  // Atualizar IDs e names para o novo autor
+  novoAutor.querySelectorAll('input, select').forEach(campo => {
+    if (campo.id) {
+      // Manter nome do campo e adicionar _ID
+      const baseName = campo.id.split('_')[0];
+      campo.id = baseName + '_' + proximoId;
+
+      // Se for um select de relacionamento, atualize também o handler
+      if (campo.tagName === 'SELECT' && campo.id.includes('relationship')) {
+        campo.setAttribute('onchange', `updateRelationshipLabel(this, ${proximoId})`);
+      }
+    }
+    campo.value = '';
+  });
+
+  // Atualizar labels
+  novoAutor.querySelectorAll('label').forEach(label => {
+    if (label.getAttribute('for')) {
+      const baseFor = label.getAttribute('for').split('_')[0];
+      label.setAttribute('for', baseFor + '_' + proximoId);
+    }
+  });
+
+  // Atualizar seletores de relacionamento
+  const relacionamentoSelecao = novoAutor.querySelector('.relationship-select');
+  if (relacionamentoSelecao) {
+    relacionamentoSelecao.dataset.selected = 'Dependente';
+    relacionamentoSelecao.dataset.value = 'Dependente';
+    relacionamentoSelecao.setAttribute('onclick', `toggleRelationshipTag(this)`);
+  }
+
+  // Limpar valores e adicionar ao container
+  authorsContainer.appendChild(novoAutor);
+
+  // Retornar ao início da scroll position suavemente após adicionar
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Função para remover o último membro da família
 function removeLastFamilyMember() {
-  const list = document.getElementById('membros-familia-list');
-  if (list.children.length > 1) {
-    list.lastElementChild.remove();
-    updateRemoveMemberButton();
-  }
+  const membrosList = document.getElementById('membros-familia-list');
+  if (!membrosList || membrosList.children.length <= 1) return;
+
+  membrosList.lastElementChild.remove();
+  updateRemoveMemberButton();
 }
 
-// Função para atualizar a visibilidade do botão de remover membro
+// Função para atualizar a visibilidade do botão de remover membros
 function updateRemoveMemberButton() {
-  const removeButton = document.getElementById('remove-last-family-member-btn');
-  const list = document.getElementById('membros-familia-list');
-  if (removeButton && list) {
-    removeButton.style.display = list.children.length > 1 ? 'flex' : 'none';
+  const membrosList = document.getElementById('membros-familia-list');
+  const btnRemove = document.getElementById('btn-remove-membro');
+
+  if (!membrosList || !btnRemove) return;
+
+  // Mostrar ou esconder o botão baseado na quantidade de membros
+  if (membrosList.children.length > 1) {
+    btnRemove.classList.remove('hidden');
+  } else {
+    btnRemove.classList.add('hidden');
   }
 }
 
@@ -352,15 +220,10 @@ function setupRightLabels() {
 
 // Função para configurar validação específica por campo
 function setupFieldValidation(field, msgElement) {
-  if (!field || !msgElement) return;
-
-  const name = field.name || '';
-  const id = field.id || '';
-
   field.addEventListener('blur', function() {
-    // Limpar mensagem anterior
-    msgElement.textContent = '';
-    msgElement.classList.remove('validation-active', 'validation-error');
+    // Validação específica por tipo de campo
+    const name = field.name || '';
+    const id = field.id || '';
 
     // CPF
     if (name.includes('cpf') || id.includes('cpf')) {
@@ -371,11 +234,11 @@ function setupFieldValidation(field, msgElement) {
       validateCEP(field, msgElement);
     }
     // Email
-    else if (field.type === 'email' || name.includes('email') || id.includes('email')) {
+    else if (name.includes('email') || id.includes('email')) {
       validateEmail(field, msgElement);
     }
     // Telefone
-    else if (name.includes('phone') || name.includes('telefone') || id.includes('phone') || id.includes('telefone')) {
+    else if (name.includes('telefone') || id.includes('telefone') || name.includes('phone') || id.includes('phone')) {
       validatePhone(field, msgElement);
     }
     // Campo obrigatório
@@ -391,52 +254,43 @@ function setupFieldValidation(field, msgElement) {
 
 // Função para validar CPF
 function validateCPF(field, msgElement) {
-  const cpf = field.value.replace(/[^\d]/g, '');
+  let cpf = field.value.replace(/\D/g, '');
 
-  if (cpf === '') {
-    field.classList.remove('cpf-valid', 'cpf-invalid');
+  if (cpf.length !== 11) {
+    field.classList.remove('cpf-valid');
+    field.classList.add('cpf-invalid');
+    showValidationMessage(msgElement, 'CPF incompleto', true);
     return;
   }
 
-  if (cpf.length !== 11 ||
-      cpf === '00000000000' ||
-      cpf === '11111111111' ||
-      cpf === '22222222222' ||
-      cpf === '33333333333' ||
-      cpf === '44444444444' ||
-      cpf === '55555555555' ||
-      cpf === '66666666666' ||
-      cpf === '77777777777' ||
-      cpf === '88888888888' ||
-      cpf === '99999999999') {
+  // Verificar se todos os dígitos são iguais
+  if (/^(\d)\1{10}$/.test(cpf)) {
     field.classList.remove('cpf-valid');
     field.classList.add('cpf-invalid');
     showValidationMessage(msgElement, 'CPF inválido', true);
     return;
   }
 
-  // Validação do primeiro dígito
-  let sum = 0;
+  // Algoritmo de validação do CPF
+  let soma = 0;
   for (let i = 0; i < 9; i++) {
-    sum += parseInt(cpf.charAt(i)) * (10 - i);
+    soma += parseInt(cpf.charAt(i)) * (10 - i);
   }
-  let remainder = 11 - (sum % 11);
-  if (remainder === 10 || remainder === 11) remainder = 0;
-  if (remainder !== parseInt(cpf.charAt(9))) {
-    field.classList.remove('cpf-valid');
-    field.classList.add('cpf-invalid');
-    showValidationMessage(msgElement, 'CPF inválido', true);
-    return;
-  }
+  let resto = 11 - (soma % 11);
+  let dv1 = resto >= 10 ? 0 : resto;
 
-  // Validação do segundo dígito
-  sum = 0;
+  soma = 0;
   for (let i = 0; i < 10; i++) {
-    sum += parseInt(cpf.charAt(i)) * (11 - i);
+    soma += parseInt(cpf.charAt(i)) * (11 - i);
   }
-  remainder = 11 - (sum % 11);
-  if (remainder === 10 || remainder === 11) remainder = 0;
-  if (remainder !== parseInt(cpf.charAt(10))) {
+  resto = 11 - (soma % 11);
+  let dv2 = resto >= 10 ? 0 : resto;
+
+  if (dv1 == cpf.charAt(9) && dv2 == cpf.charAt(10)) {
+    field.classList.remove('cpf-invalid');
+    field.classList.add('cpf-valid');
+    showValidationMessage(msgElement, 'CPF válido');
+  } else {
     field.classList.remove('cpf-valid');
     field.classList.add('cpf-invalid');
     showValidationMessage(msgElement, 'CPF inválido', true);
@@ -450,12 +304,7 @@ function validateCPF(field, msgElement) {
 
 // Função para validar CEP
 function validateCEP(field, msgElement) {
-  const cep = field.value.replace(/[^\d]/g, '');
-
-  if (cep === '') {
-    field.classList.remove('cep-valid', 'cep-invalid');
-    return;
-  }
+  const cep = field.value.replace(/\D/g, '');
 
   if (cep.length !== 8) {
     field.classList.remove('cep-valid');
@@ -463,8 +312,6 @@ function validateCEP(field, msgElement) {
     showValidationMessage(msgElement, 'CEP inválido', true);
     return;
   }
-
-  // Poderia adicionar uma verificação com API dos Correios aqui
 
   field.classList.remove('cep-invalid');
   field.classList.add('cep-valid');
@@ -474,29 +321,33 @@ function validateCEP(field, msgElement) {
 // Função para validar email
 function validateEmail(field, msgElement) {
   const email = field.value.trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (email === '') return;
-
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!regex.test(email)) {
-    showValidationMessage(msgElement, 'Email inválido', true);
+  if (!emailPattern.test(email)) {
+    field.classList.remove('field-valid');
+    field.classList.add('field-invalid');
+    showValidationMessage(msgElement, 'E-mail inválido', true);
     return;
   }
 
-  showValidationMessage(msgElement, 'Email válido');
+  field.classList.remove('field-invalid');
+  field.classList.add('field-valid');
+  showValidationMessage(msgElement, 'E-mail válido');
 }
 
 // Função para validar telefone
 function validatePhone(field, msgElement) {
-  const phone = field.value.replace(/[^\d]/g, '');
-
-  if (phone === '') return;
+  const phone = field.value.replace(/\D/g, '');
 
   if (phone.length < 10 || phone.length > 11) {
+    field.classList.remove('field-valid');
+    field.classList.add('field-invalid');
     showValidationMessage(msgElement, 'Telefone inválido', true);
     return;
   }
 
+  field.classList.remove('field-invalid');
+  field.classList.add('field-valid');
   showValidationMessage(msgElement, 'Telefone válido');
 }
 
@@ -701,51 +552,49 @@ function setupFieldValidation() {
  * @returns {boolean} - Se o campo é válido ou não
  */
 function validateField(field) {
-    // Determina o tipo de validação
-    const validationType = field.getAttribute('data-validate');
-    const isRequired = field.hasAttribute('required');
     const value = field.value.trim();
+    const validationType = field.getAttribute('data-validate') || '';
+    const isRequired = field.hasAttribute('required');
+    const messageId = `${field.id}-validation-message`;
+    const messageElement = document.getElementById(messageId);
 
-    // Verificar se é campo obrigatório vazio
+    if (!messageElement) return true;
+
+    // Se o campo for obrigatório e estiver vazio
     if (isRequired && value === '') {
-        showValidationMessage(field, 'Este campo é obrigatório', false);
+        showValidationMessage(field, 'Campo obrigatório', false);
         return false;
     }
 
-    // Se o campo não é obrigatório e está vazio, é considerado válido
+    // Se o campo não for obrigatório e estiver vazio, é válido
     if (!isRequired && value === '') {
         clearValidation(field);
         return true;
     }
 
-    // Aplicar validação específica com base no tipo
     let isValid = true;
     let message = '';
 
-    switch(validationType) {
+    // Validação baseada no tipo
+    switch (validationType) {
         case 'cpf':
             isValid = validateCPF(value);
             message = isValid ? 'CPF válido' : 'CPF inválido';
             break;
 
         case 'cep':
-            isValid = validateCEP(value);
-            message = isValid ? 'CEP válido' : 'Formato inválido. Use: 00000-000';
+            isValid = value.replace(/\D/g, '').length === 8;
+            message = isValid ? 'CEP válido' : 'CEP inválido';
             break;
 
         case 'email':
-            isValid = validateEmail(value);
+            isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
             message = isValid ? 'Email válido' : 'Email inválido';
             break;
 
         case 'phone':
-            isValid = validatePhone(value);
-            message = isValid ? 'Telefone válido' : 'Formato inválido. Use: (00) 00000-0000';
-            break;
-
-        case 'date':
-            isValid = validateDate(value);
-            message = isValid ? 'Data válida' : 'Formato inválido. Use: DD/MM/AAAA';
+            isValid = value.replace(/\D/g, '').length >= 10;
+            message = isValid ? 'Telefone válido' : 'Telefone inválido';
             break;
 
         case 'name':
@@ -836,18 +685,20 @@ function clearValidation(field) {
  * @returns {boolean} - Se é uma data válida
  */
 function validateDate(value) {
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return false;
+    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const match = value.match(regex);
 
-    const parts = value.split('/');
-    const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1;
-    const year = parseInt(parts[2], 10);
+    if (!match) return false;
+
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    const year = parseInt(match[3], 10);
 
     const date = new Date(year, month, day);
 
-    return date.getFullYear() === year &&
+    return date.getDate() === day &&
            date.getMonth() === month &&
-           date.getDate() === day;
+           date.getFullYear() === year;
 }
 
 /**
@@ -865,7 +716,7 @@ function validateName(value) {
  * @returns {boolean} - Se é um valor numérico
  */
 function validateNumeric(value) {
-    return /^[0-9]+$/.test(value);
+    return /^\d+$/.test(value);
 }
 
 // Inicializar sistema de labels no carregamento da página
@@ -876,17 +727,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Configurar o destaque de campos preenchidos
   if (typeof setupFieldHighlighting === 'function') {
     setupFieldHighlighting();
-  }
-
-  // Verificar se há um formulário salvo para carregar automaticamente
-  const currentFormId = localStorage.getItem('currentFormId');
-  if (currentFormId) {
-    // Carregar o formulário salvo, mas somente após perguntar ao usuário
-    const lastSaved = localStorage.getItem(currentFormId + '_lastSaved') || '';
-
-    if (confirm(`Deseja carregar o último formulário salvo? (${lastSaved})`)) {
-      loadForm(currentFormId);
-    }
   }
 });
 
@@ -899,5 +739,3 @@ window.addFamilyMember = addFamilyMember;
 window.addAuthor = addAuthor;
 window.removeLastFamilyMember = removeLastFamilyMember;
 window.updateRemoveMemberButton = updateRemoveMemberButton;
-window.setupAutoSave = setupAutoSave;
-window.loadForm = loadForm;

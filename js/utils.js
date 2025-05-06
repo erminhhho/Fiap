@@ -252,50 +252,6 @@ FIAP.calculation = {
 };
 
 /**
- * Módulo para operações de armazenamento persistente
- */
-FIAP.storage = {
-  /**
-   * Salva dados no localStorage com prefixo padrão
-   * @param {Object} dados - Dados a serem armazenados
-   * @returns {string} - Chave gerada para o registro
-   */
-  save: function(dados) {
-    const timestamp = new Date().getTime();
-    const chave = `fiap_${timestamp}`;
-
-    localStorage.setItem(chave, JSON.stringify(dados));
-    return chave;
-  },
-
-  /**
-   * Carrega dados do localStorage
-   * @param {string} chave - Chave do registro a ser carregado
-   * @returns {Object|null} - Dados carregados ou null
-   */
-  load: function(chave) {
-    const dados = localStorage.getItem(chave);
-    return dados ? JSON.parse(dados) : null;
-  },
-
-  /**
-   * Lista todos os registros salvos com o prefixo padrão
-   * @returns {Array} - Lista de registros encontrados
-   */
-  listAll: function() {
-    const registros = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const chave = localStorage.key(i);
-      if (chave.startsWith('fiap_')) {
-        const dados = this.load(chave);
-        registros.push({chave, dados});
-      }
-    }
-    return registros;
-  }
-};
-
-/**
  * Módulo para operações de API e serviços externos
  */
 FIAP.api = {
@@ -545,9 +501,6 @@ window.maskCurrency = FIAP.masks.currency;
 window.destacarCamposPreenchidos = FIAP.ui.highlightFields.bind(FIAP.ui);
 window.setupFieldHighlighting = FIAP.ui.setupFieldHighlighting.bind(FIAP.ui);
 window.formatarNomeProprio = FIAP.masks.properName;
-window.salvarLocalStorage = FIAP.storage.save;
-window.carregarLocalStorage = FIAP.storage.load;
-window.listarTodosRegistros = FIAP.storage.listAll;
 window.createStatusTag = FIAP.ui.createStatusTag.bind(FIAP.ui);
 window.removeStatusTags = FIAP.ui.removeStatusTags.bind(FIAP.ui);
 window.showSuccess = FIAP.ui.showSuccess.bind(FIAP.ui);

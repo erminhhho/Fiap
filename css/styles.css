@@ -234,9 +234,8 @@ select option,
 /* Garantir que os labels permaneçam visíveis quando o campo for preenchido */
 .peer:not(:placeholder-shown) ~ .input-label {
   color: #4b5563 !important; /* Cor mais visível quando o campo está preenchido */
-  text-opacity: 1 !important;
+  opacity: 1 !important;
   background-color: white !important;
-  text-transparent: unset !important;
 }
 
 /* Modificando a classe text-transparent para não afetar a visibilidade dos labels */

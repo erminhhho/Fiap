@@ -100,12 +100,6 @@
     </div>
   </div>
 
-  <!-- Indicador de status de salvamento -->
-  <div id="save-status-indicator" class="fixed bottom-4 right-4 bg-white shadow-md px-3 py-1 rounded-md text-sm text-gray-600 flex items-center">
-    <span id="save-status-text">Nenhum salvamento ainda</span>
-    <span id="save-status-time" class="text-xs text-gray-500 ml-2"></span>
-  </div>
-
   <!-- Scripts -->
   <script src="js/utils.js"></script>
   <script src="js/forms.js"></script>
@@ -129,17 +123,6 @@
       document.getElementById('btn-new').addEventListener('click', newForm);
       document.getElementById('btn-save').addEventListener('click', saveForm);
       document.getElementById('btn-print').addEventListener('click', printForm);
-
-      // Iniciar salvamento automático a cada 3 minutos
-      const autoSaveController = setupAutoSave(3);
-
-      // Exibir mensagem informativa sobre o salvamento automático
-      setTimeout(() => {
-        showInfo('Salvamento automático ativado (a cada 3 minutos)', null, {
-          duration: 5000,
-          position: 'top-right'
-        });
-      }, 2000);
     });
   </script>
 </body>
