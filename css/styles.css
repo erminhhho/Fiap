@@ -1,14 +1,86 @@
+:root {
+  /* Cores principais */
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-light: #3b82f6;
+
+  /* Cores de estado */
+  --color-success: #10b981;
+  --color-success-dark: #065f46;
+  --color-error: #ef4444;
+  --color-error-dark: #b91c1c;
+  --color-warning: #f59e0b;
+  --color-warning-dark: #854d0e;
+  --color-info: #3b82f6;
+
+  /* Cores neutras */
+  --color-text: #1F2937;
+  --color-text-light: #6B7280;
+  --color-text-lighter: #9CA3AF;
+  --color-bg: #FFFFFF;
+  --color-bg-light: #F9FAFB;
+  --color-bg-dark: #F3F4F6;
+  --color-border: #E5E7EB;
+
+  /* Tipografia */
+  --font-size-xs: 0.65rem;
+  --font-size-sm: 0.75rem;
+  --font-size-base: 0.875rem;
+  --font-size-lg: 1rem;
+  --font-size-xl: 1.125rem;
+
+  /* Espaçamento */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-base: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Bordas e sombras */
+  --border-radius-sm: 0.25rem;
+  --border-radius-base: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
+  --border-radius-full: 9999px;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Transições */
+  --transition-base: all 0.2s ease;
+  --transition-slow: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Padding para labels de campos */
+  --label-padding-x: 0.28rem;
+  --label-padding-y: 0.12rem;
+  --label-padding: var(--label-padding-y) var(--label-padding-x);
+
+  /* Cores e aparência dos labels */
+  --label-bg-gradient: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark));
+  --label-border-radius: 4px;
+  --label-box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 2px rgba(59, 130, 246, 0.05);
+  --label-font-size: 0.82rem;
+  --label-z-index: 10;
+
+  /* Transição para os labels */
+  --label-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Estilos específicos para garantir que os campos em foco tenham borda azul e fundo transparente */
 input:focus, select:focus, textarea:focus {
-  border-color: #2563eb !important; /* Azul para foco em todos os campos */
+  border-color: var(--color-primary) !important; /* Azul para foco em todos os campos */
   outline: none;
-  background-color: #ffffff !important; /* Branco quando em foco */
+  background-color: var(--color-bg) !important; /* Branco quando em foco */
   box-shadow: none !important; /* Removendo a sombra */
 }
 
 /* Placeholder com cor mais suave */
 ::placeholder {
-  color: #9ca3af !important; /* Uma cor cinza mais suave */
+  color: var(--color-text-lighter) !important;
   opacity: 0.7 !important; /* Reduzindo a opacidade para suavizar ainda mais */
 }
 
@@ -22,7 +94,7 @@ input:focus, select:focus, textarea:focus {
 /* Novo estilo para labels posicionadas no canto superior direito */
 .form-field {
   position: relative;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .right-label {
@@ -33,18 +105,18 @@ input:focus, select:focus, textarea:focus {
 .right-label textarea,
 .right-label select {
   width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid #D1D5DB;
-  padding: 0.75rem 1rem;
-  background-color: #F9FAFB;
-  color: #1F2937;
-  transition: all 0.2s;
+  border-radius: var(--border-radius-base);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-md) var(--spacing-base);
+  background-color: var(--color-bg-light);
+  color: var(--color-text);
+  transition: var(--transition-base);
 }
 
 .right-label input:focus,
 .right-label textarea:focus,
 .right-label select:focus {
-  border-color: #2563EB;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
   outline: none;
 }
@@ -53,12 +125,12 @@ input:focus, select:focus, textarea:focus {
   position: absolute;
   right: 10px;
   top: 0px;
-  font-size: 0.7rem; /* Fonte reduzida */
-  color: #2563EB;
-  background-color: transparent; /* Fundo transparente */
-  padding: 0 0.2rem; /* Padding reduzido */
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  background-color: transparent;
+  padding: 0 var(--spacing-sm);
   pointer-events: none;
-  transition: all 0.2s;
+  transition: var(--transition-base);
   transform: translateY(-50%);
 }
 
@@ -247,6 +319,192 @@ select option,
   margin-top: 1rem;
 }
 
+/* Estilo base unificado para todos os labels de campos */
+.field-label-base {
+  position: absolute !important;
+  left: 1rem !important;
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  font-size: var(--label-font-size) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: var(--label-padding) !important;
+  border-radius: var(--label-border-radius) !important;
+  background: var(--label-bg-gradient) !important;
+  box-shadow: var(--label-box-shadow) !important;
+  color: var(--color-primary) !important;
+  z-index: var(--label-z-index) !important;
+  pointer-events: none !important;
+  transition: var(--label-transition) !important;
+}
+
+/* Aplicar o estilo base a todos os labels de campos */
+label,
+.input-label,
+textarea ~ label,
+input ~ label,
+select ~ label {
+  position: absolute !important;
+  left: 1rem !important;
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  font-size: var(--label-font-size) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: var(--label-padding) !important;
+  border-radius: var(--label-border-radius) !important;
+  background: var(--label-bg-gradient) !important;
+  box-shadow: var(--label-box-shadow) !important;
+  color: var(--color-primary) !important;
+  z-index: var(--label-z-index) !important;
+  pointer-events: none !important;
+  transition: var(--label-transition) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: var(--label-transition), opacity 0.3s ease, visibility 0.3s ease !important;
+}
+
+/* Regras universais para labels em campos de formulário */
+label, .input-label {
+  position: absolute !important;
+  left: 1rem !important;
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  font-size: var(--label-font-size) !important;
+  color: var(--color-primary) !important;
+  background: var(--label-bg-gradient) !important;
+  padding: var(--label-padding) !important;
+  border-radius: var(--label-border-radius) !important;
+  z-index: var(--label-z-index) !important;
+  pointer-events: none !important;
+  transition: var(--label-transition) !important;
+  opacity: 0 !important; /* Começa invisível */
+}
+
+/* Mostrar label quando o campo está em foco ou preenchido */
+input:focus ~ label,
+input:focus ~ .input-label,
+textarea:focus ~ label,
+textarea:focus ~ .input-label,
+select:focus ~ label,
+select:focus ~ .input-label,
+input:not(:placeholder-shown) ~ label,
+input:not(:placeholder-shown) ~ .input-label,
+textarea:not(:placeholder-shown) ~ label,
+textarea:not(:placeholder-shown) ~ .input-label,
+select:not(:placeholder-shown) ~ label,
+select:not(:placeholder-shown) ~ .input-label,
+.field-filled ~ label,
+.field-filled ~ .input-label {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Comportamento para campos de observação */
+textarea#observacao:focus ~ label[for="observacao"],
+textarea#observacao:not(:placeholder-shown) ~ label[for="observacao"],
+textarea[id*="observacao"]:focus ~ label,
+textarea[id*="observacao"]:not(:placeholder-shown) ~ label,
+textarea[id*="observacoes"]:focus ~ label,
+textarea[id*="observacoes"]:not(:placeholder-shown) ~ label,
+textarea[id*="obs_"]:focus ~ label,
+textarea[id*="obs_"]:not(:placeholder-shown) ~ label {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Estilos específicos para campos de observação */
+textarea[id*="observacao"] ~ label,
+textarea[id*="observacoes"] ~ label,
+textarea[id*="obs_"] ~ label,
+textarea#observacao ~ label[for="observacao"] {
+  font-size: var(--font-size-sm) !important;
+  background-color: var(--color-bg) !important;
+  color: var(--color-primary) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
+  background-image: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark)) !important;
+}
+
+/* Garantir que os campos de observação mostrem suas labels quando em foco ou preenchidos */
+textarea[id*="observacao"]:focus ~ label,
+textarea[id*="observacoes"]:focus ~ label,
+textarea[id*="obs_"]:focus ~ label,
+textarea#observacao:focus ~ label[for="observacao"],
+textarea[id*="observacao"]:not(:placeholder-shown) ~ label,
+textarea[id*="observacoes"]:not(:placeholder-shown) ~ label,
+textarea[id*="obs_"]:not(:placeholder-shown) ~ label,
+textarea#observacao:not(:placeholder-shown) ~ label[for="observacao"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Regra específica para os campos de observação - forçar visibilidade sempre */
+textarea[id*="observacao"] ~ label,
+textarea[id*="observacoes"] ~ label,
+textarea[id*="obs_"] ~ label,
+textarea#observacao ~ label[for="observacao"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: var(--label-bg-gradient) !important;
+  color: var(--color-primary) !important;
+  padding: var(--label-padding) !important;
+  font-size: var(--label-font-size) !important;
+  display: inline-block !important; /* Garantir que seja renderizado */
+  pointer-events: auto !important; /* Permitir interação */
+  z-index: 50 !important; /* Aumentar z-index para garantir visibilidade */
+}
+
+/* SOLUÇÃO DEFINITIVA PARA OS CAMPOS DE OBSERVAÇÃO */
+/* Uma regra mais forte e específica para garantir que os labels estejam sempre visíveis */
+textarea#observacao ~ label[for="observacao"],
+textarea#observacoesIncapacidade ~ label[for="observacoesIncapacidade"],
+textarea#observacoesPericia ~ label[for="observacoesPericia"],
+textarea#obs_saude ~ label[for="obs_saude"],
+textarea#obs_sociais ~ label[for="obs_sociais"],
+textarea[id*="observacao"] ~ label,
+textarea[id*="observacoes"] ~ label,
+textarea[id*="obs_"] ~ label {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  background: var(--label-bg-gradient) !important;
+  color: var(--color-primary) !important;
+  padding: var(--label-padding) !important;
+  font-size: var(--label-font-size) !important;
+  pointer-events: none !important;
+  z-index: 50 !important;
+  position: absolute !important;
+  left: var(--spacing-base) !important;
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Regra para garantir que a classe peer funcione corretamente com os labels */
+.peer:focus ~ .input-label,
+.peer:not(:placeholder-shown) ~ .input-label {
+  opacity: 1 !important;
+}
+
+/* Regra específica para os campos de observação */
+textarea[id*="observacao"] ~ label,
+textarea[id*="observacoes"] ~ label,
+textarea[id*="obs_"] ~ label,
+textarea#observacao ~ label[for="observacao"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: var(--label-bg-gradient) !important;
+  color: var(--color-primary) !important;
+  padding: var(--label-padding) !important;
+  font-size: var(--label-font-size) !important;
+}
+
+/* Regra para garantir que a classe peer funcione corretamente com os labels */
+.peer:focus ~ .input-label,
+.peer:not(:placeholder-shown) ~ .input-label {
+  opacity: 1 !important;
+}
+
 /* Float Label - Ajustes para alinhamento preciso com a borda */
 .input-label {
   position: absolute;
@@ -256,7 +514,7 @@ select option,
   font-size: 0.75rem;
   color: #6b7280;
   pointer-events: none;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, visibility 0.3s ease;
   background-color: white; /* Cor de fundo do card */
   padding: 0 0.2rem; /* Apenas padding horizontal, sem vertical */
   z-index: 10;
@@ -315,8 +573,8 @@ label[for] {
 .cep-invalid ~ .input-label {
   top: 0 !important; /* Alinhado precisamente com a borda */
   transform: translateY(-50%) !important;
-  background: linear-gradient(to bottom, #ffffff, #f3f4f6) !important; /* Gradiente mais suave */
-  color: #2563eb !important; /* Cor azul para labels */
+  background: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark)) !important; /* Gradiente mais suave */
+  color: var(--color-primary) !important; /* Cor azul para labels */
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 0 2px rgba(59, 130, 246, 0.05) !important;
 }
 
@@ -325,15 +583,15 @@ label[for] {
 .peer:not(:placeholder-shown) ~ .input-label,
 .peer-focus ~ .input-label,
 .field-filled ~ .input-label {
-  background: linear-gradient(to bottom, #ffffff, #f3f4f6) !important; /* Gradiente mais suave */
-  color: #2563eb !important; /* Azul */
+  background: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark)) !important; /* Gradiente mais suave */
+  color: var(--color-primary) !important; /* Azul */
 }
 
 /* Garantir que os labels permaneçam visíveis quando o campo for preenchido */
 .peer:not(:placeholder-shown) ~ .input-label {
-  color: #2563eb !important; /* Cor azul quando o campo está preenchido */
+  color: var(--color-primary) !important; /* Cor azul quando o campo está preenchido */
   opacity: 1 !important;
-  background: linear-gradient(to bottom, #ffffff, #f3f4f6) !important; /* Gradiente mais suave */
+  background: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark)) !important; /* Gradiente mais suave */
 }
 
 /* Tratamento específico para o campo observação na página personal */
@@ -341,31 +599,38 @@ textarea#observacao ~ label[for="observacao"],
 textarea[id*="observacao"] ~ label,
 textarea[id*="observacoes"] ~ label,
 textarea[id*="obs_"] ~ label {
-  background-color: transparent !important;
-  color: transparent !important;
-  box-shadow: none !important;
-  background-image: none !important;
-  border-radius: 4px !important;
-  padding: 0.15rem 0.35rem !important;
+  background-color: var(--color-bg) !important;
+  color: var(--color-primary) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
+  background-image: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark)) !important;
+  border-radius: var(--border-radius-sm) !important;
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
   position: absolute !important;
-  left: 1rem !important;
+  left: var(--spacing-base) !important;
   top: 0 !important;
   transform: translateY(-50%) !important;
   z-index: 10 !important;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: var(--transition-slow) !important;
+  opacity: 1 !important;
 }
 
-textarea#observacao:focus ~ label[for="observacao"],
-textarea#observacao:not(:placeholder-shown) ~ label[for="observacao"],
-textarea[id*="observacao"]:focus ~ label,
-textarea[id*="observacao"]:not(:placeholder-shown) ~ label,
-textarea[id*="observacoes"]:focus ~ label,
-textarea[id*="observacoes"]:not(:placeholder-shown) ~ label,
-textarea[id*="obs_"]:focus ~ label,
-textarea[id*="obs_"]:not(:placeholder-shown) ~ label {
-  background-color: #f9fafb !important;
-  color: #2563eb !important;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
+/* Comportamento para campos de observação não preenchidos */
+textarea#observacao:placeholder-shown ~ label[for="observacao"],
+textarea[id*="observacao"]:placeholder-shown ~ label,
+textarea[id*="observacoes"]:placeholder-shown ~ label,
+textarea[id*="obs_"]:placeholder-shown ~ label {
+  color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Comportamento consistente nos inputs para todas as páginas */
+input:placeholder-shown ~ .input-label,
+select:placeholder-shown ~ .input-label,
+textarea:placeholder-shown ~ .input-label {
+  color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 /* NAVBAR COM EFEITO SLIDE */
@@ -1097,4 +1362,98 @@ input:focus ~ .age-classification-tag {
 /* Garantir que o dropdown não seja cortado por outros elementos */
 .relative {
   position: relative;
+}
+
+/* Classe base para botões em todo o aplicativo */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: var(--border-radius-base);
+  padding: var(--spacing-md) var(--spacing-lg);
+  transition: var(--transition-base);
+  cursor: pointer;
+}
+
+/* Variações de botão */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  background-color: var(--color-bg-dark);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-text-light);
+}
+
+.btn-danger {
+  background-color: var(--color-error);
+  color: white;
+  border: none;
+}
+
+.btn-danger:hover {
+  background-color: var(--color-error-dark);
+}
+
+/* Classes utilitárias para espaçamento e posicionamento */
+.spacing-bottom {
+  margin-bottom: var(--spacing-lg);
+}
+
+.spacing-top {
+  margin-top: var(--spacing-lg);
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Reset para elementos de formulário para garantir consistência em navegadores */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Estilos gerais para cards em todo o aplicativo */
+.card {
+  background-color: var(--color-bg);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-base);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.card-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-primary);
 }

@@ -4,68 +4,13 @@
     <div class="mb-8">
       <div class="flex items-center gap-2 mb-4">
         <i class="fas fa-users text-blue-500 text-2xl"></i>
-        <h2 class="text-lg font-semibold text-blue-600">Perfil Social</h2>
-      </div>
-
-      <!-- Melhorando o design da seção do CAD Único - sem NIS, sem datas, e com seleção lateral -->
-      <div class="mb-6">
-        <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">CAD Único</h3>
-
-        <!-- Status do CAD Único com opções horizontais diretas sem dropdown -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Status no CAD Único</label>
-          <div class="flex flex-wrap gap-3">
-            <label class="status-option flex items-center">
-              <input type="radio" name="statusCadUnico" value="cadastrado" class="hidden">
-              <div class="status-badge flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                <i class="fas fa-check-circle text-gray-400 option-icon"></i>
-                <span class="text-sm font-medium text-gray-700">Cadastrado</span>
-              </div>
-            </label>
-
-            <label class="status-option flex items-center">
-              <input type="radio" name="statusCadUnico" value="nao_cadastrado" class="hidden">
-              <div class="status-badge flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                <i class="fas fa-times-circle text-gray-400 option-icon"></i>
-                <span class="text-sm font-medium text-gray-700">Não cadastrado</span>
-              </div>
-            </label>
-
-            <label class="status-option flex items-center">
-              <input type="radio" name="statusCadUnico" value="em_processamento" class="hidden">
-              <div class="status-badge flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                <i class="fas fa-spinner text-gray-400 option-icon"></i>
-                <span class="text-sm font-medium text-gray-700">Em processamento</span>
-              </div>
-            </label>
-
-            <label class="status-option flex items-center">
-              <input type="radio" name="statusCadUnico" value="desatualizado" class="hidden">
-              <div class="status-badge flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                <i class="fas fa-exclamation-circle text-gray-400 option-icon"></i>
-                <span class="text-sm font-medium text-gray-700">Desatualizado</span>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Campo de observações (mantido) -->
-        <div class="relative">
-          <textarea id="observacoesCadUnico" name="observacoesCadUnico" rows="2" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre o CAD Único"></textarea>
-          <label for="observacoesCadUnico" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
-            Observações
-          </label>
-        </div>
+        <h2 class="text-lg font-semibold text-blue-600">Composição Familiar</h2>
       </div>
 
       <!-- Seção de Membros da Família -->
       <div class="mb-8">
         <!-- Container para os membros da família -->
         <div id="membros-familia-container">
-          <div class="flex justify-between items-center mb-3">
-            <h4 class="text-blue-600 font-medium">Membros da Família</h4>
-            <!-- Removido os botões de adicionar/remover globais -->
-          </div>
           <!-- Lista de membros da família -->
           <div id="membros-familia-list" class="space-y-6">
             <!-- O assistido será adicionado aqui automaticamente via JS -->
