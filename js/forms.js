@@ -737,6 +737,48 @@ function validateNumeric(value) {
     return /^\d+$/.test(value);
 }
 
+/**
+ * Capitaliza a primeira letra de cada palavra
+ * @param {string} str
+ * @returns {string}
+ */
+function capitalizeWords(str) {
+  return str.replace(/\b\w+/g, function(word) {
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  });
+}
+
+/**
+ * Aplica capitalização automática em campos de texto, exceto os que não fazem sentido
+ */
+function setupAutoCapitalize() {
+  document.querySelectorAll('input[type="text"], textarea').forEach(field => {
+    // Exceções: campos numéricos, UF, observações
+    const id = field.id ? field.id.toLowerCase() : '';
+    const name = field.name ? field.name.toLowerCase() : '';
+    const cls = field.className ? field.className.toLowerCase() : '';
+    const isNumeric = field.type === 'number' || field.getAttribute('data-validate') === 'numeric';
+    const isUF = id === 'uf' || name === 'uf';
+    const isObs = id.includes('observacao') || name.includes('observacao') || cls.includes('observacao');
+
+    // Identificar corretamente campos de telefone vs. detalhes do telefone
+    // Campo principal de telefone (número) não deve ser capitalizado
+    // Campo de detalhes do telefone (descrição) deve ser capitalizado
+    const isPhoneNumber = id === 'telefone' || name === 'telefone';
+    const isPhoneDetails = id === 'telefone_detalhes' || name === 'telefone_detalhes';
+
+    // Não aplicar capitalização em campos numéricos, UF, observações ou número de telefone
+    // Mas SIM aplicar em detalhes do telefone
+    if ((isNumeric || isUF || isObs || isPhoneNumber) && !isPhoneDetails) return;
+
+    field.addEventListener('blur', function() {
+      if (field.value.trim() !== '') {
+        field.value = capitalizeWords(field.value);
+      }
+    });
+  });
+}
+
 // Inicializar sistema de labels no carregamento da página
 document.addEventListener('DOMContentLoaded', function() {
   setupRightLabels();
@@ -746,6 +788,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if (typeof setupFieldHighlighting === 'function') {
     setupFieldHighlighting();
   }
+
+  // Capitalização automática
+  setupAutoCapitalize();
 });
 
 // Funções de exportação
