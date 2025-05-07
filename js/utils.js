@@ -690,6 +690,56 @@ FIAP.calculation = {
       const dataNasc = new Date(partes[2], partes[1] - 1, partes[0]);
       const hoje = new Date();
 
+      // Validar se a data é válida antes de calcular
+      if (isNaN(dataNasc.getTime())) {
+        idadeInput.value = "Data inválida";
+        idadeInput.classList.add('field-invalid');
+        return;
+      }
+
+      // Verificar se a data não é futura
+      if (dataNasc > hoje) {
+        idadeInput.value = "Data no futuro";
+        idadeInput.classList.add('field-invalid');
+        // Remover tag existente
+        const parentElement = idadeInput.parentElement;
+        const existingTag = parentElement.querySelector('.age-classification-tag');
+        if (existingTag) existingTag.remove();
+        return;
+      }
+
+      // Verificar se a data não é muito antiga (limite de 120 anos)
+      const limiteIdade = new Date();
+      limiteIdade.setFullYear(hoje.getFullYear() - 120);
+      if (dataNasc < limiteIdade) {
+        idadeInput.value = "Mais de 120 anos";
+        idadeInput.classList.add('field-invalid');
+
+        // Adicionar tag de erro
+        const parentElement = idadeInput.parentElement;
+
+        // Remover tag existente
+        const existingTag = parentElement.querySelector('.age-classification-tag');
+        if (existingTag) existingTag.remove();
+
+        // Criar tag de erro
+        const tagElement = document.createElement('span');
+        tagElement.className = 'age-classification-tag relationship-tag';
+        tagElement.setAttribute('data-value', 'error');
+        tagElement.setAttribute('data-selected', 'error');
+        tagElement.innerText = 'Idade inválida';
+        tagElement.title = 'A idade ultrapassou o limite de 120 anos';
+        tagElement.style.position = 'absolute';
+        tagElement.style.right = '12px';
+        tagElement.style.top = '0';
+        tagElement.style.transform = 'translateY(-50%)';
+        tagElement.style.zIndex = '10';
+        tagElement.style.backgroundColor = '#ef4444';
+        parentElement.appendChild(tagElement);
+
+        return;
+      }
+
       // Calcular diferença em anos
       let idadeAnos = hoje.getFullYear() - dataNasc.getFullYear();
 
@@ -707,6 +757,18 @@ FIAP.calculation = {
         idadeAnos--;
       }
 
+      // Verificar se idade é negativa (caso de erro na entrada da data)
+      if (idadeAnos < 0 || (idadeAnos === 0 && idadeMeses < 0)) {
+        idadeInput.value = "Idade negativa";
+        idadeInput.classList.add('field-invalid');
+
+        // Remover tag existente
+        const parentElement = idadeInput.parentElement;
+        const existingTag = parentElement.querySelector('.age-classification-tag');
+        if (existingTag) existingTag.remove();
+        return;
+      }
+
       // Formatação da idade para mostrar anos e meses
       let idadeFormatada = idadeAnos + " anos";
       if (idadeMeses > 0) {
@@ -715,6 +777,8 @@ FIAP.calculation = {
 
       // Definir valor da idade no campo correspondente
       idadeInput.value = idadeFormatada;
+      idadeInput.classList.remove('field-invalid');
+      idadeInput.classList.add('field-valid');
 
       // Adicionar tag apenas no campo idade
       this.addAgeClassificationTag(idadeAnos, idadeMeses, idadeInput);
@@ -729,6 +793,12 @@ FIAP.calculation = {
    */
   addAgeClassificationTag: function(anos, meses, targetInput) {
     try {
+      // Validar se a idade é válida antes de prosseguir
+      if (anos < 0 || anos > 120) {
+        console.error("Idade fora dos limites válidos:", anos);
+        return null;
+      }
+
       // Buscar o campo de idade se não fornecido explicitamente
       const input = targetInput || document.querySelector('input[id^="idade"]');
       if (!input) return;
@@ -831,7 +901,13 @@ FIAP.api = {
     if (prevMessage) prevMessage.remove();
 
     fetch(`https://viacep.com.br/ws/${cep}/json/`)
-      .then(response => response.json())
+      .then(response => {
+        // Verificar se a resposta foi bem-sucedida
+        if (!response.ok) {
+          throw new Error('Erro ao consultar o CEP. Verifique sua conexão com a internet.');
+        }
+        return response.json();
+      })
       .then(data => {
         // Remover ícone de carregamento
         FIAP.validation.removeValidationIcon(cepInput);
@@ -840,12 +916,14 @@ FIAP.api = {
           // CEP inválido ou não encontrado
           cepInput.classList.add('cep-invalid');
           FIAP.validation.addValidationIcon(cepInput, 'times-circle', 'text-red-500');
+          FIAP.validation.showValidationMessage(parentDiv, 'CEP não encontrado. Verifique o número.', 'error');
           return;
         }
 
         // CEP válido - feedback visual verde
         cepInput.classList.add('cep-valid');
         FIAP.validation.addValidationIcon(cepInput, 'check-circle', 'text-green-500');
+        FIAP.validation.showValidationMessage(parentDiv, 'CEP encontrado com sucesso!', 'success');
 
         // Preencher campos de endereço
         document.getElementById('bairro').value = data.bairro || '';
@@ -858,11 +936,12 @@ FIAP.api = {
           document.getElementById('numero').focus();
         }
 
-        // Remover feedback visual depois de 2 segundos
+        // Remover feedback visual depois de 5 segundos (aumentado para melhor visibilidade)
         setTimeout(() => {
-          cepInput.classList.remove('cep-valid');
+          FIAP.validation.removeValidationMessage(parentDiv);
           FIAP.validation.removeValidationIcon(cepInput);
-        }, 2000);
+          // Manter a classe de validação para referência visual
+        }, 5000);
       })
       .catch(error => {
         // Remover ícone de carregamento
@@ -871,6 +950,7 @@ FIAP.api = {
         // Erro na consulta
         cepInput.classList.add('cep-invalid');
         FIAP.validation.addValidationIcon(cepInput, 'exclamation-triangle', 'text-amber-500');
+        FIAP.validation.showValidationMessage(parentDiv, 'Erro ao consultar CEP. ' + error.message, 'error');
       });
   }
 };

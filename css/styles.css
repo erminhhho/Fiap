@@ -1,8 +1,8 @@
 /* Estilos específicos para garantir que os campos em foco tenham borda azul e fundo transparente */
 input:focus, select:focus, textarea:focus {
-  border-color: #2563eb !important; /* blue-600 no Tailwind */
+  border-color: #2563eb !important; /* Azul para foco em todos os campos */
   outline: none;
-  background-color: transparent !important; /* Fundo transparente */
+  background-color: #ffffff !important; /* Branco quando em foco */
   box-shadow: none !important; /* Removendo a sombra */
 }
 
@@ -128,16 +128,21 @@ select option,
   border-color: #3b82f6 !important; /* Azul enquanto digita */
 }
 
-.cpf-valid, .cep-valid, .field-valid {
+.cpf-valid, .cep-valid, .field-valid, input.date-valid, #nascimento.date-valid, #idade[value]:not([value=""]) {
   background-color: transparent !important;
-  border-color: #10b981 !important;
+  border-color: #10b981 !important; /* Verde para válido */
   transition: all 0.3s ease;
 }
 
-.cpf-invalid, .cep-invalid, .field-invalid {
+.cpf-invalid, .cep-invalid, .field-invalid, input.date-invalid, #nascimento.date-invalid {
   background-color: transparent !important;
-  border-color: #ef4444 !important;
+  border-color: #ef4444 !important; /* Vermelho para inválido */
   transition: all 0.3s ease;
+}
+
+/* Regra específica para o campo nascimento quando está sendo validado */
+#nascimento.date-validating {
+  border-color: #3b82f6 !important; /* Azul para validação em andamento */
 }
 
 /* Variações de estados para mensagens de validação - apenas cores diferenciadas */
@@ -242,11 +247,11 @@ select option,
   margin-top: 1rem;
 }
 
-/* Float Label - Sem padding vertical e cor de fundo igual ao card */
+/* Float Label - Ajustes para alinhamento preciso com a borda */
 .input-label {
   position: absolute;
   left: 1rem;
-  top: 0;
+  top: 0; /* Alinhamento ao topo da borda, independente das características da fonte */
   transform: translateY(-50%);
   font-size: 0.75rem;
   color: #6b7280;
@@ -258,6 +263,43 @@ select option,
   border-radius: 4px;
   letter-spacing: 0.01em;
   box-shadow: none; /* Removendo sombra */
+  height: auto; /* Altura automática baseada no conteúdo */
+  line-height: 1; /* Line-height unitário para melhor controle */
+  display: inline-block; /* Para garantir que a altura seja respeitada */
+}
+
+/* Correção para alinhamento preciso dos títulos dos campos */
+.input-label,
+label[for] {
+  position: absolute !important;
+  left: 1rem !important;
+  top: 0 !important;
+  line-height: 1 !important; /* Linha com altura natural do texto */
+  transform: translateY(-50%) !important;
+  font-size: 0.82rem !important; /* Fonte aumentada para melhor legibilidade */
+  margin: 0 !important;
+  z-index: 10 !important;
+
+  /* Estilo visual melhorado - padding intermediário */
+  border-radius: 4px !important;
+  padding: 0.12rem 0.28rem !important; /* Padding intermediário entre o original e o anterior */
+
+  /* Gradiente entre cor do campo e cor de fundo */
+  background: linear-gradient(to bottom, #ffffff, #f9fafb) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) !important; /* Borda suave para melhorar contraste */
+
+  /* Garantir que o texto seja legível */
+  color: #4b5563 !important; /* Cor de texto padrão */
+
+  /* Transição suave para mudanças de estado */
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Garantir que os labels fiquem transparentes quando campo não selecionado */
+.peer:placeholder-shown ~ .input-label {
+  color: transparent !important;
+  background: transparent !important; /* Fundo totalmente transparente quando oculto */
+  box-shadow: none !important;
 }
 
 /* Garantir que todos os estados mantenham o label exatamente sobre a borda */
@@ -271,49 +313,59 @@ select option,
 .cpf-invalid ~ .input-label,
 .cep-valid ~ .input-label,
 .cep-invalid ~ .input-label {
-  top: 0 !important;
+  top: 0 !important; /* Alinhado precisamente com a borda */
   transform: translateY(-50%) !important;
-  background-color: white !important; /* Garantindo a cor de fundo igual ao card */
-  padding: 0 0.2rem !important; /* Garantindo apenas padding horizontal */
+  background: linear-gradient(to bottom, #ffffff, #f3f4f6) !important; /* Gradiente mais suave */
+  color: #2563eb !important; /* Cor azul para labels */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 0 2px rgba(59, 130, 246, 0.05) !important;
+}
+
+/* Estado dos labels quando o campo está focado ou preenchido */
+.peer:focus ~ .input-label,
+.peer:not(:placeholder-shown) ~ .input-label,
+.peer-focus ~ .input-label,
+.field-filled ~ .input-label {
+  background: linear-gradient(to bottom, #ffffff, #f3f4f6) !important; /* Gradiente mais suave */
+  color: #2563eb !important; /* Azul */
 }
 
 /* Garantir que os labels permaneçam visíveis quando o campo for preenchido */
 .peer:not(:placeholder-shown) ~ .input-label {
-  color: #4b5563 !important; /* Cor mais visível quando o campo está preenchido */
+  color: #2563eb !important; /* Cor azul quando o campo está preenchido */
   opacity: 1 !important;
-  background-color: white !important;
+  background: linear-gradient(to bottom, #ffffff, #f3f4f6) !important; /* Gradiente mais suave */
 }
 
-/* Modificando a classe text-transparent para não afetar a visibilidade dos labels */
-.input-label:not(.peer:placeholder-shown ~ .input-label) {
-  color: #4b5563 !important;
+/* Tratamento específico para o campo observação na página personal */
+textarea#observacao ~ label[for="observacao"],
+textarea[id*="observacao"] ~ label,
+textarea[id*="observacoes"] ~ label,
+textarea[id*="obs_"] ~ label {
+  background-color: transparent !important;
+  color: transparent !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  border-radius: 4px !important;
+  padding: 0.15rem 0.35rem !important;
+  position: absolute !important;
+  left: 1rem !important;
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  z-index: 10 !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Ajustar a altura e padding dos campos */
-.peer {
-  height: 3rem;
-  padding: 0 0.75rem;
-}
-
-/* Ajuste para áreas de texto */
-textarea.peer {
-  padding: 1rem 0.75rem;
-  height: auto;
-}
-
-/* Estados de validação - mantém mesmo posicionamento na borda superior */
-.field-invalid ~ .input-label,
-.cpf-invalid ~ .input-label,
-.cep-invalid ~ .input-label {
-  color: #ef4444;
-  font-weight: 500;
-}
-
-.field-valid ~ .input-label,
-.cpf-valid ~ .input-label,
-.cep-valid ~ .input-label {
-  color: #10b981;
-  font-weight: 500;
+textarea#observacao:focus ~ label[for="observacao"],
+textarea#observacao:not(:placeholder-shown) ~ label[for="observacao"],
+textarea[id*="observacao"]:focus ~ label,
+textarea[id*="observacao"]:not(:placeholder-shown) ~ label,
+textarea[id*="observacoes"]:focus ~ label,
+textarea[id*="observacoes"]:not(:placeholder-shown) ~ label,
+textarea[id*="obs_"]:focus ~ label,
+textarea[id*="obs_"]:not(:placeholder-shown) ~ label {
+  background-color: #f9fafb !important;
+  color: #2563eb !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
 }
 
 /* NAVBAR COM EFEITO SLIDE */
