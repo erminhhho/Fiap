@@ -1,5 +1,6 @@
 /**
  * Sistema simples de rotas para SPA
+ * Arquivo consolidado (router + loader)
  */
 
 // Definição das rotas disponíveis
@@ -168,6 +169,20 @@ function loadTemplate(url) {
     });
 }
 
+/**
+ * Renderiza um template com dados
+ *
+ * @param {string} templateHTML - HTML do template
+ * @param {object} data - Dados para renderizar no template
+ * @returns {string} - HTML renderizado com os dados
+ */
+function renderTemplate(templateHTML, data = {}) {
+  // Implementação simples de substituição de variáveis no formato {{variavel}}
+  return templateHTML.replace(/\{\{(\w+)\}\}/g, (match, variable) => {
+    return data[variable] !== undefined ? data[variable] : match;
+  });
+}
+
 // Função para atualizar o slider da barra de navegação
 function updateNavSlider() {
   const activeLink = document.querySelector('.step-link.active');
@@ -265,3 +280,5 @@ window.initRouter = initRouter;
 window.navigateToNextStep = navigateToNextStep;
 window.navigateToPreviousStep = navigateToPreviousStep;
 window.navigateToPrevStep = navigateToPrevStep;
+window.loadTemplate = loadTemplate;
+window.renderTemplate = renderTemplate;
