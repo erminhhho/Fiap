@@ -41,9 +41,8 @@ function setupEvents() {
   if (typeof destacarCamposPreenchidos === 'function') {
     destacarCamposPreenchidos();
   }
-
   // Configurar botões de adicionar/remover membros da família
-  const addMemberBtn = document.getElementById('add-family-member-btn');
+  const addMemberBtn = document.getElementById('adicionar-membro-btn');
   if (addMemberBtn) {
     // Aplicar estilo centralizado ao botão de adicionar
     if (window.tw && typeof window.tw.applyTo === 'function') {
