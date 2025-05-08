@@ -8,6 +8,7 @@ window.initModule = null;
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
   setupEvents();
+  inicializarAssistido(); // Garantir que o assistido seja inicializado na carga do módulo
 };
 
 // Função para configurar eventos do módulo
@@ -66,6 +67,137 @@ function setupEvents() {
       navigateTo('disability');
     });
   }
+
+  // Botão de adicionar membro (visível na interface)
+  const addMemberButton = document.getElementById('adicionar-membro-btn');
+  if (addMemberButton) {
+    addMemberButton.addEventListener('click', addFamilyMember);
+  }
+}
+
+// Inicializar dados do assistido
+function inicializarAssistido() {
+  console.log("Inicializando dados do assistido...");
+
+  const container = document.getElementById('membros-familia-list');
+  if (!container) {
+    console.error("Container de membros da família não encontrado");
+    return;
+  }
+
+  // Limpar o container
+  container.innerHTML = '';
+
+  // Criar elemento HTML para o assistido (primeira linha)
+  const assistidoHtml = `
+    <div class="membro-familia mb-6 relative assistido">
+      <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
+        <!-- Nome do assistido - 6 colunas -->
+        <div class="relative md:col-span-6">
+          <input type="text" name="familiar_nome[]" id="assistido_nome" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
+          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+            Nome do Assistido
+          </label>
+        </div>
+
+        <!-- CPF - 3 colunas -->
+        <div class="relative md:col-span-3">
+          <input type="text" name="familiar_cpf[]" id="assistido_cpf" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
+          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+            CPF
+          </label>
+        </div>
+
+        <!-- Idade - 2 colunas -->
+        <div class="relative md:col-span-2">
+          <input type="text" name="familiar_idade[]" id="assistido_idade" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
+          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+            Idade
+          </label>
+        </div>
+
+        <!-- Parentesco - 4 colunas (fixo como "Assistido") -->
+        <div class="relative md:col-span-4">
+          <input type="text" name="familiar_parentesco[]" value="Assistido" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 transition-colors duration-200" readonly />
+          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+            Parentesco
+          </label>
+        </div>
+
+        <!-- Estado Civil - 4 colunas (editável) -->
+        <div class="relative md:col-span-4">
+          <select name="familiar_estado_civil[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+            <option value="" selected disabled>Selecione...</option>
+            <option value="Solteiro(a)">Solteiro(a)</option>
+            <option value="Casado(a)">Casado(a)</option>
+            <option value="União Estável">União Estável</option>
+            <option value="Divorciado(a)">Divorciado(a)</option>
+            <option value="Viúvo(a)">Viúvo(a)</option>
+          </select>
+          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+            Estado Civil
+          </label>
+        </div>
+
+        <!-- Renda Mensal - 2 colunas (editável) -->
+        <div class="relative md:col-span-2">
+          <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Renda" />
+          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+            Renda
+          </label>
+        </div>
+
+        <!-- CadÚnico - 2 colunas (editável) -->
+        <div class="relative md:col-span-2 flex items-center justify-center">
+          <input type="hidden" name="familiar_cadunico[]" value="Não">
+          <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
+            CadÚnico
+          </button>
+        </div>
+
+        <!-- Coluna para botão de adicionar (não tem botão remover) -->
+        <div class="relative md:col-span-1 flex items-center justify-center">
+          &nbsp;
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Inserir HTML diretamente
+  container.innerHTML = assistidoHtml;
+
+  // Preencher dados do assistido
+  preencherDadosAssistido();
+}
+
+// Função para preencher os dados do assistido baseado na primeira página
+function preencherDadosAssistido() {
+  // Obter nome da primeira página
+  const nomeInput = document.getElementById('assistido_nome');
+  if (nomeInput) {
+    const nomePrimeiraPagina = document.getElementById('nome')?.value || localStorage.getItem('nome') || 'Assistido';
+    nomeInput.value = nomePrimeiraPagina;
+  }
+
+  // Obter CPF da primeira página - sem ícone de validação
+  const cpfInput = document.getElementById('assistido_cpf');
+  if (cpfInput) {
+    const cpfPrimeiraPagina = document.getElementById('cpf')?.value || localStorage.getItem('cpf') || '';
+    cpfInput.value = cpfPrimeiraPagina;
+  }
+
+  // Obter idade da primeira página (somente anos, sem meses)
+  const idadeInput = document.getElementById('assistido_idade');
+  if (idadeInput) {
+    const idadePrimeiraPagina = document.getElementById('idade')?.value || localStorage.getItem('idade') || '';
+    // Extrair apenas o número de anos (remover os meses)
+    const anosMatch = idadePrimeiraPagina.match(/(\d+)\s+anos?/);
+    if (anosMatch && anosMatch[1]) {
+      idadeInput.value = anosMatch[1] + ' anos';
+    } else {
+      idadeInput.value = idadePrimeiraPagina;
+    }
+  }
 }
 
 // Função para adicionar membro da família
@@ -108,11 +240,22 @@ function addFamilyMember() {
   updateRemoveMemberButton();
 }
 
-// Função para remover o último membro da família
+// Função para remover o último membro da família (nunca remove o assistido)
 function removeLastFamilyMember() {
   const list = document.getElementById('membros-familia-list');
   if (list && list.children.length > 1) {
     list.lastElementChild.remove();
+    updateRemoveMemberButton();
+  }
+}
+
+// Função para remover um membro específico da família (nunca o assistido)
+function removeSpecificFamilyMember(button) {
+  if (!button) return;
+
+  const memberDiv = button.closest('.membro-familia');
+  if (memberDiv && !memberDiv.classList.contains('assistido')) {
+    memberDiv.remove();
     updateRemoveMemberButton();
   }
 }
@@ -247,6 +390,13 @@ function setupStatusOptions() {
     });
   });
 }
+
+// Exportar funções para o escopo global
+window.addFamilyMember = addFamilyMember;
+window.removeLastFamilyMember = removeLastFamilyMember;
+window.removeSpecificFamilyMember = removeSpecificFamilyMember;
+window.toggleCadUnico = toggleCadUnico;
+window.updateRemoveMemberButton = updateRemoveMemberButton;
 
 // Inicializar os botões na carga da página
 document.addEventListener('DOMContentLoaded', function() {
