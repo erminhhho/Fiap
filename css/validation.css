@@ -1,0 +1,167 @@
+/*
+ * Estilos de Validação
+ * Este arquivo contém os estilos para validação de campos e exibição de erros/sucesso
+ */
+
+/* Mensagens de validação - Definição consolidada */
+.validation-message {
+  position: absolute;
+  font-size: 0.75rem;
+  left: 0;
+  bottom: -1.25rem;
+  transition: all 0.2s ease;
+  z-index: 5;
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  display: block;
+  font-size: 0.7rem;
+  animation: fadeIn 0.2s ease-in-out;
+  max-width: calc(100% - 10px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+/* Novos estilos para validação em tempo real */
+.validation-field-icon {
+  z-index: 10;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  font-size: 0.875rem;
+  font-weight: normal !important;
+}
+
+/* Estados dos campos durante validação */
+.cpf-validating {
+  border-color: #3b82f6 !important; /* Azul enquanto digita */
+}
+
+.cpf-valid, .cep-valid, .field-valid, input.date-valid, #nascimento.date-valid, #idade[value]:not([value=""]) {
+  background-color: transparent !important;
+  border-color: #10b981 !important; /* Verde para válido */
+  transition: all 0.3s ease;
+}
+
+.cpf-invalid, .cep-invalid, .field-invalid, input.date-invalid, #nascimento.date-invalid {
+  background-color: transparent !important;
+  border-color: #ef4444 !important; /* Vermelho para inválido */
+  transition: all 0.3s ease;
+}
+
+/* Regra específica para o campo nascimento quando está sendo validado */
+#nascimento.date-validating {
+  border-color: #3b82f6 !important; /* Azul para validação em andamento */
+}
+
+/* Variações de estados para mensagens de validação - apenas cores diferenciadas */
+.validation-message.error,
+.validation-message.validation-error {
+  color: #EF4444; /* Vermelho para erros */
+}
+
+.validation-message.warning {
+  color: #F59E0B; /* Amarelo para avisos */
+}
+
+.validation-message.success,
+.validation-message:not(.validation-error):not(.warning) {
+  color: #10B981; /* Verde para sucesso */
+}
+
+/* Ícone dentro do campo alinhado à direita */
+.validation-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.validation-icon.error {
+  color: #EF4444;
+}
+
+.validation-icon.warning {
+  color: #F59E0B;
+}
+
+.validation-icon.success {
+  color: #10B981;
+}
+
+/* Visibilidade das mensagens de validação */
+.validation-message.validation-active,
+.validated .validation-message.success,
+.invalid .validation-message.error,
+.warning .validation-message.warning {
+  opacity: 1;
+  display: block;
+}
+
+/* Ajuste para input com mensagem de validação */
+.field-valid,
+.cpf-valid,
+.cep-valid {
+  border-color: #10b981 !important;
+  padding-right: 2.5rem !important; /* Espaço para o ícone */
+}
+
+.field-invalid,
+.cpf-invalid,
+.cep-invalid {
+  border-color: #ef4444 !important;
+  padding-right: 2.5rem !important; /* Espaço para o ícone */
+}
+
+/* Remover o padding-right específico da classe .with-validation */
+.with-validation {
+  padding-right: inherit !important;
+}
+
+/* Estilos para campos válidos e inválidos */
+.field-valid {
+  border-color: #28a745;
+}
+
+.field-invalid {
+  border-color: #dc3545;
+}
+
+/* Estilo para destacar campo CEP após seleção de cidade */
+.cep-highlight {
+  animation: cep-pulse 1.5s ease;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos para posicionamento fixo das etiquetas de status no canto superior direito dos campos */
+.field-status-tag {
+  position: absolute;
+  z-index: 10;
+}
+
+.top-right-position {
+  top: -10px;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+/* Remove o negrito das labels e campos */
+.input-label, .cpf-valid ~ .input-label, .cep-valid ~ .input-label, .field-valid ~ .input-label,
+.cpf-invalid ~ .input-label, .cep-invalid ~ .input-label, .field-invalid ~ .input-label,
+.validation-message, .status-tag {
+  font-weight: normal !important;
+}
+
+/* Estilos específicos para garantir que os campos em foco tenham borda azul e fundo transparente */
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-primary) !important; /* Azul para foco em todos os campos */
+  outline: none;
+  background-color: var(--color-bg) !important; /* Branco quando em foco */
+  box-shadow: none !important; /* Removendo a sombra */
+}

@@ -1,0 +1,338 @@
+/*
+ * Estilos de Etiquetas e Indicadores
+ * Este arquivo contém todos os estilos relacionados a etiquetas, tags e indicadores
+ */
+
+/* Estilo base para todas as etiquetas (WhatsApp e relacionamento) */
+.whatsapp-tag, .relationship-select {
+  position: absolute;
+  top: 0;
+  right: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 12px; /* Bordas bem arredondadas */
+  padding: 2px 10px; /* Padding horizontal maior para melhor legibilidade */
+  height: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  white-space: nowrap;
+  transform: translateY(-50%);
+  border: none; /* Sem bordas */
+  color: white; /* Texto branco para todas as etiquetas */
+}
+
+/* WhatsApp tag com cor mais escura */
+.whatsapp-tag {
+  background-color: #128c7e; /* Verde WhatsApp mais escuro */
+  color: white;
+}
+
+/* WhatsApp tag quando inativa com cor mais escura */
+.whatsapp-tag:not(.active) {
+  background-color: #64748b; /* Cinza slate-500 mais escuro */
+  color: white;
+}
+
+/* Cores para as etiquetas de relacionamento - design minimalista corporativo */
+.relationship-select[data-value="Requerente"] {
+  background-color: #059669; /* Verde mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Instituidor"] {
+  background-color: #7c3aed; /* Roxo mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Dependente"] {
+  background-color: #ea580c; /* Laranja mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Representante"] {
+  background-color: #ca8a04; /* Amarelo mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Requerente Rep."] {
+  background-color: #0284c7; /* Azul ciano mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Litsconsorte"] {
+  background-color: #1d4ed8; /* Azul mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Titular"] {
+  background-color: #1d4ed8; /* Azul mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Responsável"] {
+  background-color: #b91c1c; /* Vermelho mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Procurador"] {
+  background-color: #0369a1; /* Azul turquesa mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Representante Legal"] {
+  background-color: #ca8a04; /* Amarelo mais escuro */
+  color: white;
+}
+
+.relationship-select[data-value="Beneficiário"] {
+  background-color: #be185d; /* Rosa mais escuro */
+  color: white;
+}
+
+/* Reforçando estilos das etiquetas de relacionamento */
+.relationship-select {
+  position: absolute !important;
+  top: 0 !important;
+  right: 8px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  padding: 2px 10px !important;
+  min-width: 90px !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  z-index: 20 !important;
+  white-space: nowrap !important;
+  transform: translateY(-50%) !important;
+  border: none !important;
+  color: white !important;
+}
+
+/* Estilo específico para o conteúdo de texto usando pseudoelemento */
+.relationship-select::after {
+  content: attr(data-value);
+  display: block;
+  color: white;
+}
+
+/* Garantir que o select dentro do relationship-select seja sempre transparente mas ativo */
+.relationship-select select {
+  opacity: 0 !important;
+  position: absolute !important;
+  width: 100% !important;
+  height: 100% !important;
+  left: 0 !important;
+  top: 0 !important;
+  cursor: pointer !important;
+  z-index: 21 !important; /* Acima do container para capturar cliques */
+}
+
+/* Garantir que o texto sempre apareça */
+.relationship-label {
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  pointer-events: none !important; /* Permitir que cliques passem para o select */
+}
+
+/* Estilos para mensagens de status e avisos */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem; /* Fonte menor */
+  font-weight: normal !important;
+  border-radius: 12px;
+  padding: 0.05rem 0.6rem; /* Padding vertical uniforme e reduzido */
+  height: 1.4rem;
+  transition: all 0.2s ease;
+  box-shadow: none; /* Removido o efeito de sombra */
+  margin-right: 0.5rem;
+  cursor: pointer; /* Mantém apenas o cursor como mãozinha no hover */
+}
+
+/* Tipos de tags - com menos transparência no background */
+.status-tag.success {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-tag.error {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-tag.warning {
+    background-color: rgba(234, 179, 8, 0.08);
+    color: #854d0e;
+    border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.status-tag.info {
+    background-color: rgba(33, 150, 243, 0.08);
+    color: #1976d2;
+    border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+/* Tags para validação de documentos */
+.status-tag.cpf-valid {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-tag.cpf-invalid {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-tag.cep-valid {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-tag.cep-invalid {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Tags para relacionamentos */
+.status-tag.beneficiario {
+    background-color: rgba(236, 72, 153, 0.08);
+    color: #9d174d;
+    border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+.status-tag.dependente {
+    background-color: rgba(249, 115, 22, 0.08);
+    color: #9a3412;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.status-tag.responsavel {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Estilos para o indicador de status de salvamento */
+#save-status-indicator {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+  font-size: 0.875rem;
+  transition: opacity 0.3s ease-in-out;
+}
+
+#save-status-indicator.saving {
+  background-color: rgba(246, 246, 246, 0.95);
+}
+
+#save-status-indicator.saved {
+  background-color: rgba(240, 253, 244, 0.95);
+}
+
+#save-status-indicator.error {
+  background-color: rgba(254, 242, 242, 0.95);
+}
+
+#save-status-text {
+  font-weight: 500;
+}
+
+#save-status-indicator {
+  transition: all 0.3s ease;
+  z-index: 40;
+  opacity: 0.8;
+  border: 1px solid #e5e7eb;
+}
+
+#save-status-indicator:hover {
+  opacity: 1;
+}
+
+#save-status-indicator.bg-blue-50 {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+#save-status-indicator.bg-red-50 {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* Estilos para as tags de classificação etária judicial */
+.age-classification-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.age-classification-tag:hover {
+  transform: translate(0, -54%) scale(1.05);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  cursor: help;
+}
+
+/* Quando o input do nome está em foco, garantir que a tag fique visível */
+input:focus ~ .age-classification-tag {
+  z-index: 30;
+}
+
+/* Estilos das tags de classificação etária - usando o mesmo padrão das tags de relacionamento */
+.age-classification-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+/* Cores específicas para cada tipo de classificação etária */
+.age-classification-tag[data-selected="nascituro"] {
+  background-color: #6d28d9; /* bg-purple-700 */
+}
+
+.age-classification-tag[data-selected="infante"] {
+  background-color: #ec4899; /* bg-pink-500 */
+}
+
+.age-classification-tag[data-selected="impubere"] {
+  background-color: #f97316; /* bg-orange-500 */
+}
+
+.age-classification-tag[data-selected="pubere"] {
+  background-color: #eab308; /* bg-yellow-500 */
+}
+
+.age-classification-tag[data-selected="rel-incapaz"] {
+  background-color: #22c55e; /* bg-green-500 */
+}
+
+.age-classification-tag[data-selected="idoso"] {
+  background-color: #a855f7; /* bg-purple-500 */
+}
+
+.age-classification-tag[data-selected="capaz"] {
+  background-color: #2563eb; /* bg-blue-600 */
+}
