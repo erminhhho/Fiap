@@ -30,9 +30,19 @@ function setupEvents() {
   // Botão para adicionar doença/CID
   const addDoencaBtn = document.getElementById('addDoenca');
   if (addDoencaBtn) {
+    // Aplicar estilo centralizado ao botão de adicionar
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(addDoencaBtn, 'button.add');
+    }
+
     // Remover qualquer evento existente para evitar duplicação
     const newBtn = addDoencaBtn.cloneNode(true);
     addDoencaBtn.parentNode.replaceChild(newBtn, addDoencaBtn);
+
+    // Aplicar estilo centralizado ao novo botão
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(newBtn, 'button.add');
+    }
 
     // Adicionar o evento ao novo botão
     newBtn.addEventListener('click', addDoencaField);
@@ -57,6 +67,11 @@ function setupEvents() {
   // Botão Voltar
   const backButton = document.getElementById('btn-back');
   if (backButton) {
+    // Aplicar estilo centralizado ao botão voltar
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(backButton, 'button.secondary');
+    }
+
     backButton.addEventListener('click', function() {
       navigateTo('social');
     });
@@ -65,6 +80,11 @@ function setupEvents() {
   // Botão Próximo
   const nextButton = document.getElementById('btn-next');
   if (nextButton) {
+    // Aplicar estilo centralizado ao botão próximo
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(nextButton, 'button.primary');
+    }
+
     nextButton.addEventListener('click', function() {
       navigateTo('insurance');
     });

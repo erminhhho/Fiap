@@ -45,11 +45,21 @@ function setupEvents() {
   // Configurar botões de adicionar/remover membros da família
   const addMemberBtn = document.getElementById('add-family-member-btn');
   if (addMemberBtn) {
+    // Aplicar estilo centralizado ao botão de adicionar
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(addMemberBtn, 'button.add');
+    }
+
     addMemberBtn.addEventListener('click', addFamilyMember);
   }
 
   const removeLastMemberBtn = document.getElementById('remove-last-family-member-btn');
   if (removeLastMemberBtn) {
+    // Aplicar estilo centralizado ao botão de remover
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(removeLastMemberBtn, 'button.remove');
+    }
+
     removeLastMemberBtn.addEventListener('click', removeLastFamilyMember);
   }
 
@@ -79,6 +89,11 @@ function setupEvents() {
   // Botão Voltar
   const backButton = document.getElementById('btn-back');
   if (backButton) {
+    // Aplicar estilo centralizado ao botão voltar
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(backButton, 'button.secondary');
+    }
+
     backButton.addEventListener('click', function() {
       navigateTo('personal');
     });
@@ -87,15 +102,14 @@ function setupEvents() {
   // Botão Próximo
   const nextButton = document.getElementById('btn-next');
   if (nextButton) {
-    nextButton.addEventListener('click', function() {
-      navigateTo('incapacity'); // Corrigido: apontando para 'incapacity' em vez de 'disability'
-    });
-  }
+    // Aplicar estilo centralizado ao botão próximo
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(nextButton, 'button.primary');
+    }
 
-  // Botão de adicionar membro (header do card)
-  const addMemberButton = document.getElementById('add-family-member-btn');
-  if (addMemberButton) {
-    addMemberButton.addEventListener('click', addFamilyMember);
+    nextButton.addEventListener('click', function() {
+      navigateTo('incapacity');
+    });
   }
 }
 

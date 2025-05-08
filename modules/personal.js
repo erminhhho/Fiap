@@ -265,6 +265,11 @@ function setupEvents() {
   // Botão Próximo
   const nextButton = document.getElementById('btn-next');
   if (nextButton) {
+    // Aplicar estilos Tailwind centralizados
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(nextButton, 'button.primary');
+    }
+
     nextButton.addEventListener('click', function() {
       navigateTo('social');
     });
