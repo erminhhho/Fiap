@@ -5,20 +5,22 @@
 // Limpar função de inicialização anterior
 window.initModule = null;
 
-// Contador global de autores
-let authorCount = 1;
+// Contador global de autores - usando window para evitar redeclaração
+if (typeof window.authorCount === 'undefined') {
+    window.authorCount = 1;
+}
 
 // Array com etiquetas para os autores adicionais
 const authorLabels = ['Requerente', 'Instituidor', 'Dependente', 'Representante', 'Requerente Rep.', 'Litsconsorte'];
 
 // Função para adicionar um novo autor
 function addAuthor() {
-  authorCount++;
+  window.authorCount++;
 
   // Criar um novo elemento div para o autor
   const newAuthor = document.createElement('div');
   newAuthor.className = 'author-row mb-4';
-  newAuthor.id = `author-${authorCount}`;
+  newAuthor.id = `author-${window.authorCount}`;
 
   // Criar HTML com opções de relacionamento/etiqueta
   let relationshipOptions = '';
@@ -33,14 +35,14 @@ function addAuthor() {
         <!-- Nome com seletor de relacionamento -->
         <div class="relative">
           <div class="relationship-select" data-selected="${authorLabels[0]}" onclick="toggleRelationshipTag(this)">
-            <select id="relationship_${authorCount}" name="relationship_${authorCount}" onchange="updateRelationshipLabel(this, ${authorCount})">
+            <select id="relationship_${window.authorCount}" name="relationship_${window.authorCount}" onchange="updateRelationshipLabel(this, ${window.authorCount})">
               ${relationshipOptions}
             </select>
           </div>
-          <input type="text" id="nome_${authorCount}" name="nome_${authorCount}" required onblur="formatarNomeProprio(this)"
+          <input type="text" id="nome_${window.authorCount}" name="nome_${window.authorCount}" required onblur="formatarNomeProprio(this)"
             class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
             placeholder="Digite o nome completo" />
-          <label for="nome_${authorCount}"
+          <label for="nome_${window.authorCount}"
             class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
             ${authorLabels[0]}
           </label>
@@ -49,30 +51,30 @@ function addAuthor() {
         <div class="grid grid-cols-12 gap-6">
           <!-- CPF -->
           <div class="relative col-span-4">
-            <input type="text" id="cpf_${authorCount}" name="cpf_${authorCount}" required oninput="maskCPF(this)" maxlength="14"
+            <input type="text" id="cpf_${window.authorCount}" name="cpf_${window.authorCount}" required oninput="maskCPF(this)" maxlength="14"
               class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
               placeholder="000.000.000-00" />
-            <label for="cpf_${authorCount}"
+            <label for="cpf_${window.authorCount}"
               class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
               CPF
             </label>
           </div>
           <!-- Nascimento -->
           <div class="relative col-span-4">
-            <input type="text" id="nascimento_${authorCount}" name="nascimento_${authorCount}" required oninput="maskDate(this)"
+            <input type="text" id="nascimento_${window.authorCount}" name="nascimento_${window.authorCount}" required oninput="maskDate(this)"
               class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
-              placeholder="dd/mm/aaaa" data-target-age="idade_${authorCount}" />
-            <label for="nascimento_${authorCount}"
+              placeholder="dd/mm/aaaa" data-target-age="idade_${window.authorCount}" />
+            <label for="nascimento_${window.authorCount}"
               class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
               Nascimento
             </label>
           </div>
           <!-- Idade -->
           <div class="relative col-span-4">
-            <input type="text" id="idade_${authorCount}" name="idade_${authorCount}" readonly
+            <input type="text" id="idade_${window.authorCount}" name="idade_${window.authorCount}" readonly
               class="peer w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 cursor-not-allowed"
               placeholder="Idade" />
-            <label for="idade_${authorCount}"
+            <label for="idade_${window.authorCount}"
               class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
               Idade
             </label>
@@ -80,7 +82,7 @@ function addAuthor() {
         </div>
       </div>
       <!-- Botão circular de remover -->
-      <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 ml-2 flex items-center justify-center w-8 h-8 self-center" title="Remover autor" onclick="removeSpecificAuthor(${authorCount})">
+      <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 ml-2 flex items-center justify-center w-8 h-8 self-center" title="Remover autor" onclick="removeSpecificAuthor(${window.authorCount})">
         <i class="fas fa-minus"></i>
       </button>
     </div>
@@ -138,7 +140,7 @@ function toggleRelationshipTag(element) {
 
 // Função para remover um autor específico pelo seu ID
 function removeSpecificAuthor(authorId) {
-  if (authorCount <= 1) return; // Sempre manter pelo menos um autor
+  if (window.authorCount <= 1) return; // Sempre manter pelo menos um autor
 
   const authorsContainer = document.getElementById('authors-container');
 
@@ -156,15 +158,15 @@ function removeSpecificAuthor(authorId) {
   authorsContainer.removeChild(authorToRemove);
 
   // Se o autor removido for o último, decrementar o contador
-  if (authorId === authorCount) {
-    authorCount--;
+  if (authorId === window.authorCount) {
+    window.authorCount--;
   }
 }
 
 // Função para remover o último autor (manter para compatibilidade)
 function removeLastAuthor() {
-  if (authorCount <= 1) return; // Sempre manter pelo menos um autor
-  removeSpecificAuthor(authorCount);
+  if (window.authorCount <= 1) return; // Sempre manter pelo menos um autor
+  removeSpecificAuthor(window.authorCount);
 }
 
 // Função para atualizar a etiqueta de relacionamento

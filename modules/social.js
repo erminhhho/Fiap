@@ -8,7 +8,24 @@ window.initModule = null;
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
   setupEvents();
-  inicializarAssistido(); // Garantir que o assistido seja inicializado na carga do módulo
+
+  // Adicionando um pequeno delay para garantir que o DOM está pronto
+  setTimeout(() => {
+    // Verificar se o container existe antes de tentar inicializar
+    if (document.getElementById('membros-familia-list')) {
+      inicializarAssistido();
+    } else {
+      console.log("Aguardando carregamento do DOM para inicializar assistido...");
+      // Se o container não existe, tenta novamente após um delay maior
+      setTimeout(() => {
+        if (document.getElementById('membros-familia-list')) {
+          inicializarAssistido();
+        } else {
+          console.warn("Container 'membros-familia-list' não encontrado após espera. Verifique o template HTML.");
+        }
+      }, 300);
+    }
+  }, 100);
 };
 
 // Função para configurar eventos do módulo
@@ -64,7 +81,7 @@ function setupEvents() {
   const nextButton = document.getElementById('btn-next');
   if (nextButton) {
     nextButton.addEventListener('click', function() {
-      navigateTo('disability');
+      navigateTo('incapacity'); // Corrigido: apontando para 'incapacity' em vez de 'disability'
     });
   }
 

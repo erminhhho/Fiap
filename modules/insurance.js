@@ -16,7 +16,7 @@ function setupEvents() {
   const backButton = document.getElementById('btn-back');
   if (backButton) {
     backButton.addEventListener('click', function() {
-      navigateTo('disability');
+      navigateTo('incapacity'); // Corrigido: apontando para 'incapacity' em vez de 'disability'
     });
   }
 
