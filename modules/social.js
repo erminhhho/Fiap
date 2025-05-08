@@ -9,23 +9,30 @@ window.initModule = null;
 window.initModule = function() {
   setupEvents();
 
-  // Adicionando um pequeno delay para garantir que o DOM está pronto
-  setTimeout(() => {
-    // Verificar se o container existe antes de tentar inicializar
-    if (document.getElementById('membros-familia-list')) {
+  // Usar MutationObserver para garantir que o DOM foi carregado completamente
+  // e que o contêiner "membros-familia-list" existe antes de tentar inicializá-lo
+  const observer = new MutationObserver(function(mutations, obs) {
+    const container = document.getElementById('membros-familia-list');
+    if (container) {
+      console.log("Container 'membros-familia-list' encontrado, inicializando assistido...");
       inicializarAssistido();
-    } else {
-      console.log("Aguardando carregamento do DOM para inicializar assistido...");
-      // Se o container não existe, tenta novamente após um delay maior
-      setTimeout(() => {
-        if (document.getElementById('membros-familia-list')) {
-          inicializarAssistido();
-        } else {
-          console.warn("Container 'membros-familia-list' não encontrado após espera. Verifique o template HTML.");
-        }
-      }, 300);
+      obs.disconnect(); // Parar de observar quando o elemento for encontrado
     }
-  }, 100);
+  });
+
+  // Configurar e iniciar o observer
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  // Defina um timeout para garantir que o observer não continuará indefinidamente
+  setTimeout(() => {
+    observer.disconnect();
+    if (!document.getElementById('membros-familia-list')) {
+      console.warn("O container 'membros-familia-list' não foi encontrado após espera máxima.");
+    }
+  }, 2000);
 };
 
 // Função para configurar eventos do módulo

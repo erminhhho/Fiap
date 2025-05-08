@@ -10,8 +10,10 @@ if (typeof window.authorCount === 'undefined') {
     window.authorCount = 1;
 }
 
-// Array com etiquetas para os autores adicionais
-const authorLabels = ['Requerente', 'Instituidor', 'Dependente', 'Representante', 'Requerente Rep.', 'Litsconsorte'];
+// Array com etiquetas para os autores adicionais - usando window para evitar redeclaração
+if (typeof window.authorLabels === 'undefined') {
+    window.authorLabels = ['Requerente', 'Instituidor', 'Dependente', 'Representante', 'Requerente Rep.', 'Litsconsorte'];
+}
 
 // Função para adicionar um novo autor
 function addAuthor() {
@@ -24,7 +26,7 @@ function addAuthor() {
 
   // Criar HTML com opções de relacionamento/etiqueta
   let relationshipOptions = '';
-  authorLabels.forEach(label => {
+  window.authorLabels.forEach(label => {
     relationshipOptions += `<option value="${label}" class="relationship-option ${label.toLowerCase().replace('representante legal', 'representante').replace('beneficiário', 'beneficiario').replace('responsável', 'responsavel')}">${label}</option>`;
   });
 
@@ -34,7 +36,7 @@ function addAuthor() {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative flex-grow">
         <!-- Nome com seletor de relacionamento -->
         <div class="relative">
-          <div class="relationship-select" data-selected="${authorLabels[0]}" onclick="toggleRelationshipTag(this)">
+          <div class="relationship-select" data-selected="${window.authorLabels[0]}" onclick="toggleRelationshipTag(this)">
             <select id="relationship_${window.authorCount}" name="relationship_${window.authorCount}" onchange="updateRelationshipLabel(this, ${window.authorCount})">
               ${relationshipOptions}
             </select>
@@ -44,7 +46,7 @@ function addAuthor() {
             placeholder="Digite o nome completo" />
           <label for="nome_${window.authorCount}"
             class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-            ${authorLabels[0]}
+            ${window.authorLabels[0]}
           </label>
         </div>
         <!-- Nascimento, Idade e CPF -->
