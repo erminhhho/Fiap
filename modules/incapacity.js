@@ -1,5 +1,8 @@
 /**
  * Módulo de Incapacidades
+ *
+ * Este é o módulo principal para o tratamento de incapacidades no sistema.
+ * O arquivo modules/disability.js foi marcado como obsoleto em favor deste.
  */
 
 // Limpar função de inicialização anterior
@@ -154,3 +157,7 @@ function addDoencaField() {
     destacarCamposPreenchidos();
   }
 }
+
+// Exportar funções para uso global
+window.setupIncapacityEvents = setupEvents;
+window.addIncapacityDoencaField = addDoencaField;

@@ -68,8 +68,8 @@ function setupEvents() {
     });
   }
 
-  // Botão de adicionar membro (visível na interface)
-  const addMemberButton = document.getElementById('adicionar-membro-btn');
+  // Botão de adicionar membro (header do card)
+  const addMemberButton = document.getElementById('add-family-member-btn');
   if (addMemberButton) {
     addMemberButton.addEventListener('click', addFamilyMember);
   }

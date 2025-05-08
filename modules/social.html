@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ficha de Atendimento Previdenciário</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Importação de CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            whatsapp: '#25D366',
+            'form-bg': '#f3f6fb',
+            'filled-bg': '#f7f9ff'
+          },
+          gridTemplateColumns: {
+            '24': 'repeat(24, minmax(0, 1fr))',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/search.css">
+</head>
+<body class="bg-white">
+  <!-- Navbar fixa no topo -->
+  <div class="fixed top-0 left-0 right-0 bg-white shadow-sm border-b z-50" style="scrollbar-gutter: stable;">
+    <div class="max-w-[1440px] mx-auto px-4 py-2">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center shadow-sm">
+            <span class="font-bold text-lg">FIAP</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-semibold text-gray-600 text-sm">Ficha Inteligente de</span>
+            <span class="font-semibold text-gray-600 text-sm">Atendimento Previdenciário</span>
+          </div>
+        </div>
+
+        <!-- Navegação centralizada -->
+        <div class="flex-grow flex justify-center">
+          <div class="nav-container" id="step-map">
+            <a href="#personal" class="step-link" data-step="1" title="Dados Pessoais">
+              <i class="fas fa-user"></i>
+            </a>
+            <a href="#social" class="step-link" data-step="2" title="Perfil Social">
+              <i class="fas fa-users"></i>
+            </a>
+            <a href="#incapacity" class="step-link" data-step="3" title="Incapacidades">
+              <i class="fas fa-heartbeat"></i>
+            </a>
+            <a href="#insurance" class="step-link" data-step="4" title="Segurado Especial">
+              <i class="fas fa-shield-alt"></i>
+            </a>
+            <a href="#professional" class="step-link" data-step="5" title="Atividades Profissionais">
+              <i class="fas fa-briefcase"></i>
+            </a>
+            <a href="#documents" class="step-link" data-step="6" title="Documentos e Conclusão">
+              <i class="fas fa-file-alt"></i>
+            </a>
+            <div class="nav-slider"></div>
+          </div>
+        </div>
+
+        <!-- Botões de ação no canto superior direito -->
+        <div class="flex items-center gap-3">
+          <button type="button" class="text-gray-500 hover:text-blue-600 transition" title="Limpar formulário" id="btn-clear">
+            <i class="fas fa-eraser text-lg"></i>
+          </button>
+          <button type="button" class="text-gray-500 hover:text-blue-600 transition" title="Novo formulário" id="btn-new">
+            <i class="fas fa-file-medical text-lg"></i>
+          </button>
+          <button type="button" class="text-gray-500 hover:text-blue-600 transition" title="Salvar formulário" id="btn-save">
+            <i class="fas fa-save text-lg"></i>
+          </button>
+          <button type="button" class="text-gray-500 hover:text-blue-600 transition" title="Imprimir formulário" id="btn-print">
+            <i class="fas fa-print text-lg"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo principal - onde os módulos serão carregados -->
+  <div class="pt-16">
+    <div class="max-w-[1440px] mx-auto p-4">
+      <div id="app-content" class="content-wrapper">
+        <!-- O conteúdo dos módulos será carregado aqui -->
+        <div class="flex items-center justify-center h-64">
+          <div class="text-center">
+            <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-4"></i>
+            <p class="text-gray-600">Carregando...</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-8 mb-8">
+          <div class="flex items-center mb-4">
+            <div class="flex items-center gap-2 flex-grow">
+              <i class="fas fa-users text-blue-500 text-2xl"></i>
+              <h2 class="text-lg font-semibold text-blue-600">Composição Familiar</h2>
+            </div>
+            <button type="button" id="adicionar-membro-btn" class="add-familiar-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar membro" onclick="adicionarNovoMembro(); return false;">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+          <!-- Lista de membros da família -->
+          <div id="membros-familia-container">
+            <div id="membros-familia-list" class="space-y-6">
+              <!-- Membros renderizados via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--
+********************************************************
+*** ARQUIVO OBSOLETO - MARCADO PARA REMOÇÃO FUTURA ***
+********************************************************
+
+Este arquivo está completamente comentado e pode ser removido se os testes confirmarem
+que não há dependências ou referências a ele no sistema.
+
+O conteúdo oficial está em templates/social.html.
+
+Motivo da remoção:
+- Arquivo duplicado (o mesmo conteúdo existe em templates/social.html)
+- O sistema de roteamento (router.js) aponta para templates/social.html
+-->
+
+  <!-- Scripts -->
+  <script src="js/utils.js"></script>
+  <script src="js/forms.js"></script>
+  <script src="js/address.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/cid.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/social.js"></script>
+  <script>
+    // Inicialização da aplicação
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicia o router
+      initRouter();
+
+      // Inicializar o sistema de destaque de campos
+      if (typeof setupFieldHighlighting === 'function') {
+        setupFieldHighlighting();
+      }
+
+      // Garantir que o botão de adicionar membros funcione (dupla segurança)
+      const addBtn = document.getElementById('adicionar-membro-btn');
+      if (addBtn && typeof adicionarNovoMembro === 'function') {
+        addBtn.addEventListener('click', function() {
+          adicionarNovoMembro();
+        });
+      } else if (addBtn && typeof addFamilyMember === 'function') {
+        addBtn.addEventListener('click', function() {
+          addFamilyMember();
+        });
+      }
+
+      // Configuração dos botões da navbar
+      document.getElementById('btn-clear').addEventListener('click', clearForm);
+      document.getElementById('btn-new').addEventListener('click', newForm);
+      document.getElementById('btn-save').addEventListener('click', saveForm);
+      document.getElementById('btn-print').addEventListener('click', printForm);
+    });
+  </script>
+</body>
+</html>

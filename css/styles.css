@@ -1457,3 +1457,22 @@ button, input, select, textarea {
   font-weight: 600;
   color: var(--color-primary);
 }
+
+/* Header do card social igual ao das outras páginas */
+.flex.items-center.gap-2.mb-4 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flex.items-center.gap-2.mb-4 h2 {
+  flex-grow: 1;
+  margin: 0;
+}
+
+/* Botão de adicionar membro com múltiplas classes/IDs */
+#add-family-member-btn, #adicionar-membro-btn, .add-familiar-btn {
+  align-self: center;
+  margin-left: 0;
+  position: static !important;
+}
