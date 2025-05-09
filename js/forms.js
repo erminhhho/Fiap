@@ -802,3 +802,27 @@ window.addFamilyMember = addFamilyMember;
 window.addAuthor = addAuthor;
 window.removeLastFamilyMember = removeLastFamilyMember;
 window.updateRemoveMemberButton = updateRemoveMemberButton;
+
+/**
+ * Sistema de auto-salvamento de dados entre páginas
+ * Configura armazenamento automático de dados importantes quando o usuário
+ * preenche os campos ou muda de página
+ */
+document.addEventListener('DOMContentLoaded', function() {
+  // Configurar auto-salvamento de campos do assistido
+  const keyFields = ['nome', 'cpf', 'nascimento', 'idade', 'sexo', 'cep', 'logradouro', 'bairro', 'cidade', 'uf', 'telefone', 'email'];
+
+  // Aplicar eventos de auto-salvamento aos campos importantes
+  keyFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      // Auto-salvar quando o campo perde o foco
+      field.addEventListener('blur', function() {
+        if (this.value) {
+          localStorage.setItem(fieldId, this.value);
+          console.log(`Campo ${fieldId} salvo automaticamente: ${this.value}`);
+        }
+      });
+    }
+  });
+});

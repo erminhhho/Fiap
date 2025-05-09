@@ -7,6 +7,42 @@
 const FIAP = {};
 
 /**
+ * Módulo de persistência de dados entre páginas
+ */
+FIAP.data = {
+  /**
+   * Salva dados de um formulário no localStorage
+   * @param {string} formId - ID do formulário ou prefixo para os campos
+   * @param {Array} fieldNames - Lista de nomes de campos para salvar
+   */
+  saveFormData: function(formId, fieldNames) {
+    const prefix = formId ? `${formId}_` : '';
+    fieldNames.forEach(fieldName => {
+      const value = document.getElementById(fieldName)?.value || '';
+      localStorage.setItem(`${prefix}${fieldName}`, value);
+    });
+    console.log(`Dados do formulário ${formId || 'sem ID'} salvos no localStorage`);
+  },
+
+  /**
+   * Recupera dados armazenados e preenche campos
+   * @param {string} formId - ID do formulário ou prefixo usado ao salvar
+   * @param {Object} fieldMapping - Mapeamento entre campos origem e destino
+   */
+  loadFormData: function(formId, fieldMapping) {
+    const prefix = formId ? `${formId}_` : '';
+    Object.entries(fieldMapping).forEach(([sourceField, targetId]) => {
+      const storedValue = localStorage.getItem(`${prefix}${sourceField}`) || '';
+      const target = document.getElementById(targetId);
+      if (target && storedValue) {
+        target.value = storedValue;
+        console.log(`Campo ${targetId} preenchido com valor: ${storedValue}`);
+      }
+    });
+  }
+};
+
+/**
  * Módulo de mascaramento e validação de dados
  */
 FIAP.masks = {

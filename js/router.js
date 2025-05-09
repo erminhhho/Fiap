@@ -64,6 +64,7 @@ function navigateTo(routeName) {
   }
 
   const route = routes[routeName];
+  const previousRoute = currentRoute;
   currentRoute = routeName;
 
   // Atualizar a URL com hash

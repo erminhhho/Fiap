@@ -268,9 +268,14 @@ function setupEvents() {
     // Aplicar estilos Tailwind centralizados
     if (window.tw && typeof window.tw.applyTo === 'function') {
       window.tw.applyTo(nextButton, 'button.primary');
-    }
-
-    nextButton.addEventListener('click', function() {
+    }    nextButton.addEventListener('click', function() {
+      // Salvar dados do assistido no localStorage antes de navegar usando o novo módulo de persistência
+      if (typeof FIAP !== 'undefined' && FIAP.data) {
+        FIAP.data.saveFormData('assistido', ['nome', 'cpf', 'nascimento', 'idade', 'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf', 'telefone', 'whatsapp', 'email']);
+      } else {
+        // Fallback para o método anterior caso o módulo não esteja disponível
+        saveAssistidoData();
+      }
       navigateTo('social');
     });
   }
@@ -291,4 +296,22 @@ function setupEvents() {
       maskCEP(this);
     });
   }
+}
+
+// Função para salvar os dados do assistido no localStorage
+function saveAssistidoData() {
+  // Dados básicos do assistido (primeira linha do formulário)
+  const nome = document.getElementById('nome')?.value || '';
+  const cpf = document.getElementById('cpf')?.value || '';
+  const nascimento = document.getElementById('nascimento')?.value || '';
+  const idade = document.getElementById('idade')?.value || '';
+
+  // Salvar no localStorage
+  localStorage.setItem('nome', nome);
+  localStorage.setItem('cpf', cpf);
+  localStorage.setItem('nascimento', nascimento);
+  localStorage.setItem('idade', idade);
+
+  // Registrar que os dados foram salvos
+  console.log('Dados do assistido salvos no localStorage');
 }
