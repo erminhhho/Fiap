@@ -726,55 +726,22 @@ function atualizarTermometro() {
   rendaPerCapita = parseFloat(rendaPerCapita) || 0;
 
   // Não aplicar divisão adicional, usar o valor como está
-
   // Calcular porcentagem em relação ao salário mínimo (limitado a 100%)
   let porcentagem = Math.min((rendaPerCapita / salarioMinimo) * 100, 100);
 
   // Atualizar barra de progresso (máscara branca cobre o restante)
   progresso.style.width = (100 - porcentagem) + '%';
-  // Atualizar posição do indicador
-  indicador.style.left = porcentagem + '%';// Verificar se o indicador existe antes de prosseguir
+
+  // Verificar se o indicador existe antes de prosseguir
   if (!indicador) {
     console.log('Elemento indicador não encontrado na página atual.');
     return;
   }
 
-  // Verificar se os elementos span e div existem, e criá-los se não existirem
-  let spanElement = indicador.querySelector('span');
-  let divElement = indicador.querySelector('div');
-
-  // Criar os elementos se não existirem
-  if (!divElement) {
-    divElement = document.createElement('div');
-    indicador.appendChild(divElement);
-  }
-
-  if (!spanElement) {
-    spanElement = document.createElement('span');
-    indicador.appendChild(spanElement);
-  }
-
-  // Atualizar o texto do span com o valor formatado da renda
-  if (FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function') {
-    spanElement.textContent = FIAP.utils.formatMoney(rendaPerCapita);
-  } else {
-    spanElement.textContent = formatarMoeda(rendaPerCapita);
-  }
-
-  // Adicionar classes baseadas na faixa de renda
-  if (porcentagem <= 25) {
-    // Extrema pobreza
-    spanElement.className = 'text-xs font-medium bg-red-100 text-red-800 px-2 py-0.5 rounded whitespace-nowrap';
-    divElement.className = 'w-3 h-3 bg-red-600 rounded-full mx-auto mb-1';
-  } else if (porcentagem <= 50) {
-    // Vulnerabilidade
-    spanElement.className = 'text-xs font-medium bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded whitespace-nowrap';
-    divElement.className = 'w-3 h-3 bg-yellow-600 rounded-full mx-auto mb-1';
-  } else {
-    // Acima do mínimo
-    spanElement.className = 'text-xs font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded whitespace-nowrap';
-    divElement.className = 'w-3 h-3 bg-green-600 rounded-full mx-auto mb-1';
-  }
+  // Atualizar posição do indicador (sem o texto ou bolinha)
+  indicador.style.left = porcentagem + '%';
+  // Removida a manipulação do indicador visual (bolinha)
+  // Apenas movemos o indicador para a posição correta sem criar ou manipular elementos visuais
 }
 
 // Função para formatar valores em moeda brasileira (fallback caso FIAP.utils não esteja disponível)
