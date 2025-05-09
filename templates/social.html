@@ -198,22 +198,14 @@
         <input type="hidden" id="renda_total_familiar" name="renda_total_familiar" value="0" />
         <input type="hidden" id="renda_per_capita" name="renda_per_capita" value="0" />
 
-        <!-- Marcadores de salário mínimo com valores mais detalhados acima da barra -->
-        <div class="relative w-full mb-4" style="height: 18px;">
-          <span class="absolute left-1/4 transform -translate-x-1/2 text-xs font-medium text-gray-500 whitespace-nowrap">1/4 SM</span>
-          <span class="absolute left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-500 whitespace-nowrap">1/2 SM</span>
-          <span class="absolute left-3/4 transform -translate-x-1/2 text-xs font-medium text-gray-500 whitespace-nowrap">3/4 SM</span>
-        </div>
         <!-- Gráfico melhorado -->
         <div class="relative flex flex-col items-center mb-4 mt-4">
           <!-- Barra de fundo com gradiente suave -->
           <div class="h-6 rounded-full border border-gray-300 relative w-full overflow-hidden" style="background: linear-gradient(to right, #ef4444, #facc15 60%, #22c55e 100%);">
-            <div id="renda-indicator" class="absolute top-1/2 left-0 transform -translate-y-1/2 flex items-center justify-center h-6 w-full" style="pointer-events: none;">
-              <span class="h-6 flex items-center px-3 text-xs font-bold text-blue-700 rounded-full bg-transparent whitespace-nowrap" style="box-shadow: none;">
-                R$ 0
-              </span>
-            </div>
             <div id="renda-progress" class="absolute top-0 right-0 h-6 bg-white opacity-80" style="width: 100%; transition: width 0.3s;"></div>
+            <span class="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 text-xs font-semibold text-gray-700 select-none">1/4 SM</span>
+            <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-semibold text-gray-700 select-none">1/2 SM</span>
+            <span class="absolute top-1/2 left-3/4 transform -translate-x-1/2 -translate-y-1/2 text-xs font-semibold text-gray-700 select-none">3/4 SM</span>
           </div>
         </div>
 
