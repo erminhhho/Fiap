@@ -13,9 +13,9 @@
         <div class="mb-4 border-b border-gray-200 pb-4">
           <!-- Layout otimizado: todos os campos na mesma linha -->
           <div class="flex items-center">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 flex-grow">
+            <div class="grid grid-cols-1 md:grid-cols-24 gap-4 flex-grow">
               <!-- Documento (agora é o primeiro) -->
-              <div class="relative md:col-span-2">
+              <div class="relative md:col-span-4">
                 <select class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200" id="tipoDocumento1" name="tipoDocumentos[]" data-index="1">
                   <option value="" selected disabled>Selecione</option>
                   <option value="exame">Exame</option>
@@ -31,7 +31,7 @@
               </div>
 
               <!-- CID (segundo campo) -->
-              <div class="relative md:col-span-4">
+              <div class="relative md:col-span-8">
                 <input type="text" class="cid-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="cid1" placeholder="CID" name="cids[]" data-index="1" autocomplete="off">
                 <label for="cid1" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
                   CID
@@ -40,7 +40,7 @@
               </div>
 
               <!-- Doença (terceiro campo) -->
-              <div class="relative md:col-span-4">
+              <div class="relative md:col-span-8">
                 <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="doenca1" placeholder="Doença ou condição" name="doencas[]" data-index="1" autocomplete="off">
                 <label for="doenca1" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
                   Doença
@@ -49,7 +49,7 @@
               </div>
 
               <!-- Data (último campo) -->
-              <div class="relative md:col-span-2">
+              <div class="relative md:col-span-4">
                 <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento1" name="dataDocumentos[]" data-index="1" placeholder="dd/mm/aa" oninput="maskDate(this)">
                 <label for="dataDocumento1" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
                   Data
@@ -67,15 +67,15 @@
     <!-- Informações da Perícia -->
     <div class="bg-gray-50 rounded-xl p-6 mb-6">
       <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Informações da Perícia</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="relative">
+      <div class="grid grid-cols-1 md:grid-cols-24 gap-4 mb-6">
+        <div class="relative md:col-span-12">
           <input type="text" id="nomePerito" name="nomePerito" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do perito">
           <label for="nomePerito" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
             Nome do Perito
           </label>
         </div>
 
-        <div class="relative">
+        <div class="relative md:col-span-12">
           <select id="conclusaoPericia" name="conclusaoPericia" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" data-other-target="outraConclusao">
             <option value="" selected disabled>Selecione...</option>
             <option value="favoravel">Favorável à incapacidade</option>
