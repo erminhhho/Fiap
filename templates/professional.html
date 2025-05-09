@@ -9,7 +9,7 @@
     <!-- Lista de Atividades -->
     <div id="atividadesList" class="space-y-4">
       <!-- Primeira linha com botão de adicionar -->
-      <div class="atividade-item relative bg-white p-4 rounded-lg shadow mb-4">
+      <div class="atividade-item relative mb-4">
         <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
           <!-- Tipo de Atividade -->
           <div class="relative md:col-span-6">
@@ -74,30 +74,6 @@
             </button>
           </div>
         </div>
-
-        <!-- Campos para Segurado Especial -->
-        <div class="segurado-especial-fields hidden mt-4">
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div class="relative md:col-span-6">
-              <input type="text" class="area-imovel peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="0.00">
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-                Área do Imóvel (hectares)
-              </label>
-            </div>
-            <div class="relative md:col-span-6">
-              <select class="tipo-producao peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
-                <option value="" selected disabled>Selecione...</option>
-                <option value="agricultura">Agricultura</option>
-                <option value="pecuaria">Pecuária</option>
-                <option value="extrativismo">Extrativismo</option>
-                <option value="pesca">Pesca Artesanal</option>
-              </select>
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-                Tipo de Produção
-              </label>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -128,7 +104,7 @@
 
 <!-- Template para nova atividade -->
 <template id="atividadeTemplate">
-  <div class="atividade-item relative bg-white p-4 rounded-lg shadow mb-4">
+  <div class="atividade-item relative mb-4">
     <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
       <!-- Tipo de Atividade -->
       <div class="relative md:col-span-6">
@@ -191,30 +167,6 @@
         <button type="button" class="remove-atividade bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Remover atividade">
           <i class="fas fa-minus"></i>
         </button>
-      </div>
-    </div>
-
-    <!-- Campos para Segurado Especial -->
-    <div class="segurado-especial-fields hidden mt-4">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="relative md:col-span-6">
-          <input type="text" class="area-imovel peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="0.00">
-          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-            Área do Imóvel (hectares)
-          </label>
-        </div>
-        <div class="relative md:col-span-6">
-          <select class="tipo-producao peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
-            <option value="" selected disabled>Selecione...</option>
-            <option value="agricultura">Agricultura</option>
-            <option value="pecuaria">Pecuária</option>
-            <option value="extrativismo">Extrativismo</option>
-            <option value="pesca">Pesca Artesanal</option>
-          </select>
-          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-            Tipo de Produção
-          </label>
-        </div>
       </div>
     </div>
   </div>

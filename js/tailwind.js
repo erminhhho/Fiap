@@ -29,7 +29,7 @@ FIAP.tw = {
     secondary: "bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2",
 
     // Botão de adicionar (circular)
-    add: "bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 ml-2 flex items-center justify-center w-8 h-8 self-center",
+    add: "bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 mx-auto",
 
     // Botão de remover (circular)
     remove: "bg-red-500 hover:bg-red-600 text-white rounded-full p-1 ml-2 flex items-center justify-center w-8 h-8 self-center",
