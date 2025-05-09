@@ -372,6 +372,49 @@ FIAP.masks = {
     if (value.length > 2) value = value.substring(0, 2);
 
     input.value = value;
+  },
+
+  /**
+   * Formata um valor monetário no padrão brasileiro (R$)
+   * @param {HTMLInputElement} input - Campo de entrada do valor
+   */
+  money: function(input) {
+    if (!input) return;
+
+    // Salvar a posição do cursor
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const oldLength = input.value.length;
+
+    // Remove tudo que não for número
+    let value = input.value.replace(/\D/g, '');
+
+    // Converter para número e formatar
+    if (value) {
+      // Converte para centavos
+      value = parseInt(value) / 100;
+
+      // Formata para moeda brasileira
+      value = value.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    } else {
+      value = '';
+    }
+
+    // Atualiza o campo
+    input.value = value;
+
+    // Recalcula e restaura a posição do cursor
+    if (oldLength < input.value.length) {
+      const diff = input.value.length - oldLength;
+      input.setSelectionRange(start + diff, end + diff);
+    } else {
+      input.setSelectionRange(start, end);
+    }
   }
 };
 
@@ -1253,6 +1296,19 @@ window.removeStatusTags = FIAP.ui.removeStatusTags.bind(FIAP.ui);
 window.createStatusTag = FIAP.ui.createStatusTag.bind(FIAP.ui);
 window.maskUF = FIAP.masks.uf;
 window.formatarNomeProprio = FIAP.masks.properName;
+window.maskMoney = FIAP.masks.money;
+
+// Função auxiliar para formatar moeda sem precisar de input
+FIAP.utils = FIAP.utils || {};
+FIAP.utils.formatMoney = function(value) {
+  if (value === undefined || value === null) return 'R$ 0,00';
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
 
 // Inicializar após o carregamento do DOM
 document.addEventListener('DOMContentLoaded', function() {

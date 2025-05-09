@@ -40,7 +40,38 @@ function setupEvents() {
   // Destacar campos preenchidos
   if (typeof destacarCamposPreenchidos === 'function') {
     destacarCamposPreenchidos();
-  }  // Configurar botões de adicionar/remover membros da família
+  }
+
+  // Configurar máscaras monetárias em todos os campos de renda
+  const configMoneyMasks = () => {
+    document.querySelectorAll('input[name="familiar_renda[]"]').forEach(input => {
+      if (input) {
+        input.addEventListener('input', function() {
+          if (FIAP.masks && typeof FIAP.masks.money === 'function') {
+            FIAP.masks.money(this);
+          }
+        });
+      }
+    });
+
+    // Campo de renda total
+    const rendaTotalInput = document.getElementById('renda_total_familiar');
+    if (rendaTotalInput) {
+      rendaTotalInput.addEventListener('input', function() {
+        if (FIAP.masks && typeof FIAP.masks.money === 'function') {
+          FIAP.masks.money(this);
+        }
+      });
+    }
+  };
+
+  // Configurar máscaras
+  setTimeout(configMoneyMasks, 500);
+
+  // Inicializar cálculo de renda familiar
+  setupRendaFamiliar();
+
+  // Configurar botões de adicionar/remover membros da família
   // Nota: O botão de adicionar agora é inserido diretamente ao lado do assistido com onclick em linha
 
   const removeLastMemberBtn = document.getElementById('remove-last-family-member-btn');
@@ -101,6 +132,9 @@ function setupEvents() {
       navigateTo('incapacity');
     });
   }
+
+  // Configurar cálculo de renda familiar
+  setupRendaFamiliar();
 }
 
 // Inicializar dados do assistido
@@ -331,6 +365,17 @@ function toggleCadUnico(button) {
   if (!button) return;
 
   button.classList.toggle('active');
+
+  // Atualizar estilos visuais
+  if (button.classList.contains('active')) {
+    button.classList.add('bg-green-500', 'text-white', 'border-green-500');
+    button.classList.remove('text-gray-500', 'border-gray-300');
+  } else {
+    button.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+    button.classList.add('text-gray-500', 'border-gray-300');
+  }
+
+  // Atualizar valor do input hidden
   const hiddenInput = button.previousElementSibling;
   if (hiddenInput && hiddenInput.type === 'hidden') {
     hiddenInput.value = button.classList.contains('active') ? 'Sim' : 'Não';
@@ -448,14 +493,156 @@ function setupStatusOptions() {
   });
 }
 
-// Exportar funções para o escopo global
-window.addFamilyMember = addFamilyMember;
-window.removeLastFamilyMember = removeLastFamilyMember;
-window.removeSpecificFamilyMember = removeSpecificFamilyMember;
-window.toggleCadUnico = toggleCadUnico;
-window.updateRemoveMemberButton = updateRemoveMemberButton;
+// Configurar cálculo de renda familiar
+function setupRendaFamiliar() {
+  const membrosList = document.getElementById('membros-familia-list');
+  const rendaTotalInput = document.getElementById('renda_total_familiar');
+  const rendaPerCapitaInput = document.getElementById('renda_per_capita');
 
-// Inicializar os botões na carga da página
-document.addEventListener('DOMContentLoaded', function() {
-  setupAddButtons();
-});
+  if (!membrosList || !rendaTotalInput || !rendaPerCapitaInput) return;
+
+  // Monitorar mudanças de renda nos membros da família
+  membrosList.addEventListener('input', function(event) {
+    if (event.target.name === 'familiar_renda[]') {
+      calcularRendaTotal();
+    }
+  });
+
+  // Monitorar mudanças no campo de renda total
+  rendaTotalInput.addEventListener('input', function() {
+    calcularRendaPerCapita();
+    atualizarTermometro();
+  });
+
+  // Configuração inicial
+  setTimeout(calcularRendaTotal, 500);
+}
+
+// Calcular renda total da família somando valores dos campos
+function calcularRendaTotal() {
+  const rendaInputs = document.querySelectorAll('input[name="familiar_renda[]"]');
+  const rendaTotalInput = document.getElementById('renda_total_familiar');
+
+  if (!rendaInputs || !rendaTotalInput) return;
+
+  let total = 0;
+  rendaInputs.forEach(input => {
+    // Limpar valor para processamento (remover R$, pontos e trocar vírgula por ponto)
+    const valorLimpo = input.value
+      .replace('R$', '')
+      .replace(/\./g, '')
+      .replace(',', '.')
+      .trim();
+
+    if (valorLimpo && !isNaN(valorLimpo)) {
+      total += parseFloat(valorLimpo);
+    }
+  });
+
+  // Formatar para moeda brasileira usando a função do namespace FIAP
+  if (FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function') {
+    rendaTotalInput.value = FIAP.utils.formatMoney(total);
+  } else {
+    rendaTotalInput.value = formatarMoeda(total);
+  }
+
+  // Calcular renda per capita e atualizar termômetro
+  calcularRendaPerCapita();
+  atualizarTermometro();
+}
+
+// Calcular renda per capita (total dividido pelo número de membros)
+function calcularRendaPerCapita() {
+  const rendaTotalInput = document.getElementById('renda_total_familiar');
+  const rendaPerCapitaInput = document.getElementById('renda_per_capita');
+  const membrosList = document.getElementById('membros-familia-list');
+
+  if (!rendaTotalInput || !rendaPerCapitaInput || !membrosList) return;
+
+  // Obter total de pessoas na família
+  const totalMembros = membrosList.querySelectorAll('.membro-familia').length;
+  if (totalMembros === 0) return;
+
+  // Obter renda total e converter para número
+  let rendaTotal = rendaTotalInput.value
+    .replace('R$', '')
+    .replace(/\./g, '')
+    .replace(',', '.')
+    .trim();
+
+  rendaTotal = parseFloat(rendaTotal) || 0;
+
+  // Calcular per capita
+  const rendaPerCapita = rendaTotal / totalMembros;
+
+  // Atualizar campo usando a função do namespace FIAP
+  if (FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function') {
+    rendaPerCapitaInput.value = FIAP.utils.formatMoney(rendaPerCapita);
+  } else {
+    rendaPerCapitaInput.value = formatarMoeda(rendaPerCapita);
+  }
+}
+
+// Atualizar termômetro de renda per capita
+function atualizarTermometro() {
+  const rendaPerCapitaInput = document.getElementById('renda_per_capita');
+  const indicador = document.getElementById('renda-indicator');
+  const progresso = document.getElementById('renda-progress');
+
+  if (!rendaPerCapitaInput || !indicador || !progresso) return;
+
+  // Valor do salário mínimo atual
+  const salarioMinimo = 1412.00;
+
+  // Obter valor de renda per capita
+  let rendaPerCapita = rendaPerCapitaInput.value
+    .replace('R$', '')
+    .replace(/\./g, '')
+    .replace(',', '.')
+    .trim();
+
+  rendaPerCapita = parseFloat(rendaPerCapita) || 0;
+
+  // Calcular porcentagem em relação ao salário mínimo (limitado a 100%)
+  let porcentagem = Math.min((rendaPerCapita / salarioMinimo) * 100, 100);
+
+  // Atualizar barra de progresso
+  progresso.style.width = porcentagem + '%';
+
+  // Atualizar posição do indicador
+  indicador.style.left = porcentagem + '%';
+    // Atualizar texto do indicador
+  const indicadorTexto = indicador.querySelector('span');
+  if (indicadorTexto) {
+    if (FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function') {
+      indicadorTexto.textContent = FIAP.utils.formatMoney(rendaPerCapita);
+    } else {
+      indicadorTexto.textContent = formatarMoeda(rendaPerCapita);
+    }
+  }
+
+  // Adicionar classes baseadas na faixa de renda
+  if (porcentagem <= 25) {
+    // Extrema pobreza
+    indicador.querySelector('span').className = 'text-xs font-medium bg-red-100 text-red-800 px-2 py-0.5 rounded whitespace-nowrap';
+    indicador.querySelector('div').className = 'w-3 h-3 bg-red-600 rounded-full mx-auto mb-1';
+  } else if (porcentagem <= 50) {
+    // Vulnerabilidade
+    indicador.querySelector('span').className = 'text-xs font-medium bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded whitespace-nowrap';
+    indicador.querySelector('div').className = 'w-3 h-3 bg-yellow-600 rounded-full mx-auto mb-1';
+  } else {
+    // Acima do mínimo
+    indicador.querySelector('span').className = 'text-xs font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded whitespace-nowrap';
+    indicador.querySelector('div').className = 'w-3 h-3 bg-green-600 rounded-full mx-auto mb-1';
+  }
+}
+
+// Função para formatar valores em moeda brasileira (fallback caso FIAP.utils não esteja disponível)
+function formatarMoeda(valor) {
+  return valor.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
