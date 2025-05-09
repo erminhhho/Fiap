@@ -64,10 +64,11 @@
             </a>
             <div class="nav-slider"></div>
           </div>
-        </div>
-
-        <!-- Botões de ação no canto superior direito -->
+        </div>        <!-- Botões de ação no canto superior direito -->
         <div class="flex items-center gap-3">
+          <button type="button" class="navbar-action" title="Buscar formulário" id="btn-search">
+            <i class="fas fa-search text-lg"></i>
+          </button>
           <button type="button" class="navbar-action" title="Limpar formulário" id="btn-clear">
             <i class="fas fa-eraser text-lg"></i>
           </button>
@@ -89,26 +90,55 @@
   <div class="pt-16">
     <div class="max-w-[1440px] mx-auto p-4">
       <div id="app-content" class="content-wrapper">
-        <!-- O conteúdo dos módulos será carregado aqui -->
-        <div class="flex items-center justify-center h-64">
-          <div class="text-center">
-            <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-4"></i>
-            <p class="text-gray-600">Carregando...</p>
-          </div>
-        </div>
+        <!-- O conteúdo dos módulos será carregado aqui pelo router -->
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Modal para buscar formulário por CPF -->
+  <div id="searchFormModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-700">Buscar Formulário</h2>
+        <button id="closeSearchModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <p class="text-gray-600 mb-4">Digite o CPF ou identificador do formulário que deseja carregar:</p>
+
+      <div class="mb-4">
+        <input type="text" id="searchFormCPF" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Ex: 123.456.789-00">
+      </div>
+
+      <div class="flex justify-end space-x-2">
+        <button id="cancelSearchForm" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700">
+          Cancelar
+        </button>
+        <button id="searchFormButton" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white">
+          <i class="fas fa-search mr-1"></i> Buscar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts do Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-analytics-compat.js"></script>
+
+  <!-- Scripts da aplicação -->
   <script src="js/utils.js"></script>
+  <script src="js/firebase.js"></script>
   <script src="js/tailwind.js"></script>
   <script src="js/forms.js"></script>
   <script src="js/address.js"></script>
   <script src="js/search.js"></script>
   <script src="js/cid.js"></script>
-  <script src="js/router.js"></script>
-  <script>
+  <script src="js/router.js"></script>  <script>
     // Inicialização da aplicação
     document.addEventListener('DOMContentLoaded', function() {
       // Inicia o router
@@ -124,7 +154,54 @@
       document.getElementById('btn-new').addEventListener('click', newForm);
       document.getElementById('btn-save').addEventListener('click', saveForm);
       document.getElementById('btn-print').addEventListener('click', printForm);
+      document.getElementById('btn-search').addEventListener('click', openSearchFormModal);
+
+      // Configuração do modal de busca
+      const searchModal = document.getElementById('searchFormModal');
+      const closeModalButton = document.getElementById('closeSearchModal');
+      const cancelButton = document.getElementById('cancelSearchForm');
+      const searchButton = document.getElementById('searchFormButton');
+      const searchInput = document.getElementById('searchFormCPF');
+
+      // Configurar eventos do modal
+      closeModalButton.addEventListener('click', closeSearchFormModal);
+      cancelButton.addEventListener('click', closeSearchFormModal);
+      searchButton.addEventListener('click', () => {
+        const key = searchInput.value.trim();
+        if (key) {
+          closeSearchFormModal();
+          loadFormByKey(key);
+        } else {
+          showError('Por favor, informe um CPF ou identificador válido');
+        }
+      });
+
+      // Permitir buscar ao pressionar Enter
+      searchInput.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+          searchButton.click();
+        }
+      });
+
+      // Fechar o modal ao clicar fora dele
+      window.addEventListener('click', function(event) {
+        if (event.target === searchModal) {
+          closeSearchFormModal();
+        }
+      });
     });
+
+    // Funções para manipulação do modal de busca
+    function openSearchFormModal() {
+      const modal = document.getElementById('searchFormModal');
+      modal.classList.remove('hidden');
+      document.getElementById('searchFormCPF').focus();
+    }
+
+    function closeSearchFormModal() {
+      const modal = document.getElementById('searchFormModal');
+      modal.classList.add('hidden');
+    }
   </script>
 </body>
 </html>

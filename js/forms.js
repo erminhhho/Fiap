@@ -51,13 +51,174 @@ function newForm() {
   }
 }
 
-// Função para salvar o formulário com feedback visual
+// Função para salvar o formulário com Firebase
 function saveForm() {
-  // Feedback apenas para simular funcionalidade
-  showSuccess('Funcionalidade de salvamento será implementada em breve!', null, {
-    duration: 3000,
-    position: 'top-right'
+  // Mostrar indicador de carregamento
+  showLoading('Salvando dados...');
+
+  // Coletar todos os dados do formulário atual
+  const formData = {};
+  document.querySelectorAll('input:not([type="button"]):not([type="submit"]), select, textarea').forEach(field => {
+    if (field.id && field.value) {
+      formData[field.id] = field.value;
+    }
   });
+
+  // Guardar também a página atual
+  formData.currentRoute = window.location.hash ? window.location.hash.substring(1) : 'personal';
+  formData.timestamp = Date.now();
+
+  // Verificar se temos o CPF como identificador
+  const cpfField = document.getElementById('cpf') || document.getElementById('assistido_cpf');
+  const cpfValue = cpfField ? cpfField.value : null;
+
+  // Se não temos CPF, gerar um ID baseado no timestamp
+  const docId = cpfValue || `form_${Date.now()}`;
+
+  // Verificar se estamos online
+  const isOnlineNow = navigator.onLine && typeof FIAP.firebase !== 'undefined' && FIAP.firebase.db;
+
+  if (isOnlineNow) {
+    // Salvar no Firestore
+    FIAP.firebase.db.collection('formularios').doc(docId).set(formData, { merge: true })
+      .then(() => {
+        hideLoading();
+        showSuccess('Dados salvos com sucesso no Firebase!', null, {
+          duration: 3000,
+          position: 'top-right'
+        });
+
+        // Salvar no localStorage também como backup
+        Object.entries(formData).forEach(([key, value]) => {
+          localStorage.setItem(key, value);
+        });
+      })
+      .catch(error => {
+        hideLoading();
+        console.error("Erro ao salvar no Firebase:", error);
+
+        showError('Erro ao salvar dados. Salvando localmente...', null, {
+          duration: 3000,
+          position: 'top-right'
+        });
+
+        // Salvar no localStorage
+        Object.entries(formData).forEach(([key, value]) => {
+          localStorage.setItem(key, value);
+        });
+
+        // Salvar para sincronização posterior
+        if (typeof saveDataForOfflineSync === 'function') {
+          saveDataForOfflineSync('formularios', docId, formData);
+          showSuccess('Dados salvos localmente. Serão sincronizados automaticamente quando a conexão for restabelecida.', null, {
+            duration: 3000,
+            position: 'top-right'
+          });
+        } else {
+          showSuccess('Dados salvos localmente como fallback!', null, {
+            duration: 3000,
+            position: 'top-right'
+          });
+        }
+      });
+  } else {
+    // Estamos offline ou Firebase não está disponível
+    hideLoading();
+
+    // Salvar no localStorage
+    Object.entries(formData).forEach(([key, value]) => {
+      localStorage.setItem(key, value);
+    });
+
+    // Salvar para sincronização posterior
+    if (typeof saveDataForOfflineSync === 'function') {
+      saveDataForOfflineSync('formularios', docId, formData);
+      showSuccess('Dados salvos localmente. Serão sincronizados automaticamente quando a conexão for restabelecida.', null, {
+        duration: 3000,
+        position: 'top-right'
+      });
+    } else {
+      showSuccess('Dados salvos localmente (Firebase não disponível)!', null, {
+        duration: 3000,
+        position: 'top-right'
+      });
+    }
+  }
+}
+
+// Função para carregar formulário do Firebase usando CPF
+function loadFormByKey(key) {
+  if (!key || key.trim() === '') {
+    showError('Por favor, informe um CPF ou ID válido para buscar o formulário');
+    return;
+  }
+
+  // Mostrar carregamento
+  showLoading('Buscando formulário...');
+
+  // Verificar se o Firebase está disponível
+  if (typeof FIAP.firebase !== 'undefined' && FIAP.firebase.db) {
+    FIAP.firebase.db.collection('formularios').doc(key).get()
+      .then(doc => {
+        hideLoading();
+
+        if (doc.exists) {
+          // Limpar formulário atual
+          clearForm(false);
+
+          // Preencher campos com os dados do Firestore
+          const data = doc.data();
+          Object.entries(data).forEach(([fieldId, value]) => {
+            const field = document.getElementById(fieldId);
+            if (field && value) {
+              field.value = value;
+              field.classList.add('field-filled');
+            }
+          });
+
+          // Se existe uma rota salva, navegar para ela
+          if (data.currentRoute) {
+            navigateTo(data.currentRoute);
+          }
+
+          showSuccess(`Formulário de ${key} carregado com sucesso!`, null, {
+            duration: 3000
+          });
+        } else {
+          // Tentar buscar do localStorage como fallback
+          showError(`Nenhum formulário encontrado no Firebase para ${key}. Tentando localStorage...`);
+
+          // Lógica de busca no localStorage (implementação simplificada)
+          let found = false;
+          for (let i = 0; i < localStorage.length; i++) {
+            const localKey = localStorage.key(i);
+            if (localKey && localKey.includes(key)) {
+              found = true;
+              break;
+            }
+          }
+
+          if (found) {
+            // Você pode adicionar uma lógica mais robusta aqui para carregar do localStorage
+            showSuccess(`Dados encontrados localmente para ${key}`);
+          } else {
+            showError(`Nenhum dado encontrado para ${key}`);
+          }
+        }
+      })
+      .catch(error => {
+        hideLoading();
+        console.error("Erro ao buscar documento:", error);
+        showError(`Erro ao buscar formulário: ${error.message}`);
+      });
+  } else {
+    // Firebase não disponível, tentar localStorage
+    hideLoading();
+    showError('Firebase não disponível. Tentando usar localStorage...');
+
+    // Implementar busca no localStorage (similar ao que está acima)
+    // ...
+  }
 }
 
 // Função para impressão do formulário
@@ -779,6 +940,143 @@ function setupAutoCapitalize() {
   });
 }
 
+// Funções para feedback visual durante operações com Firebase
+
+/**
+ * Mostra um indicador de carregamento
+ * @param {string} message - Mensagem a ser exibida
+ */
+function showLoading(message = 'Carregando...') {
+  // Verificar se já existe um indicador
+  let loading = document.getElementById('loading-indicator');
+
+  if (!loading) {
+    loading = document.createElement('div');
+    loading.id = 'loading-indicator';
+    loading.className = 'fixed top-4 right-4 bg-blue-600 text-white py-2 px-4 rounded-lg shadow-lg flex items-center space-x-2 z-50';
+
+    const spinner = document.createElement('div');
+    spinner.className = 'animate-spin rounded-full h-4 w-4 border-2 border-white';
+
+    const messageEl = document.createElement('span');
+
+    loading.appendChild(spinner);
+    loading.appendChild(messageEl);
+    document.body.appendChild(loading);
+  }
+
+  loading.querySelector('span').textContent = message;
+  loading.style.display = 'flex';
+}
+
+/**
+ * Esconde o indicador de carregamento
+ */
+function hideLoading() {
+  const loading = document.getElementById('loading-indicator');
+  if (loading) {
+    loading.style.display = 'none';
+  }
+}
+
+/**
+ * Mostra uma mensagem de erro
+ * @param {string} message - Mensagem de erro
+ * @param {Element} parentElement - Elemento pai opcional
+ * @param {Object} options - Opções adicionais
+ */
+function showError(message, parentElement = null, options = {}) {
+  const defaults = {
+    duration: 5000,
+    position: 'top-right'
+  };
+
+  const settings = { ...defaults, ...options };
+
+  const notification = document.createElement('div');
+  notification.className = 'notification bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg fixed z-50';
+
+  // Posicionamento
+  if (settings.position === 'top-right') {
+    notification.style.top = '1rem';
+    notification.style.right = '1rem';
+  } else if (settings.position === 'top-center') {
+    notification.style.top = '1rem';
+    notification.style.left = '50%';
+    notification.style.transform = 'translateX(-50%)';
+  }
+
+  notification.innerHTML = `
+    <div class="flex items-center">
+      <div class="text-red-500 rounded-full p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </div>
+      <span class="ml-2">${message}</span>
+    </div>
+  `;
+
+  (parentElement || document.body).appendChild(notification);
+
+  if (settings.duration > 0) {
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => notification.remove(), 500);
+    }, settings.duration);
+  }
+}
+
+/**
+ * Mostra uma mensagem de sucesso
+ * @param {string} message - Mensagem de sucesso
+ * @param {Element} parentElement - Elemento pai opcional
+ * @param {Object} options - Opções adicionais
+ */
+function showSuccess(message, parentElement = null, options = {}) {
+  const defaults = {
+    duration: 3000,
+    position: 'top-right'
+  };
+
+  const settings = { ...defaults, ...options };
+
+  const notification = document.createElement('div');
+  notification.className = 'notification bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg fixed z-50';
+
+  // Posicionamento
+  if (settings.position === 'top-right') {
+    notification.style.top = '1rem';
+    notification.style.right = '1rem';
+  } else if (settings.position === 'top-center') {
+    notification.style.top = '1rem';
+    notification.style.left = '50%';
+    notification.style.transform = 'translateX(-50%)';
+  }
+
+  notification.innerHTML = `
+    <div class="flex items-center">
+      <div class="text-green-500 rounded-full p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      <span class="ml-2">${message}</span>
+    </div>
+  `;
+
+  (parentElement || document.body).appendChild(notification);
+
+  if (settings.duration > 0) {
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => notification.remove(), 500);
+    }, settings.duration);
+  }
+}
+
 // Inicializar sistema de labels no carregamento da página
 document.addEventListener('DOMContentLoaded', function() {
   setupRightLabels();
@@ -802,6 +1100,7 @@ window.addFamilyMember = addFamilyMember;
 window.addAuthor = addAuthor;
 window.removeLastFamilyMember = removeLastFamilyMember;
 window.updateRemoveMemberButton = updateRemoveMemberButton;
+window.loadFormByKey = loadFormByKey;
 
 /**
  * Sistema de auto-salvamento de dados entre páginas
