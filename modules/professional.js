@@ -7,9 +7,27 @@ window.initModule = null;
 
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
+  console.log('Inicializando módulo de atividades profissionais...');
+
+  // Forçar reinicialização quando acessado diretamente pela URL
+  if (window.location.hash === '#professional') {
+    window._professionalInitialized = false;
+  }
+
   // Verificar se o módulo já foi inicializado nesta sessão
   if (window._professionalInitialized) {
     console.log('Módulo de atividades profissionais já inicializado.');
+
+    // Mesmo que já inicializado, vamos garantir que os botões de adicionar estejam configurados
+    document.querySelectorAll('.add-atividade-btn').forEach(btn => {
+      // Remover eventos existentes
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+
+      // Adicionar evento ao novo botão
+      newBtn.addEventListener('click', addAtividade);
+    });
+
     return;
   }
 

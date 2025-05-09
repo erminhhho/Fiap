@@ -256,12 +256,19 @@ function initRouter() {
   window.addEventListener('hashchange', function() {
     const route = window.location.hash.substring(1);
     if (route && routes[route]) {
+      // Limpar flags de inicialização ao mudar de rota via hash
+      if (route === 'professional') {
+        window._professionalInitialized = false;
+      }
       navigateTo(route);
     }
   });
 
   // Navegar para a rota inicial
   const initialRoute = window.location.hash.substring(1);
+  if (initialRoute === 'professional') {
+    window._professionalInitialized = false;
+  }
   navigateTo(initialRoute && routes[initialRoute] ? initialRoute : 'personal');
 
   // Ajustar o slider quando a janela for redimensionada
