@@ -696,8 +696,8 @@ function atualizarTermometro() {
   // Calcular porcentagem em relação ao salário mínimo (limitado a 100%)
   let porcentagem = Math.min((rendaPerCapita / salarioMinimo) * 100, 100);
 
-  // Atualizar barra de progresso
-  progresso.style.width = porcentagem + '%';
+  // Atualizar barra de progresso (máscara branca cobre o restante)
+  progresso.style.width = (100 - porcentagem) + '%';
 
   // Atualizar posição do indicador
   indicador.style.left = porcentagem + '%';

@@ -172,86 +172,67 @@
 
     <!-- Seção de Renda Familiar -->
     <div class="mt-8 border-t pt-6 border-gray-200">
-      <div class="flex items-center mb-4 justify-between">
-        <div class="flex items-center gap-2">
-          <i class="fas fa-money-bill-wave text-blue-500 text-2xl"></i>
-          <h2 class="text-lg font-semibold text-blue-600">Análise de Renda Familiar (CadÚnico)</h2>
-        </div>
-        <div class="flex items-center gap-4">
-          <div class="text-sm font-medium">
-            <span class="text-gray-600">Renda Total:</span>
-            <span id="renda_total_display" class="text-blue-700 ml-1">R$ 0,00</span>
+      <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-money-bill-wave text-blue-500 text-2xl"></i>
+            <h2 class="text-lg font-semibold text-blue-600">Renda Per Capita</h2>
           </div>
-          <div class="text-sm font-medium">
-            <span class="text-gray-600">Renda Per Capita:</span>
-            <span id="renda_per_capita_display" class="text-blue-700 ml-1">R$ 0,00</span>
+          <div class="flex items-center gap-4">
+            <div class="text-sm font-medium">
+              <span class="text-gray-600">Renda Total:</span>
+              <span id="renda_total_display" class="text-blue-700 ml-1">R$ 0</span>
+            </div>
+            <div class="text-sm font-medium">
+              <span class="text-gray-600">Renda Per Capita:</span>
+              <span id="renda_per_capita_display" class="text-blue-700 ml-1">R$ 0</span>
+            </div>
+            <div class="text-sm font-medium">
+              <span class="text-gray-600">Salário Mínimo:</span>
+              <span id="salario-minimo-display" class="text-blue-700 ml-1">R$ 1.502</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos ocultos para armazenar valores -->
+        <input type="hidden" id="renda_total_familiar" name="renda_total_familiar" value="0" />
+        <input type="hidden" id="renda_per_capita" name="renda_per_capita" value="0" />
+
+        <!-- Marcadores de salário mínimo com valores mais detalhados acima da barra -->
+        <div class="relative w-full mb-4" style="height: 18px;">
+          <span class="absolute left-1/4 transform -translate-x-1/2 text-xs font-medium text-gray-500 whitespace-nowrap">1/4 SM</span>
+          <span class="absolute left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-500 whitespace-nowrap">1/2 SM</span>
+          <span class="absolute left-3/4 transform -translate-x-1/2 text-xs font-medium text-gray-500 whitespace-nowrap">3/4 SM</span>
+        </div>
+        <!-- Gráfico melhorado -->
+        <div class="relative flex flex-col items-center mb-4 mt-4">
+          <!-- Barra de fundo com gradiente suave -->
+          <div class="h-6 rounded-full border border-gray-300 relative w-full overflow-hidden" style="background: linear-gradient(to right, #ef4444, #facc15 60%, #22c55e 100%);">
+            <div id="renda-indicator" class="absolute top-1/2 left-0 transform -translate-y-1/2 flex items-center justify-center h-6 w-full" style="pointer-events: none;">
+              <span class="h-6 flex items-center px-3 text-xs font-bold text-blue-700 rounded-full bg-transparent whitespace-nowrap" style="box-shadow: none;">
+                R$ 0
+              </span>
+            </div>
+            <div id="renda-progress" class="absolute top-0 right-0 h-6 bg-white opacity-80" style="width: 100%; transition: width 0.3s;"></div>
+          </div>
+        </div>
+
+        <!-- Legenda compacta com valores de referência -->
+        <div class="flex w-full text-xs mt-0.5 mb-2">
+          <div class="flex-1 flex items-center justify-start">
+            <span class="font-bold" style="color: #b91c1c;">Extrema Pobreza</span>
+          </div>
+          <div class="flex-1 flex items-center justify-center">
+            <span class="font-bold" style="color: #b45309;">Pobreza</span>
+          </div>
+          <div class="flex-1 flex items-center justify-end">
+            <span class="font-bold" style="color: #15803d;">Acima da Linha de Pobreza</span>
           </div>
         </div>
       </div>
 
-      <!-- Campos ocultos para armazenar valores -->
-      <input type="hidden" id="renda_total_familiar" name="renda_total_familiar" value="0" />
-      <input type="hidden" id="renda_per_capita" name="renda_per_capita" value="0" />      <!-- Termômetro de Renda Per Capita em Relação ao Salário Mínimo (Melhorado) -->
-      <div class="bg-gray-100 p-4 rounded-lg mt-4 shadow-inner">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="text-gray-700 font-medium">Análise de Renda Per Capita</h3>
-          <span class="text-sm text-gray-600">Relação com o Salário Mínimo (<span id="salario-minimo-display">R$ 1.502,00</span>)</span>
-        </div>
-
-        <!-- Gráfico melhorado -->
-        <div class="relative pt-5 pb-8">
-          <!-- Barra de fundo com gradiente suave -->
-          <div class="h-4 bg-gray-200 rounded-lg shadow-inner relative">
-            <!-- Marcadores de salário mínimo com valores mais detalhados -->
-            <div class="absolute -bottom-7 left-0 transform -translate-x-1/2">
-              <div class="h-5 w-1 bg-gray-500 mb-1 mx-auto"></div>
-              <span class="text-xs font-medium text-gray-600 whitespace-nowrap">R$ 0</span>
-            </div>
-            <div class="absolute -bottom-7 left-1/4 transform -translate-x-1/2">
-              <div class="h-5 w-1 bg-gray-500 mb-1 mx-auto"></div>
-              <span class="text-xs font-medium text-gray-600 whitespace-nowrap">1/4 SM</span>
-            </div>
-            <div class="absolute -bottom-7 left-1/2 transform -translate-x-1/2">
-              <div class="h-5 w-1 bg-gray-500 mb-1 mx-auto"></div>
-              <span class="text-xs font-medium text-gray-600 whitespace-nowrap">1/2 SM</span>
-            </div>
-            <div class="absolute -bottom-7 left-3/4 transform -translate-x-1/2">
-              <div class="h-5 w-1 bg-gray-500 mb-1 mx-auto"></div>
-              <span class="text-xs font-medium text-gray-600 whitespace-nowrap">3/4 SM</span>
-            </div>
-            <div class="absolute -bottom-7 right-0 transform translate-x-1/2">
-              <div class="h-5 w-1 bg-gray-500 mb-1 mx-auto"></div>
-              <span class="text-xs font-medium text-gray-600 whitespace-nowrap">1 SM</span>
-            </div>
-
-            <!-- Indicador de valor atual com design melhorado -->
-            <div id="renda-indicator" class="absolute top-0 -mt-6 transform -translate-x-1/2" style="left: 0%">
-              <div class="w-4 h-4 bg-blue-600 rounded-full shadow-md mx-auto mb-1"></div>
-              <span class="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded shadow-sm whitespace-nowrap">
-                R$ 0,00
-              </span>
-            </div>
-
-            <!-- Barra de progresso colorida com gradiente mais suave -->
-            <div id="renda-progress" class="h-4 bg-gradient-to-r from-red-500 via-yellow-400 to-green-500 rounded-lg shadow-sm" style="width: 0%"></div>
-          </div>
-        </div>        <!-- Legenda compacta com valores de referência -->
-        <div class="flex justify-between text-xs mt-6">
-          <div class="flex items-center px-2 py-1 bg-red-100 rounded-md">
-            <div class="w-2 h-2 bg-red-500 mr-1 rounded-full"></div>
-            <span class="text-red-700">Extrema Pobreza</span>
-          </div>
-          <div class="flex items-center px-2 py-1 bg-yellow-100 rounded-md">
-            <div class="w-2 h-2 bg-yellow-500 mr-1 rounded-full"></div>
-            <span class="text-yellow-700">Pobreza</span>
-          </div>
-          <div class="flex items-center px-2 py-1 bg-green-100 rounded-md">
-            <div class="w-2 h-2 bg-green-500 mr-1 rounded-full"></div>
-            <span class="text-green-700">Acima da Linha de Pobreza</span>
-          </div>
-        </div>
-      </div><!-- Observações sobre a situação social -->
-      <div class="relative mt-6 pt-4 border-t border-gray-200">
+      <!-- Observações sobre a situação social -->
+      <div class="relative mt-4 pt-4 border-t border-gray-200">
         <div class="relative">
           <textarea id="obs_sociais" name="obs_sociais" rows="3"
             class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
@@ -266,7 +247,7 @@
   </div>
 
   <div class="flex justify-between mt-8">
-    <button type="button" class="bg-gray-100 hover:bg-gray-200 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2" id="btn-back">
+    <button type="button" class="bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2" id="btn-back">
       <i class="fas fa-arrow-left"></i> Anterior
     </button>
     <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="btn-next">
