@@ -83,13 +83,19 @@ function setupEvents() {
 
     removeLastMemberBtn.addEventListener('click', removeLastFamilyMember);
   }
-
-  // Configurar evento para os botões CadÚnico
+  // Configurar evento para os botões CadÚnico - evento delegado para evitar duplicação
   const membrosList = document.getElementById('membros-familia-list');
   if (membrosList) {
-    membrosList.addEventListener('click', function(event) {
+    // Remover eventos existentes para evitar duplicação
+    const newMembrosList = membrosList.cloneNode(true);
+    membrosList.parentNode.replaceChild(newMembrosList, membrosList);
+
+    // Configurar novo evento
+    newMembrosList.addEventListener('click', function(event) {
       const cadUnicoButton = event.target.closest('.cadunico-btn');
-      if (cadUnicoButton) {
+      if (cadUnicoButton && event.target === cadUnicoButton || cadUnicoButton.contains(event.target)) {
+        // Evitar propagação para não ter chamadas múltiplas
+        event.stopPropagation();
         toggleCadUnico(cadUnicoButton);
       }
     });
@@ -371,26 +377,41 @@ function toggleCadUnico(button) {
     return;
   }
 
+  // Remover event listeners antigos para evitar chamadas duplicadas
+  // Clone o nó para remover todos os listeners
+  const newButton = targetButton.cloneNode(true);
+  if (targetButton.parentNode) {
+    targetButton.parentNode.replaceChild(newButton, targetButton);
+  }
+
+  // Readicionar o onclick event
+  newButton.onclick = function() {
+    toggleCadUnico(this);
+  };
+
   // Toggle da classe active
-  targetButton.classList.toggle('active');
+  newButton.classList.toggle('active');
 
   // Atualizar estilos visuais
-  if (targetButton.classList.contains('active')) {
-    targetButton.classList.add('bg-green-500', 'text-white', 'border-green-500');
-    targetButton.classList.remove('text-gray-500', 'border-gray-300');
+  if (newButton.classList.contains('active')) {
+    newButton.classList.add('bg-green-500', 'text-white', 'border-green-500');
+    newButton.classList.remove('text-gray-500', 'border-gray-300');
   } else {
-    targetButton.classList.remove('bg-green-500', 'text-white', 'border-green-500');
-    targetButton.classList.add('text-gray-500', 'border-gray-300');
+    newButton.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+    newButton.classList.add('text-gray-500', 'border-gray-300');
   }
 
   // Atualizar valor do input hidden
-  const hiddenInput = targetButton.previousElementSibling;
+  const hiddenInput = newButton.previousElementSibling;
   if (hiddenInput && hiddenInput.type === 'hidden') {
-    hiddenInput.value = targetButton.classList.contains('active') ? 'Sim' : 'Não';
+    hiddenInput.value = newButton.classList.contains('active') ? 'Sim' : 'Não';
   }
 
   // Recalcular a renda total e per capita quando o status de CadÚnico mudar
-  setTimeout(calcularRendaTotal, 10);
+  // Usar requestAnimationFrame para garantir que a UI foi atualizada antes do cálculo
+  requestAnimationFrame(() => {
+    calcularRendaTotal();
+  });
 }
 
 // Corrigir o problema de duplicação ao adicionar linhas
@@ -511,18 +532,20 @@ function setupRendaFamiliar() {
   const rendaPerCapitaInput = document.getElementById('renda_per_capita');
 
   if (!membrosList || !rendaTotalInput || !rendaPerCapitaInput) return;
-  // Monitorar mudanças de renda nos membros da família
-  membrosList.addEventListener('input', function(event) {
-    if (event.target.name === 'familiar_renda[]') {
-      calcularRendaTotal();
-    }
-  });
+  // Monitorar mudanças de renda nos membros da família - removendo e recriando para evitar duplicação
+  const newMembrosList = membrosList.cloneNode(false);
+  while (membrosList.firstChild) {
+    newMembrosList.appendChild(membrosList.firstChild);
+  }
+  membrosList.parentNode.replaceChild(newMembrosList, membrosList);
 
-  // Monitorar cliques nos botões do CadÚnico
-  membrosList.addEventListener('click', function(event) {
-    if (event.target.classList.contains('cadunico-btn') ||
-        event.target.closest('.cadunico-btn')) {
-      setTimeout(calcularRendaTotal, 50); // Pequeno delay para garantir que o toggle já ocorreu
+  // Adicionar novo listener para input de renda
+  newMembrosList.addEventListener('input', function(event) {
+    if (event.target.name === 'familiar_renda[]') {
+      // Usar requestAnimationFrame para garantir que a UI foi atualizada
+      requestAnimationFrame(() => {
+        calcularRendaTotal();
+      });
     }
   });
 
@@ -542,7 +565,11 @@ function calcularRendaTotal() {
   const rendaTotalInput = document.getElementById('renda_total_familiar');
   const rendaTotalDisplay = document.getElementById('renda_total_display');
 
-  if (!membrosFamilia || !rendaTotalInput) return;
+  // Verificar se os elementos necessários existem antes de prosseguir
+  if (!membrosFamilia.length || !rendaTotalInput) {
+    console.log('Elementos para cálculo de renda não encontrados, ignorando atualização.');
+    return;
+  }
 
   let total = 0;
   let totalCadunico = 0;
@@ -582,10 +609,13 @@ function calcularRendaTotal() {
   if (rendaTotalDisplay) {
     rendaTotalDisplay.textContent = valorFormatado;
   }
-
   // Calcular renda per capita apenas com membros CadÚnico e atualizar termômetro
   calcularRendaPerCapita(totalCadunico, membrosCadunico);
-  atualizarTermometro();
+
+  // Verificar se os elementos necessários para o termômetro existem antes de atualizá-lo
+  if (document.getElementById('renda-indicator') && document.getElementById('renda-progress')) {
+    atualizarTermometro();
+  }
 }
 
 // Calcular renda per capita (total dividido pelo número de membros com CadÚnico)
@@ -661,7 +691,11 @@ function atualizarTermometro() {
   const progresso = document.getElementById('renda-progress');
   const salarioMinimoDisplay = document.getElementById('salario-minimo-display');
 
-  if (!rendaPerCapitaInput || !indicador || !progresso) return;
+  // Verificar se todos os elementos necessários existem antes de prosseguir
+  if (!rendaPerCapitaInput || !indicador || !progresso) {
+    console.log('Elementos do termômetro não encontrados na página atual, ignorando atualização.');
+    return;
+  }
 
   // Obter o salário mínimo atual usando o valor dinâmico da API
   let salarioMinimo = 1412.00; // valor padrão
@@ -698,33 +732,48 @@ function atualizarTermometro() {
 
   // Atualizar barra de progresso (máscara branca cobre o restante)
   progresso.style.width = (100 - porcentagem) + '%';
-
   // Atualizar posição do indicador
-  indicador.style.left = porcentagem + '%';
+  indicador.style.left = porcentagem + '%';// Verificar se o indicador existe antes de prosseguir
+  if (!indicador) {
+    console.log('Elemento indicador não encontrado na página atual.');
+    return;
+  }
 
-  // Atualizar texto do indicador
-  const indicadorTexto = indicador.querySelector('span');
-  if (indicadorTexto) {
-    if (FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function') {
-      indicadorTexto.textContent = FIAP.utils.formatMoney(rendaPerCapita);
-    } else {
-      indicadorTexto.textContent = formatarMoeda(rendaPerCapita);
-    }
+  // Verificar se os elementos span e div existem, e criá-los se não existirem
+  let spanElement = indicador.querySelector('span');
+  let divElement = indicador.querySelector('div');
+
+  // Criar os elementos se não existirem
+  if (!divElement) {
+    divElement = document.createElement('div');
+    indicador.appendChild(divElement);
+  }
+
+  if (!spanElement) {
+    spanElement = document.createElement('span');
+    indicador.appendChild(spanElement);
+  }
+
+  // Atualizar o texto do span com o valor formatado da renda
+  if (FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function') {
+    spanElement.textContent = FIAP.utils.formatMoney(rendaPerCapita);
+  } else {
+    spanElement.textContent = formatarMoeda(rendaPerCapita);
   }
 
   // Adicionar classes baseadas na faixa de renda
   if (porcentagem <= 25) {
     // Extrema pobreza
-    indicador.querySelector('span').className = 'text-xs font-medium bg-red-100 text-red-800 px-2 py-0.5 rounded whitespace-nowrap';
-    indicador.querySelector('div').className = 'w-3 h-3 bg-red-600 rounded-full mx-auto mb-1';
+    spanElement.className = 'text-xs font-medium bg-red-100 text-red-800 px-2 py-0.5 rounded whitespace-nowrap';
+    divElement.className = 'w-3 h-3 bg-red-600 rounded-full mx-auto mb-1';
   } else if (porcentagem <= 50) {
     // Vulnerabilidade
-    indicador.querySelector('span').className = 'text-xs font-medium bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded whitespace-nowrap';
-    indicador.querySelector('div').className = 'w-3 h-3 bg-yellow-600 rounded-full mx-auto mb-1';
+    spanElement.className = 'text-xs font-medium bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded whitespace-nowrap';
+    divElement.className = 'w-3 h-3 bg-yellow-600 rounded-full mx-auto mb-1';
   } else {
     // Acima do mínimo
-    indicador.querySelector('span').className = 'text-xs font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded whitespace-nowrap';
-    indicador.querySelector('div').className = 'w-3 h-3 bg-green-600 rounded-full mx-auto mb-1';
+    spanElement.className = 'text-xs font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded whitespace-nowrap';
+    divElement.className = 'w-3 h-3 bg-green-600 rounded-full mx-auto mb-1';
   }
 }
 
