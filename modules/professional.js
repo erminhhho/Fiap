@@ -32,16 +32,16 @@ function setupEvents() {
     destacarCamposPreenchidos();
   }
 
-  // Abordagem simples para o botão de adicionar atividade
+  // Corrigido: Abordagem para o botão de adicionar atividade
   document.querySelectorAll('.add-atividade-btn').forEach(btn => {
     // Remover eventos existentes
-    btn.replaceWith(btn.cloneNode(true));
+    const newBtn = btn.cloneNode(true);
 
-    // Selecionar o novo botão e adicionar evento
-    const newBtn = document.querySelector('.add-atividade-btn');
-    if (newBtn) {
-      newBtn.addEventListener('click', addAtividade);
-    }
+    // Substituir o botão original pelo clone
+    btn.parentNode.replaceChild(newBtn, btn);
+
+    // Adicionar evento ao novo botão
+    newBtn.addEventListener('click', addAtividade);
   });
 
   // Configurar tags da primeira linha
@@ -152,12 +152,17 @@ function restoreOriginalIcon(icon, tag) {
 
 // Função para adicionar uma nova atividade
 function addAtividade() {
+  // Evitar múltiplos cliques
+  if (window._atividadeAddLock) return;
+  window._atividadeAddLock = true;
+
   // Abordagem simplificada que funcionará com garantia
   const template = document.getElementById('atividadeTemplate');
   const atividadesList = document.getElementById('atividadesList');
 
   if (!template || !atividadesList) {
     console.error("Template ou lista de atividades não encontrado");
+    window._atividadeAddLock = false;
     return;
   }
 
@@ -180,6 +185,16 @@ function addAtividade() {
   if (typeof destacarCamposPreenchidos === 'function') {
     destacarCamposPreenchidos();
   }
+
+  // Reconfigurar os botões de adicionar após adicionar uma nova atividade
+  setTimeout(() => {
+    document.querySelectorAll('.add-atividade-btn').forEach(btn => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      newBtn.addEventListener('click', addAtividade);
+    });
+    window._atividadeAddLock = false;
+  }, 100);
 }
 
 // Exportar funções para uso global
