@@ -532,3 +532,83 @@ function maskCEP(input) {
 window.consultarCEP = consultarCEP;
 window.buscarCidades = buscarCidades;
 window.maskCEP = maskCEP;
+
+/**
+ * Módulo de endereço e CEP
+ */
+
+class Address {
+  constructor() {
+    this.setupCEPListeners();
+  }
+
+  setupCEPListeners() {
+    const cepInputs = document.querySelectorAll('input[data-cep]');
+    cepInputs.forEach(input => {
+      input.addEventListener('blur', () => this.handleCEPInput(input));
+    });
+  }
+
+  async handleCEPInput(input) {
+    const cep = input.value.replace(/\D/g, '');
+
+    if (cep.length !== 8) {
+      this.showError(input, 'CEP inválido');
+      return;
+    }
+
+    try {
+      // Usar o sistema de cache
+      const address = await window.cache.getCEP(cep);
+      this.fillAddressFields(address);
+      this.showSuccess(input, 'CEP encontrado');
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error);
+      this.showError(input, 'CEP não encontrado');
+    }
+  }
+
+  fillAddressFields(address) {
+    const fields = {
+      'logradouro': address.logradouro,
+      'bairro': address.bairro,
+      'cidade': address.localidade,
+      'uf': address.uf
+    };
+
+    Object.entries(fields).forEach(([fieldName, value]) => {
+      const field = document.getElementById(fieldName);
+      if (field) {
+        field.value = value;
+        field.classList.add('field-filled');
+      }
+    });
+  }
+
+  showError(input, message) {
+    input.classList.add('border-red-500');
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'text-red-500 text-sm mt-1';
+    errorDiv.textContent = message;
+
+    const existingError = input.parentNode.querySelector('.text-red-500');
+    if (existingError) {
+      existingError.remove();
+    }
+
+    input.parentNode.appendChild(errorDiv);
+  }
+
+  showSuccess(input, message) {
+    input.classList.remove('border-red-500');
+    input.classList.add('border-green-500');
+
+    const existingError = input.parentNode.querySelector('.text-red-500');
+    if (existingError) {
+      existingError.remove();
+    }
+  }
+}
+
+// Inicializar o módulo de endereço
+const address = new Address();

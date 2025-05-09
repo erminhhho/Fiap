@@ -698,7 +698,7 @@ function atualizarTermometro() {
   }
 
   // Obter o salário mínimo atual usando o valor dinâmico da API
-  let salarioMinimo = 1412.00; // valor padrão
+  let salarioMinimo = CONFIG.financial.minimumWage; // Usar valor do CONFIG
 
   if (FIAP && FIAP.utils && typeof FIAP.utils.getSalarioMinimo === 'function') {
     salarioMinimo = FIAP.utils.getSalarioMinimo();

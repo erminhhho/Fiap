@@ -155,24 +155,59 @@ class CID {
     }
 
     /**
+     * Busca um CID pelo código
+     * @param {string} code - Código do CID
+     * @returns {Promise<Object>} - Dados do CID
+     */
+    async getCID(code) {
+      try {
+        // Usar o sistema de cache
+        return await window.cache.getCID(code);
+      } catch (error) {
+        console.error('Erro ao buscar CID:', error);
+        // Fallback para busca local
+        return this.database.find(cid => cid.code === code);
+      }
+    }
+
+    /**
+     * Busca CIDs por descrição
+     * @param {string} query - Termo de busca
+     * @returns {Promise<Array>} - Lista de CIDs encontrados
+     */
+    async searchCIDs(query) {
+      try {
+        // Se o cache estiver válido, buscar nele
+        if (window.cache.isCIDCacheValid()) {
+          const results = Array.from(window.cache.cidCache.values())
+            .filter(cid =>
+              cid.description.toLowerCase().includes(query.toLowerCase())
+            );
+          return results;
+        }
+
+        // Se não, atualizar cache e buscar
+        await window.cache.updateCIDCache();
+        return this.searchCIDs(query);
+      } catch (error) {
+        console.error('Erro na busca de CIDs:', error);
+        // Fallback para busca local
+        return this.database.filter(cid =>
+          cid.description.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+    }
+
+    /**
      * Pré-carrega todos os CIDs da API
      */
     async preloadAllCIDs() {
       try {
-        const response = await fetch('https://cid10.cpp-ti.com.br/api');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.data && Array.isArray(data.data)) {
-            this.completeDatabase = data.data.map(item => ({
-              code: item.codigo,
-              description: item.nome
-            }));
-            this.apiDataLoaded = true;
-            console.log(`CID: Carregados ${this.completeDatabase.length} códigos da API`);
-          }
-        }
+        await window.cache.updateCIDCache();
+        this.apiDataLoaded = true;
       } catch (error) {
-        console.warn('CID: Erro ao carregar dados da API. Usando banco de dados local:', error);
+        console.error('Erro ao pré-carregar CIDs:', error);
+        this.apiDataLoaded = false;
       }
     }
 
