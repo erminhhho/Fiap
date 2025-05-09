@@ -40,17 +40,8 @@ function setupEvents() {
   // Destacar campos preenchidos
   if (typeof destacarCamposPreenchidos === 'function') {
     destacarCamposPreenchidos();
-  }
-  // Configurar botões de adicionar/remover membros da família
-  const addMemberBtn = document.getElementById('adicionar-membro-btn');
-  if (addMemberBtn) {
-    // Aplicar estilo centralizado ao botão de adicionar
-    if (window.tw && typeof window.tw.applyTo === 'function') {
-      window.tw.applyTo(addMemberBtn, 'button.add');
-    }
-
-    addMemberBtn.addEventListener('click', addFamilyMember);
-  }
+  }  // Configurar botões de adicionar/remover membros da família
+  // Nota: O botão de adicionar agora é inserido diretamente ao lado do assistido com onclick em linha
 
   const removeLastMemberBtn = document.getElementById('remove-last-family-member-btn');
   if (removeLastMemberBtn) {
@@ -182,9 +173,7 @@ function inicializarAssistido() {
           <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
             Renda
           </label>
-        </div>
-
-        <!-- CadÚnico - 2 colunas (editável) -->
+        </div>        <!-- CadÚnico - 2 colunas (editável) -->
         <div class="relative md:col-span-2 flex items-center justify-center">
           <input type="hidden" name="familiar_cadunico[]" value="Não">
           <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
@@ -192,17 +181,17 @@ function inicializarAssistido() {
           </button>
         </div>
 
-        <!-- Coluna para botão de adicionar (não tem botão remover) -->
+        <!-- Botão de adicionar membro ao lado do assistido -->
         <div class="relative md:col-span-1 flex items-center justify-center">
-          &nbsp;
+          <button type="button" class="add-family-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar membro" onclick="addFamilyMember()">
+            <i class="fas fa-plus"></i>
+          </button>
         </div>
       </div>
     </div>
   `;
-
   // Inserir HTML diretamente
   container.innerHTML = assistidoHtml;
-
   // Preencher dados do assistido
   preencherDadosAssistido();
 }

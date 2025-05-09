@@ -1,16 +1,12 @@
 <form id="social-form" autocomplete="off">
   <!-- Card do Perfil Social -->
   <div class="bg-white rounded-2xl shadow p-8 mb-8">
-    <div class="mb-8">
-      <!-- Título alinhado com a mesma estrutura da página pessoal -->
+    <div class="mb-8">      <!-- Título alinhado com a mesma estrutura da página pessoal -->
       <div class="flex items-center mb-4">
         <div class="flex items-center gap-2 flex-grow">
           <i class="fas fa-users text-blue-500 text-2xl"></i>
           <h2 class="text-lg font-semibold text-blue-600">Composição Familiar</h2>
         </div>
-        <button type="button" id="adicionar-membro-btn" class="add-familiar-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar membro">
-          <i class="fas fa-plus"></i>
-        </button>
       </div>
 
       <!-- Container para os membros da família -->
@@ -84,11 +80,11 @@
               <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
                 CadÚnico
               </button>
-            </div>
-
-            <!-- Espaço vazio no lugar do botão de adicionar -->
+            </div>            <!-- Botão de adicionar membro ao lado do assistido -->
             <div class="relative md:col-span-1 flex items-center justify-center">
-              &nbsp;
+              <button type="button" class="add-family-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar membro" onclick="addFamilyMember()">
+                <i class="fas fa-plus"></i>
+              </button>
             </div>
           </div>
         </div>
