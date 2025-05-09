@@ -10,6 +10,9 @@ window.initModule = null;
 
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
+  // Remover a proteção que estava bloqueando a inicialização
+  window._incapacityInitialized = false;
+
   setupEvents();
 
   // Inicializar o sistema de CID para os campos existentes
@@ -30,22 +33,19 @@ function setupEvents() {
   // Botão para adicionar doença/CID
   const addDoencaBtn = document.getElementById('addDoenca');
   if (addDoencaBtn) {
-    // Aplicar estilo centralizado ao botão de adicionar
-    if (window.tw && typeof window.tw.applyTo === 'function') {
-      window.tw.applyTo(addDoencaBtn, 'button.add');
-    }
-
     // Remover qualquer evento existente para evitar duplicação
     const newBtn = addDoencaBtn.cloneNode(true);
     addDoencaBtn.parentNode.replaceChild(newBtn, addDoencaBtn);
 
-    // Aplicar estilo centralizado ao novo botão
+    // Aplicar estilo centralizado ao botão de adicionar
     if (window.tw && typeof window.tw.applyTo === 'function') {
       window.tw.applyTo(newBtn, 'button.add');
     }
 
-    // Adicionar o evento ao novo botão
-    newBtn.addEventListener('click', addDoencaField);
+    // Adicionar o evento ao novo botão - versão simplificada
+    newBtn.addEventListener('click', function(e) {
+      addDoencaField();
+    });
   }
 
   // Configurar campos "outro" nos selects
@@ -105,53 +105,55 @@ function addDoencaField() {
   newDoencaDiv.className = 'mb-4 border-b border-gray-200 pb-4';
   newDoencaDiv.innerHTML = `
     <!-- Layout otimizado: todos os campos na mesma linha -->
-    <div class="flex items-center">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 flex-grow">
-        <!-- Documento (agora é o primeiro) -->
-        <div class="relative md:col-span-2">
-          <select class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200" id="tipoDocumento${nextIndex}" name="tipoDocumentos[]" data-index="${nextIndex}">
-            <option value="" selected disabled>Selecione</option>
-            <option value="exame">Exame</option>
-            <option value="atestado">Atestado</option>
-            <option value="laudo">Laudo</option>
-            <option value="pericia">Perícia</option>
-            <option value="receita">Receita</option>
-            <option value="outro">Outro</option>
-          </select>
-          <label for="tipoDocumento${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
-            Documento
-          </label>
-        </div>
-
-        <!-- CID (segundo campo) -->
-        <div class="relative md:col-span-4">
-          <input type="text" class="cid-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="cid${nextIndex}" placeholder="CID" name="cids[]" data-index="${nextIndex}" autocomplete="off">
-          <label for="cid${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-            CID
-          </label>
-          <div class="cid-dropdown hidden absolute z-10 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown${nextIndex}"></div>
-        </div>
-
-        <!-- Doença (terceiro campo) -->
-        <div class="relative md:col-span-4">
-          <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="doenca${nextIndex}" placeholder="Doença ou condição" name="doencas[]" data-index="${nextIndex}" autocomplete="off">
-          <label for="doenca${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-            Doença
-          </label>
-          <div class="doenca-dropdown hidden absolute z-10 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="doencaDropdown${nextIndex}"></div>
-        </div>
-
-        <!-- Data (último campo) -->
-        <div class="relative md:col-span-2">
-          <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento${nextIndex}" name="dataDocumentos[]" data-index="${nextIndex}" placeholder="dd/mm/aa" oninput="maskDate(this)">
-          <label for="dataDocumento${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-            Data
-          </label>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
+      <!-- Documento (agora é o primeiro) -->
+      <div class="relative md:col-span-4">
+        <select class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200" id="tipoDocumento${nextIndex}" name="tipoDocumentos[]" data-index="${nextIndex}">
+          <option value="" selected disabled>Selecione</option>
+          <option value="exame">Exame</option>
+          <option value="atestado">Atestado</option>
+          <option value="laudo">Laudo</option>
+          <option value="pericia">Perícia</option>
+          <option value="receita">Receita</option>
+          <option value="outro">Outro</option>
+        </select>
+        <label for="tipoDocumento${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+          Documento
+        </label>
       </div>
-      <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 ml-2 flex items-center justify-center w-8 h-8 self-center remove-doenca" title="Remover CID/Doença">
-        <i class="fas fa-minus"></i>
-      </button>
+
+      <!-- CID (segundo campo) -->
+      <div class="relative md:col-span-7">
+        <input type="text" class="cid-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="cid${nextIndex}" placeholder="CID" name="cids[]" data-index="${nextIndex}" autocomplete="off">
+        <label for="cid${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+          CID
+        </label>
+        <div class="cid-dropdown hidden absolute z-10 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown${nextIndex}"></div>
+      </div>
+
+      <!-- Doença (terceiro campo) -->
+      <div class="relative md:col-span-8">
+        <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="doenca${nextIndex}" placeholder="Doença ou condição" name="doencas[]" data-index="${nextIndex}" autocomplete="off">
+        <label for="doenca${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+          Doença
+        </label>
+        <div class="doenca-dropdown hidden absolute z-10 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="doencaDropdown${nextIndex}"></div>
+      </div>
+
+      <!-- Data (último campo) -->
+      <div class="relative md:col-span-4">
+        <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento${nextIndex}" name="dataDocumentos[]" data-index="${nextIndex}" placeholder="dd/mm/aa" oninput="maskDate(this)">
+        <label for="dataDocumento${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+          Data
+        </label>
+      </div>
+
+      <!-- Botão de remover como uma coluna do grid -->
+      <div class="md:col-span-1 flex items-center justify-center content-center text-center align-middle p-0">
+        <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 mx-auto remove-doenca" title="Remover CID/Doença">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
     </div>
   `;
 

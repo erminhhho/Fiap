@@ -7,7 +7,22 @@ window.initModule = null;
 
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
+  // Verificar se o módulo já foi inicializado nesta sessão
+  if (window._professionalInitialized) {
+    console.log('Módulo de atividades profissionais já inicializado.');
+    return;
+  }
+
+  // Marcar como inicializado
+  window._professionalInitialized = true;
+
+  // Configurar eventos
   setupEvents();
+
+  // Limpar flag quando a página mudar
+  document.addEventListener('stepChanged', function() {
+    window._professionalInitialized = false;
+  }, { once: true });
 };
 
 // Função para configurar eventos do módulo
@@ -20,7 +35,12 @@ function setupEvents() {
   // Configurar botão de adicionar na primeira linha
   const firstAddBtn = document.querySelector('.add-atividade-btn');
   if (firstAddBtn) {
-    firstAddBtn.addEventListener('click', function() {
+    // Remover qualquer evento existente para evitar duplicação
+    const newBtn = firstAddBtn.cloneNode(true);
+    firstAddBtn.parentNode.replaceChild(newBtn, firstAddBtn);
+
+    // Adicionar o evento ao novo botão
+    newBtn.addEventListener('click', function() {
       addAtividade();
     });
   }
@@ -99,10 +119,17 @@ function restoreOriginalIcon(icon, tag) {
 
 // Função para adicionar uma nova atividade
 function addAtividade() {
+  // Prevenir múltiplas execuções em sequência
+  if (window._atividadeAddLock) return;
+  window._atividadeAddLock = true;
+
   const template = document.getElementById('atividadeTemplate');
   const atividadesList = document.getElementById('atividadesList');
 
-  if (!template || !atividadesList) return;
+  if (!template || !atividadesList) {
+    window._atividadeAddLock = false;
+    return;
+  }
 
   // Clonar o template
   const clone = template.content.cloneNode(true);
@@ -134,6 +161,11 @@ function addAtividade() {
   if (typeof destacarCamposPreenchidos === 'function') {
     destacarCamposPreenchidos();
   }
+
+  // Liberar o lock após um breve período
+  setTimeout(() => {
+    window._atividadeAddLock = false;
+  }, 300);
 }
 
 // Exportar funções para uso global
