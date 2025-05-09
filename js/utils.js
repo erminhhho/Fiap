@@ -389,16 +389,15 @@ FIAP.masks = {
     // Remove tudo que não for número
     let value = input.value.replace(/\D/g, '');    // Converter para número e formatar
     if (value) {
-      // Converte para reais (sem centavos)
-      value = parseInt(value) / 100;
-      value = Math.round(value); // Arredonda para inteiro
+      // Converte para reais (com centavos)
+      value = parseFloat(value) / 100;
 
-      // Formata para moeda brasileira sem casas decimais
+      // Formata para moeda brasileira com casas decimais
       value = value.toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
       });
     } else {
       value = '';
@@ -1300,12 +1299,12 @@ window.maskMoney = FIAP.masks.money;
 // Função auxiliar para formatar moeda sem precisar de input
 FIAP.utils = FIAP.utils || {};
 FIAP.utils.formatMoney = function(value) {
-  if (value === undefined || value === null) return 'R$ 0';
+  if (value === undefined || value === null) return 'R$ 0,00';
   return value.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
 };
 

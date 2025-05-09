@@ -199,15 +199,13 @@ function inicializarAssistido() {
           <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
             Estado Civil
           </label>
-        </div>
-
-        <!-- Renda Mensal - 2 colunas (editável) -->
+        </div>        <!-- Renda Mensal - 2 colunas (editável) -->
         <div class="relative md:col-span-2">
-          <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Renda" />
+          <input type="text" name="familiar_renda[]" id="assistido_renda" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0,00" oninput="if(FIAP.masks && typeof FIAP.masks.money === 'function') FIAP.masks.money(this)" />
           <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
             Renda
           </label>
-        </div>        <!-- CadÚnico - 2 colunas (editável) -->
+        </div><!-- CadÚnico - 2 colunas (editável) -->
         <div class="relative md:col-span-2 flex items-center justify-center">
           <input type="hidden" name="familiar_cadunico[]" value="Não">
           <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
@@ -549,24 +547,20 @@ function calcularRendaTotal() {
   let total = 0;
   let totalCadunico = 0;
   let membrosCadunico = 0;
-
   membrosFamilia.forEach(membro => {
     const rendaInput = membro.querySelector('input[name="familiar_renda[]"]');
     const cadunicoBtn = membro.querySelector('.cadunico-btn');
     const possuiCadunico = cadunicoBtn && cadunicoBtn.classList.contains('active');
 
-    if (rendaInput) {
-      // Limpar valor para processamento (remover R$, pontos e trocar vírgula por ponto)
+    if (rendaInput) {    // Limpar valor para processamento (remover R$, pontos e trocar vírgula por ponto)
       const valorLimpo = rendaInput.value
         .replace('R$', '')
         .replace(/\./g, '')
         .replace(',', '.')
-        .trim();
-
-      if (valorLimpo && !isNaN(valorLimpo)) {
+        .trim();      if (valorLimpo && !isNaN(valorLimpo)) {
+        // Processar o valor corretamente
         const valorNumerico = parseFloat(valorLimpo);
         total += valorNumerico;
-
         // Somar apenas membros com CadÚnico
         if (possuiCadunico) {
           totalCadunico += valorNumerico;
@@ -685,10 +679,8 @@ function atualizarTermometro() {
 
     salarioMinimoDisplay.textContent = salarioFormatado;
   }
-
   // Obter valor de renda per capita
   let rendaPerCapita = rendaPerCapitaInput.value;
-
   // Verificar se já é um número ou se precisa conversão
   if (typeof rendaPerCapita === 'string') {
     rendaPerCapita = rendaPerCapita
@@ -699,6 +691,8 @@ function atualizarTermometro() {
   }
 
   rendaPerCapita = parseFloat(rendaPerCapita) || 0;
+
+  // Não aplicar divisão adicional, usar o valor como está
 
   // Calcular porcentagem em relação ao salário mínimo (limitado a 100%)
   let porcentagem = Math.min((rendaPerCapita / salarioMinimo) * 100, 100);
