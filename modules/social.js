@@ -380,6 +380,9 @@ function toggleCadUnico(button) {
   if (hiddenInput && hiddenInput.type === 'hidden') {
     hiddenInput.value = button.classList.contains('active') ? 'Sim' : 'Não';
   }
+
+  // Recalcular a renda total e per capita quando o status de CadÚnico mudar
+  calcularRendaTotal();
 }
 
 // Corrigir o problema de duplicação ao adicionar linhas
@@ -500,11 +503,18 @@ function setupRendaFamiliar() {
   const rendaPerCapitaInput = document.getElementById('renda_per_capita');
 
   if (!membrosList || !rendaTotalInput || !rendaPerCapitaInput) return;
-
   // Monitorar mudanças de renda nos membros da família
   membrosList.addEventListener('input', function(event) {
     if (event.target.name === 'familiar_renda[]') {
       calcularRendaTotal();
+    }
+  });
+
+  // Monitorar cliques nos botões do CadÚnico
+  membrosList.addEventListener('click', function(event) {
+    if (event.target.classList.contains('cadunico-btn') ||
+        event.target.closest('.cadunico-btn')) {
+      setTimeout(calcularRendaTotal, 50); // Pequeno delay para garantir que o toggle já ocorreu
     }
   });
 
@@ -520,66 +530,124 @@ function setupRendaFamiliar() {
 
 // Calcular renda total da família somando valores dos campos
 function calcularRendaTotal() {
-  const rendaInputs = document.querySelectorAll('input[name="familiar_renda[]"]');
+  const membrosFamilia = document.querySelectorAll('.membro-familia');
   const rendaTotalInput = document.getElementById('renda_total_familiar');
+  const rendaTotalDisplay = document.getElementById('renda_total_display');
 
-  if (!rendaInputs || !rendaTotalInput) return;
+  if (!membrosFamilia || !rendaTotalInput) return;
 
   let total = 0;
-  rendaInputs.forEach(input => {
-    // Limpar valor para processamento (remover R$, pontos e trocar vírgula por ponto)
-    const valorLimpo = input.value
-      .replace('R$', '')
-      .replace(/\./g, '')
-      .replace(',', '.')
-      .trim();
+  let totalCadunico = 0;
+  let membrosCadunico = 0;
 
-    if (valorLimpo && !isNaN(valorLimpo)) {
-      total += parseFloat(valorLimpo);
+  membrosFamilia.forEach(membro => {
+    const rendaInput = membro.querySelector('input[name="familiar_renda[]"]');
+    const cadunicoBtn = membro.querySelector('.cadunico-btn');
+    const possuiCadunico = cadunicoBtn && cadunicoBtn.classList.contains('active');
+
+    if (rendaInput) {
+      // Limpar valor para processamento (remover R$, pontos e trocar vírgula por ponto)
+      const valorLimpo = rendaInput.value
+        .replace('R$', '')
+        .replace(/\./g, '')
+        .replace(',', '.')
+        .trim();
+
+      if (valorLimpo && !isNaN(valorLimpo)) {
+        const valorNumerico = parseFloat(valorLimpo);
+        total += valorNumerico;
+
+        // Somar apenas membros com CadÚnico
+        if (possuiCadunico) {
+          totalCadunico += valorNumerico;
+          membrosCadunico++;
+        }
+      }
     }
   });
 
-  // Formatar para moeda brasileira usando a função do namespace FIAP
-  if (FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function') {
-    rendaTotalInput.value = FIAP.utils.formatMoney(total);
-  } else {
-    rendaTotalInput.value = formatarMoeda(total);
+  // Formatar e atualizar valores
+  const valorFormatado = FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function'
+    ? FIAP.utils.formatMoney(total)
+    : formatarMoeda(total);
+
+  // Atualizar valores nos campos
+  rendaTotalInput.value = total.toFixed(2);
+
+  // Atualizar display de renda total
+  if (rendaTotalDisplay) {
+    rendaTotalDisplay.textContent = valorFormatado;
   }
 
-  // Calcular renda per capita e atualizar termômetro
-  calcularRendaPerCapita();
+  // Calcular renda per capita apenas com membros CadÚnico e atualizar termômetro
+  calcularRendaPerCapita(totalCadunico, membrosCadunico);
   atualizarTermometro();
 }
 
-// Calcular renda per capita (total dividido pelo número de membros)
-function calcularRendaPerCapita() {
+// Calcular renda per capita (total dividido pelo número de membros com CadÚnico)
+function calcularRendaPerCapita(totalCadunico, membrosCadunico) {
   const rendaTotalInput = document.getElementById('renda_total_familiar');
   const rendaPerCapitaInput = document.getElementById('renda_per_capita');
+  const rendaPerCapitaDisplay = document.getElementById('renda_per_capita_display');
   const membrosList = document.getElementById('membros-familia-list');
 
-  if (!rendaTotalInput || !rendaPerCapitaInput || !membrosList) return;
+  if (!rendaPerCapitaInput || !membrosList) return;
 
-  // Obter total de pessoas na família
-  const totalMembros = membrosList.querySelectorAll('.membro-familia').length;
-  if (totalMembros === 0) return;
+  // Se não foram fornecidos os parâmetros, calcular com base nos botões CadÚnico
+  if (totalCadunico === undefined || membrosCadunico === undefined) {
+    totalCadunico = 0;
+    membrosCadunico = 0;
 
-  // Obter renda total e converter para número
-  let rendaTotal = rendaTotalInput.value
-    .replace('R$', '')
-    .replace(/\./g, '')
-    .replace(',', '.')
-    .trim();
+    const membrosFamilia = document.querySelectorAll('.membro-familia');
+    membrosFamilia.forEach(membro => {
+      const rendaInput = membro.querySelector('input[name="familiar_renda[]"]');
+      const cadunicoBtn = membro.querySelector('.cadunico-btn');
+      const possuiCadunico = cadunicoBtn && cadunicoBtn.classList.contains('active');
 
-  rendaTotal = parseFloat(rendaTotal) || 0;
+      if (rendaInput && possuiCadunico) {
+        const valorLimpo = rendaInput.value
+          .replace('R$', '')
+          .replace(/\./g, '')
+          .replace(',', '.')
+          .trim();
+
+        if (valorLimpo && !isNaN(valorLimpo)) {
+          totalCadunico += parseFloat(valorLimpo);
+          membrosCadunico++;
+        }
+      }
+    });
+  }
+
+  // Se não houver membros com CadÚnico, usar o total geral
+  if (membrosCadunico === 0) {
+    const totalMembros = membrosList.querySelectorAll('.membro-familia').length;
+    if (totalMembros === 0) return;
+
+    // Obter renda total e converter para número
+    let rendaTotal = rendaTotalInput.value || 0;
+    if (typeof rendaTotal === 'string') {
+      rendaTotal = parseFloat(rendaTotal) || 0;
+    }
+
+    membrosCadunico = totalMembros;
+    totalCadunico = rendaTotal;
+  }
 
   // Calcular per capita
-  const rendaPerCapita = rendaTotal / totalMembros;
+  const rendaPerCapita = totalCadunico / membrosCadunico;
 
-  // Atualizar campo usando a função do namespace FIAP
-  if (FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function') {
-    rendaPerCapitaInput.value = FIAP.utils.formatMoney(rendaPerCapita);
-  } else {
-    rendaPerCapitaInput.value = formatarMoeda(rendaPerCapita);
+  // Formatar o valor
+  const valorFormatado = FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function'
+    ? FIAP.utils.formatMoney(rendaPerCapita)
+    : formatarMoeda(rendaPerCapita);
+
+  // Atualizar campo hidden com o valor numérico
+  rendaPerCapitaInput.value = rendaPerCapita.toFixed(2);
+
+  // Atualizar display com o valor formatado
+  if (rendaPerCapitaDisplay) {
+    rendaPerCapitaDisplay.textContent = valorFormatado;
   }
 }
 
@@ -588,18 +656,37 @@ function atualizarTermometro() {
   const rendaPerCapitaInput = document.getElementById('renda_per_capita');
   const indicador = document.getElementById('renda-indicator');
   const progresso = document.getElementById('renda-progress');
+  const salarioMinimoDisplay = document.getElementById('salario-minimo-display');
 
   if (!rendaPerCapitaInput || !indicador || !progresso) return;
 
-  // Valor do salário mínimo atual
-  const salarioMinimo = 1412.00;
+  // Obter o salário mínimo atual usando o valor dinâmico da API
+  let salarioMinimo = 1412.00; // valor padrão
+
+  if (FIAP && FIAP.utils && typeof FIAP.utils.getSalarioMinimo === 'function') {
+    salarioMinimo = FIAP.utils.getSalarioMinimo();
+  }
+
+  // Atualizar o display do salário mínimo na interface
+  if (salarioMinimoDisplay) {
+    const salarioFormatado = FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function'
+      ? FIAP.utils.formatMoney(salarioMinimo)
+      : formatarMoeda(salarioMinimo);
+
+    salarioMinimoDisplay.textContent = salarioFormatado;
+  }
 
   // Obter valor de renda per capita
-  let rendaPerCapita = rendaPerCapitaInput.value
-    .replace('R$', '')
-    .replace(/\./g, '')
-    .replace(',', '.')
-    .trim();
+  let rendaPerCapita = rendaPerCapitaInput.value;
+
+  // Verificar se já é um número ou se precisa conversão
+  if (typeof rendaPerCapita === 'string') {
+    rendaPerCapita = rendaPerCapita
+      .replace('R$', '')
+      .replace(/\./g, '')
+      .replace(',', '.')
+      .trim();
+  }
 
   rendaPerCapita = parseFloat(rendaPerCapita) || 0;
 
@@ -611,7 +698,8 @@ function atualizarTermometro() {
 
   // Atualizar posição do indicador
   indicador.style.left = porcentagem + '%';
-    // Atualizar texto do indicador
+
+  // Atualizar texto do indicador
   const indicadorTexto = indicador.querySelector('span');
   if (indicadorTexto) {
     if (FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function') {

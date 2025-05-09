@@ -168,54 +168,34 @@
             </div>
           </div>
         </div>
-      </template>
-
-      <!-- Observações sobre a situação social -->
-      <div class="relative mt-6">
-        <textarea id="obs_sociais" name="obs_sociais" rows="3"
-          class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
-          placeholder="Observações relevantes sobre a situação socioeconômica do assistido e sua família..."></textarea>
-        <label for="obs_sociais"
-          class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
-          Observações Sociais
-        </label>
-      </div>
-    </div>
+      </template>    </div>
 
     <!-- Seção de Renda Familiar -->
     <div class="mt-8 border-t pt-6 border-gray-200">
-      <div class="flex items-center mb-4">
-        <div class="flex items-center gap-2 flex-grow">
+      <div class="flex items-center mb-4 justify-between">
+        <div class="flex items-center gap-2">
           <i class="fas fa-money-bill-wave text-blue-500 text-2xl"></i>
-          <h2 class="text-lg font-semibold text-blue-600">Análise de Renda Familiar</h2>
+          <h2 class="text-lg font-semibold text-blue-600">Análise de Renda Familiar (CadÚnico)</h2>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-sm font-medium">
+            <span class="text-gray-600">Renda Total:</span>
+            <span id="renda_total_display" class="text-blue-700 ml-1">R$ 0,00</span>
+          </div>
+          <div class="text-sm font-medium">
+            <span class="text-gray-600">Renda Per Capita:</span>
+            <span id="renda_per_capita_display" class="text-blue-700 ml-1">R$ 0,00</span>
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <!-- Renda Total Familiar -->
-        <div class="relative">
-          <input type="text" id="renda_total_familiar" name="renda_total_familiar"
-            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="0,00" />
-          <label for="renda_total_familiar" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg">
-            Renda Total Familiar (R$)
-          </label>
-        </div>
-
-        <!-- Renda Per Capita -->
-        <div class="relative">
-          <input type="text" id="renda_per_capita" name="renda_per_capita"
-            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="0,00" readonly />
-          <label for="renda_per_capita" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg">
-            Renda Per Capita (R$)
-          </label>
-        </div>
-      </div>
-
-      <!-- Termômetro de Renda Per Capita em Relação ao Salário Mínimo -->
+      <!-- Campos ocultos para armazenar valores -->
+      <input type="hidden" id="renda_total_familiar" name="renda_total_familiar" value="0" />
+      <input type="hidden" id="renda_per_capita" name="renda_per_capita" value="0" />      <!-- Termômetro de Renda Per Capita em Relação ao Salário Mínimo -->
       <div class="bg-gray-100 p-4 rounded-lg mt-4">
         <h3 class="text-gray-700 font-medium mb-2">Análise de Renda Per Capita</h3>
 
-        <div class="mb-1 text-sm text-gray-600">Relação com o Salário Mínimo (R$ 1.412,00):</div>
+        <div class="mb-1 text-sm text-gray-600">Relação com o Salário Mínimo (<span id="salario-minimo-display">R$ 1.412,00</span>):</div>
 
         <!-- Termômetro horizontal -->
         <div class="relative pt-4 pb-6">
@@ -269,11 +249,32 @@
           <div class="flex items-center">
             <div class="w-3 h-3 bg-green-500 mr-1 rounded-full"></div>
             <span>Acima do Mínimo</span>
+          </div>        </div>
+      </div>
+
+      <!-- Observações sobre a situação social -->
+      <div class="relative mt-6 pt-4 border-t border-gray-200">
+        <div class="flex items-center mb-4">
+          <div class="flex items-center gap-2 flex-grow">
+            <i class="fas fa-comment-alt text-blue-500 text-2xl"></i>
+            <h2 class="text-lg font-semibold text-blue-600">Observações Sociais</h2>
           </div>
+        </div>
+
+        <div class="relative">
+          <textarea id="obs_sociais" name="obs_sociais" rows="3"
+            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+            placeholder="Observações relevantes sobre a situação socioeconômica do assistido e sua família..."></textarea>
+          <label for="obs_sociais"
+            class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+            Observações
+          </label>
         </div>
       </div>
     </div>
-  </div>  <div class="flex justify-between mt-8">
+  </div>
+
+  <div class="flex justify-between mt-8">
     <button type="button" class="bg-gray-100 hover:bg-gray-200 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2" id="btn-back">
       <i class="fas fa-arrow-left"></i> Anterior
     </button>

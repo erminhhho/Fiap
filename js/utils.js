@@ -1310,6 +1310,29 @@ FIAP.utils.formatMoney = function(value) {
   });
 };
 
+/**
+ * Obtém o salário mínimo vigente
+ * Em um ambiente real, isso poderia chamar uma API externa
+ * @returns {number} Valor do salário mínimo vigente
+ */
+FIAP.utils.getSalarioMinimo = function() {
+  // Em produção, isso seria substituído por uma chamada à API
+  // Usando a data atual para simular uma API que retorna o salário mínimo vigente
+  const dataAtual = new Date();
+  const ano = dataAtual.getFullYear();
+
+  // Valores históricos e projetados para simulação
+  const salariosPorAno = {
+    2022: 1212.00,
+    2023: 1302.00,
+    2024: 1412.00,
+    2025: 1502.00, // Projeção fictícia
+    2026: 1590.00  // Projeção fictícia
+  };
+
+  return salariosPorAno[ano] || 1502.00; // Valor default para 2025
+};
+
 // Inicializar após o carregamento do DOM
 document.addEventListener('DOMContentLoaded', function() {
   // Verificar se existem campos de idade preenchidos e adicionar as tags etárias
