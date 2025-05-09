@@ -201,7 +201,7 @@ function inicializarAssistido() {
           </label>
         </div>        <!-- Renda Mensal - 2 colunas (editável) -->
         <div class="relative md:col-span-2">
-          <input type="text" name="familiar_renda[]" id="assistido_renda" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0,00" oninput="if(FIAP.masks && typeof FIAP.masks.money === 'function') FIAP.masks.money(this)" />
+          <input type="text" name="familiar_renda[]" id="assistido_renda" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(FIAP.masks && typeof FIAP.masks.money === 'function') FIAP.masks.money(this)" />
           <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
             Renda
           </label>
@@ -557,9 +557,9 @@ function calcularRendaTotal() {
         .replace('R$', '')
         .replace(/\./g, '')
         .replace(',', '.')
-        .trim();      if (valorLimpo && !isNaN(valorLimpo)) {
-        // Processar o valor corretamente
-        const valorNumerico = parseFloat(valorLimpo);
+        .trim();    if (valorLimpo && !isNaN(valorLimpo)) {
+        // Processar o valor como inteiro
+        const valorNumerico = Math.round(parseFloat(valorLimpo));
         total += valorNumerico;
         // Somar apenas membros com CadÚnico
         if (possuiCadunico) {
@@ -637,17 +637,16 @@ function calcularRendaPerCapita(totalCadunico, membrosCadunico) {
     membrosCadunico = totalMembros;
     totalCadunico = rendaTotal;
   }
-
-  // Calcular per capita
-  const rendaPerCapita = totalCadunico / membrosCadunico;
+  // Calcular per capita e arredondar para inteiro
+  const rendaPerCapita = Math.round(totalCadunico / membrosCadunico);
 
   // Formatar o valor
   const valorFormatado = FIAP && FIAP.utils && typeof FIAP.utils.formatMoney === 'function'
     ? FIAP.utils.formatMoney(rendaPerCapita)
     : formatarMoeda(rendaPerCapita);
 
-  // Atualizar campo hidden com o valor numérico
-  rendaPerCapitaInput.value = rendaPerCapita.toFixed(2);
+  // Atualizar campo hidden com o valor numérico arredondado
+  rendaPerCapitaInput.value = rendaPerCapita;
 
   // Atualizar display com o valor formatado
   if (rendaPerCapitaDisplay) {
@@ -731,10 +730,12 @@ function atualizarTermometro() {
 
 // Função para formatar valores em moeda brasileira (fallback caso FIAP.utils não esteja disponível)
 function formatarMoeda(valor) {
+  // Arredondar para valor inteiro
+  valor = Math.round(valor);
   return valor.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   });
 }
