@@ -1,85 +1,115 @@
 <form id="professional-form" autocomplete="off">
   <div class="bg-white rounded-2xl shadow p-8 mb-8">
-    <div class="mb-6">
-      <h2 class="text-lg font-semibold text-blue-600">Atividades Profissionais e Segurado Especial</h2>
+    <div class="flex items-center gap-2 mb-6">
+      <i class="fas fa-hands-helping text-blue-500 text-2xl"></i>
+      <h2 class="text-lg font-semibold text-blue-600">Atividades Profissionais</h2>
     </div>
+    <p class="text-gray-500 mb-6">Informações sobre suas atividades profissionais e períodos de contribuição.</p>
 
-    <!-- Tipo de Atividade -->
-    <div class="mb-6">
-      <div class="relative">
-        <select id="tipoAtividade" name="tipoAtividade" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
-          <option value="" selected disabled>Selecione...</option>
-          <option value="empregado">Empregado (CLT)</option>
-          <option value="autonomo">Autônomo</option>
-          <option value="empresario">Empresário</option>
-          <option value="rural">Trabalhador Rural</option>
-          <option value="segurado_especial">Segurado Especial</option>
-          <option value="outro">Outro...</option>
-        </select>
-        <label for="tipoAtividade" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
-          Tipo de Atividade
-        </label>
-      </div>
-    </div>
-
-    <!-- Campos específicos para Segurado Especial -->
-    <div id="seguradoEspecialFields" class="hidden mb-6">
-      <div class="bg-blue-50 p-4 rounded-lg mb-4">
-        <h3 class="text-blue-700 font-medium mb-2">Informações do Segurado Especial</h3>
-        <p class="text-sm text-blue-600 mb-4">Preencha as informações específicas para segurado especial.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Área do Imóvel -->
-          <div class="relative">
-            <input type="text" id="areaImovel" name="areaImovel" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Área do imóvel em hectares" />
-            <label for="areaImovel" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
-              Área do Imóvel (ha)
-            </label>
-          </div>
-
-          <!-- Tipo de Produção -->
-          <div class="relative">
-            <select id="tipoProducao" name="tipoProducao" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+    <!-- Lista de Atividades -->
+    <div id="atividadesList" class="space-y-4">
+      <!-- Primeira linha com botão de adicionar -->
+      <div class="atividade-item relative bg-white p-4 rounded-lg shadow mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <!-- Tipo de Atividade -->
+          <div class="relative md:col-span-4">
+            <select class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
               <option value="" selected disabled>Selecione...</option>
-              <option value="agricultura">Agricultura</option>
-              <option value="pecuaria">Pecuária</option>
-              <option value="extrativismo">Extrativismo</option>
-              <option value="pesca">Pesca Artesanal</option>
+              <option value="segurado_especial">Segurado Especial</option>
+              <option value="empregado">Empregado (CLT)</option>
+              <option value="autonomo">Autônomo</option>
+              <option value="empresario">Empresário</option>
+              <option value="pescador">Pescador Artesanal</option>
+              <option value="domestico">Trabalhador Doméstico</option>
+              <option value="informal">Trabalhador Informal</option>
               <option value="outro">Outro...</option>
             </select>
-            <label for="tipoProducao" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
-              Tipo de Produção
+            <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              Tipo de Atividade
             </label>
           </div>
+
+          <!-- Período -->
+          <div class="relative md:col-span-4">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano Início" min="1900" max="2100">
+                <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                  Ano Início
+                </label>
+              </div>
+              <div>
+                <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano Fim" min="1900" max="2100">
+                <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                  Ano Fim
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tags de Informação -->
+          <div class="relative md:col-span-4 flex flex-wrap gap-2 items-center">
+            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="contribuiu">
+              <i class="fas fa-check-circle mr-1"></i>Contribuiu
+            </button>
+            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="pagou_carnes">
+              <i class="fas fa-file-invoice-dollar mr-1"></i>Pagou Carnês
+            </button>
+            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="subsistencia">
+              <i class="fas fa-seedling mr-1"></i>Subsistência
+            </button>
+            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="guida">
+              <i class="fas fa-handshake mr-1"></i>Pagou Guia
+            </button>
+            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="sem_contribuicao">
+              <i class="fas fa-ban mr-1"></i>Sem Contribuição
+            </button>
+          </div>
+        </div>
+
+        <!-- Campos para Segurado Especial -->
+        <div class="segurado-especial-fields hidden mt-4">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div class="relative md:col-span-6">
+              <input type="text" class="area-imovel peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="0.00">
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Área do Imóvel (hectares)
+              </label>
+            </div>
+            <div class="relative md:col-span-6">
+              <select class="tipo-producao peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+                <option value="" selected disabled>Selecione...</option>
+                <option value="agricultura">Agricultura</option>
+                <option value="pecuaria">Pecuária</option>
+                <option value="extrativismo">Extrativismo</option>
+                <option value="pesca">Pesca Artesanal</option>
+              </select>
+              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+                Tipo de Produção
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão de adicionar à direita -->
+        <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+          <button type="button" class="add-atividade-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 shadow-sm transition-colors duration-200" title="Adicionar atividade">
+            <i class="fas fa-plus"></i>
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Campos para outras atividades -->
-    <div id="outrasAtividadesFields" class="hidden mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Profissão -->
-        <div class="relative">
-          <input type="text" id="profissao" name="profissao" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Sua profissão" />
-          <label for="profissao" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
-            Profissão
-          </label>
-        </div>
-
-        <!-- Empresa -->
-        <div class="relative">
-          <input type="text" id="empresa" name="empresa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome da empresa" />
-          <label for="empresa" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
-            Empresa
-          </label>
-        </div>
-      </div>
+  <!-- Observações -->
+  <div class="bg-white rounded-2xl shadow p-8 mb-8">
+    <div class="flex items-center gap-2 mb-6">
+      <i class="fas fa-clipboard-list text-blue-500 text-2xl"></i>
+      <h2 class="text-lg font-semibold text-blue-600">Observações</h2>
     </div>
-
-    <!-- Observações -->
-    <div class="relative mt-6">
-      <textarea id="observacoesAtividades" name="observacoesAtividades" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre as atividades profissionais..."></textarea>
-      <label for="observacoesAtividades" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none">
+    <div class="relative">
+      <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Adicione observações relevantes sobre suas atividades profissionais..."></textarea>
+      <label for="observacoes" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
         Observações
       </label>
     </div>
@@ -94,3 +124,96 @@
     </button>
   </div>
 </form>
+
+<!-- Template para nova atividade -->
+<template id="atividadeTemplate">
+  <div class="atividade-item relative bg-white p-4 rounded-lg shadow mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+      <!-- Tipo de Atividade -->
+      <div class="relative md:col-span-4">
+        <select class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+          <option value="" selected disabled>Selecione...</option>
+          <option value="segurado_especial">Segurado Especial</option>
+          <option value="empregado">Empregado (CLT)</option>
+          <option value="autonomo">Autônomo</option>
+          <option value="empresario">Empresário</option>
+          <option value="pescador">Pescador Artesanal</option>
+          <option value="domestico">Trabalhador Doméstico</option>
+          <option value="informal">Trabalhador Informal</option>
+          <option value="outro">Outro...</option>
+        </select>
+        <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+          Tipo de Atividade
+        </label>
+      </div>
+
+      <!-- Período -->
+      <div class="relative md:col-span-4">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano Início" min="1900" max="2100">
+            <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              Ano Início
+            </label>
+          </div>
+          <div>
+            <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano Fim" min="1900" max="2100">
+            <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              Ano Fim
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags de Informação -->
+      <div class="relative md:col-span-4 flex flex-wrap gap-2 items-center">
+        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="contribuiu">
+          <i class="fas fa-check-circle mr-1"></i>Contribuiu
+        </button>
+        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="pagou_carnes">
+          <i class="fas fa-file-invoice-dollar mr-1"></i>Pagou Carnês
+        </button>
+        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="subsistencia">
+          <i class="fas fa-seedling mr-1"></i>Subsistência
+        </button>
+        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="guida">
+          <i class="fas fa-handshake mr-1"></i>Pagou Guia
+        </button>
+        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="sem_contribuicao">
+          <i class="fas fa-ban mr-1"></i>Sem Contribuição
+        </button>
+      </div>
+    </div>
+
+    <!-- Campos para Segurado Especial -->
+    <div class="segurado-especial-fields hidden mt-4">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="relative md:col-span-6">
+          <input type="text" class="area-imovel peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="0.00">
+          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+            Área do Imóvel (hectares)
+          </label>
+        </div>
+        <div class="relative md:col-span-6">
+          <select class="tipo-producao peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+            <option value="" selected disabled>Selecione...</option>
+            <option value="agricultura">Agricultura</option>
+            <option value="pecuaria">Pecuária</option>
+            <option value="extrativismo">Extrativismo</option>
+            <option value="pesca">Pesca Artesanal</option>
+          </select>
+          <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+            Tipo de Produção
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botão de remover à direita -->
+    <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+      <button type="button" class="remove-atividade bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 shadow-sm transition-colors duration-200" title="Remover atividade">
+        <i class="fas fa-minus"></i>
+      </button>
+    </div>
+  </div>
+</template>
