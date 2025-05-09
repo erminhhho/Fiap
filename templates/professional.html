@@ -10,9 +10,9 @@
     <div id="atividadesList" class="space-y-4">
       <!-- Primeira linha com botão de adicionar -->
       <div class="atividade-item relative bg-white p-4 rounded-lg shadow mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
           <!-- Tipo de Atividade -->
-          <div class="relative md:col-span-3">
+          <div class="relative md:col-span-6">
             <select class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
               <option value="" selected disabled>Selecione...</option>
               <option value="segurado_especial">Segurado Especial</option>
@@ -28,47 +28,49 @@
               Tipo de Atividade
             </label>
             <!-- Tags como dropdown -->
-            <div class="relationship-select" data-selected="Contribuiu" data-value="contribuiu" onclick="toggleActivityTag(this)">
+            <div class="relationship-select" data-selected="Contribuiu" data-value="Contribuiu" onclick="toggleActivityTag(this)">
               <select class="activity-tag" onchange="updateActivityTag(this)">
-                <option value="contribuiu">Contribuiu</option>
-                <option value="pagou_carnes">Pagou Carnês</option>
-                <option value="subsistencia">Subsistência</option>
-                <option value="guida">Pagou Guia</option>
-                <option value="sem_contribuicao">Sem Contribuição</option>
+                <option value="Contribuiu">Contribuiu</option>
+                <option value="Pagou Guia">Pagou Guia</option>
+                <option value="Subsistência">Subsistência</option>
+                <option value="Sem Contribuição">Sem Contribuição</option>
               </select>
             </div>
           </div>
 
           <!-- Período -->
-          <div class="relative md:col-span-2">
-            <div class="grid grid-cols-2 gap-2">
-              <div>
+          <div class="relative md:col-span-5">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="relative">
                 <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Início" min="1900" max="2100">
                 <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-                  Ano Início
+                  Início
                 </label>
               </div>
-              <div>
+              <div class="relative">
                 <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Fim" min="1900" max="2100">
                 <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-                  Ano Fim
+                  Fim
                 </label>
               </div>
             </div>
+            <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              Período
+            </label>
           </div>
 
           <!-- Detalhes -->
-          <div class="relative md:col-span-6">
+          <div class="relative md:col-span-12">
             <input type="text" class="detalhes peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Detalhes da atividade">
             <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
               Detalhes
             </label>
           </div>
 
-          <!-- Botão -->
-          <div class="md:col-span-1">
-            <button type="button" class="remove-atividade text-red-500 hover:text-red-700">
-              <i class="fas fa-times"></i>
+          <!-- Botão de adicionar no final da linha -->
+          <div class="md:col-span-1 flex items-center justify-center p-0">
+            <button type="button" class="add-atividade-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar atividade">
+              <i class="fas fa-plus"></i>
             </button>
           </div>
         </div>
@@ -127,9 +129,9 @@
 <!-- Template para nova atividade -->
 <template id="atividadeTemplate">
   <div class="atividade-item relative bg-white p-4 rounded-lg shadow mb-4">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
       <!-- Tipo de Atividade -->
-      <div class="relative md:col-span-3">
+      <div class="relative md:col-span-6">
         <select class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
           <option value="" selected disabled>Selecione...</option>
           <option value="segurado_especial">Segurado Especial</option>
@@ -145,47 +147,49 @@
           Tipo de Atividade
         </label>
         <!-- Tags como dropdown -->
-        <div class="relationship-select" data-selected="Contribuiu" data-value="contribuiu" onclick="toggleActivityTag(this)">
+        <div class="relationship-select" data-selected="Contribuiu" data-value="Contribuiu" onclick="toggleActivityTag(this)">
           <select class="activity-tag" onchange="updateActivityTag(this)">
-            <option value="contribuiu">Contribuiu</option>
-            <option value="pagou_carnes">Pagou Carnês</option>
-            <option value="subsistencia">Subsistência</option>
-            <option value="guida">Pagou Guia</option>
-            <option value="sem_contribuicao">Sem Contribuição</option>
+            <option value="Contribuiu">Contribuiu</option>
+            <option value="Pagou Guia">Pagou Guia</option>
+            <option value="Subsistência">Subsistência</option>
+            <option value="Sem Contribuição">Sem Contribuição</option>
           </select>
         </div>
       </div>
 
       <!-- Período -->
-      <div class="relative md:col-span-2">
-        <div class="grid grid-cols-2 gap-2">
-          <div>
+      <div class="relative md:col-span-5">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="relative">
             <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Início" min="1900" max="2100">
             <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-              Ano Início
+              Início
             </label>
           </div>
-          <div>
+          <div class="relative">
             <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Fim" min="1900" max="2100">
             <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-              Ano Fim
+              Fim
             </label>
           </div>
         </div>
+        <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+          Período
+        </label>
       </div>
 
       <!-- Detalhes -->
-      <div class="relative md:col-span-6">
+      <div class="relative md:col-span-12">
         <input type="text" class="detalhes peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Detalhes da atividade">
         <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
           Detalhes
         </label>
       </div>
 
-      <!-- Botão -->
-      <div class="md:col-span-1">
-        <button type="button" class="remove-atividade text-red-500 hover:text-red-700">
-          <i class="fas fa-times"></i>
+      <!-- Botão de remover no final da linha -->
+      <div class="md:col-span-1 flex items-center justify-center p-0">
+        <button type="button" class="remove-atividade bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Remover atividade">
+          <i class="fas fa-minus"></i>
         </button>
       </div>
     </div>

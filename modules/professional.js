@@ -82,19 +82,16 @@ function setupTags(atividadeDiv) {
 // Função para restaurar o ícone original da tag
 function restoreOriginalIcon(icon, tag) {
   switch(tag) {
-    case 'contribuiu':
+    case 'Contribuiu':
       icon.classList.add('fa-check-circle');
       break;
-    case 'pagou_carnes':
+    case 'Pagou Guia':
       icon.classList.add('fa-file-invoice-dollar');
       break;
-    case 'subsistencia':
+    case 'Subsistência':
       icon.classList.add('fa-seedling');
       break;
-    case 'guida':
-      icon.classList.add('fa-handshake');
-      break;
-    case 'sem_contribuicao':
+    case 'Sem Contribuição':
       icon.classList.add('fa-ban');
       break;
   }
@@ -130,9 +127,6 @@ function addAtividade() {
     });
   }
 
-  // Configurar tags
-  setupTags(atividadeDiv);
-
   // Adicionar ao DOM
   atividadesList.appendChild(atividadeDiv);
 
@@ -144,6 +138,24 @@ function addAtividade() {
 
 // Exportar funções para uso global
 window.addAtividade = addAtividade;
+
+// Função para obter o texto formatado
+function getFormattedText(value) {
+  return value.split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+// Função para atualizar a tag selecionada
+function updateActivityTag(select) {
+  const container = select.closest('.relationship-select');
+  const value = select.value;
+
+  // Atualiza os atributos data-selected e data-value
+  // Usamos o mesmo valor para ambos já que os valores já estão formatados no HTML
+  container.setAttribute('data-selected', value);
+  container.setAttribute('data-value', value);
+}
 
 // Função para ativar/desativar a tag de atividade
 function toggleActivityTag(element) {
@@ -160,18 +172,7 @@ function toggleActivityTag(element) {
   if (currentRelationship) {
     element.removeAttribute('data-selected');
   } else {
-    // Caso contrário, vamos usar o valor do data-value como o tipo de relacionamento selecionado
+    // Caso contrário, usar o valor diretamente
     element.setAttribute('data-selected', relationshipValue);
   }
-}
-
-// Função para atualizar a tag selecionada
-function updateActivityTag(select) {
-  const container = select.closest('.relationship-select');
-  const value = select.value;
-  const text = select.options[select.selectedIndex].text;
-
-  // Atualiza os atributos data-selected e data-value
-  container.setAttribute('data-selected', text);
-  container.setAttribute('data-value', value);
 }
