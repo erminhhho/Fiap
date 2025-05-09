@@ -17,6 +17,41 @@ function setupEvents() {
     destacarCamposPreenchidos();
   }
 
+  // Configurar eventos do tipo de atividade
+  const tipoAtividadeSelect = document.getElementById('tipoAtividade');
+  if (tipoAtividadeSelect) {
+    tipoAtividadeSelect.addEventListener('change', function() {
+      const seguradoEspecialFields = document.getElementById('seguradoEspecialFields');
+      const outrasAtividadesFields = document.getElementById('outrasAtividadesFields');
+
+      // Esconder todos os campos específicos primeiro
+      seguradoEspecialFields.classList.add('hidden');
+      outrasAtividadesFields.classList.add('hidden');
+
+      // Mostrar campos específicos baseado na seleção
+      if (this.value === 'segurado_especial') {
+        seguradoEspecialFields.classList.remove('hidden');
+      } else if (this.value !== '') {
+        outrasAtividadesFields.classList.remove('hidden');
+      }
+    });
+  }
+
+  // Configurar máscara para área do imóvel
+  const areaImovelInput = document.getElementById('areaImovel');
+  if (areaImovelInput) {
+    areaImovelInput.addEventListener('input', function() {
+      // Permitir apenas números e ponto
+      this.value = this.value.replace(/[^\d.]/g, '');
+
+      // Garantir apenas um ponto decimal
+      const parts = this.value.split('.');
+      if (parts.length > 2) {
+        this.value = parts[0] + '.' + parts.slice(1).join('');
+      }
+    });
+  }
+
   // Botão Voltar
   const backButton = document.getElementById('btn-back');
   if (backButton) {
@@ -26,7 +61,7 @@ function setupEvents() {
     }
 
     backButton.addEventListener('click', function() {
-      navigateTo('insurance');
+      navigateTo('personal');
     });
   }
 

@@ -23,23 +23,17 @@ const routes = {
     scriptUrl: 'modules/incapacity.js',
     step: 3
   },
-  insurance: {
-    title: 'Segurado Especial',
-    templateUrl: 'templates/insurance.html',
-    scriptUrl: 'modules/insurance.js',
-    step: 4
-  },
   professional: {
     title: 'Atividades Profissionais',
     templateUrl: 'templates/professional.html',
     scriptUrl: 'modules/professional.js',
-    step: 5
+    step: 4
   },
   documents: {
     title: 'Documentos e Conclusão',
     templateUrl: 'templates/documents.html',
     scriptUrl: 'modules/documents.js',
-    step: 6
+    step: 5
   }
 };
 
@@ -48,9 +42,8 @@ const routeSteps = {
   'personal': 1,
   'social': 2,
   'incapacity': 3,
-  'insurance': 4,
-  'professional': 5,
-  'documents': 6
+  'professional': 4,
+  'documents': 5
 };
 
 // Estado atual da navegação

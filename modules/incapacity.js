@@ -86,7 +86,7 @@ function setupEvents() {
     }
 
     nextButton.addEventListener('click', function() {
-      navigateTo('insurance');
+      navigateTo('professional');
     });
   }
 }

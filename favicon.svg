@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo com gradiente suave -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563EB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1D4ED8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Retângulo de fundo com sombra suave -->
+  <rect width="32" height="32" rx="8" fill="url(#grad)" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))"/>
+
+  <!-- Texto FIAP com fonte mais legível e espaçamento ajustado -->
+  <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="white" font-family="Arial, sans-serif" font-weight="bold" font-size="14" letter-spacing="0.5">FIAP</text>
+
+  <!-- Borda sutil para melhor contraste -->
+  <rect width="32" height="32" rx="8" fill="none" stroke="white" stroke-width="0.5" stroke-opacity="0.2"/>
+</svg>
