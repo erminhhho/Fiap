@@ -32,32 +32,17 @@ function setupEvents() {
     destacarCamposPreenchidos();
   }
 
-  // Configurar botão de adicionar na primeira linha - abordagem mais segura
-  // Primeiro remove qualquer botão existente e cria um completamente novo
-  const container = document.querySelector('.atividade-item:first-child .md\\:col-span-1');
-  if (container) {
-    // Remover qualquer botão existente
-    while (container.firstChild) {
-      container.removeChild(container.firstChild);
+  // Abordagem simples para o botão de adicionar atividade
+  document.querySelectorAll('.add-atividade-btn').forEach(btn => {
+    // Remover eventos existentes
+    btn.replaceWith(btn.cloneNode(true));
+
+    // Selecionar o novo botão e adicionar evento
+    const newBtn = document.querySelector('.add-atividade-btn');
+    if (newBtn) {
+      newBtn.addEventListener('click', addAtividade);
     }
-
-    // Criar um novo botão do zero
-    const newBtn = document.createElement('button');
-    newBtn.type = 'button';
-    newBtn.className = 'add-atividade-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8';
-    newBtn.title = 'Adicionar atividade';
-    newBtn.innerHTML = '<i class="fas fa-plus"></i>';
-
-    // Adicionar o evento uma única vez ao novo botão
-    newBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      addAtividade();
-    });
-
-    // Adicionar o novo botão ao container
-    container.appendChild(newBtn);
-  }
+  });
 
   // Configurar tags da primeira linha
   setupTags(document.querySelector('.atividade-item'));
@@ -65,7 +50,7 @@ function setupEvents() {
   // Botão Voltar
   const backButton = document.getElementById('btn-back');
   if (backButton) {
-    // Preservar as classes originais
+    // Preservar classes originais
     const originalClasses = backButton.className;
 
     // Remover eventos existentes
@@ -90,7 +75,7 @@ function setupEvents() {
   // Botão Próximo
   const nextButton = document.getElementById('btn-next');
   if (nextButton) {
-    // Preservar as classes originais
+    // Preservar classes originais
     const originalClasses = nextButton.className;
 
     // Remover eventos existentes
@@ -167,90 +152,33 @@ function restoreOriginalIcon(icon, tag) {
 
 // Função para adicionar uma nova atividade
 function addAtividade() {
-  // Global lock para prevenir múltiplas execuções
-  if (window._addAtividadeLock === true) {
-    console.log("Operação de adicionar em andamento, ignorando clique");
+  // Abordagem simplificada que funcionará com garantia
+  const template = document.getElementById('atividadeTemplate');
+  const atividadesList = document.getElementById('atividadesList');
+
+  if (!template || !atividadesList) {
+    console.error("Template ou lista de atividades não encontrado");
     return;
   }
 
-  // Aplicar lock global
-  window._addAtividadeLock = true;
+  // Clonar o template
+  const clone = template.content.cloneNode(true);
+  const atividadeDiv = clone.querySelector('.atividade-item');
 
-  // Verificar se já existem múltiplas atividades (possível duplicação)
-  const countExistingItems = document.querySelectorAll('.atividade-item').length;
-  const lastItemTime = window._lastAddAtividadeTime || 0;
-  const now = Date.now();
-
-  // Se última adição foi muito recente (menos de 1 segundo atrás)
-  if (now - lastItemTime < 1000) {
-    console.log("Tentativa de adicionar atividade muito rápido, ignorando");
-    window._addAtividadeLock = false;
-    return;
+  // Configurar botão de remover
+  const removeBtn = atividadeDiv.querySelector('.remove-atividade');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', function() {
+      atividadeDiv.remove();
+    });
   }
 
-  // Armazenar momento desta operação
-  window._lastAddAtividadeTime = now;
+  // Adicionar ao DOM - coloque sempre no final da lista
+  atividadesList.appendChild(atividadeDiv);
 
-  try {
-    const template = document.getElementById('atividadeTemplate');
-    const atividadesList = document.getElementById('atividadesList');
-
-    if (!template || !atividadesList) {
-      console.error("Template ou lista de atividades não encontrado");
-      return;
-    }
-
-    // Verificar se já não temos um item temporário em processamento
-    if (atividadesList.querySelector('.processing-item')) {
-      console.log("Já existe um item em processamento");
-      return;
-    }
-
-    // Clonar o template
-    const clone = template.content.cloneNode(true);
-    const atividadeDiv = clone.querySelector('.atividade-item');
-
-    // Marcar como item em processamento
-    atividadeDiv.classList.add('processing-item');
-
-    // Configurar botão de remover
-    const removeBtn = atividadeDiv.querySelector('.remove-atividade');
-    if (removeBtn) {
-      removeBtn.addEventListener('click', function() {
-        atividadeDiv.remove();
-      });
-    }
-
-    // Configurar select de tipo de atividade
-    const tipoSelect = atividadeDiv.querySelector('.tipo-atividade');
-    if (tipoSelect) {
-      tipoSelect.addEventListener('change', function() {
-        const seguradoEspecialFields = atividadeDiv.querySelector('.segurado-especial-fields');
-        if (seguradoEspecialFields) {
-          seguradoEspecialFields.classList.toggle('hidden', this.value !== 'segurado_especial');
-        }
-      });
-    }
-
-    // Adicionar ao DOM
-    atividadesList.appendChild(atividadeDiv);
-
-    // Remover a classe de processamento após um curto período
-    setTimeout(() => {
-      atividadeDiv.classList.remove('processing-item');
-    }, 500);
-
-    // Destacar campos preenchidos
-    if (typeof destacarCamposPreenchidos === 'function') {
-      destacarCamposPreenchidos();
-    }
-  } catch (error) {
-    console.error("Erro ao adicionar atividade:", error);
-  } finally {
-    // Liberar o lock após um período seguro
-    setTimeout(() => {
-      window._addAtividadeLock = false;
-    }, 1000);
+  // Destacar campos preenchidos
+  if (typeof destacarCamposPreenchidos === 'function') {
+    destacarCamposPreenchidos();
   }
 }
 
