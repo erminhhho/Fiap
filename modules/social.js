@@ -364,25 +364,35 @@ function updateRemoveMemberButton() {
 function toggleCadUnico(button) {
   if (!button) return;
 
-  button.classList.toggle('active');
+  console.log("toggleCadUnico chamado para:", button);
+
+  // Garantir que estamos trabalhando com o próprio botão, não com filhos
+  const targetButton = button.classList.contains('cadunico-btn') ? button : button.closest('.cadunico-btn');
+  if (!targetButton) {
+    console.error("Botão CadÚnico não encontrado");
+    return;
+  }
+
+  // Toggle da classe active
+  targetButton.classList.toggle('active');
 
   // Atualizar estilos visuais
-  if (button.classList.contains('active')) {
-    button.classList.add('bg-green-500', 'text-white', 'border-green-500');
-    button.classList.remove('text-gray-500', 'border-gray-300');
+  if (targetButton.classList.contains('active')) {
+    targetButton.classList.add('bg-green-500', 'text-white', 'border-green-500');
+    targetButton.classList.remove('text-gray-500', 'border-gray-300');
   } else {
-    button.classList.remove('bg-green-500', 'text-white', 'border-green-500');
-    button.classList.add('text-gray-500', 'border-gray-300');
+    targetButton.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+    targetButton.classList.add('text-gray-500', 'border-gray-300');
   }
 
   // Atualizar valor do input hidden
-  const hiddenInput = button.previousElementSibling;
+  const hiddenInput = targetButton.previousElementSibling;
   if (hiddenInput && hiddenInput.type === 'hidden') {
-    hiddenInput.value = button.classList.contains('active') ? 'Sim' : 'Não';
+    hiddenInput.value = targetButton.classList.contains('active') ? 'Sim' : 'Não';
   }
 
   // Recalcular a renda total e per capita quando o status de CadÚnico mudar
-  calcularRendaTotal();
+  setTimeout(calcularRendaTotal, 10);
 }
 
 // Corrigir o problema de duplicação ao adicionar linhas

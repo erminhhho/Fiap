@@ -103,13 +103,11 @@
         <button id="closeSearchModal" class="text-gray-500 hover:text-gray-700">
           <i class="fas fa-times"></i>
         </button>
-      </div>
-
-      <p class="text-gray-600 mb-4">Digite o CPF ou identificador do formulário que deseja carregar:</p>
+      </div>      <p class="text-gray-600 mb-4">Digite o CPF ou identificador do formulário que deseja carregar:</p>
 
       <div class="mb-4">
         <input type="text" id="searchFormCPF" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Ex: 123.456.789-00">
+          placeholder="Ex: 123.456.789-00" oninput="FIAP.masks.cpf(this)">
       </div>
 
       <div class="flex justify-end space-x-2">
