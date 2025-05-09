@@ -12,7 +12,7 @@
       <div class="atividade-item relative bg-white p-4 rounded-lg shadow mb-4">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
           <!-- Tipo de Atividade -->
-          <div class="relative md:col-span-4">
+          <div class="relative md:col-span-3">
             <select class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
               <option value="" selected disabled>Selecione...</option>
               <option value="segurado_especial">Segurado Especial</option>
@@ -27,19 +27,29 @@
             <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
               Tipo de Atividade
             </label>
+            <!-- Tags como dropdown -->
+            <div class="relationship-select" data-selected="Contribuiu" data-value="contribuiu" onclick="toggleActivityTag(this)">
+              <select class="activity-tag" onchange="updateActivityTag(this)">
+                <option value="contribuiu">Contribuiu</option>
+                <option value="pagou_carnes">Pagou Carnês</option>
+                <option value="subsistencia">Subsistência</option>
+                <option value="guida">Pagou Guia</option>
+                <option value="sem_contribuicao">Sem Contribuição</option>
+              </select>
+            </div>
           </div>
 
           <!-- Período -->
-          <div class="relative md:col-span-4">
+          <div class="relative md:col-span-2">
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano Início" min="1900" max="2100">
+                <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Início" min="1900" max="2100">
                 <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
                   Ano Início
                 </label>
               </div>
               <div>
-                <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano Fim" min="1900" max="2100">
+                <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Fim" min="1900" max="2100">
                 <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
                   Ano Fim
                 </label>
@@ -47,22 +57,18 @@
             </div>
           </div>
 
-          <!-- Tags de Informação -->
-          <div class="relative md:col-span-4 flex flex-wrap gap-2 items-center">
-            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="contribuiu">
-              <i class="fas fa-check-circle mr-1"></i>Contribuiu
-            </button>
-            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="pagou_carnes">
-              <i class="fas fa-file-invoice-dollar mr-1"></i>Pagou Carnês
-            </button>
-            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="subsistencia">
-              <i class="fas fa-seedling mr-1"></i>Subsistência
-            </button>
-            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="guida">
-              <i class="fas fa-handshake mr-1"></i>Pagou Guia
-            </button>
-            <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="sem_contribuicao">
-              <i class="fas fa-ban mr-1"></i>Sem Contribuição
+          <!-- Detalhes -->
+          <div class="relative md:col-span-6">
+            <input type="text" class="detalhes peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Detalhes da atividade">
+            <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              Detalhes
+            </label>
+          </div>
+
+          <!-- Botão -->
+          <div class="md:col-span-1">
+            <button type="button" class="remove-atividade text-red-500 hover:text-red-700">
+              <i class="fas fa-times"></i>
             </button>
           </div>
         </div>
@@ -89,13 +95,6 @@
               </label>
             </div>
           </div>
-        </div>
-
-        <!-- Botão de adicionar à direita -->
-        <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
-          <button type="button" class="add-atividade-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 shadow-sm transition-colors duration-200" title="Adicionar atividade">
-            <i class="fas fa-plus"></i>
-          </button>
         </div>
       </div>
     </div>
@@ -130,7 +129,7 @@
   <div class="atividade-item relative bg-white p-4 rounded-lg shadow mb-4">
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
       <!-- Tipo de Atividade -->
-      <div class="relative md:col-span-4">
+      <div class="relative md:col-span-3">
         <select class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
           <option value="" selected disabled>Selecione...</option>
           <option value="segurado_especial">Segurado Especial</option>
@@ -145,19 +144,29 @@
         <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
           Tipo de Atividade
         </label>
+        <!-- Tags como dropdown -->
+        <div class="relationship-select" data-selected="Contribuiu" data-value="contribuiu" onclick="toggleActivityTag(this)">
+          <select class="activity-tag" onchange="updateActivityTag(this)">
+            <option value="contribuiu">Contribuiu</option>
+            <option value="pagou_carnes">Pagou Carnês</option>
+            <option value="subsistencia">Subsistência</option>
+            <option value="guida">Pagou Guia</option>
+            <option value="sem_contribuicao">Sem Contribuição</option>
+          </select>
+        </div>
       </div>
 
       <!-- Período -->
-      <div class="relative md:col-span-4">
+      <div class="relative md:col-span-2">
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano Início" min="1900" max="2100">
+            <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Início" min="1900" max="2100">
             <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
               Ano Início
             </label>
           </div>
           <div>
-            <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano Fim" min="1900" max="2100">
+            <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Fim" min="1900" max="2100">
             <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
               Ano Fim
             </label>
@@ -165,22 +174,18 @@
         </div>
       </div>
 
-      <!-- Tags de Informação -->
-      <div class="relative md:col-span-4 flex flex-wrap gap-2 items-center">
-        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="contribuiu">
-          <i class="fas fa-check-circle mr-1"></i>Contribuiu
-        </button>
-        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="pagou_carnes">
-          <i class="fas fa-file-invoice-dollar mr-1"></i>Pagou Carnês
-        </button>
-        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="subsistencia">
-          <i class="fas fa-seedling mr-1"></i>Subsistência
-        </button>
-        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="guida">
-          <i class="fas fa-handshake mr-1"></i>Pagou Guia
-        </button>
-        <button type="button" class="tag-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors duration-200" data-tag="sem_contribuicao">
-          <i class="fas fa-ban mr-1"></i>Sem Contribuição
+      <!-- Detalhes -->
+      <div class="relative md:col-span-6">
+        <input type="text" class="detalhes peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Detalhes da atividade">
+        <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+          Detalhes
+        </label>
+      </div>
+
+      <!-- Botão -->
+      <div class="md:col-span-1">
+        <button type="button" class="remove-atividade text-red-500 hover:text-red-700">
+          <i class="fas fa-times"></i>
         </button>
       </div>
     </div>
@@ -207,13 +212,6 @@
           </label>
         </div>
       </div>
-    </div>
-
-    <!-- Botão de remover à direita -->
-    <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
-      <button type="button" class="remove-atividade bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 shadow-sm transition-colors duration-200" title="Remover atividade">
-        <i class="fas fa-minus"></i>
-      </button>
     </div>
   </div>
 </template>
