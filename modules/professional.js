@@ -32,17 +32,31 @@ function setupEvents() {
     destacarCamposPreenchidos();
   }
 
-  // Configurar botão de adicionar na primeira linha
-  const firstAddBtn = document.querySelector('.add-atividade-btn');
-  if (firstAddBtn) {
-    // Remover qualquer evento existente para evitar duplicação
-    const newBtn = firstAddBtn.cloneNode(true);
-    firstAddBtn.parentNode.replaceChild(newBtn, firstAddBtn);
+  // Configurar botão de adicionar na primeira linha - abordagem mais segura
+  // Primeiro remove qualquer botão existente e cria um completamente novo
+  const container = document.querySelector('.atividade-item:first-child .md\\:col-span-1');
+  if (container) {
+    // Remover qualquer botão existente
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
 
-    // Adicionar o evento ao novo botão
-    newBtn.addEventListener('click', function() {
+    // Criar um novo botão do zero
+    const newBtn = document.createElement('button');
+    newBtn.type = 'button';
+    newBtn.className = 'add-atividade-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8';
+    newBtn.title = 'Adicionar atividade';
+    newBtn.innerHTML = '<i class="fas fa-plus"></i>';
+
+    // Adicionar o evento uma única vez ao novo botão
+    newBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
       addAtividade();
     });
+
+    // Adicionar o novo botão ao container
+    container.appendChild(newBtn);
   }
 
   // Configurar tags da primeira linha
@@ -51,7 +65,24 @@ function setupEvents() {
   // Botão Voltar
   const backButton = document.getElementById('btn-back');
   if (backButton) {
-    backButton.addEventListener('click', function() {
+    // Preservar as classes originais
+    const originalClasses = backButton.className;
+
+    // Remover eventos existentes
+    const newBackBtn = backButton.cloneNode(true);
+
+    // Garantir que todas as classes originais sejam mantidas
+    newBackBtn.className = originalClasses;
+
+    // Se houver classes específicas que precisam ser adicionadas
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(newBackBtn, 'button.secondary');
+    }
+
+    backButton.parentNode.replaceChild(newBackBtn, backButton);
+
+    // Adicionar novo evento
+    newBackBtn.addEventListener('click', function() {
       navigateTo('incapacity');
     });
   }
@@ -59,7 +90,24 @@ function setupEvents() {
   // Botão Próximo
   const nextButton = document.getElementById('btn-next');
   if (nextButton) {
-    nextButton.addEventListener('click', function() {
+    // Preservar as classes originais
+    const originalClasses = nextButton.className;
+
+    // Remover eventos existentes
+    const newNextBtn = nextButton.cloneNode(true);
+
+    // Garantir que todas as classes originais sejam mantidas
+    newNextBtn.className = originalClasses;
+
+    // Se houver classes específicas que precisam ser adicionadas
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(newNextBtn, 'button.primary');
+    }
+
+    nextButton.parentNode.replaceChild(newNextBtn, nextButton);
+
+    // Adicionar novo evento
+    newNextBtn.addEventListener('click', function() {
       navigateTo('documents');
     });
   }
@@ -119,53 +167,91 @@ function restoreOriginalIcon(icon, tag) {
 
 // Função para adicionar uma nova atividade
 function addAtividade() {
-  // Prevenir múltiplas execuções em sequência
-  if (window._atividadeAddLock) return;
-  window._atividadeAddLock = true;
-
-  const template = document.getElementById('atividadeTemplate');
-  const atividadesList = document.getElementById('atividadesList');
-
-  if (!template || !atividadesList) {
-    window._atividadeAddLock = false;
+  // Global lock para prevenir múltiplas execuções
+  if (window._addAtividadeLock === true) {
+    console.log("Operação de adicionar em andamento, ignorando clique");
     return;
   }
 
-  // Clonar o template
-  const clone = template.content.cloneNode(true);
-  const atividadeDiv = clone.querySelector('.atividade-item');
+  // Aplicar lock global
+  window._addAtividadeLock = true;
 
-  // Configurar botão de remover
-  const removeBtn = atividadeDiv.querySelector('.remove-atividade');
-  if (removeBtn) {
-    removeBtn.addEventListener('click', function() {
-      atividadeDiv.remove();
-    });
+  // Verificar se já existem múltiplas atividades (possível duplicação)
+  const countExistingItems = document.querySelectorAll('.atividade-item').length;
+  const lastItemTime = window._lastAddAtividadeTime || 0;
+  const now = Date.now();
+
+  // Se última adição foi muito recente (menos de 1 segundo atrás)
+  if (now - lastItemTime < 1000) {
+    console.log("Tentativa de adicionar atividade muito rápido, ignorando");
+    window._addAtividadeLock = false;
+    return;
   }
 
-  // Configurar select de tipo de atividade
-  const tipoSelect = atividadeDiv.querySelector('.tipo-atividade');
-  if (tipoSelect) {
-    tipoSelect.addEventListener('change', function() {
-      const seguradoEspecialFields = atividadeDiv.querySelector('.segurado-especial-fields');
-      if (seguradoEspecialFields) {
-        seguradoEspecialFields.classList.toggle('hidden', this.value !== 'segurado_especial');
-      }
-    });
+  // Armazenar momento desta operação
+  window._lastAddAtividadeTime = now;
+
+  try {
+    const template = document.getElementById('atividadeTemplate');
+    const atividadesList = document.getElementById('atividadesList');
+
+    if (!template || !atividadesList) {
+      console.error("Template ou lista de atividades não encontrado");
+      return;
+    }
+
+    // Verificar se já não temos um item temporário em processamento
+    if (atividadesList.querySelector('.processing-item')) {
+      console.log("Já existe um item em processamento");
+      return;
+    }
+
+    // Clonar o template
+    const clone = template.content.cloneNode(true);
+    const atividadeDiv = clone.querySelector('.atividade-item');
+
+    // Marcar como item em processamento
+    atividadeDiv.classList.add('processing-item');
+
+    // Configurar botão de remover
+    const removeBtn = atividadeDiv.querySelector('.remove-atividade');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', function() {
+        atividadeDiv.remove();
+      });
+    }
+
+    // Configurar select de tipo de atividade
+    const tipoSelect = atividadeDiv.querySelector('.tipo-atividade');
+    if (tipoSelect) {
+      tipoSelect.addEventListener('change', function() {
+        const seguradoEspecialFields = atividadeDiv.querySelector('.segurado-especial-fields');
+        if (seguradoEspecialFields) {
+          seguradoEspecialFields.classList.toggle('hidden', this.value !== 'segurado_especial');
+        }
+      });
+    }
+
+    // Adicionar ao DOM
+    atividadesList.appendChild(atividadeDiv);
+
+    // Remover a classe de processamento após um curto período
+    setTimeout(() => {
+      atividadeDiv.classList.remove('processing-item');
+    }, 500);
+
+    // Destacar campos preenchidos
+    if (typeof destacarCamposPreenchidos === 'function') {
+      destacarCamposPreenchidos();
+    }
+  } catch (error) {
+    console.error("Erro ao adicionar atividade:", error);
+  } finally {
+    // Liberar o lock após um período seguro
+    setTimeout(() => {
+      window._addAtividadeLock = false;
+    }, 1000);
   }
-
-  // Adicionar ao DOM
-  atividadesList.appendChild(atividadeDiv);
-
-  // Destacar campos preenchidos
-  if (typeof destacarCamposPreenchidos === 'function') {
-    destacarCamposPreenchidos();
-  }
-
-  // Liberar o lock após um breve período
-  setTimeout(() => {
-    window._atividadeAddLock = false;
-  }, 300);
 }
 
 // Exportar funções para uso global

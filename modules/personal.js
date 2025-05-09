@@ -17,93 +17,102 @@ if (typeof window.authorLabels === 'undefined') {
 
 // Função para adicionar um novo autor
 function addAuthor() {
-  window.authorCount++;
+  // Prevenir cliques duplicados
+  if (window._addingAuthor) return;
+  window._addingAuthor = true;
 
-  // Criar um novo elemento div para o autor
-  const newAuthor = document.createElement('div');
-  newAuthor.className = 'author-row mb-4';
-  newAuthor.id = `author-${window.authorCount}`;
+  try {
+    window.authorCount++;
 
-  // Criar HTML com opções de relacionamento/etiqueta
-  let relationshipOptions = '';
-  window.authorLabels.forEach(label => {
-    relationshipOptions += `<option value="${label}" class="relationship-option ${label.toLowerCase().replace('representante legal', 'representante').replace('beneficiário', 'beneficiario').replace('responsável', 'responsavel')}">${label}</option>`;
-  });
+    // Obter apenas a primeira linha do autor (não a segunda com apelido e telefone)
+    const firstAuthorRow = document.querySelector('.author-row .flex.items-center') ||
+                           document.querySelector('#author-1 > .flex.items-center');
 
-  // Estrutura da primeira linha (campos essenciais) - APENAS a primeira linha agora
-  const firstRowHTML = `
-    <div class="flex items-center">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative flex-grow">
-        <!-- Nome com seletor de relacionamento -->
-        <div class="relative">
-          <div class="relationship-select" data-selected="${window.authorLabels[0]}" onclick="toggleRelationshipTag(this)">
-            <select id="relationship_${window.authorCount}" name="relationship_${window.authorCount}" onchange="updateRelationshipLabel(this, ${window.authorCount})">
-              ${relationshipOptions}
-            </select>
-          </div>
-          <input type="text" id="nome_${window.authorCount}" name="nome_${window.authorCount}" required onblur="formatarNomeProprio(this)"
-            class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
-            placeholder="Digite o nome completo" />
-          <label for="nome_${window.authorCount}"
-            class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-            ${window.authorLabels[0]}
-          </label>
-        </div>
-        <!-- Nascimento, Idade e CPF -->
-        <div class="grid grid-cols-12 gap-6">
-          <!-- CPF -->
-          <div class="relative col-span-4">
-            <input type="text" id="cpf_${window.authorCount}" name="cpf_${window.authorCount}" required oninput="maskCPF(this)" maxlength="14"
-              class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
-              placeholder="000.000.000-00" />
-            <label for="cpf_${window.authorCount}"
-              class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-              CPF
-            </label>
-          </div>
-          <!-- Nascimento -->
-          <div class="relative col-span-4">
-            <input type="text" id="nascimento_${window.authorCount}" name="nascimento_${window.authorCount}" required oninput="maskDate(this)"
-              class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
-              placeholder="dd/mm/aaaa" data-target-age="idade_${window.authorCount}" />
-            <label for="nascimento_${window.authorCount}"
-              class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-              Nascimento
-            </label>
-          </div>
-          <!-- Idade -->
-          <div class="relative col-span-4">
-            <input type="text" id="idade_${window.authorCount}" name="idade_${window.authorCount}" readonly
-              class="peer w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 cursor-not-allowed"
-              placeholder="Idade" />
-            <label for="idade_${window.authorCount}"
-              class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
-              Idade
-            </label>
-          </div>
-        </div>
-      </div>
-      <!-- Botão circular de remover -->
-      <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 ml-2 flex items-center justify-center w-8 h-8 self-center" title="Remover autor" onclick="removeSpecificAuthor(${window.authorCount})">
-        <i class="fas fa-minus"></i>
-      </button>
-    </div>
-  `;
+    if (!firstAuthorRow) {
+      console.error('Elemento da primeira linha do autor não encontrado');
+      window._addingAuthor = false;
+      return;
+    }
 
-  // Definir o HTML do novo autor (apenas a primeira linha)
-  newAuthor.innerHTML = firstRowHTML;
+    // Criar uma nova div para o autor
+    const newAuthor = document.createElement('div');
+    newAuthor.className = 'author-row mb-4';
+    newAuthor.id = `author-${window.authorCount}`;
 
-  // Adicionar apenas um separador visual mínimo antes do novo autor
-  const separator = document.createElement('div');
-  separator.className = 'author-separator border-t border-gray-200 my-4';
+    // Clonar apenas a primeira linha
+    const firstRowClone = firstAuthorRow.cloneNode(true);
+    newAuthor.appendChild(firstRowClone);
 
-  // Adicionar o separador e o novo autor ao container
-  const authorsContainer = document.getElementById('authors-container');
-  authorsContainer.appendChild(separator);
-  authorsContainer.appendChild(newAuthor);
+    // Atualizar IDs e names de todos os campos no novo autor
+    newAuthor.querySelectorAll('input, select').forEach(field => {
+      const originalId = field.id;
+      if (originalId) {
+        // Extrair o nome base do campo sem o número
+        const baseName = originalId.replace(/(_\d+$|^\w+$)/, '');
+        const newId = baseName ? `${baseName}_${window.authorCount}` : `${originalId}_${window.authorCount}`;
 
-  // Aplicar estilos ao novo select de relacionamento
-  applyRelationshipStyles();
+        // Atualizar ID e name
+        field.id = newId;
+        field.name = newId;
+
+        // Limpar o valor do campo
+        if (field.tagName === 'INPUT') {
+          field.value = '';
+        }
+
+        // Atualizar atributos de data se existirem
+        if (field.hasAttribute('data-target-age')) {
+          field.setAttribute('data-target-age', `idade_${window.authorCount}`);
+        }
+      }
+    });
+
+    // Atualizar os labels para apontar para os novos IDs
+    newAuthor.querySelectorAll('label').forEach(label => {
+      const forAttr = label.getAttribute('for');
+      if (forAttr) {
+        // Extrair o nome base do campo sem o número
+        const baseName = forAttr.replace(/(_\d+$|^\w+$)/, '');
+        const newFor = baseName ? `${baseName}_${window.authorCount}` : `${forAttr}_${window.authorCount}`;
+        label.setAttribute('for', newFor);
+      }
+    });
+
+    // Substituir o botão de adicionar por um botão de remover
+    const addButton = newAuthor.querySelector('button[title="Adicionar autor"]');
+    if (addButton) {
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'bg-red-500 hover:bg-red-600 text-white rounded-full p-1 ml-2 flex items-center justify-center w-8 h-8 self-center';
+      removeButton.title = 'Remover autor';
+      removeButton.innerHTML = '<i class="fas fa-minus"></i>';
+      removeButton.onclick = function() { removeSpecificAuthor(window.authorCount); };
+
+      if (addButton.parentNode) {
+        addButton.parentNode.replaceChild(removeButton, addButton);
+      }
+    }
+
+    // Adicionar separador e o novo autor ao container
+    const separator = document.createElement('div');
+    separator.className = 'author-separator border-t border-gray-200 my-4';
+
+    const authorsContainer = document.getElementById('authors-container');
+    if (authorsContainer) {
+      authorsContainer.appendChild(separator);
+      authorsContainer.appendChild(newAuthor);
+    }
+
+    // Aplicar estilos ao novo select de relacionamento
+    applyRelationshipStyles();
+  } catch (error) {
+    console.error('Erro ao adicionar autor:', error);
+  } finally {
+    // Sempre liberar o lock após processamento
+    setTimeout(() => {
+      window._addingAuthor = false;
+    }, 300);
+  }
 }
 
 // Função para ativar/desativar a etiqueta de WhatsApp
@@ -253,47 +262,98 @@ window.toggleRelationshipTag = toggleRelationshipTag;
 
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
+  // Evitar múltiplas inicializações
+  if (window._personalInitialized) {
+    console.log('Módulo de dados pessoais já inicializado.');
+    return;
+  }
+
+  // Marcar como inicializado
+  window._personalInitialized = true;
+
+  // Setup inicial
   setupEvents();
-  applyRelationshipStyles(); // Adicionar chamada para aplicar estilos
+
+  // Resetar flag quando a página mudar
+  document.addEventListener('stepChanged', function() {
+    window._personalInitialized = false;
+  }, { once: true });
 };
 
 // Função para configurar eventos do módulo
 function setupEvents() {
+  // Inicializar estilos para os selects de relacionamento
+  applyRelationshipStyles();
+
   // Destacar campos preenchidos
-  destacarCamposPreenchidos();
+  if (typeof destacarCamposPreenchidos === 'function') {
+    destacarCamposPreenchidos();
+  }
+
+  // Carregamento dos dados do assistido
+  if (typeof loadAssistidoData === 'function') {
+    loadAssistidoData();
+  }
+
+  // Prevenção contra duplicação de botões
+  const addAuthorButton = document.querySelector('button[onclick="addAuthor()"]');
+  if (addAuthorButton) {
+    // Remover evento existente
+    const newBtn = addAuthorButton.cloneNode(true);
+    addAuthorButton.parentNode.replaceChild(newBtn, addAuthorButton);
+
+    // Adicionar novo evento
+    newBtn.addEventListener('click', function() {
+      addAuthor();
+    });
+  }
+
+  // Botão Voltar
+  const backButton = document.getElementById('btn-back');
+  if (backButton) {
+    // Preservar classes originais
+    const originalClasses = backButton.className;
+
+    // Remover eventos existentes
+    const newBtn = backButton.cloneNode(true);
+
+    // Manter as classes originais
+    newBtn.className = originalClasses;
+
+    // Aplicar estilos Tailwind centralizados
+    if (window.tw && typeof window.tw.applyTo === 'function') {
+      window.tw.applyTo(newBtn, 'button.secondary');
+    }
+
+    backButton.parentNode.replaceChild(newBtn, backButton);
+
+    newBtn.addEventListener('click', function() {
+      // Navegação para a tela anterior
+      window.history.back();
+    });
+  }
 
   // Botão Próximo
   const nextButton = document.getElementById('btn-next');
   if (nextButton) {
+    // Preservar classes originais
+    const originalClasses = nextButton.className;
+
+    // Remover eventos existentes
+    const newBtn = nextButton.cloneNode(true);
+
+    // Manter as classes originais
+    newBtn.className = originalClasses;
+
     // Aplicar estilos Tailwind centralizados
     if (window.tw && typeof window.tw.applyTo === 'function') {
-      window.tw.applyTo(nextButton, 'button.primary');
-    }    nextButton.addEventListener('click', function() {
-      // Salvar dados do assistido no localStorage antes de navegar usando o novo módulo de persistência
-      if (typeof FIAP !== 'undefined' && FIAP.data) {
-        FIAP.data.saveFormData('assistido', ['nome', 'cpf', 'nascimento', 'idade', 'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf', 'telefone', 'whatsapp', 'email']);
-      } else {
-        // Fallback para o método anterior caso o módulo não esteja disponível
-        saveAssistidoData();
-      }
+      window.tw.applyTo(newBtn, 'button.primary');
+    }
+
+    nextButton.parentNode.replaceChild(newBtn, nextButton);
+
+    newBtn.addEventListener('click', function() {
       navigateTo('social');
-    });
-  }
-
-  // Outros eventos específicos do módulo
-  const nascimentoInput = document.getElementById('nascimento');
-  if (nascimentoInput) {
-    nascimentoInput.addEventListener('blur', function() {
-      if (this.value) {
-        calcularIdade(this.value, 'idade');
-      }
-    });
-  }
-
-  const cepInput = document.getElementById('cep');
-  if (cepInput) {
-    cepInput.addEventListener('input', function() {
-      maskCEP(this);
     });
   }
 }
