@@ -1,87 +1,102 @@
 /**
- * Cache system for CID and CEP data
+ * Sistema de cache para dados de CEP e gerenciador de CIDs da API
  */
 
 class Cache {
   constructor() {
-    this.cidCache = new Map();
     this.cepCache = new Map();
-    this.lastUpdate = {
-      cid: null,
-      cep: null
-    };
+    this.completeDatabase = [];
+    this.apiDataLoaded = false;
     this.cacheExpiration = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
     this.initialized = false;
+
+    // Tentar carregar todos os dados da API no início
+    this.preloadAllCIDs();
   }
 
   /**
-   * Inicializa o cache quando todas as dependências estiverem prontas
+   * Inicializa o cache
    */
   async initialize() {
     if (this.initialized) return;
+    this.initialized = true;
+    console.log('Cache inicializado com sucesso');
+  }
 
-    // Aguardar o cidInstance estar disponível
-    let attempts = 0;
-    while (!window.cidInstance && attempts < 10) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      attempts++;
-    }
-
-    if (!window.cidInstance) {
-      console.error('cidInstance não disponível após várias tentativas');
-      return;
-    }
-
+  /**
+   * Pré-carrega todos os CIDs da API
+   */
+  async preloadAllCIDs() {
     try {
-      await this.updateCIDCache();
-      this.initialized = true;
-      console.log('Cache inicializado com sucesso');
+      const response = await fetch('https://cid10.cpp-ti.com.br/api');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data && Array.isArray(data.data)) {
+          this.completeDatabase = data.data.map(item => ({
+            code: item.codigo,
+            description: item.nome
+          }));
+          this.apiDataLoaded = true;
+          console.log(`CID: Carregados ${this.completeDatabase.length} códigos da API`);
+        }
+      }
     } catch (error) {
-      console.error('Erro ao inicializar cache:', error);
+      console.warn('CID: Erro ao carregar dados da API:', error);
+      this.apiDataLoaded = false;
+      this.completeDatabase = [];
     }
   }
 
   /**
-   * CID Cache methods
+   * Busca um código CID pela descrição ou uma descrição pelo código
+   * @param {string} query - Código CID ou descrição para buscar
+   * @returns {Promise<Array>} Lista de resultados correspondentes
    */
-  async getCID(code) {
-    if (!code) return null;
-
-    if (!this.initialized) {
-      await this.initialize();
+  async findCID(query) {
+    if (!query || query.length < 2 || !this.apiDataLoaded) {
+      return [];
     }
 
-    if (this.isCIDCacheValid()) {
-      return this.cidCache.get(code);
-    }
-    await this.updateCIDCache();
-    return this.cidCache.get(code);
+    return this.findInCompleteDatabase(query);
   }
 
-  async updateCIDCache() {
-    try {
-      if (!window.cidInstance) {
-        console.warn('Aguardando cidInstance estar disponível...');
-        await this.initialize();
-      }
+  /**
+   * Busca nos dados completos baixados da API
+   */
+  findInCompleteDatabase(query) {
+    query = query.toLowerCase().trim();
 
-      if (window.cidInstance && window.cidInstance.database) {
-        this.cidCache = new Map(window.cidInstance.database.map(cid => [cid.code, cid]));
-        this.lastUpdate.cid = Date.now();
-        console.log('Cache de CIDs atualizado com sucesso do banco local');
-      } else {
-        console.error('Banco de dados local de CIDs não disponível');
-        throw new Error('Banco de dados local não disponível');
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar cache de CIDs:', error);
-      throw error;
-    }
-  }
+    // Filtrar os resultados com base na query
+    const results = this.completeDatabase.filter(item => {
+      const code = item.code.toLowerCase();
+      const description = item.description.toLowerCase();
 
-  isCIDCacheValid() {
-    return this.lastUpdate.cid &&
-           (Date.now() - this.lastUpdate.cid) < this.cacheExpiration;
+      return code.includes(query) || description.includes(query);
+    });
+
+    // Ordenar por relevância
+    results.sort((a, b) => {
+      // Correspondência exata de código tem prioridade
+      if (a.code.toLowerCase() === query) return -1;
+      if (b.code.toLowerCase() === query) return 1;
+
+      // Código começando com a query tem prioridade
+      const aStartsWithCode = a.code.toLowerCase().startsWith(query);
+      const bStartsWithCode = b.code.toLowerCase().startsWith(query);
+      if (aStartsWithCode && !bStartsWithCode) return -1;
+      if (!aStartsWithCode && bStartsWithCode) return 1;
+
+      // Descrição começando com a query tem prioridade
+      const aStartsWithDesc = a.description.toLowerCase().startsWith(query);
+      const bStartsWithDesc = b.description.toLowerCase().startsWith(query);
+      if (aStartsWithDesc && !bStartsWithDesc) return -1;
+      if (!aStartsWithDesc && bStartsWithDesc) return 1;
+
+      // Por último, ordenar alfabeticamente
+      return a.code.localeCompare(b.code);
+    });
+
+    return results.slice(0, 10); // Limitar a 10 resultados
   }
 
   /**
@@ -126,20 +141,15 @@ class Cache {
    * Cache management methods
    */
   clearCache() {
-    this.cidCache.clear();
     this.cepCache.clear();
-    this.lastUpdate = {
-      cid: null,
-      cep: null
-    };
     this.initialized = false;
   }
 
   getCacheStats() {
     return {
-      cidCount: this.cidCache.size,
+      cidAPILoaded: this.apiDataLoaded,
+      cidCount: this.completeDatabase.length,
       cepCount: this.cepCache.size,
-      lastUpdate: this.lastUpdate,
       initialized: this.initialized
     };
   }
