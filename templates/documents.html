@@ -1,4 +1,31 @@
 <form id="documents-form" autocomplete="off">
+  <!-- Estilos específicos para a página de documentos -->
+  <style>
+    /* Forçar o grid a ter o layout correto */
+    #documentsList .grid {
+      display: grid !important;
+      grid-template-columns: repeat(24, minmax(0, 1fr)) !important;
+    }
+    /* Garantir que o campo de pesquisa ocupe o espaço correto */
+    #documentsList .md\:col-span-23 {
+      grid-column: span 23 / span 23 !important;
+      width: 100% !important;
+    }
+    /* Garantir que o botão fique no lugar certo */
+    #documentsList .md\:col-span-1 {
+      grid-column: span 1 / span 1 !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+    /* Garantir que todos os campos tenham largura total */
+    #documentsList input,
+    #documentsList textarea,
+    #documentsList select {
+      width: 100% !important;
+    }
+  </style>
+
   <div class="bg-white rounded-2xl shadow p-8 mb-8">
     <div class="flex items-center gap-2 mb-6">
       <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
@@ -8,19 +35,19 @@
 
     <!-- Lista de Documentos -->
     <div id="documentsList" class="space-y-4">
-      <!-- Campo de pesquisa e botão adicionar -->
+      <!-- Primeira linha com botão de adicionar -->
       <div class="documento-item relative mb-4">
-        <div class="flex items-center gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
           <!-- Campo de pesquisa -->
-          <div class="relative flex-grow">
-            <input type="text" id="documento-pesquisa" class="documento-pesquisa peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Pesquisar documentos por palavra-chave...">
-            <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+          <div class="relative md:col-span-23">
+            <input type="text" id="documento-pesquisa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Pesquisar documentos por palavra-chave...">
+            <label for="documento-pesquisa" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
               Pesquisar
             </label>
           </div>
 
           <!-- Botão de adicionar no final da linha -->
-          <div class="flex items-center">
+          <div class="md:col-span-1 flex items-center justify-center p-0">
             <button type="button" class="add-documento-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar documento">
               <i class="fas fa-plus"></i>
             </button>
@@ -43,30 +70,23 @@
     </div>
   </div>
 
-  <!-- Campo de Observações -->
-  <div class="bg-white rounded-2xl shadow p-8 mb-8">
-    <div class="flex items-center gap-2 mb-6">
-      <i class="fas fa-comment-alt text-blue-500 text-2xl"></i>
-      <h2 class="text-lg font-semibold text-blue-600">Observações</h2>
-    </div>
-    <div class="relative">
-      <textarea id="observacoes-documentos" rows="4" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Adicione observações sobre os documentos..."></textarea>
-      <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-        Observações
-      </label>
-    </div>
+  <!-- Observações -->
+  <div class="relative mt-8">
+    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre os documentos..."></textarea>
+    <label for="observacoes" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+      Observações
+    </label>
   </div>
+</div>
 
   <!-- Botões de navegação -->
-  <div class="flex justify-between items-center mt-8">
-    <button type="button" id="btn-back" class="flex items-center justify-center gap-2 px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200">
-      <i class="fas fa-arrow-left"></i>
-      <span>Voltar</span>
+  <div class="flex justify-between mt-8">
+    <button type="button" id="btn-back" class="bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2">
+      <i class="fas fa-arrow-left"></i> Anterior
     </button>
 
-    <button type="submit" id="btn-save" class="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
-      <i class="fas fa-save"></i>
-      <span>Salvar</span>
+    <button type="submit" id="btn-save" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2">
+      <i class="fas fa-save"></i> Salvar
     </button>
   </div>
 </form>

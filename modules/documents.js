@@ -160,7 +160,7 @@ window.initModule = function() {
   const documentoTemplate = document.getElementById('documentoTemplate').content;
   const documentoPesquisa = document.getElementById('documento-pesquisa');
   const btnAdicionarDocumento = document.querySelector('.add-documento-btn');
-  const observacoesDocumentos = document.getElementById('observacoes-documentos');
+  const observacoesDocumentos = document.getElementById('observacoes');
 
   let nextId = documentosPreCadastrados.length + 1;
   let documentosAdicionados = [];
@@ -272,23 +272,27 @@ window.initModule = function() {
     btnAdicionarDocumento.addEventListener('click', adicionarNovoDocumento);
   }
 
-  if (documentoPesquisa) {
-    documentoPesquisa.addEventListener('input', function() {
-      const query = this.value.trim();
-      if (query.length >= 2) {
-        const resultados = pesquisarDocumentos(query);
-        exibirResultadosPesquisa(resultados);
-      } else {
-        const resultsContainer = document.getElementById('resultados-pesquisa');
-        if (resultsContainer) {
-          resultsContainer.remove();
-        }
-      }
-    });
-  }
-
-  // Salvar documentos
   if (form) {
+    // Inicializar campo de pesquisa
+    carregarDocumentosParaPesquisa();
+
+    // Event listeners
+    if (documentoPesquisa) {
+      documentoPesquisa.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length >= 2) {
+          const resultados = pesquisarDocumentos(query);
+          exibirResultadosPesquisa(resultados);
+        } else {
+          const resultsContainer = document.getElementById('resultados-pesquisa');
+          if (resultsContainer) {
+            resultsContainer.remove();
+          }
+        }
+      });
+    }
+
+    // Salvar documentos
     form.addEventListener('submit', function(e) {
       e.preventDefault();
 
@@ -317,7 +321,4 @@ window.initModule = function() {
       });
     });
   }
-
-  // Inicialização
-  carregarDocumentosParaPesquisa();
 };
