@@ -1,31 +1,4 @@
 <form id="documents-form" autocomplete="off">
-  <!-- Estilos específicos para a página de documentos -->
-  <style>
-    /* Forçar o grid a ter o layout correto */
-    #documentsList .grid {
-      display: grid !important;
-      grid-template-columns: repeat(24, minmax(0, 1fr)) !important;
-    }
-    /* Garantir que o campo de pesquisa ocupe o espaço correto */
-    #documentsList .md\:col-span-23 {
-      grid-column: span 23 / span 23 !important;
-      width: 100% !important;
-    }
-    /* Garantir que o botão fique no lugar certo */
-    #documentsList .md\:col-span-1 {
-      grid-column: span 1 / span 1 !important;
-      display: flex !important;
-      justify-content: center !important;
-      align-items: center !important;
-    }
-    /* Garantir que todos os campos tenham largura total */
-    #documentsList input,
-    #documentsList textarea,
-    #documentsList select {
-      width: 100% !important;
-    }
-  </style>
-
   <div class="bg-white rounded-2xl shadow p-8 mb-8">
     <div class="flex items-center gap-2 mb-6">
       <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
@@ -35,24 +8,21 @@
 
     <!-- Lista de Documentos -->
     <div id="documentsList" class="space-y-4">
-      <!-- Primeira linha com botão de adicionar -->
-      <div class="documento-item relative mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
-          <!-- Campo de pesquisa -->
-          <div class="relative md:col-span-23">
+      <!-- Linha de pesquisa -->
+      <div class="documento-item relative mb-4" style="display: flex; align-items: center;">
+        <div style="flex: 1; width: calc(100% - 40px); margin-right: 16px;">
+          <div class="relative">
             <input type="text" id="documento-pesquisa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Pesquisar documentos por palavra-chave...">
             <label for="documento-pesquisa" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
               Pesquisar
             </label>
           </div>
-
-          <!-- Botão de adicionar no final da linha -->
-          <div class="md:col-span-1 flex items-center justify-center p-0">
-            <button type="button" class="add-documento-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar documento">
-              <i class="fas fa-plus"></i>
-            </button>
-          </div>
         </div>
+
+        <!-- Botão de adicionar -->
+        <button type="button" class="add-documento-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" style="flex-shrink: 0;" title="Adicionar documento">
+          <i class="fas fa-plus"></i>
+        </button>
       </div>
 
       <!-- Área de resultados da pesquisa -->
