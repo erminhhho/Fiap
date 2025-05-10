@@ -274,12 +274,6 @@ window.initModule = function() {
   // Setup inicial
   setupEvents();
 
-  // Log de diagnóstico após inicialização
-  console.log('Módulo de dados pessoais inicializado, funções disponíveis:', {
-    navigateToNextStep: typeof window.navigateToNextStep === 'function',
-    navigateTo: typeof window.navigateTo === 'function'
-  });
-
   // Resetar flag quando a página mudar
   document.addEventListener('stepChanged', function() {
     window._personalInitialized = false;
@@ -341,7 +335,6 @@ function setupEvents() {
 
   // Botão Próximo
   const nextButton = document.getElementById('btn-next');
-  console.log('Botão próximo encontrado:', nextButton !== null);
 
   if (nextButton) {
     // Preservar classes originais
@@ -360,17 +353,13 @@ function setupEvents() {
 
     // Adicionar evento de clique diretamente
     newBtn.onclick = function() {
-      console.log('Botão próximo clicado!');
-
       // Salvar dados do formulário (opcional)
       saveAssistidoData();
 
       // Verificar e usar a melhor função de navegação disponível
       if (typeof window.navigateToNextStep === 'function') {
-        console.log('Usando navigateToNextStep()');
         window.navigateToNextStep();
       } else if (typeof window.navigateTo === 'function') {
-        console.log('Usando navigateTo("social")');
         window.navigateTo('social');
       } else {
         console.error('Nenhuma função de navegação disponível!');
@@ -381,10 +370,8 @@ function setupEvents() {
 
     // Adicionar também como addEventListener para garantir
     newBtn.addEventListener('click', function(event) {
-      console.log('Evento de clique captado via addEventListener');
+      // Evento de clique para garantia
     });
-
-    console.log('Evento de clique configurado para o botão próximo');
   } else {
     console.error('Botão próximo não encontrado!');
   }
