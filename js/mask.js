@@ -380,7 +380,6 @@ window.maskUF = Mask.uf.bind(Mask);
 window.maskOnlyNumbers = Mask.onlyNumbers.bind(Mask);
 window.maskMoney = Mask.money.bind(Mask);
 window.formatarNomeProprio = Mask.properName.bind(Mask);
-window.maskCID = Mask.cid.bind(Mask);
 
 // Exportar todo o objeto Mask
 window.Mask = Mask;
