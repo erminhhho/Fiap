@@ -24,7 +24,7 @@
             <!-- Nome do assistido - 6 colunas (preenchido automaticamente) -->
             <div class="relative md:col-span-6">
               <input type="text" name="familiar_nome[]" id="assistido_nome" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Nome do Assistido
               </label>
             </div>
@@ -32,7 +32,7 @@
             <!-- CPF - 3 colunas (preenchido automaticamente) - reduzido -->
             <div class="relative md:col-span-3">
               <input type="text" name="familiar_cpf[]" id="assistido_cpf" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 CPF
               </label>
             </div>
@@ -40,7 +40,7 @@
             <!-- Idade - 2 colunas (preenchido automaticamente) -->
             <div class="relative md:col-span-2">
               <input type="text" name="familiar_idade[]" id="assistido_idade" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Idade
               </label>
             </div>
@@ -48,7 +48,7 @@
             <!-- Parentesco - 4 colunas (fixo como "Assistido") -->
             <div class="relative md:col-span-4">
               <input type="text" name="familiar_parentesco[]" value="Assistido" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 transition-colors duration-200" readonly />
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Parentesco
               </label>
             </div>
@@ -63,13 +63,13 @@
                 <option value="Divorciado(a)">Divorciado(a)</option>
                 <option value="Viúvo(a)">Viúvo(a)</option>
               </select>
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Estado Civil
               </label>
             </div>            <!-- Renda Mensal - 2 colunas (pode ser editado) -->
             <div class="relative md:col-span-2">
               <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(FIAP.masks && typeof FIAP.masks.money === 'function') FIAP.masks.money(this)" />
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Renda
               </label>
             </div><!-- CadÚnico - 2 colunas -->
@@ -95,7 +95,7 @@
             <!-- Nome do membro - 6 colunas -->
             <div class="relative md:col-span-6">
               <input type="text" name="familiar_nome[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome completo" />
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Nome completo
               </label>
             </div>
@@ -103,7 +103,7 @@
             <!-- CPF - 3 colunas (reduzido) -->
             <div class="relative md:col-span-3">
               <input type="text" name="familiar_cpf[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="000.000.000-00" oninput="maskCPF(this)" />
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 CPF
               </label>
             </div>
@@ -111,7 +111,7 @@
             <!-- Idade - 2 colunas -->
             <div class="relative md:col-span-2">
               <input type="text" name="familiar_idade[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Idade" />
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Idade
               </label>
             </div>
@@ -126,7 +126,7 @@
                 <option value="Irmão/Irmã">Irmão/Irmã</option>
                 <option value="Outro">Outro</option>
               </select>
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Parentesco
               </label>
             </div>
@@ -141,13 +141,13 @@
                 <option value="Divorciado(a)">Divorciado(a)</option>
                 <option value="Viúvo(a)">Viúvo(a)</option>
               </select>
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Estado Civil
               </label>
             </div>            <!-- Renda Mensal - 2 colunas -->
             <div class="relative md:col-span-2">
               <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(FIAP.masks && typeof FIAP.masks.money === 'function') FIAP.masks.money(this)" />
-              <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              <label class="input-label">
                 Renda
               </label>
             </div>
