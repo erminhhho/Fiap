@@ -334,33 +334,9 @@ const Mask = {
    * @param {HTMLInputElement} input - Campo de entrada do CID
    */
   cid: function(input) {
-    // Remover espaços
-    let value = input.value.trim();
-
-    // Verificar se é um formato de CID válido (letra seguida de números e possível ponto)
-    if (value) {
-      // Garantir que a primeira letra seja maiúscula
-      if (value.length > 0) {
-        value = value.charAt(0).toUpperCase() + value.slice(1);
-      }
-
-      // Formatar para o padrão correto X00.0
-      const cidPattern = /^([A-Z])(\d+)(.*)$/;
-      if (cidPattern.test(value)) {
-        value = value.replace(cidPattern, function(match, letter, number, rest) {
-          // Se rest contém um ponto, manter como está, caso contrário adicionar
-          if (rest.includes('.')) {
-            return letter + number + rest;
-          } else if (rest) {
-            return letter + number + '.' + rest;
-          } else {
-            return letter + number;
-          }
-        });
-      }
-    }
-
-    input.value = value;
+    // Máscara removida - campo CID não precisa de formatação
+    // pois é pesquisável diretamente na API
+    return;
   },
 
   // Configuração
