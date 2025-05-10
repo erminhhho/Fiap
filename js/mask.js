@@ -101,7 +101,7 @@ const Mask = {
 
     input.value = value;
 
-    // Adicionar ícone de WhatsApp se disponível
+    // Garantir que o ícone de WhatsApp seja adicionado
     if (this.whatsappIconsEnabled && typeof this.addWhatsAppIcon === 'function') {
       this.addWhatsAppIcon(input);
     }

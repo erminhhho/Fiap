@@ -157,7 +157,9 @@ FIAP.masks = {
     input.value = value;
 
     // Garantir que o ícone de WhatsApp seja adicionado
-    this.addWhatsAppIcon(input);
+    if (typeof this.addWhatsAppIcon === 'function') {
+      this.addWhatsAppIcon(input);
+    }
   },
 
   /**
