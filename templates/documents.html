@@ -2,22 +2,141 @@
   <div class="bg-white rounded-2xl shadow p-8 mb-8">
     <div class="flex items-center gap-2 mb-6">
       <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
-      <h2 class="text-lg font-semibold text-blue-600">Documentos e Conclusão</h2>
+      <h2 class="text-lg font-semibold text-blue-600">Documentos</h2>
     </div>
+    <p class="text-gray-500 mb-6">Documentos mais usados na advocacia previdenciária, com foco em segurado especial e trabalhador rural.</p>
 
-    <div class="grid grid-cols-1 md:grid-cols-24 gap-4 mb-6">
-      <div class="md:col-span-24 bg-yellow-50 p-6 rounded-xl text-center">
-        <p class="text-yellow-700">Módulo de Documentos e Conclusão em desenvolvimento.</p>
-        <p class="text-sm text-yellow-600 mt-2">Este módulo será implementado nas próximas atualizações.</p>
+    <!-- Lista de Documentos -->
+    <div id="documentsList" class="space-y-4">
+      <!-- Campo de pesquisa e botão adicionar -->
+      <div class="documento-item relative mb-4">
+        <div class="flex items-center gap-3">
+          <!-- Campo de pesquisa -->
+          <div class="relative flex-grow">
+            <input type="text" id="documento-pesquisa" class="documento-pesquisa peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Pesquisar documentos por palavra-chave...">
+            <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+              Pesquisar
+            </label>
+          </div>
+
+          <!-- Botão de adicionar no final da linha -->
+          <div class="flex items-center">
+            <button type="button" class="add-documento-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar documento">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Área de resultados da pesquisa -->
+      <div id="resultados-pesquisa" class="mt-4 hidden">
+        <h3 class="text-blue-600 font-semibold mb-2">Resultados da pesquisa</h3>
+        <div id="lista-resultados" class="space-y-2 bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto">
+          <!-- Os resultados da pesquisa serão inseridos aqui dinamicamente -->
+        </div>
+      </div>
+
+      <!-- Lista de documentos adicionados -->
+      <div id="documentos-container" class="space-y-4 my-6">
+        <!-- Aqui serão adicionados os documentos -->
       </div>
     </div>
   </div>
-  <div class="flex justify-between mt-8">
-    <button type="button" class="bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2" id="btn-back">
-      <i class="fas fa-arrow-left"></i> Anterior
+
+  <!-- Campo de Observações -->
+  <div class="bg-white rounded-2xl shadow p-8 mb-8">
+    <div class="flex items-center gap-2 mb-6">
+      <i class="fas fa-comment-alt text-blue-500 text-2xl"></i>
+      <h2 class="text-lg font-semibold text-blue-600">Observações</h2>
+    </div>
+    <div class="relative">
+      <textarea id="observacoes-documentos" rows="4" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Adicione observações sobre os documentos..."></textarea>
+      <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+        Observações
+      </label>
+    </div>
+  </div>
+
+  <!-- Botões de navegação -->
+  <div class="flex justify-between items-center mt-8">
+    <button type="button" id="btn-back" class="flex items-center justify-center gap-2 px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+      <i class="fas fa-arrow-left"></i>
+      <span>Voltar</span>
     </button>
-    <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="btn-finish">
-      Finalizar <i class="fas fa-check"></i>
+
+    <button type="submit" id="btn-save" class="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+      <i class="fas fa-save"></i>
+      <span>Salvar</span>
     </button>
   </div>
 </form>
+
+<!-- Template para novo documento adicionado -->
+<template id="documentoTemplate">
+  <div class="documento-adicionado relative p-4 bg-gray-50 rounded-lg shadow-sm mb-4">
+    <!-- Cabeçalho do documento -->
+    <div class="flex flex-wrap items-center gap-4 mb-3">
+      <!-- Nome do documento -->
+      <div class="relative flex-grow">
+        <input type="text" class="nome-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Nome do documento">
+        <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+          Nome do Documento
+        </label>
+      </div>
+
+      <!-- Tipo de documento -->
+      <div class="relative w-40">
+        <select class="tipo-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+          <option value="">Selecione o tipo</option>
+          <option value="declaracao">Declaração</option>
+          <option value="certidao">Certidão</option>
+          <option value="contrato">Contrato</option>
+          <option value="inscricao">Inscrição</option>
+          <option value="nota">Nota Fiscal</option>
+          <option value="cadastro">Cadastro</option>
+          <option value="ficha">Ficha</option>
+          <option value="outro">Outro</option>
+        </select>
+        <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+          Tipo
+        </label>
+      </div>
+
+      <!-- Botão de remover -->
+      <div class="flex items-center">
+        <button type="button" class="remover-documento bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Remover documento">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Campos de conteúdo do documento -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Descrição do documento para petição -->
+      <div class="relative">
+        <textarea class="descricao-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" rows="3" placeholder="Descreva o documento de forma detalhada para ser utilizado diretamente na petição inicial..."></textarea>
+        <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+          Descrição para petição inicial
+        </label>
+      </div>
+
+      <!-- Detalhes adicionais do documento -->
+      <div class="relative">
+        <textarea class="detalhes-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" rows="3" placeholder="Informações adicionais, número de série, data de emissão, órgão emissor, localização física, etc."></textarea>
+        <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
+          Detalhes do documento
+        </label>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- Scripts -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.initModule) {
+      window.initModule();
+    }
+  });
+</script>
+
