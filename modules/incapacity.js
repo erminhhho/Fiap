@@ -140,86 +140,84 @@ function injectFixStyles() {
   const style = document.createElement('style');
   style.id = 'dropdown-fix-styles';
   style.innerHTML = `
-    /* Ocultar qualquer item de dropdown que apareça fora do dropdown */
-    .dropdown-item-selected,
-    .dropdown-select-selected,
-    .dropdown-content > div:only-child,
-    body > .dropdown-item,
-    body > .autocomplete-item,
-    .dropdown-content-selected,
-    .autocomplete-selected,
-    .dropdown-selected,
-    body > div[class*="dropdown"],
-    body > div[class*="autocomplete"],
-    /* Seletores de componentes específicos de autocomplete */
-    .autocomplete-items,
-    .autocomplete-active,
-    .autocomplete-suggestion,
-    /* Capturar elementos soltos no body */
-    body > div:not([class]):not([id])[style*="position: absolute"],
-    body > .absolute {
+    /* Ocultar apenas os itens selecionados que apareçam diretamente no body */
+    body > .dropdown-item-selected,
+    body > .dropdown-select-selected,
+    body > .dropdown-item:not(.dropdown-item-hover),
+    body > .autocomplete-item:not(.autocomplete-hover),
+    body > .autocomplete-selected {
       display: none !important;
       visibility: hidden !important;
       opacity: 0 !important;
-      pointer-events: none !important;
-      height: 0 !important;
-      width: 0 !important;
-      position: absolute !important;
-      left: -9999px !important;
     }
 
-    /* Garantir que os dropdowns só fiquem visíveis quando tiverem a classe apropriada */
-    .cid-dropdown,
-    .doenca-dropdown,
-    .dropdown-content {
-      visibility: hidden;
-      display: none;
-      opacity: 0;
-      transition: none !important;
-    }
-
+    /* Permitir que os dropdowns funcionem normalmente */
     .cid-dropdown:not(.hidden),
-    .doenca-dropdown:not(.hidden),
-    .dropdown-content:not(.hidden) {
-      visibility: visible;
-      display: block;
-      opacity: 1;
+    .doenca-dropdown:not(.hidden) {
+      visibility: visible !important;
+      display: block !important;
+      opacity: 1 !important;
+    }
+
+    /* Melhorar a exibição de itens de dropdown com textos longos */
+    .cid-dropdown .dropdown-item,
+    .doenca-dropdown .dropdown-item {
+      padding: 10px 12px !important;
+      white-space: normal !important;
+      line-height: 1.4 !important;
+      word-wrap: break-word !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+      max-width: 100% !important;
+      text-overflow: ellipsis !important;
+      display: block !important;
+      font-size: 0.9rem !important;
+    }
+
+    /* Estilo de hover para itens de dropdown */
+    .cid-dropdown .dropdown-item:hover,
+    .doenca-dropdown .dropdown-item:hover,
+    .cid-dropdown .dropdown-item.active,
+    .doenca-dropdown .dropdown-item.active {
+      background-color: rgba(59, 130, 246, 0.1) !important;
+    }
+
+    /* Estilo para os dropdowns em si */
+    .cid-dropdown,
+    .doenca-dropdown {
+      max-height: 300px !important;
+      overflow-y: auto !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+      border-radius: 0.5rem !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
     }
   `;
 
   // Adicionar o estilo ao cabeçalho do documento
   document.head.appendChild(style);
 
-  // Intervalo para remover itens selecionados a cada 500ms
-  setInterval(cleanupSelectedItems, 500);
+  // Intervalo mais suave para remover itens selecionados apenas a cada 1 segundo
+  setInterval(cleanupSelectedItems, 1000);
 }
 
 // Função para limpar periodicamente itens selecionados
 function cleanupSelectedItems() {
-  // Seletores para capturar todos os possíveis componentes de item selecionado
+  // Seletores específicos para elementos fora do contexto
   const selectors = [
-    '.dropdown-item-selected',
-    '.dropdown-select-selected',
-    '.dropdown-content > div:only-child',
-    'body > .dropdown-item',
-    'body > .autocomplete-item',
-    '.dropdown-content-selected',
-    '.autocomplete-selected',
-    '.dropdown-selected',
-    'body > div[class*="dropdown"]:not(.cid-dropdown):not(.doenca-dropdown)',
-    'body > div[class*="autocomplete"]',
-    '.autocomplete-items',
-    '.autocomplete-active',
-    '.autocomplete-suggestion',
-    // Capturar elementos soltos no body que parecem ser dropdowns
-    'body > div:not([class]):not([id])[style*="position: absolute"]',
-    'body > .absolute:not(.cid-dropdown):not(.doenca-dropdown)'
+    'body > .dropdown-item-selected',
+    'body > .dropdown-select-selected',
+    'body > .dropdown-item:not(.dropdown-item-hover)',
+    'body > .autocomplete-item:not(.autocomplete-hover)',
+    'body > .autocomplete-selected'
   ].join(', ');
 
-  // Remover todos os elementos que correspondam aos seletores
-  document.querySelectorAll(selectors).forEach(item => {
-    if (item.parentElement && !item.parentElement.classList.contains('cid-dropdown') &&
-        !item.parentElement.classList.contains('doenca-dropdown')) {
+  // Remover apenas elementos que estejam diretamente no body
+  const items = document.querySelectorAll(selectors);
+  items.forEach(item => {
+    // Verificar se o elemento está diretamente no body ou em um container incorreto
+    if (item.parentElement === document.body ||
+        (item.parentElement &&
+         !item.parentElement.classList.contains('cid-dropdown') &&
+         !item.parentElement.classList.contains('doenca-dropdown'))) {
       item.remove();
     }
   });
@@ -353,49 +351,21 @@ function setupDropdownHandlers() {
 
 // Sobrescrever funções globais associadas a componentes de autocomplete
 function overrideAutocompleteFunctions() {
-  // Verificar e sobrescrever funções comuns de autocomplete
-  const functionsToOverride = [
-    'showAutocompleteItems',
-    'displayMatches',
-    'showDropdown',
-    'showSuggestions',
-    'renderDropdown',
-    'renderSuggestions',
-    'displaySelected',
-    'selectItem'
-  ];
+  // Não vamos sobrescrever as funções globais para preservar a funcionalidade
+  // Apenas adicionamos handlers específicos para limpar itens soltos
 
-  // Para cada função, adicionar um wrapper que limpa itens selecionados após execução
-  functionsToOverride.forEach(funcName => {
-    if (typeof window[funcName] === 'function') {
-      const originalFunc = window[funcName];
-      window[funcName] = function(...args) {
-        const result = originalFunc.apply(this, args);
-
-        // Limpar itens selecionados após um pequeno atraso
-        setTimeout(cleanupSelectedItems, 50);
-        return result;
-      };
+  // Adicionar handlers globais para eventos de clique em itens de dropdown
+  document.addEventListener('click', function(e) {
+    // Se clicar em um item de dropdown
+    if (e.target.classList &&
+        (e.target.classList.contains('dropdown-item') ||
+         e.target.classList.contains('autocomplete-item'))) {
+      // Agendar uma limpeza após a seleção
+      setTimeout(cleanupSelectedItems, 100);
     }
   });
 
-  // Adicionar handlers globais para eventos de clique
-  document.addEventListener('click', cleanupSelectedItems);
-  document.addEventListener('mousedown', cleanupSelectedItems);
-
-  // Sobrescrever o método de clique padrão para todos os elementos
-  const originalAddEventListener = Element.prototype.addEventListener;
-  Element.prototype.addEventListener = function(type, listener, options) {
-    if (type === 'click' || type === 'mousedown') {
-      const wrappedListener = function(e) {
-        const result = listener.call(this, e);
-        setTimeout(cleanupSelectedItems, 10);
-        return result;
-      };
-      return originalAddEventListener.call(this, type, wrappedListener, options);
-    }
-    return originalAddEventListener.call(this, type, listener, options);
-  };
+  // Não sobrescrever addEventListener para evitar interferência com a funcionalidade
 }
 
 // Configura os manipuladores de eventos para um campo de input específico
@@ -417,25 +387,15 @@ function setupInputEventHandlers(input) {
         d.classList.add('hidden');
       }
     });
-
-    // Limpar itens selecionados
-    cleanupSelectedItems();
   });
 
-  // Adicionar manipulador de eventos para fechar o dropdown ao selecionar um item
-  dropdown.querySelectorAll('.dropdown-item').forEach(item => {
-    item.addEventListener('mousedown', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      // Fechar o dropdown imediatamente
-      dropdown.classList.add('hidden');
-
-      // Força limpeza imediata e após um pequeno atraso
-      cleanupSelectedItems();
-      setTimeout(cleanupSelectedItems, 50);
-      setTimeout(cleanupSelectedItems, 200);
-    });
+  // Adicionar manipulador para os itens do dropdown (sem interferir com a funcionalidade de pesquisa)
+  dropdown.addEventListener('click', function(e) {
+    // Se clicou em um item do dropdown
+    if (e.target.classList && e.target.classList.contains('dropdown-item')) {
+      // Agendar limpeza após seleção
+      setTimeout(cleanupSelectedItems, 100);
+    }
   });
 
   input.dataset.handlersInitialized = 'true';

@@ -1,12 +1,12 @@
 <form id="incapacity-form" autocomplete="off">
+  <!-- CARD ÚNICO: Dados de Incapacidade -->
   <div class="bg-white rounded-2xl shadow p-8 mb-8">
     <div class="flex items-center gap-2 mb-6">
       <i class="fas fa-heartbeat text-blue-500 text-2xl"></i>
       <h2 class="text-lg font-semibold text-blue-600">Dados de Incapacidade</h2>
     </div>
-    <p class="text-gray-500 mb-6">Informações médicas e periciais relevantes para o processo.</p>
 
-    <!-- Doenças e CIDs - Removido o fundo cinza e simplificado o layout -->
+    <!-- Doenças e CIDs -->
     <div class="mb-6">
       <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Doenças e CIDs</h3>
       <div id="doencasList">
@@ -67,72 +67,73 @@
       </div>
     </div>
 
-    <!-- Informações da Perícia -->
-    <div class="bg-gray-50 rounded-xl p-6 mb-6">
-      <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Informações da Perícia</h3>
+    <!-- Duração e Trabalho -->
+    <div class="mb-6">
+      <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Duração e Situação de Trabalho</h3>
       <div class="grid grid-cols-1 md:grid-cols-24 gap-4 mb-6">
         <div class="relative md:col-span-12">
-          <input type="text" id="nomePerito" name="nomePerito" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do perito">
-          <label for="nomePerito" class="input-label">
-            Nome do Perito
+          <input type="text" id="tempoIncapacidade" name="tempoIncapacidade" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Ex: 2 anos e 3 meses">
+          <label for="tempoIncapacidade" class="input-label">
+            Há quanto tempo está doente/incapacitado?
           </label>
         </div>
 
         <div class="relative md:col-span-12">
-          <select id="conclusaoPericia" name="conclusaoPericia" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" data-other-target="outraConclusao">
+          <select id="trabalhaAtualmente" name="trabalhaAtualmente" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
             <option value="" selected disabled>Selecione...</option>
-            <option value="favoravel">Favorável à incapacidade</option>
-            <option value="desfavoravel">Desfavorável à incapacidade</option>
-            <option value="parcial">Incapacidade parcial</option>
-            <option value="temporaria">Incapacidade temporária</option>
-            <option value="definitiva">Incapacidade definitiva</option>
-            <option value="outro">Outro...</option>
+            <option value="sim">Sim, trabalho normalmente</option>
+            <option value="sim-adaptado">Sim, com adaptações/restrições</option>
+            <option value="afastado">Estou afastado</option>
+            <option value="nao">Não consigo trabalhar</option>
           </select>
-          <label for="conclusaoPericia" class="input-label">
-            Conclusão da Perícia
+          <label for="trabalhaAtualmente" class="input-label">
+            Consegue trabalhar atualmente?
           </label>
-          <div id="outraConclusao" class="relative mt-2 hidden outro-field">
-            <input type="text" id="outraConclusaoInput" name="outraConclusao" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Especifique a conclusão">
-            <label for="outraConclusaoInput" class="input-label">
-              Especifique a conclusão
-            </label>
-          </div>
         </div>
       </div>
 
       <div class="relative mb-6">
-        <select id="tipoIncapacidade" name="tipoIncapacidade" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" data-other-target="outroTipoIncapacidade">
-          <option value="" selected disabled>Selecione...</option>
-          <option value="total-temporaria">Total e Temporária</option>
-          <option value="total-permanente">Total e Permanente</option>
-          <option value="parcial-temporaria">Parcial e Temporária</option>
-          <option value="parcial-permanente">Parcial e Permanente</option>
-          <option value="sem-incapacidade">Sem Incapacidade</option>
-          <option value="outro">Outro...</option>
-        </select>
-        <label for="tipoIncapacidade" class="input-label">
-          Tipo de Incapacidade
+        <input type="text" id="ultimoTrabalho" name="ultimoTrabalho" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Ex: Março/2022">
+        <label for="ultimoTrabalho" class="input-label">
+          Quando trabalhou pela última vez?
         </label>
-        <div id="outroTipoIncapacidade" class="relative mt-2 hidden outro-field">
-          <input type="text" id="outroTipoIncapacidadeInput" name="outroTipoIncapacidade" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Especifique o tipo">
-          <label for="outroTipoIncapacidadeInput" class="input-label">
-            Especifique o tipo
-          </label>
-        </div>
+      </div>
+    </div>
+
+    <!-- Limitações e Tratamentos -->
+    <div>
+      <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Limitações e Tratamentos</h3>
+
+      <!-- Limitações do dia a dia -->
+      <div class="relative mb-6">
+        <textarea id="limitacoesDiarias" name="limitacoesDiarias" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Ex: Dificuldade para levantar peso, dores ao ficar muito tempo sentado, problemas de concentração..."></textarea>
+        <label for="limitacoesDiarias" class="input-label">
+          Quais limitações você enfrenta no dia a dia?
+        </label>
       </div>
 
-      <div class="relative">
-        <textarea id="observacoesPericia" name="observacoesPericia" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre a perícia..."></textarea>
-        <label for="observacoesPericia" class="input-label">
-          Observações
-        </label>
+      <!-- Tratamentos e Medicamentos -->
+      <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
+        <div class="relative md:col-span-12">
+          <textarea id="tratamentosRealizados" name="tratamentosRealizados" rows="2" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Ex: Fisioterapia semanal, consultas com ortopedista mensais, cirurgia em 2021..."></textarea>
+          <label for="tratamentosRealizados" class="input-label">
+            Tratamentos realizados
+          </label>
+        </div>
+
+        <div class="relative md:col-span-12">
+          <textarea id="medicamentosAtuais" name="medicamentosAtuais" rows="2" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Ex: Dipirona 500mg (dor), Fluoxetina 20mg (depressão)..."></textarea>
+          <label for="medicamentosAtuais" class="input-label">
+            Medicamentos em uso
+          </label>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Observações -->
+  <!-- Observações - Fora do card -->
   <div class="relative mt-8">
-    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre as incapacidades..."></textarea>
+    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre as incapacidades..."></textarea>
     <label for="observacoes" class="input-label">
       Observações
     </label>
