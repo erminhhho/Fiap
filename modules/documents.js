@@ -409,6 +409,16 @@ window.initModule = function() {
           }
         }
       });
+
+      // Esconder resultados ao clicar fora
+      document.addEventListener('click', (e) => {
+        if (!documentoPesquisa.contains(e.target)) {
+          const resultadosPesquisa = document.getElementById('resultados-pesquisa');
+          if (resultadosPesquisa && !resultadosPesquisa.contains(e.target)) {
+            resultadosPesquisa.classList.add('hidden');
+          }
+        }
+      });
     }
 
     // Botão Voltar
