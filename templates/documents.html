@@ -8,18 +8,19 @@
     <!-- Lista de Documentos -->
     <div id="documentsList" class="space-y-1">
       <!-- Campo de pesquisa centralizado com design mais compacto -->
-      <div class="mb-3">
-        <div class="relative max-w-lg mx-auto">
-          <input type="text" id="documento-pesquisa" class="peer w-full rounded border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-base" placeholder="Digite para pesquisar ou adicionar um documento...">
-          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <i class="fas fa-search"></i>
-          </div>
+      <div class="relative mb-3 max-w-lg mx-auto">
+        <input type="text" id="documento-pesquisa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 text-base" placeholder="Digite para pesquisar ou adicionar um documento...">
+        <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <i class="fas fa-search"></i>
         </div>
+        <label for="documento-pesquisa" class="input-label text-base">
+          Pesquisar Documentos
+        </label>
+      </div>
 
-        <!-- Resultados da pesquisa (aparecerão abaixo do campo) -->
-        <div id="resultados-pesquisa" class="max-w-lg mx-auto hidden">
-          <!-- Essa div será preenchida via JavaScript -->
-        </div>
+      <!-- Resultados da pesquisa (aparecerão abaixo do campo) -->
+      <div id="resultados-pesquisa" class="max-w-lg mx-auto hidden">
+        <!-- Essa div será preenchida via JavaScript -->
       </div>
 
       <!-- Lista de documentos adicionados com espaçamento reduzido -->
