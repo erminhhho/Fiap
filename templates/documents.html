@@ -11,28 +11,14 @@
       <div class="mb-6">
         <div class="relative max-w-lg mx-auto">
           <input type="text" id="documento-pesquisa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Digite para pesquisar ou adicionar um documento...">
-          <label for="documento-pesquisa" class="input-label">
-            Buscar/Adicionar Documento
-          </label>
           <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
             <i class="fas fa-search"></i>
           </div>
         </div>
 
-        <!-- Resultados da pesquisa e opção de novo documento -->
-        <div id="resultados-pesquisa" class="mt-2 max-w-lg mx-auto hidden">
-          <!-- Lista de resultados -->
-          <div id="lista-resultados" class="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
-            <!-- Resultados da pesquisa serão inseridos aqui -->
-          </div>
-
-          <!-- Opção para criar novo documento (aparece quando não há correspondências) -->
-          <div id="opcao-novo-documento" class="mt-2">
-            <button type="button" id="btn-criar-documento" class="w-full bg-blue-50 hover:bg-blue-100 text-left px-4 py-3 rounded-lg border border-blue-200 flex items-center justify-between transition">
-              <span><i class="fas fa-plus-circle text-blue-500 mr-2"></i> Criar novo documento: "<span id="texto-novo-documento"></span>"</span>
-              <i class="fas fa-plus text-blue-500"></i>
-            </button>
-          </div>
+        <!-- Resultados da pesquisa (aparecerão abaixo do campo) -->
+        <div id="resultados-pesquisa" class="max-w-lg mx-auto hidden">
+          <!-- Essa div será preenchida via JavaScript -->
         </div>
       </div>
 
@@ -208,199 +194,28 @@
     if (window.initModule) {
       window.initModule();
     }
-
-    // Inicializar o sistema de documentos
-    initDocumentSystem();
   });
 
-  // Inicializar sistema de documentos
-  function initDocumentSystem() {
-    // Elementos DOM
-    const searchInput = document.getElementById('documento-pesquisa');
-    const resultadosContainer = document.getElementById('resultados-pesquisa');
-    const listaResultados = document.getElementById('lista-resultados');
-    const opcaoNovoDocumento = document.getElementById('opcao-novo-documento');
-    const textoNovoDocumento = document.getElementById('texto-novo-documento');
-    const btnCriarDocumento = document.getElementById('btn-criar-documento');
-    const btnAdicionarDocumento = document.getElementById('btn-adicionar-documento');
-
-    // Lista de documentos comuns
-    const documentosComuns = [
-      'Carteira de Trabalho', 'Certidão de Nascimento', 'Certidão de Casamento',
-      'Bloco de Notas de Produtor Rural', 'Comprovante de Residência Rural',
-      'Declaração de Sindicato Rural', 'Ficha de Matrícula Escolar Rural',
-      'Contratos de Arrendamento Rural', 'Cadastro de Produtor Rural',
-      'Conta de Luz Rural', 'Notas Fiscais de Produtos Agrícolas',
-      'Imposto Territorial Rural (ITR)', 'Histórico Escolar Rural',
-      'Prontuário Médico', 'Comprovante de Recebimento de Benefício',
-      'RG', 'CPF', 'Título de Eleitor'
-    ];
-
-    // Botão de adicionar documento
-    btnAdicionarDocumento.addEventListener('click', function() {
-      adicionarDocumento('Novo Documento');
-    });
-
-    // Botão de criar documento da pesquisa
-    btnCriarDocumento.addEventListener('click', function() {
-      const texto = searchInput.value.trim();
-      if (texto) {
-        adicionarDocumento(texto);
-        searchInput.value = '';
-        resultadosContainer.classList.add('hidden');
-      }
-    });
-
-    // Campo de pesquisa - evento de digitação
-    searchInput.addEventListener('input', function() {
-      const query = this.value.trim();
-
-      // Se vazio, ocultar resultados
-      if (!query) {
-        resultadosContainer.classList.add('hidden');
-        return;
-      }
-
-      // Mostrar container de resultados
-      resultadosContainer.classList.remove('hidden');
-
-      // Limpar resultados anteriores
-      listaResultados.innerHTML = '';
-
-      // Filtrar documentos que correspondam à consulta
-      const queryLower = query.toLowerCase();
-      const resultados = documentosComuns.filter(doc =>
-        doc.toLowerCase().includes(queryLower)
-      );
-
-      // Se encontrou resultados, mostrar na lista
-      if (resultados.length > 0) {
-        // Adicionar cada resultado
-        resultados.forEach(doc => {
-          const item = document.createElement('div');
-          item.className = 'p-3 hover:bg-blue-50 cursor-pointer flex items-center justify-between';
-          item.innerHTML = `
-            <span class="font-medium text-gray-800">${doc}</span>
-            <i class="fas fa-plus text-gray-400"></i>
-          `;
-
-          // Evento de clique para adicionar o documento
-          item.addEventListener('click', function() {
-            adicionarDocumento(doc);
-            searchInput.value = '';
-            resultadosContainer.classList.add('hidden');
-          });
-
-          listaResultados.appendChild(item);
-        });
-      } else {
-        // Nenhum resultado encontrado - adicionar mensagem
-        const noResultsMsg = document.createElement('div');
-        noResultsMsg.className = 'p-3 text-center text-gray-500 italic';
-        noResultsMsg.textContent = 'Nenhum documento encontrado';
-        listaResultados.appendChild(noResultsMsg);
-      }
-
-      // Sempre mostrar opção de criar novo com o texto atual
-      textoNovoDocumento.textContent = query;
-      opcaoNovoDocumento.style.display = 'block';
-    });
-
-    // Fechar resultados ao clicar fora
-    document.addEventListener('click', function(e) {
-      if (!searchInput.contains(e.target) && !resultadosContainer.contains(e.target)) {
-        resultadosContainer.classList.add('hidden');
-      }
-    });
-
-    // Permitir criar documento com Enter
-    searchInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        const query = this.value.trim();
-        if (query) {
-          adicionarDocumento(query);
-          this.value = '';
-          resultadosContainer.classList.add('hidden');
-          e.preventDefault();
-        }
-      }
-    });
-  }
-
-  // Função para adicionar um novo documento
-  function adicionarDocumento(nomeDocumento) {
-    try {
-      // Obter elementos
-      const template = document.getElementById('documentoTemplate');
-      const documentosContainer = document.getElementById('documentos-container');
-
-      if (!template || !documentosContainer) {
-        console.error('Template ou container de documentos não encontrado');
-        return;
-      }
-
-      // Clonar o template
-      const novoDocumento = template.content.cloneNode(true);
-
-      // Preencher o nome do documento
-      const inputNome = novoDocumento.querySelector('.nome-documento');
-      if (inputNome) {
-        inputNome.value = nomeDocumento;
-      }
-
-      // Configurar botão de remover
-      const btnRemover = novoDocumento.querySelector('.remover-documento');
-      if (btnRemover) {
-        btnRemover.addEventListener('click', function() {
-          this.closest('.documento-adicionado').remove();
-        });
-      }
-
-      // Adicionar à lista de documentos
-      documentosContainer.appendChild(novoDocumento);
-
-      // Configurar eventos de status para o novo documento
-      const statusSelect = novoDocumento.querySelector('.status-documento');
-      if (statusSelect) {
-        statusSelect.addEventListener('change', function() {
-          toggleDocumentFields(this);
-        });
-      }
-
-      // Rolar até o novo documento
-      const ultimoDocumento = documentosContainer.lastElementChild;
-      if (ultimoDocumento) {
-        ultimoDocumento.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-
-      console.log('Documento adicionado com sucesso:', nomeDocumento);
-
-    } catch (error) {
-      console.error('Erro ao adicionar documento:', error);
-    }
-  }
-
-  // Função para mostrar/ocultar campos com base no status
+  // Função global para alternar visibilidade dos campos de documento
   function toggleDocumentFields(selectElement) {
-    try {
-      const documentContainer = selectElement.closest('.documento-adicionado');
-      const status = selectElement.value;
+    if (!selectElement) return;
 
-      // Ocultar todos os campos específicos
-      const fieldGroups = documentContainer.querySelectorAll('.document-status-fields');
-      fieldGroups.forEach(group => {
-        group.classList.add('hidden');
-      });
+    const documentoElement = selectElement.closest('.documento-adicionado');
+    if (!documentoElement) return;
 
-      // Mostrar os campos para o status selecionado
-      if (status) {
-        const targetFields = documentContainer.querySelector(`.${status}-fields`);
-        if (targetFields) {
-          targetFields.classList.remove('hidden');
-        }
+    const status = selectElement.value;
+
+    // Esconder todos os campos de status primeiro
+    documentoElement.querySelectorAll('.document-status-fields').forEach(field => {
+      field.classList.add('hidden');
+    });
+
+    // Mostrar os campos específicos para o status selecionado
+    if (status) {
+      const campos = documentoElement.querySelector(`.${status}-fields`);
+      if (campos) {
+        campos.classList.remove('hidden');
       }
-    } catch (error) {
-      console.error('Erro ao alternar campos de documento:', error);
     }
   }
 </script>

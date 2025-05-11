@@ -160,209 +160,325 @@ if (typeof documentosPreCadastrados === 'undefined') {
 
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
+  // Referências aos elementos DOM
   const form = document.getElementById('documents-form');
-  const documentsList = document.getElementById('documentsList');
   const documentosContainer = document.getElementById('documentos-container');
-  const documentoTemplate = document.getElementById('documentoTemplate').content;
+  const documentoTemplate = document.getElementById('documentoTemplate');
   const documentoPesquisa = document.getElementById('documento-pesquisa');
-  const btnAdicionarDocumento = document.querySelector('.add-documento-btn');
-  const observacoesDocumentos = document.getElementById('observacoes-documentos');
+  const btnAdicionarDocumento = document.getElementById('btn-adicionar-documento');
+  const observacoes = document.getElementById('observacoes');
   const btnBack = document.getElementById('btn-back');
+  const btnSave = document.getElementById('btn-save');
 
-  // Usar os documentos armazenados no objeto global window
-  const documentosPreCadastrados = window.documentosPreCadastrados;
+  // Usar os documentos pré-cadastrados do objeto global
+  const documentosPreCadastrados = window.documentosPreCadastrados || [];
 
+  // Inicializar contador para IDs únicos
   let nextId = documentosPreCadastrados.length + 1;
-  let documentosAdicionados = [];
-
-  // Carregar documentos pré-cadastrados no campo de pesquisa
-  function carregarDocumentosParaPesquisa() {
-    // O campo de pesquisa já está pronto para uso
-  }
 
   // Adicionar um novo documento em branco
-  function adicionarNovoDocumento() {
-    if (!documentoTemplate || !documentosContainer) return;
-
-    const clone = document.importNode(documentoTemplate, true);
-    const documentoId = 'documento-' + nextId++;
-
-    const documentoElement = clone.querySelector('.documento-adicionado');
-    if (documentoElement) {
-      documentoElement.id = documentoId;
-      documentosContainer.appendChild(clone);
-
-      // Adicionar evento para remover este documento
-      const novoDocumento = document.getElementById(documentoId);
-      if (novoDocumento) {
-        const btnRemover = novoDocumento.querySelector('.remover-documento');
-        if (btnRemover) {
-          btnRemover.addEventListener('click', function() {
-            novoDocumento.remove();
-          });
-        }
+  function adicionarNovoDocumento(textoDocumento = '') {
+    try {
+      // Verificar se temos os elementos necessários
+      if (!documentoTemplate || !documentosContainer) {
+        console.error('Elementos do template ou container não encontrados');
+        return;
       }
+
+      // Clonar o template
+      const clone = document.importNode(documentoTemplate.content, true);
+      const documentoId = 'documento-' + nextId++;
+
+      // Configurar o novo documento
+      const documentoElement = clone.querySelector('.documento-adicionado');
+      if (documentoElement) {
+        documentoElement.id = documentoId;
+
+        // Se foi passado um texto para o documento, preenchê-lo
+        if (textoDocumento) {
+          const nomeInput = clone.querySelector('.nome-documento');
+          if (nomeInput) nomeInput.value = textoDocumento;
+        }
+
+        // Adicionar ao container
+        documentosContainer.appendChild(clone);
+
+        // Adicionar evento para remover este documento
+        const novoDocumento = document.getElementById(documentoId);
+        if (novoDocumento) {
+          const btnRemover = novoDocumento.querySelector('.remover-documento');
+          if (btnRemover) {
+            btnRemover.addEventListener('click', function() {
+              novoDocumento.remove();
+            });
+          }
+
+          // Configurar o evento de mudança de status para exibir os campos apropriados
+          const statusSelect = novoDocumento.querySelector('.status-documento');
+          if (statusSelect) {
+            statusSelect.addEventListener('change', function() {
+              toggleDocumentFields(this);
+            });
+          }
+
+          // Rolar a tela para o novo documento
+          setTimeout(() => {
+            novoDocumento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        }
+
+        return novoDocumento;
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar documento:', error);
     }
+
+    return null;
   }
 
   // Pesquisar documentos
   function pesquisarDocumentos(query) {
     if (!query) return [];
 
-    query = query.toLowerCase();
+    query = query.toLowerCase().trim();
+
+    // Filtrar documentos que correspondem à pesquisa
     return documentosPreCadastrados.filter(doc =>
       doc.nome.toLowerCase().includes(query) ||
-      doc.descricao.toLowerCase().includes(query) ||
-      (doc.palavrasChave && doc.palavrasChave.toLowerCase().includes(query))  // Mantém para dados pré-cadastrados
+      (doc.descricao && doc.descricao.toLowerCase().includes(query)) ||
+      (doc.palavrasChave && doc.palavrasChave.toLowerCase().includes(query))
     );
   }
 
   // Exibir resultados da pesquisa
-  function exibirResultadosPesquisa(resultados) {
-    // Limpar resultados anteriores
-    let resultsContainer = document.getElementById('resultados-pesquisa');
-    if (resultsContainer) {
-      resultsContainer.remove();
+  function exibirResultadosPesquisa(query) {
+    // Verificações de segurança
+    if (!documentoPesquisa) {
+      console.error('Campo de pesquisa não encontrado');
+      return;
     }
 
-    if (resultados.length === 0) return;
+    // Obter ou criar container de resultados
+    let resultadosContainer = document.getElementById('resultados-pesquisa');
+    if (!resultadosContainer) {
+      console.error('Container de resultados não encontrado');
+      return;
+    }
 
-    // Criar container de resultados
-    const container = document.createElement('div');
-    container.id = 'resultados-pesquisa';
-    container.className = 'absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto';
+    // Limpar conteúdo anterior
+    resultadosContainer.innerHTML = '';
 
-    resultados.forEach(doc => {
-      const item = document.createElement('div');
-      item.className = 'p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100';
+    // Se não há query, esconder resultados
+    if (!query || query.length < 2) {
+      resultadosContainer.classList.add('hidden');
+      return;
+    }
 
-      // Extrair ano da descrição, se possível
-      const anoMatch = doc.descricao ? doc.descricao.match(/\b(19|20)\d{2}\b/) : null;
-      const infoSecundaria = anoMatch
-        ? `Ano: ${anoMatch[0]}`
-        : (doc.tipo ? doc.tipo.charAt(0).toUpperCase() + doc.tipo.slice(1) : '');
+    // Mostrar container de resultados
+    resultadosContainer.classList.remove('hidden');
+    resultadosContainer.className = 'max-w-lg mx-auto mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 overflow-hidden';
 
-      item.innerHTML = `
-        <div class="font-medium">${doc.nome}</div>
-        <div class="text-sm text-gray-600">${infoSecundaria}</div>
-      `;
+    // Buscar resultados
+    const resultados = pesquisarDocumentos(query);
 
-      item.addEventListener('click', function() {
-        preencherDocumento(doc);
-        if (container && container.parentNode) {
-          container.remove();
-        }
+    // Criar lista de resultados
+    const listaResultados = document.createElement('div');
+    listaResultados.className = 'max-h-60 overflow-y-auto divide-y divide-gray-100';
+
+    // Adicionar resultados à lista
+    if (resultados.length > 0) {
+      resultados.forEach(doc => {
+        const item = document.createElement('div');
+        item.className = 'p-3 hover:bg-gray-50 cursor-pointer transition-colors';
+
+        // Extrair ano da descrição, se possível
+        const anoMatch = doc.descricao ? doc.descricao.match(/\b(19|20)\d{2}\b/) : null;
+        const anoText = anoMatch ? ` (${anoMatch[0]})` : '';
+
+        item.innerHTML = `
+          <div class="font-medium text-gray-800">${doc.nome}${anoText}</div>
+          <div class="text-sm text-gray-600 truncate">${doc.descricao || ''}</div>
+        `;
+
+        item.addEventListener('click', () => {
+          preencherDocumento(doc);
+          resultadosContainer.classList.add('hidden');
+          documentoPesquisa.value = '';
+          documentoPesquisa.focus();
+        });
+
+        listaResultados.appendChild(item);
       });
+    } else {
+      // Mensagem quando não há resultados
+      const semResultados = document.createElement('div');
+      semResultados.className = 'p-3 text-gray-500 text-center italic';
+      semResultados.textContent = 'Nenhum documento encontrado';
+      listaResultados.appendChild(semResultados);
+    }
 
-      container.appendChild(item);
+    resultadosContainer.appendChild(listaResultados);
+
+    // Sempre adicionar opção para criar novo documento com o texto digitado
+    const criarNovoDoc = document.createElement('div');
+    criarNovoDoc.className = 'p-3 bg-blue-50 hover:bg-blue-100 cursor-pointer border-t border-blue-200 flex items-center transition-colors';
+    criarNovoDoc.innerHTML = `
+      <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
+      <span class="flex-grow">Criar novo documento: "${query}"</span>
+    `;
+
+    criarNovoDoc.addEventListener('click', () => {
+      const novoDoc = adicionarNovoDocumento(query);
+      resultadosContainer.classList.add('hidden');
+      documentoPesquisa.value = '';
+      documentoPesquisa.focus();
     });
 
-    // Adicionar ao DOM, logo após o campo de pesquisa
-    if (documentoPesquisa && documentoPesquisa.parentNode) {
-      documentoPesquisa.parentNode.appendChild(container);
-    }
+    resultadosContainer.appendChild(criarNovoDoc);
   }
 
   // Preencher um documento com dados selecionados
   function preencherDocumento(doc) {
-    adicionarNovoDocumento();
+    const novoDocumento = adicionarNovoDocumento();
 
-    const ultimoDocumento = documentosContainer ? documentosContainer.lastElementChild : null;
-    if (!ultimoDocumento) return;
+    if (!novoDocumento) {
+      console.error('Erro ao criar novo documento para preenchimento');
+      return;
+    }
 
-    const nomeInput = ultimoDocumento.querySelector('.nome-documento');
-    const anoInput = ultimoDocumento.querySelector('.ano-documento');
-    const detalhesTextarea = ultimoDocumento.querySelector('.detalhes-documento');
+    // Preencher campos
+    const nomeInput = novoDocumento.querySelector('.nome-documento');
+    const anoInput = novoDocumento.querySelector('.ano-documento');
+    const detalhesTextarea = novoDocumento.querySelector('.detalhes-documento');
 
+    // Preencher nome
     if (nomeInput) nomeInput.value = doc.nome || '';
 
-    // Extrair ano da descrição, se possível
+    // Preencher ano se disponível
     if (anoInput) {
-      // Tenta encontrar um ano na descrição
       const anoMatch = doc.descricao ? doc.descricao.match(/\b(19|20)\d{2}\b/) : null;
-      if (anoMatch) {
-        anoInput.value = anoMatch[0];
-      } else {
-        // Ou usa o ano atual como padrão
-        anoInput.value = new Date().getFullYear();
-      }
+      anoInput.value = anoMatch ? anoMatch[0] : new Date().getFullYear();
     }
 
+    // Preencher detalhes
     if (detalhesTextarea) {
-      // Usar descrição como parte dos detalhes se não houver detalhes
-      if (doc.detalhes) {
-        detalhesTextarea.value = doc.detalhes;
-      } else if (doc.descricao) {
-        detalhesTextarea.value = doc.descricao;
-      }
+      detalhesTextarea.value = doc.detalhes || doc.descricao || '';
+    }
+  }
+
+  // Configurar eventos
+  function configurarEventos() {
+    // Botão para adicionar documento em branco
+    if (btnAdicionarDocumento) {
+      btnAdicionarDocumento.addEventListener('click', () => adicionarNovoDocumento());
     }
 
-    // Limpar campo de pesquisa
-    if (documentoPesquisa) documentoPesquisa.value = '';
+    // Campo de pesquisa
+    if (documentoPesquisa) {
+      // Pesquisar ao digitar
+      documentoPesquisa.addEventListener('input', () => {
+        const query = documentoPesquisa.value.trim();
+        exibirResultadosPesquisa(query);
+      });
+
+      // Pesquisar ao pressionar Enter
+      documentoPesquisa.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const query = documentoPesquisa.value.trim();
+          if (query) {
+            adicionarNovoDocumento(query);
+            documentoPesquisa.value = '';
+
+            // Esconder resultados
+            const resultadosContainer = document.getElementById('resultados-pesquisa');
+            if (resultadosContainer) {
+              resultadosContainer.classList.add('hidden');
+            }
+          }
+        }
+      });
+
+      // Esconder resultados ao clicar fora
+      document.addEventListener('click', (e) => {
+        if (!documentoPesquisa.contains(e.target)) {
+          const resultadosContainer = document.getElementById('resultados-pesquisa');
+          if (resultadosContainer && !resultadosContainer.contains(e.target)) {
+            resultadosContainer.classList.add('hidden');
+          }
+        }
+      });
+    }
+
+    // Botão Voltar
+    if (btnBack) {
+      btnBack.addEventListener('click', () => {
+        if (typeof window.navigateToPrevStep === 'function') {
+          window.navigateToPrevStep();
+        }
+      });
+    }
+
+    // Formulário
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        try {
+          // Coletar dados de todos os documentos
+          const documentos = Array.from(documentosContainer.querySelectorAll('.documento-adicionado')).map(el => {
+            return {
+              nome: el.querySelector('.nome-documento')?.value || '',
+              status: el.querySelector('.status-documento')?.value || '',
+              ano: el.querySelector('.ano-documento')?.value || '',
+              detalhes: el.querySelector('.detalhes-documento')?.value || ''
+            };
+          });
+
+          // Coletar observações
+          const obsTexto = observacoes?.value || '';
+
+          // Aqui você enviaria os dados para o servidor
+          console.log('Documentos a serem salvos:', documentos);
+          console.log('Observações:', obsTexto);
+
+          // Mostrar mensagem de sucesso
+          alert('Dados salvos com sucesso!');
+        } catch (error) {
+          console.error('Erro ao salvar formulário:', error);
+          alert('Ocorreu um erro ao salvar o formulário. Por favor, tente novamente.');
+        }
+      });
+    }
   }
 
-  // Event listeners
-  if (btnAdicionarDocumento) {
-    btnAdicionarDocumento.addEventListener('click', adicionarNovoDocumento);
-  }
+  // Função para alternar visibilidade dos campos baseado no status
+  function toggleDocumentFields(selectElement) {
+    try {
+      if (!selectElement) return;
 
-  if (documentoPesquisa) {
-    documentoPesquisa.addEventListener('input', function() {
-      const query = this.value.trim();
-      if (query.length >= 2) {
-        const resultados = pesquisarDocumentos(query);
-        exibirResultadosPesquisa(resultados);
-      } else {
-        const resultsContainer = document.getElementById('resultados-pesquisa');
-        if (resultsContainer) {
-          resultsContainer.remove();
+      const documentoElement = selectElement.closest('.documento-adicionado');
+      if (!documentoElement) return;
+
+      const status = selectElement.value;
+
+      // Esconder todos os campos de status primeiro
+      documentoElement.querySelectorAll('.document-status-fields').forEach(field => {
+        field.classList.add('hidden');
+      });
+
+      // Mostrar os campos específicos para o status selecionado
+      if (status) {
+        const campos = documentoElement.querySelector(`.${status}-fields`);
+        if (campos) {
+          campos.classList.remove('hidden');
         }
       }
-    });
+    } catch (error) {
+      console.error('Erro ao alternar campos de documento:', error);
+    }
   }
 
-  // Configurar botão Anterior para navegação
-  if (btnBack) {
-    btnBack.addEventListener('click', function() {
-      // Usar a função de navegação para a etapa anterior
-      if (window.navigateToPrevStep) {
-        window.navigateToPrevStep();
-      } else {
-        console.error('Função navigateToPrevStep não está disponível no escopo global');
-      }
-    });
-  }
-
-  // Salvar documentos
-  if (form) {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      // Coletar dados de todos os documentos
-      const documentos = Array.from(documentosContainer.querySelectorAll('.documento-adicionado')).map(el => {
-        return {
-          nome: el.querySelector('.nome-documento').value,
-          ano: el.querySelector('.ano-documento').value,
-          detalhes: el.querySelector('.detalhes-documento').value
-        };
-      });
-
-      // Coletar observações
-      const observacoes = observacoesDocumentos ? observacoesDocumentos.value : '';
-
-      // Aqui você normalmente enviaria para um servidor
-      documentosAdicionados = documentos;
-
-      // Exibir mensagem de sucesso
-      Swal.fire({
-        icon: 'success',
-        title: 'Documentos salvos com sucesso!',
-        showConfirmButton: false,
-        timer: 1500
-      });
-    });
-  }
-
-  // Inicialização
-  carregarDocumentosParaPesquisa();
+  // Inicializar
+  configurarEventos();
 };

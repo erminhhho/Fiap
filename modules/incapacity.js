@@ -86,6 +86,12 @@ window.initModule = function() {
   // Remover a proteção que estava bloqueando a inicialização
   window._incapacityInitialized = false;
 
+  // Verificar se já estamos usando o novo sistema
+  const isUsingNewSystem = localStorage.getItem('use_improved_cid_search') === 'true';
+
+  // Por padrão, usar o novo sistema (mas com fallback para o antigo)
+  localStorage.setItem('use_improved_cid_search', 'true');
+
   // Inicializar configurações básicas
   setupEvents();
 
@@ -98,38 +104,263 @@ window.initModule = function() {
   // Inicializar verificação de isenção de carência - garante que a verificação é feita
   setupIsencaoCarencia();
 
-  // Inicializar o sistema de CID para os campos existentes
-  if (typeof initCidSystem === 'function') {
-    // Inicializa imediatamente
-    try {
-      initCidSystem();
-    } catch (e) {
-      console.warn("Erro na primeira inicialização do sistema CID:", e);
-    }
+  // Implementar o novo sistema de pesquisa e autocomplete para CID e doença
+  setupImprovedCidSearch();
 
-    // E também com um pequeno atraso para garantir que todos os elementos foram carregados
-    setTimeout(() => {
+  // Se estamos usando a abordagem antiga como fallback, carregar também
+  if (!isUsingNewSystem) {
+    // Inicializar o sistema de CID para os campos existentes
+    if (typeof initCidSystem === 'function') {
+      // Inicializa imediatamente
       try {
         initCidSystem();
       } catch (e) {
-        console.warn("Erro na segunda inicialização do sistema CID:", e);
+        console.warn("Erro na primeira inicialização do sistema CID:", e);
       }
 
-      // Garantir que os campos sejam verificados após inicialização do sistema CID
-      document.querySelectorAll('.doenca-input, .cid-input').forEach(input => {
-        if (input.classList.contains('doenca-input')) {
-          verificarIsencaoCarencia(input);
-        } else if (input.classList.contains('cid-input')) {
-          const index = input.getAttribute('data-index');
-          const doencaInput = document.getElementById('doenca' + index);
-          if (doencaInput) {
-            verificarIsencaoCarencia(doencaInput);
-          }
+      // E também com um pequeno atraso para garantir que todos os elementos foram carregados
+      setTimeout(() => {
+        try {
+          initCidSystem();
+        } catch (e) {
+          console.warn("Erro na segunda inicialização do sistema CID:", e);
         }
-      });
-    }, 500); // Aumentado para 500ms para garantir que tudo carregue
+
+        // Garantir que os campos sejam verificados após inicialização do sistema CID
+        document.querySelectorAll('.doenca-input, .cid-input').forEach(input => {
+          if (input.classList.contains('doenca-input')) {
+            verificarIsencaoCarencia(input);
+          } else if (input.classList.contains('cid-input')) {
+            const index = input.getAttribute('data-index');
+            const doencaInput = document.getElementById('doenca' + index);
+            if (doencaInput) {
+              verificarIsencaoCarencia(doencaInput);
+            }
+          }
+        });
+      }, 500); // Aumentado para 500ms para garantir que tudo carregue
+    }
   }
 };
+
+/**
+ * Nova função para implementar a pesquisa melhorada de CID e doença
+ * seguindo o padrão utilizado na pesquisa de documentos
+ */
+function setupImprovedCidSearch() {
+  // Encontrar todos os campos de CID
+  const cidInputs = document.querySelectorAll('.cid-input');
+
+  // Configurar cada campo CID
+  cidInputs.forEach(configurarCampoCID);
+
+  // Configurar evento para fechar dropdowns ao clicar fora
+  document.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('cid-input')) {
+      document.querySelectorAll('.cid-dropdown').forEach(dropdown => {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    }
+  });
+}
+
+/**
+ * Configura campo de pesquisa de CID com interface melhorada
+ * @param {HTMLElement} input - O campo de entrada de CID
+ */
+function configurarCampoCID(input) {
+  if (!input) return;
+
+  const index = input.getAttribute('data-index');
+  if (!index) return;
+
+  // Encontrar o dropdown correspondente
+  const dropdown = document.getElementById(`cidDropdown${index}`);
+  if (!dropdown) return;
+
+  // Encontrar o campo de doença relacionado
+  const doencaInput = document.getElementById(`doenca${index}`);
+  if (!doencaInput) return;
+
+  // Configurar evento de digitação para pesquisa
+  input.addEventListener('input', async () => {
+    const query = input.value.trim();
+
+    // Limpar dropdown
+    dropdown.innerHTML = '';
+
+    // Se a query for muito curta, ocultar dropdown
+    if (query.length < 2) {
+      dropdown.classList.add('hidden');
+      return;
+    }
+
+    try {
+      // Mostrar o dropdown
+      dropdown.classList.remove('hidden');
+
+      // Mostrar indicador de carregamento
+      dropdown.innerHTML = `
+        <div class="p-4 text-center text-gray-500">
+          <i class="fas fa-spinner fa-spin mr-2"></i> Pesquisando...
+        </div>
+      `;
+
+      // Buscar resultados
+      let resultados = [];
+      if (window.cidInstance && typeof window.cidInstance.find === 'function') {
+        resultados = await window.cidInstance.find(query);
+      } else if (window.cache && typeof window.cache.findCID === 'function') {
+        resultados = await window.cache.findCID(query);
+      }
+
+      // Verificar se ainda estamos digitando o mesmo texto
+      if (input.value.trim() !== query) return;
+
+      // Renderizar resultados
+      renderizarResultadosCID(dropdown, resultados, input, doencaInput, query);
+    } catch (error) {
+      console.error('Erro ao pesquisar CID:', error);
+      dropdown.innerHTML = `
+        <div class="p-4 text-center text-red-500">
+          Erro ao pesquisar. Tente novamente.
+        </div>
+      `;
+    }
+  });
+
+  // Configurar evento de tecla Enter
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      // Se o dropdown estiver visível e houver um item selecionado/destacado
+      const itemHighlighted = dropdown.querySelector('.bg-blue-50');
+      if (!dropdown.classList.contains('hidden') && itemHighlighted) {
+        itemHighlighted.click();
+      } else if (!dropdown.classList.contains('hidden')) {
+        // Se o dropdown estiver visível mas nenhum item estiver destacado, clicar no primeiro
+        const firstItem = dropdown.querySelector('.cid-item');
+        if (firstItem) firstItem.click();
+      }
+    }
+  });
+}
+
+/**
+ * Renderiza os resultados da pesquisa de CID no dropdown
+ */
+function renderizarResultadosCID(dropdown, resultados, cidInput, doencaInput, query) {
+  // Limpar conteúdo
+  dropdown.innerHTML = '';
+
+  // Se não houver resultados
+  if (!resultados || resultados.length === 0) {
+    dropdown.innerHTML = `
+      <div class="p-4 text-center text-gray-500">
+        Nenhum CID encontrado para "${query}"
+      </div>
+      <div class="p-3 bg-blue-50 hover:bg-blue-100 cursor-pointer border-t border-blue-200 text-center transition-colors">
+        <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
+        <span>Criar novo registro com este código</span>
+      </div>
+    `;
+
+    // Adicionar evento para o botão de criar novo
+    const btnCriar = dropdown.querySelector('.bg-blue-50');
+    if (btnCriar) {
+      btnCriar.addEventListener('click', () => {
+        cidInput.value = query.toUpperCase();
+        if (doencaInput) doencaInput.value = 'CID personalizado: ' + query.toUpperCase();
+        dropdown.classList.add('hidden');
+
+        // Disparar eventos de mudança
+        cidInput.dispatchEvent(new Event('change', { bubbles: true }));
+        cidInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Verificar isenção de carência
+        if (doencaInput && typeof verificarIsencaoCarencia === 'function') {
+          verificarIsencaoCarencia(doencaInput);
+        }
+      });
+    }
+
+    return;
+  }
+
+  // Criar lista de resultados
+  const lista = document.createElement('div');
+  lista.className = 'max-h-60 overflow-y-auto';
+
+  // Adicionar cada resultado à lista
+  resultados.forEach((resultado, idx) => {
+    const item = document.createElement('div');
+    item.className = 'cid-item flex px-4 py-3 hover:bg-blue-50 transition-colors cursor-pointer border-b border-gray-100';
+    item.innerHTML = `
+      <div class="flex items-center w-full">
+        <div class="flex-shrink-0 bg-blue-100 text-blue-800 font-bold px-2 py-1 rounded-lg mr-3">
+          ${resultado.code}
+        </div>
+        <div class="flex-grow text-gray-700 text-sm">
+          ${resultado.description}
+        </div>
+      </div>
+    `;
+
+    // Adicionar evento de clique
+    item.addEventListener('click', () => {
+      // Preencher campos
+      cidInput.value = resultado.code;
+      if (doencaInput) doencaInput.value = resultado.description;
+
+      // Fechar dropdown
+      dropdown.classList.add('hidden');
+
+      // Disparar eventos de mudança
+      cidInput.dispatchEvent(new Event('change', { bubbles: true }));
+      if (doencaInput) {
+        doencaInput.dispatchEvent(new Event('change', { bubbles: true }));
+        doencaInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
+      // Verificar isenção de carência
+      if (doencaInput && typeof verificarIsencaoCarencia === 'function') {
+        verificarIsencaoCarencia(doencaInput);
+      }
+    });
+
+    lista.appendChild(item);
+  });
+
+  dropdown.appendChild(lista);
+
+  // Sempre adicionar opção de criar novo
+  const opcaoCriarNovo = document.createElement('div');
+  opcaoCriarNovo.className = 'p-3 bg-blue-50 hover:bg-blue-100 cursor-pointer border-t border-blue-200 text-center transition-colors';
+  opcaoCriarNovo.innerHTML = `
+    <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
+    <span>Usar código: ${query.toUpperCase()}</span>
+  `;
+
+  opcaoCriarNovo.addEventListener('click', () => {
+    cidInput.value = query.toUpperCase();
+    if (doencaInput) doencaInput.value = 'CID personalizado: ' + query.toUpperCase();
+    dropdown.classList.add('hidden');
+
+    // Disparar eventos de mudança
+    cidInput.dispatchEvent(new Event('change', { bubbles: true }));
+    cidInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Verificar isenção de carência
+    if (doencaInput && typeof verificarIsencaoCarencia === 'function') {
+      verificarIsencaoCarencia(doencaInput);
+    }
+  });
+
+  dropdown.appendChild(opcaoCriarNovo);
+}
 
 // Injetar estilos CSS para corrigir a exibição de itens selecionados
 function injectFixStyles() {
@@ -152,16 +383,16 @@ function injectFixStyles() {
     }
 
     /* Permitir que os dropdowns funcionem normalmente */
-    .cid-dropdown:not(.hidden),
-    .doenca-dropdown:not(.hidden) {
+    .cid-dropdown:not(.hidden) {
       visibility: visible !important;
       display: block !important;
       opacity: 1 !important;
+      z-index: 100 !important;
     }
 
     /* Melhorar a exibição de itens de dropdown com textos longos */
     .cid-dropdown .dropdown-item,
-    .doenca-dropdown .dropdown-item {
+    .cid-dropdown .cid-item {
       padding: 10px 12px !important;
       white-space: normal !important;
       line-height: 1.4 !important;
@@ -175,20 +406,77 @@ function injectFixStyles() {
 
     /* Estilo de hover para itens de dropdown */
     .cid-dropdown .dropdown-item:hover,
-    .doenca-dropdown .dropdown-item:hover,
     .cid-dropdown .dropdown-item.active,
-    .doenca-dropdown .dropdown-item.active {
+    .cid-dropdown .cid-item:hover {
       background-color: rgba(59, 130, 246, 0.1) !important;
     }
 
     /* Estilo para os dropdowns em si */
-    .cid-dropdown,
-    .doenca-dropdown {
+    .cid-dropdown {
       max-height: 300px !important;
       overflow-y: auto !important;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
       border-radius: 0.5rem !important;
       border: 1px solid rgba(0, 0, 0, 0.1) !important;
+      width: 100% !important;
+      background-color: white !important;
+    }
+
+    /* Estilizar o botão de adicionar novo */
+    .cid-dropdown .bg-blue-50 {
+      color: #3b82f6 !important;
+      font-weight: 500 !important;
+    }
+
+    /* Estilos para o indicador de carregamento */
+    .cid-dropdown .fa-spinner {
+      color: #3b82f6 !important;
+    }
+
+    /* Destaque para o código CID */
+    .cid-item .bg-blue-100 {
+      background-color: rgba(59, 130, 246, 0.1) !important;
+      color: #1e40af !important;
+      padding: 4px 8px !important;
+      border-radius: 4px !important;
+      font-weight: 600 !important;
+      font-family: monospace !important;
+      letter-spacing: 0.5px !important;
+    }
+
+    /* Estilo para a descrição do CID */
+    .cid-item .text-gray-700 {
+      color: #4B5563 !important;
+      line-height: 1.4 !important;
+    }
+
+    /* Estilo para o ícone de lupa */
+    .cid-input + div .fa-search {
+      color: #9CA3AF !important;
+    }
+
+    /* Campo doença somente leitura */
+    .doenca-input[readonly] {
+      background-color: #F9FAFB !important;
+      cursor: default !important;
+    }
+
+    /* Destaque para tags de isenção de carência */
+    .isento-carencia-tag:not(.hidden) {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 10px !important;
+      padding: 2px 6px !important;
+      border-radius: 9999px !important;
+      background-color: #f97316 !important;
+      color: white !important;
+      position: absolute !important;
+      top: 0 !important;
+      right: 0.5rem !important;
+      transform: translateY(-50%) !important;
+      z-index: 10 !important;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
     }
   `;
 
@@ -602,19 +890,23 @@ function setupEvents() {
   }
 }
 
-// Função para adicionar um novo campo de doença/CID
+// Função para adicionar um novo campo de doença
 function addDoencaField() {
+  // Obter o container de doenças
   const doencasList = document.getElementById('doencasList');
-  if (!doencasList) return;
+  if (!doencasList) {
+    console.error('Container de doenças não encontrado');
+    return;
+  }
 
-  // Obter o número do próximo índice
-  const items = doencasList.querySelectorAll('.cid-input');
-  const nextIndex = items.length + 1;
+  // Obter o próximo índice para os campos
+  const existingFields = doencasList.querySelectorAll('.cid-input');
+  const nextIndex = existingFields.length + 1;
 
-  // Criar um novo elemento de doença
-  const newDoencaDiv = document.createElement('div');
-  newDoencaDiv.className = 'mb-4 border-b border-gray-200 pb-4';
-  newDoencaDiv.innerHTML = `
+  // Criar o elemento HTML para o novo campo
+  const newDoencaField = document.createElement('div');
+  newDoencaField.className = 'mb-4 border-b border-gray-200 pb-4';
+  newDoencaField.innerHTML = `
     <!-- Layout otimizado: todos os campos na mesma linha -->
     <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
       <!-- Documento (agora é o primeiro) -->
@@ -628,110 +920,86 @@ function addDoencaField() {
           <option value="receita">Receita</option>
           <option value="outro">Outro</option>
         </select>
-        <label for="tipoDocumento${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+        <label for="tipoDocumento${nextIndex}" class="input-label">
           Documento
         </label>
       </div>
 
-      <!-- CID (segundo campo) -->
-      <div class="relative md:col-span-7">
-        <input type="text" class="cid-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="cid${nextIndex}" placeholder="CID" name="cids[]" data-index="${nextIndex}" autocomplete="off">
-        <label for="cid${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+      <!-- CID (segundo campo - reduzido) -->
+      <div class="relative md:col-span-5">
+        <div class="relative">
+          <input type="text" class="cid-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="cid${nextIndex}" placeholder="CID" name="cids[]" data-index="${nextIndex}" autocomplete="off">
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <i class="fas fa-search"></i>
+          </div>
+        </div>
+        <label for="cid${nextIndex}" class="input-label">
           CID
         </label>
         <div class="cid-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown${nextIndex}"></div>
       </div>
 
-      <!-- Doença (terceiro campo) -->
-      <div class="relative md:col-span-8">
-        <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="doenca${nextIndex}" placeholder="Doença ou condição" name="doencas[]" data-index="${nextIndex}" autocomplete="off">
-        <label for="doenca${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+      <!-- Doença (terceiro campo - aumentado e readonly) -->
+      <div class="relative md:col-span-10">
+        <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" id="doenca${nextIndex}" placeholder="Preenchido automaticamente pelo CID" name="doencas[]" data-index="${nextIndex}" autocomplete="off" readonly>
+        <label for="doenca${nextIndex}" class="input-label">
           Doença
         </label>
         <div class="doenca-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="doencaDropdown${nextIndex}"></div>
         <div class="isento-carencia-tag hidden absolute top-0 right-2 font-bold text-xs px-2 py-0.5 rounded-full bg-orange-600 text-white transform -translate-y-1/2 z-20 shadow-sm text-[9px]">Isenção de carência</div>
       </div>
 
-      <!-- Data (último campo) -->
+      <!-- Data (quarto campo) -->
       <div class="relative md:col-span-4">
         <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento${nextIndex}" name="dataDocumentos[]" data-index="${nextIndex}" placeholder="dd/mm/aa" oninput="maskDate(this)">
-        <label for="dataDocumento${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-white rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-white peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+        <label for="dataDocumento${nextIndex}" class="input-label">
           Data
         </label>
       </div>
 
-      <!-- Botão de remover como uma coluna do grid -->
+      <!-- Botão de remover (último campo) -->
       <div class="md:col-span-1 flex items-center justify-center content-center text-center align-middle p-0">
-        <button type="button" class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 mx-auto remove-doenca" title="Remover CID/Doença">
+        <button type="button" class="remove-doenca-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 mx-auto" title="Remover CID/Doença">
           <i class="fas fa-minus"></i>
         </button>
       </div>
     </div>
   `;
 
-  doencasList.appendChild(newDoencaDiv);
+  // Adicionar ao DOM
+  doencasList.appendChild(newDoencaField);
 
-  // Configurar o botão de remover
-  const removeBtn = newDoencaDiv.querySelector('.remove-doenca');
-  if (removeBtn) {
-    removeBtn.addEventListener('click', function() {
-      newDoencaDiv.remove();
+  // Configurar botão de remover
+  const removeButton = newDoencaField.querySelector('.remove-doenca-btn');
+  if (removeButton) {
+    removeButton.addEventListener('click', function() {
+      newDoencaField.remove();
     });
   }
 
-  // Inicializar o sistema de pesquisa de CID para o novo campo
-  if (typeof initCidSystem === 'function') {
-    setTimeout(() => {
-      try {
-        initCidSystem();
-      } catch (e) {
-        console.warn("Erro ao inicializar sistema CID para novo campo:", e);
-      }
-    }, 100);
-  }
-
-  // Destacar campos preenchidos
-  if (typeof destacarCamposPreenchidos === 'function') {
-    destacarCamposPreenchidos();
-  }
-
-  // Verificar isenção de carência para o novo campo
-  const doencaInput = newDoencaDiv.querySelector('.doenca-input');
-  const cidInput = newDoencaDiv.querySelector('.cid-input');
-
+  // Inicializar verificação de isenção de carência
+  const doencaInput = newDoencaField.querySelector('.doenca-input');
   if (doencaInput) {
     doencaInput.addEventListener('input', function() {
       verificarIsencaoCarencia(this);
     });
-    doencaInput.addEventListener('blur', function() {
-      verificarIsencaoCarencia(this);
-    });
-    doencaInput.dataset.isencaoListenerAdded = 'true';
   }
 
+  // Inicializar sistema CID para o novo campo, se disponível
+  if (typeof initCidSystem === 'function') {
+    try {
+      initCidSystem();
+    } catch (e) {
+      console.warn("Erro ao inicializar CID para novos campos:", e);
+    }
+  }
+
+  // Aplicar o novo sistema de pesquisa para o campo CID adicionado
+  const cidInput = newDoencaField.querySelector('.cid-input');
   if (cidInput) {
-    cidInput.addEventListener('input', function() {
-      const index = this.getAttribute('data-index');
-      const doencaInput = document.getElementById('doenca' + index);
-      if (doencaInput) {
-        verificarIsencaoCarencia(doencaInput);
-      }
-    });
-    cidInput.addEventListener('blur', function() {
-      const index = this.getAttribute('data-index');
-      const doencaInput = document.getElementById('doenca' + index);
-      if (doencaInput) {
-        verificarIsencaoCarencia(doencaInput);
-      }
-    });
-    cidInput.dataset.isencaoListenerAdded = 'true';
+    configurarCampoCID(cidInput);
+    cidInput.focus();
   }
-
-  // Configurar manipuladores de eventos para os dropdowns dos novos campos
-  setTimeout(() => {
-    const newInputs = newDoencaDiv.querySelectorAll('.cid-input, .doenca-input');
-    newInputs.forEach(setupInputEventHandlers);
-  }, 100);
 }
 
 // Exportar funções para uso global
