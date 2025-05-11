@@ -1,14 +1,12 @@
 <form id="incapacity-form" autocomplete="off">
   <!-- CARD ÚNICO: Dados de Incapacidade -->
   <div class="bg-white rounded-2xl shadow p-8 mb-8">
-    <div class="flex items-center gap-2 mb-6">
-      <i class="fas fa-heartbeat text-blue-500 text-2xl"></i>
-      <h2 class="text-lg font-semibold text-blue-600">Dados de Incapacidade</h2>
-    </div>
-
     <!-- Doenças e CIDs -->
     <div class="mb-6">
-      <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Doenças e CIDs</h3>
+      <div class="flex items-center gap-2 mb-4">
+        <i class="fas fa-file-medical text-blue-500 text-2xl"></i>
+        <h2 class="text-lg font-semibold text-blue-600">Doenças e CIDs</h2>
+      </div>
       <div id="doencasList">
         <div class="mb-4 border-b border-gray-200 pb-4">
           <!-- Layout otimizado: todos os campos na mesma linha -->
@@ -69,15 +67,11 @@
 
     <!-- Duração e Trabalho -->
     <div class="mb-6">
-      <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Duração e Situação de Trabalho</h3>
+      <div class="flex items-center gap-2 mb-4">
+        <i class="fas fa-clock text-blue-500 text-2xl"></i>
+        <h2 class="text-lg font-semibold text-blue-600">Duração e Situação de Trabalho</h2>
+      </div>
       <div class="grid grid-cols-1 md:grid-cols-24 gap-4 mb-6">
-        <div class="relative md:col-span-12">
-          <input type="text" id="tempoIncapacidade" name="tempoIncapacidade" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Ex: 2 anos e 3 meses">
-          <label for="tempoIncapacidade" class="input-label">
-            Há quanto tempo está doente/incapacitado?
-          </label>
-        </div>
-
         <div class="relative md:col-span-12">
           <select id="trabalhaAtualmente" name="trabalhaAtualmente" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
             <option value="" selected disabled>Selecione...</option>
@@ -90,19 +84,34 @@
             Consegue trabalhar atualmente?
           </label>
         </div>
-      </div>
 
-      <div class="relative mb-6">
-        <input type="text" id="ultimoTrabalho" name="ultimoTrabalho" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Ex: Março/2022">
-        <label for="ultimoTrabalho" class="input-label">
-          Quando trabalhou pela última vez?
-        </label>
+        <div class="relative md:col-span-12">
+          <select id="ultimoTrabalho" name="ultimoTrabalho" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
+            <option value="" selected disabled>Selecione...</option>
+            <option value="menos_1_mes">Menos de 1 mês</option>
+            <option value="1_6_meses">Entre 1 e 6 meses</option>
+            <option value="6_12_meses">Entre 6 meses e 1 ano</option>
+            <option value="1_ano">1 ano</option>
+            <option value="2_anos">2 anos</option>
+            <option value="3_anos">3 anos</option>
+            <option value="4_anos">4 anos</option>
+            <option value="5_anos">5 anos</option>
+            <option value="mais_5_anos">Mais de 5 anos</option>
+            <option value="nunca">Nunca trabalhou</option>
+          </select>
+          <label for="ultimoTrabalho" class="input-label">
+            Quando trabalhou pela última vez?
+          </label>
+        </div>
       </div>
     </div>
 
     <!-- Limitações e Tratamentos -->
     <div>
-      <h3 class="text-blue-600 font-medium border-b border-gray-200 pb-2 mb-4">Limitações e Tratamentos</h3>
+      <div class="flex items-center gap-2 mb-4">
+        <i class="fas fa-notes-medical text-blue-500 text-2xl"></i>
+        <h2 class="text-lg font-semibold text-blue-600">Limitações e Tratamentos</h2>
+      </div>
 
       <!-- Limitações do dia a dia -->
       <div class="relative mb-6">
