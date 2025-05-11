@@ -165,7 +165,6 @@ window.initModule = function() {
   const documentosContainer = document.getElementById('documentos-container');
   const documentoTemplate = document.getElementById('documentoTemplate');
   const documentoPesquisa = document.getElementById('documento-pesquisa');
-  const btnAdicionarDocumento = document.getElementById('btn-adicionar-documento');
   const observacoes = document.getElementById('observacoes');
   const btnBack = document.getElementById('btn-back');
   const btnSave = document.getElementById('btn-save');
@@ -368,43 +367,45 @@ window.initModule = function() {
 
   // Configurar eventos
   function configurarEventos() {
-    // Botão para adicionar documento em branco
-    if (btnAdicionarDocumento) {
-      btnAdicionarDocumento.addEventListener('click', () => adicionarNovoDocumento());
-    }
-
     // Campo de pesquisa
     if (documentoPesquisa) {
-      // Pesquisar ao digitar
-      documentoPesquisa.addEventListener('input', () => {
-        const query = documentoPesquisa.value.trim();
-        exibirResultadosPesquisa(query);
-      });
-
-      // Pesquisar ao pressionar Enter
-      documentoPesquisa.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          const query = documentoPesquisa.value.trim();
-          if (query) {
-            adicionarNovoDocumento(query);
-            documentoPesquisa.value = '';
-
-            // Esconder resultados
-            const resultadosContainer = document.getElementById('resultados-pesquisa');
-            if (resultadosContainer) {
-              resultadosContainer.classList.add('hidden');
-            }
+      documentoPesquisa.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        if (query.length >= 2) {
+          // Mostrar resultados da pesquisa
+          exibirResultadosPesquisa(query);
+        } else {
+          // Esconder resultados quando o campo estiver quase vazio
+          const resultadosPesquisa = document.getElementById('resultados-pesquisa');
+          if (resultadosPesquisa) {
+            resultadosPesquisa.classList.add('hidden');
           }
         }
       });
 
-      // Esconder resultados ao clicar fora
-      document.addEventListener('click', (e) => {
-        if (!documentoPesquisa.contains(e.target)) {
-          const resultadosContainer = document.getElementById('resultados-pesquisa');
-          if (resultadosContainer && !resultadosContainer.contains(e.target)) {
-            resultadosContainer.classList.add('hidden');
+      // Permitir pressionar Enter para adicionar rapidamente
+      documentoPesquisa.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const query = documentoPesquisa.value.trim();
+          if (query.length > 0) {
+            // Verificar se há resultados selecionados
+            const resultadosPesquisa = document.getElementById('resultados-pesquisa');
+            const resultadosSelecionados = resultadosPesquisa ?
+              resultadosPesquisa.querySelector('.bg-blue-50') : null;
+
+            if (resultadosSelecionados) {
+              resultadosSelecionados.click();
+            } else {
+              // Se não houver selecionado, usar o texto atual
+              adicionarNovoDocumento(query);
+              documentoPesquisa.value = '';
+
+              // Esconder resultados
+              if (resultadosPesquisa) {
+                resultadosPesquisa.classList.add('hidden');
+              }
+            }
           }
         }
       });
