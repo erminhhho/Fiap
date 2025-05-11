@@ -74,21 +74,11 @@
         </label>
       </div>
 
-      <!-- Tipo de documento -->
-      <div class="relative w-40">
-        <select class="tipo-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
-          <option value="">Selecione o tipo</option>
-          <option value="declaracao">Declaração</option>
-          <option value="certidao">Certidão</option>
-          <option value="contrato">Contrato</option>
-          <option value="inscricao">Inscrição</option>
-          <option value="nota">Nota Fiscal</option>
-          <option value="cadastro">Cadastro</option>
-          <option value="ficha">Ficha</option>
-          <option value="outro">Outro</option>
-        </select>
+      <!-- Ano do documento -->
+      <div class="relative w-32">
+        <input type="number" min="1900" max="2099" class="ano-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano">
         <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-          Tipo
+          Ano
         </label>
       </div>
 
@@ -101,15 +91,7 @@
     </div>
 
     <!-- Campos de conteúdo do documento -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Descrição do documento para petição -->
-      <div class="relative">
-        <textarea class="descricao-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" rows="3" placeholder="Descreva o documento de forma detalhada para ser utilizado diretamente na petição inicial..."></textarea>
-        <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
-          Descrição para petição inicial
-        </label>
-      </div>
-
+    <div class="grid grid-cols-1 gap-4">
       <!-- Detalhes adicionais do documento -->
       <div class="relative">
         <textarea class="detalhes-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" rows="3" placeholder="Informações adicionais, número de série, data de emissão, órgão emissor, localização física, etc."></textarea>

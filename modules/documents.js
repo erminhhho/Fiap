@@ -235,9 +235,16 @@ window.initModule = function() {
     resultados.forEach(doc => {
       const item = document.createElement('div');
       item.className = 'p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100';
+
+      // Extrair ano da descrição, se possível
+      const anoMatch = doc.descricao ? doc.descricao.match(/\b(19|20)\d{2}\b/) : null;
+      const infoSecundaria = anoMatch
+        ? `Ano: ${anoMatch[0]}`
+        : (doc.tipo ? doc.tipo.charAt(0).toUpperCase() + doc.tipo.slice(1) : '');
+
       item.innerHTML = `
         <div class="font-medium">${doc.nome}</div>
-        <div class="text-sm text-gray-600">${doc.tipo.charAt(0).toUpperCase() + doc.tipo.slice(1)}</div>
+        <div class="text-sm text-gray-600">${infoSecundaria}</div>
       `;
 
       item.addEventListener('click', function() {
@@ -264,14 +271,31 @@ window.initModule = function() {
     if (!ultimoDocumento) return;
 
     const nomeInput = ultimoDocumento.querySelector('.nome-documento');
-    const tipoSelect = ultimoDocumento.querySelector('.tipo-documento');
-    const descricaoTextarea = ultimoDocumento.querySelector('.descricao-documento');
+    const anoInput = ultimoDocumento.querySelector('.ano-documento');
     const detalhesTextarea = ultimoDocumento.querySelector('.detalhes-documento');
 
     if (nomeInput) nomeInput.value = doc.nome || '';
-    if (tipoSelect) tipoSelect.value = doc.tipo || '';
-    if (descricaoTextarea) descricaoTextarea.value = doc.descricao || '';
-    if (detalhesTextarea && doc.detalhes) detalhesTextarea.value = doc.detalhes;
+
+    // Extrair ano da descrição, se possível
+    if (anoInput) {
+      // Tenta encontrar um ano na descrição
+      const anoMatch = doc.descricao ? doc.descricao.match(/\b(19|20)\d{2}\b/) : null;
+      if (anoMatch) {
+        anoInput.value = anoMatch[0];
+      } else {
+        // Ou usa o ano atual como padrão
+        anoInput.value = new Date().getFullYear();
+      }
+    }
+
+    if (detalhesTextarea) {
+      // Usar descrição como parte dos detalhes se não houver detalhes
+      if (doc.detalhes) {
+        detalhesTextarea.value = doc.detalhes;
+      } else if (doc.descricao) {
+        detalhesTextarea.value = doc.descricao;
+      }
+    }
 
     // Limpar campo de pesquisa
     if (documentoPesquisa) documentoPesquisa.value = '';
@@ -318,8 +342,7 @@ window.initModule = function() {
       const documentos = Array.from(documentosContainer.querySelectorAll('.documento-adicionado')).map(el => {
         return {
           nome: el.querySelector('.nome-documento').value,
-          tipo: el.querySelector('.tipo-documento').value,
-          descricao: el.querySelector('.descricao-documento').value,
+          ano: el.querySelector('.ano-documento').value,
           detalhes: el.querySelector('.detalhes-documento').value
         };
       });
