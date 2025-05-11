@@ -51,131 +51,95 @@
 
 <!-- Template para novo documento adicionado -->
 <template id="documentoTemplate">
-  <div class="documento-adicionado relative p-4 bg-gray-50 rounded-lg shadow-sm mb-4">
-    <!-- Cabeçalho do documento -->
-    <div class="flex flex-wrap items-center gap-4 mb-3">
-      <!-- Nome do documento -->
-      <div class="relative flex-grow">
-        <input type="text" class="nome-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Nome do documento">
-        <label class="input-label">
-          Nome do Documento
-        </label>
+  <div class="documento-adicionado relative p-3 bg-gray-50 rounded-lg shadow-sm mb-2">
+    <!-- Layout compacto com três colunas principais -->
+    <div class="flex items-center">
+      <!-- Coluna 1: Nome e status (maior largura) -->
+      <div class="flex-grow pr-2">
+        <div class="flex flex-wrap items-center">
+          <input type="text" class="nome-documento text-gray-800 bg-transparent border-b border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-1 w-full" placeholder="Nome do documento">
+        </div>
       </div>
 
-      <!-- Status do documento -->
-      <div class="relative w-52">
-        <select class="status-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" onchange="toggleDocumentFields(this)">
-          <option value="" selected disabled>Selecione...</option>
-          <option value="disponivel">Disponível/Em mãos</option>
-          <option value="solicitar">Solicitar do cliente</option>
-          <option value="solicitado_orgao">Solicitar de órgão/empresa</option>
-          <option value="nao_disponivel">Não disponível</option>
+      <!-- Coluna 2: Status e ano (compacto) -->
+      <div class="flex items-center gap-2">
+        <select class="status-documento text-xs text-gray-800 bg-gray-50 border border-gray-300 rounded px-2 py-1" onchange="toggleDocumentFields(this)">
+          <option value="" selected disabled>Status</option>
+          <option value="disponivel">Disponível</option>
+          <option value="solicitar">Solicitar</option>
+          <option value="solicitado_orgao">Órgão/empresa</option>
+          <option value="nao_disponivel">Indisponível</option>
         </select>
-        <label class="input-label">
-          Status
-        </label>
+
+        <input type="number" min="1900" max="2099" class="ano-documento text-xs w-16 text-gray-800 bg-gray-50 border border-gray-300 rounded px-2 py-1" placeholder="Ano">
       </div>
 
-      <!-- Ano do documento -->
-      <div class="relative w-32">
-        <input type="number" min="1900" max="2099" class="ano-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ano">
-        <label class="input-label">
-          Ano
-        </label>
-      </div>
-
-      <!-- Botão de remover -->
-      <div class="flex items-center">
-        <button type="button" class="remover-documento bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Remover documento">
+      <!-- Coluna 3: Controles (mínimo possível) -->
+      <div class="ml-2 flex items-center gap-1">
+        <button type="button" class="expandir-documento bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-full p-1 flex items-center justify-center w-6 h-6 text-xs" title="Expandir detalhes">
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <button type="button" class="remover-documento bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-6 h-6 text-xs" title="Remover documento">
           <i class="fas fa-minus"></i>
         </button>
       </div>
     </div>
 
-    <!-- Campos de conteúdo do documento -->
-    <div class="grid grid-cols-1 gap-4">
-      <!-- Detalhes adicionais do documento - sempre visível -->
-      <div class="relative document-field">
-        <textarea class="detalhes-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" rows="3" placeholder="Informações adicionais, número de série, data de emissão, órgão emissor, localização física, etc."></textarea>
-        <label class="input-label">
-          Detalhes do documento
-        </label>
+    <!-- Área de detalhes (inicialmente oculta) -->
+    <div class="documento-detalhes hidden mt-3 pt-2 border-t border-gray-200">
+      <!-- Detalhes adicionais do documento -->
+      <div class="relative document-field mb-3">
+        <label class="text-xs text-gray-600 mb-1 block">Detalhes do documento</label>
+        <textarea class="detalhes-documento w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-sm" rows="2" placeholder="Informações adicionais, número de série, data de emissão, órgão emissor, etc."></textarea>
       </div>
 
-      <!-- Campos específicos para documento disponível -->
-      <div class="document-status-fields disponivel-fields hidden">
-        <div class="relative document-field">
-          <textarea class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" rows="2" placeholder="Observações sobre o documento disponível"></textarea>
-          <label class="input-label">
-            Considerações sobre o documento disponível
-          </label>
-        </div>
+      <!-- Campos específicos para cada status - todos inicialmente ocultos -->
+      <div class="document-status-fields disponivel-fields hidden mb-3">
+        <label class="text-xs text-gray-600 mb-1 block">Considerações</label>
+        <textarea class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-sm" rows="1" placeholder="Observações sobre o documento disponível"></textarea>
       </div>
 
-      <!-- Campos específicos para solicitar do cliente -->
-      <div class="document-status-fields solicitar-fields hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="relative document-field">
-            <input type="date" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
-            <label class="input-label">
-              Data da solicitação
-            </label>
+      <div class="document-status-fields solicitar-fields hidden mb-3">
+        <div class="grid grid-cols-2 gap-3 mb-2">
+          <div>
+            <label class="text-xs text-gray-600 mb-1 block">Data da solicitação</label>
+            <input type="date" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm">
           </div>
-          <div class="relative document-field">
-            <input type="date" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
-            <label class="input-label">
-              Prazo para entrega
-            </label>
+          <div>
+            <label class="text-xs text-gray-600 mb-1 block">Prazo para entrega</label>
+            <input type="date" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm">
           </div>
         </div>
-        <div class="relative document-field mt-4">
-          <textarea class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" rows="2" placeholder="Instruções específicas para o cliente sobre o documento"></textarea>
-          <label class="input-label">
-            Instruções para o cliente
-          </label>
-        </div>
+        <label class="text-xs text-gray-600 mb-1 block">Instruções para o cliente</label>
+        <textarea class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-sm" rows="1" placeholder="Instruções específicas para o cliente"></textarea>
       </div>
 
-      <!-- Campos específicos para solicitar de órgão/empresa -->
-      <div class="document-status-fields solicitado_orgao-fields hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="relative document-field">
-            <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Nome do órgão ou empresa">
-            <label class="input-label">
-              Órgão/Empresa
-            </label>
+      <div class="document-status-fields solicitado_orgao-fields hidden mb-3">
+        <div class="grid grid-cols-2 gap-3 mb-2">
+          <div>
+            <label class="text-xs text-gray-600 mb-1 block">Órgão/Empresa</label>
+            <input type="text" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm" placeholder="Nome do órgão ou empresa">
           </div>
-          <div class="relative document-field">
-            <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ex: ofício, processo administrativo">
-            <label class="input-label">
-              Forma de solicitação
-            </label>
+          <div>
+            <label class="text-xs text-gray-600 mb-1 block">Forma de solicitação</label>
+            <input type="text" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm" placeholder="Ex: ofício, processo administrativo">
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div class="relative document-field">
-            <input type="date" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
-            <label class="input-label">
-              Data da solicitação
-            </label>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-600 mb-1 block">Data da solicitação</label>
+            <input type="date" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm">
           </div>
-          <div class="relative document-field">
-            <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Ex: 30 dias, número de protocolo">
-            <label class="input-label">
-              Prazo/Protocolo
-            </label>
+          <div>
+            <label class="text-xs text-gray-600 mb-1 block">Prazo/Protocolo</label>
+            <input type="text" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm" placeholder="Ex: 30 dias, nº protocolo">
           </div>
         </div>
       </div>
 
-      <!-- Campos específicos para não disponível -->
-      <div class="document-status-fields nao_disponivel-fields hidden">
-        <div class="relative document-field">
-          <textarea class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" rows="2" placeholder="Motivo da indisponibilidade e possíveis alternativas"></textarea>
-          <label class="input-label">
-            Motivo e alternativas
-          </label>
-        </div>
+      <div class="document-status-fields nao_disponivel-fields hidden mb-3">
+        <label class="text-xs text-gray-600 mb-1 block">Motivo e alternativas</label>
+        <textarea class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-sm" rows="1" placeholder="Motivo da indisponibilidade e possíveis alternativas"></textarea>
       </div>
     </div>
   </div>
@@ -209,7 +173,18 @@
       if (campos) {
         campos.classList.remove('hidden');
       }
+
+      // Garantir que a área de detalhes esteja visível quando um status é selecionado
+      const detalhesArea = documentoElement.querySelector('.documento-detalhes');
+      if (detalhesArea && detalhesArea.classList.contains('hidden')) {
+        detalhesArea.classList.remove('hidden');
+        const expandirBtn = documentoElement.querySelector('.expandir-documento');
+        if (expandirBtn) {
+          expandirBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+        }
+      }
     }
   }
 </script>
+
 
