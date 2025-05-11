@@ -349,29 +349,29 @@ window.initModule = function() {
 
     // Mostrar container de resultados
     resultadosContainer.classList.remove('hidden');
-    resultadosContainer.className = 'max-w-lg mx-auto mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 overflow-hidden';
+    resultadosContainer.className = 'max-w-lg mx-auto mt-1 bg-white border border-gray-200 rounded shadow-sm z-10 overflow-hidden';
 
     // Buscar resultados
     const resultados = pesquisarDocumentos(query);
 
     // Criar lista de resultados
     const listaResultados = document.createElement('div');
-    listaResultados.className = 'max-h-56 overflow-y-auto divide-y divide-gray-100';
+    listaResultados.className = 'max-h-48 overflow-y-auto divide-y divide-gray-100';
 
     // Adicionar resultados à lista
     if (resultados.length > 0) {
       resultados.forEach(doc => {
         const item = document.createElement('div');
-        item.className = 'p-2 hover:bg-gray-50 cursor-pointer transition-colors flex items-center';
+        item.className = 'p-1 hover:bg-gray-50 cursor-pointer transition-colors flex items-center';
 
         // Extrair ano da descrição, se possível
         const anoMatch = doc.descricao ? doc.descricao.match(/\b(19|20)\d{2}\b/) : null;
-        const anoText = anoMatch ? ` <span class="text-xs text-gray-500 ml-1">${anoMatch[0]}</span>` : '';
+        const anoText = anoMatch ? `<span class="text-gray-400 ml-1">${anoMatch[0]}</span>` : '';
 
         item.innerHTML = `
-          <div class="flex-grow overflow-hidden">
-            <div class="font-medium text-gray-800 truncate">${doc.nome}${anoText}</div>
-            <div class="text-xs text-gray-500 truncate">${doc.descricao || ''}</div>
+          <div class="flex-grow min-w-0 overflow-hidden">
+            <div class="font-medium text-gray-800 truncate text-base">${doc.nome}${anoText}</div>
+            <div class="text-sm text-gray-500 truncate">${doc.descricao?.substring(0, 40) || ''}${doc.descricao?.length > 40 ? '...' : ''}</div>
           </div>
         `;
 
@@ -387,7 +387,7 @@ window.initModule = function() {
     } else {
       // Mensagem quando não há resultados
       const semResultados = document.createElement('div');
-      semResultados.className = 'p-2 text-gray-500 text-center text-sm';
+      semResultados.className = 'p-1 text-gray-500 text-center text-sm';
       semResultados.textContent = 'Nenhum documento encontrado';
       listaResultados.appendChild(semResultados);
     }
@@ -396,10 +396,10 @@ window.initModule = function() {
 
     // Sempre adicionar opção para criar novo documento com o texto digitado
     const criarNovoDoc = document.createElement('div');
-    criarNovoDoc.className = 'p-2 bg-blue-50 hover:bg-blue-100 cursor-pointer border-t border-blue-200 flex items-center transition-colors';
+    criarNovoDoc.className = 'p-1 bg-blue-50 hover:bg-blue-100 cursor-pointer border-t border-blue-200 flex items-center transition-colors text-base';
     criarNovoDoc.innerHTML = `
-      <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
-      <span class="flex-grow text-sm">Adicionar: "${query}"</span>
+      <i class="fas fa-plus-circle text-blue-500 mr-1.5"></i>
+      <span class="flex-grow">Adicionar: "${query}"</span>
     `;
 
     criarNovoDoc.addEventListener('click', () => {
@@ -425,6 +425,7 @@ window.initModule = function() {
     const nomeInput = novoDocumento.querySelector('.nome-documento');
     const anoInput = novoDocumento.querySelector('.ano-documento');
     const detalhesTextarea = novoDocumento.querySelector('.detalhes-documento');
+    const detalhesContainer = novoDocumento.querySelector('.detalhes-documento-container');
 
     // Preencher nome
     if (nomeInput) nomeInput.value = doc.nome || '';
@@ -435,9 +436,13 @@ window.initModule = function() {
       anoInput.value = anoMatch ? anoMatch[0] : new Date().getFullYear();
     }
 
-    // Preencher detalhes
-    if (detalhesTextarea) {
+    // Preencher detalhes - armazenar no textarea oculto e mostrar renderizado no container
+    if (detalhesTextarea && detalhesContainer) {
+      // Guardar o texto original no textarea (oculto)
       detalhesTextarea.value = doc.detalhes || doc.descricao || '';
+
+      // Renderizar o HTML no container visível
+      detalhesContainer.innerHTML = doc.detalhes || doc.descricao || '';
     }
 
     // Expandir os detalhes para mostrar os campos preenchidos
@@ -569,6 +574,16 @@ window.initModule = function() {
         const campos = documentoElement.querySelector(`.${status}-fields`);
         if (campos) {
           campos.classList.remove('hidden');
+        }
+
+        // Garantir que a área de detalhes esteja visível quando um status é selecionado
+        const detalhesArea = documentoElement.querySelector('.documento-detalhes');
+        if (detalhesArea && detalhesArea.classList.contains('hidden')) {
+          detalhesArea.classList.remove('hidden');
+          const expandirBtn = documentoElement.querySelector('.expandir-documento');
+          if (expandirBtn) {
+            expandirBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+          }
         }
       }
     } catch (error) {

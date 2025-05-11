@@ -1,16 +1,16 @@
 <form id="documents-form" autocomplete="off">
-  <div class="bg-white rounded-2xl shadow p-8 mb-8">
-    <div class="flex items-center gap-2 mb-6">
+  <div class="bg-white rounded-2xl shadow p-4 mb-6">
+    <div class="flex items-center gap-2 mb-4">
       <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
-      <h2 class="text-lg font-semibold text-blue-600">Documentos</h2>
+      <h2 class="text-xl font-semibold text-blue-600">Documentos</h2>
     </div>
 
     <!-- Lista de Documentos -->
-    <div id="documentsList" class="space-y-4">
-      <!-- Campo de pesquisa centralizado -->
-      <div class="mb-6">
+    <div id="documentsList" class="space-y-1">
+      <!-- Campo de pesquisa centralizado com design mais compacto -->
+      <div class="mb-3">
         <div class="relative max-w-lg mx-auto">
-          <input type="text" id="documento-pesquisa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Digite para pesquisar ou adicionar um documento...">
+          <input type="text" id="documento-pesquisa" class="peer w-full rounded border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-base" placeholder="Digite para pesquisar ou adicionar um documento...">
           <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
             <i class="fas fa-search"></i>
           </div>
@@ -22,28 +22,28 @@
         </div>
       </div>
 
-      <!-- Lista de documentos adicionados -->
-      <div id="documentos-container" class="space-y-4 my-6">
+      <!-- Lista de documentos adicionados com espaçamento reduzido -->
+      <div id="documentos-container" class="space-y-1 my-3">
         <!-- Documentos adicionados serão inseridos aqui -->
       </div>
     </div>
   </div>
 
   <!-- Observações -->
-  <div class="relative mt-8">
-    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre os documentos..."></textarea>
-    <label for="observacoes" class="input-label">
+  <div class="relative mt-6">
+    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 text-base" placeholder="Observações sobre os documentos..."></textarea>
+    <label for="observacoes" class="input-label text-base">
       Observações
     </label>
   </div>
 
   <!-- Botões de navegação -->
-  <div class="flex justify-between mt-8">
-    <button type="button" id="btn-back" class="bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2">
+  <div class="flex justify-between mt-6">
+    <button type="button" id="btn-back" class="bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-lg px-6 py-2 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2">
       <i class="fas fa-arrow-left"></i> Anterior
     </button>
 
-    <button type="submit" id="btn-save" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2">
+    <button type="submit" id="btn-save" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-6 py-2 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2">
       <i class="fas fa-save"></i> Salvar
     </button>
   </div>
@@ -51,95 +51,96 @@
 
 <!-- Template para novo documento adicionado -->
 <template id="documentoTemplate">
-  <div class="documento-adicionado relative p-3 bg-gray-50 rounded-lg shadow-sm mb-2">
-    <!-- Layout compacto com três colunas principais -->
+  <div class="documento-adicionado relative p-1 bg-gray-50 rounded border border-gray-200 shadow-sm mb-1">
+    <!-- Layout ultra-compacto com três colunas principais -->
     <div class="flex items-center">
-      <!-- Coluna 1: Nome e status (maior largura) -->
-      <div class="flex-grow pr-2">
-        <div class="flex flex-wrap items-center">
-          <input type="text" class="nome-documento text-gray-800 bg-transparent border-b border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-1 w-full" placeholder="Nome do documento">
-        </div>
+      <!-- Coluna 1: Nome do documento (maior largura) -->
+      <div class="flex-grow pr-1 min-w-0">
+        <input type="text" class="nome-documento text-base text-gray-800 bg-transparent border-b border-gray-200 focus:border-blue-600 focus:ring-0 px-1 py-0.5 w-full truncate" placeholder="Nome do documento">
       </div>
 
-      <!-- Coluna 2: Status e ano (compacto) -->
-      <div class="flex items-center gap-2">
-        <select class="status-documento text-xs text-gray-800 bg-gray-50 border border-gray-300 rounded px-2 py-1" onchange="toggleDocumentFields(this)">
+      <!-- Coluna 2: Status e ano (mínimo possível) -->
+      <div class="flex items-center space-x-1 flex-shrink-0">
+        <select class="status-documento text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded px-1 py-0.5 w-24" onchange="toggleDocumentFields(this)">
           <option value="" selected disabled>Status</option>
           <option value="disponivel">Disponível</option>
           <option value="solicitar">Solicitar</option>
-          <option value="solicitado_orgao">Órgão/empresa</option>
+          <option value="solicitado_orgao">Órgão</option>
           <option value="nao_disponivel">Indisponível</option>
         </select>
 
-        <input type="number" min="1900" max="2099" class="ano-documento text-xs w-16 text-gray-800 bg-gray-50 border border-gray-300 rounded px-2 py-1" placeholder="Ano">
+        <input type="number" min="1900" max="2099" class="ano-documento text-sm w-14 text-gray-700 bg-gray-50 border border-gray-200 rounded px-1 py-0.5" placeholder="Ano">
       </div>
 
-      <!-- Coluna 3: Controles (mínimo possível) -->
-      <div class="ml-2 flex items-center gap-1">
-        <button type="button" class="expandir-documento bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-full p-1 flex items-center justify-center w-6 h-6 text-xs" title="Expandir detalhes">
+      <!-- Coluna 3: Controles (extremamente compactos) -->
+      <div class="ml-1 flex items-center space-x-1 flex-shrink-0">
+        <button type="button" class="expandir-documento bg-gray-200 hover:bg-gray-300 text-gray-600 rounded p-0.5 flex items-center justify-center w-5 h-5 text-xs" title="Expandir detalhes">
           <i class="fas fa-chevron-down"></i>
         </button>
-        <button type="button" class="remover-documento bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-6 h-6 text-xs" title="Remover documento">
+        <button type="button" class="remover-documento bg-red-500 hover:bg-red-600 text-white rounded p-0.5 flex items-center justify-center w-5 h-5 text-xs" title="Remover documento">
           <i class="fas fa-minus"></i>
         </button>
       </div>
     </div>
 
-    <!-- Área de detalhes (inicialmente oculta) -->
-    <div class="documento-detalhes hidden mt-3 pt-2 border-t border-gray-200">
-      <!-- Detalhes adicionais do documento -->
-      <div class="relative document-field mb-3">
-        <label class="text-xs text-gray-600 mb-1 block">Detalhes do documento</label>
-        <textarea class="detalhes-documento w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-sm" rows="2" placeholder="Informações adicionais, número de série, data de emissão, órgão emissor, etc."></textarea>
+    <!-- Área de detalhes (inicialmente oculta) - com espaçamento reduzido -->
+    <div class="documento-detalhes hidden mt-1 pt-1 border-t border-gray-200">
+      <!-- Detalhes adicionais do documento - usando div em vez de textarea para renderizar HTML -->
+      <div class="relative document-field mb-1">
+        <label class="text-sm text-gray-600 mb-0.5 block">Detalhes do documento</label>
+        <div class="detalhes-documento-container p-1 bg-white rounded border border-gray-200 min-h-[2.5rem] text-sm">
+          <!-- Aqui o HTML será renderizado -->
+        </div>
+        <textarea class="detalhes-documento w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-1 text-gray-800 bg-gray-50 text-sm hidden" rows="1" placeholder="Informações adicionais, número de série, data de emissão, órgão emissor, etc."></textarea>
       </div>
 
-      <!-- Campos específicos para cada status - todos inicialmente ocultos -->
-      <div class="document-status-fields disponivel-fields hidden mb-3">
-        <label class="text-xs text-gray-600 mb-1 block">Considerações</label>
-        <textarea class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-sm" rows="1" placeholder="Observações sobre o documento disponível"></textarea>
+      <!-- Campos específicos para cada status - todos inicialmente ocultos e com espaçamento mínimo -->
+      <div class="document-status-fields disponivel-fields hidden mb-2">
+        <label class="text-xs text-gray-600 mb-0.5 block">Considerações</label>
+        <textarea class="w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-1 text-gray-800 bg-gray-50 text-xs" rows="1" placeholder="Observações sobre o documento disponível"></textarea>
       </div>
 
-      <div class="document-status-fields solicitar-fields hidden mb-3">
-        <div class="grid grid-cols-2 gap-3 mb-2">
+      <div class="document-status-fields solicitar-fields hidden mb-2">
+        <div class="grid grid-cols-2 gap-2 mb-2">
           <div>
-            <label class="text-xs text-gray-600 mb-1 block">Data da solicitação</label>
-            <input type="date" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm">
+            <label class="text-xs text-gray-600 mb-0.5 block">Data da solicitação</label>
+            <input type="date" class="w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-0.5 text-xs">
           </div>
           <div>
-            <label class="text-xs text-gray-600 mb-1 block">Prazo para entrega</label>
-            <input type="date" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm">
+            <label class="text-xs text-gray-600 mb-0.5 block">Prazo para entrega</label>
+            <input type="date" class="w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-0.5 text-xs">
           </div>
         </div>
-        <label class="text-xs text-gray-600 mb-1 block">Instruções para o cliente</label>
-        <textarea class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-sm" rows="1" placeholder="Instruções específicas para o cliente"></textarea>
+        <label class="text-xs text-gray-600 mb-0.5 block">Instruções para o cliente</label>
+        <textarea class="w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-1 text-gray-800 bg-gray-50 text-xs" rows="1" placeholder="Instruções específicas para o cliente"></textarea>
       </div>
 
-      <div class="document-status-fields solicitado_orgao-fields hidden mb-3">
-        <div class="grid grid-cols-2 gap-3 mb-2">
+      <div class="document-status-fields solicitado_orgao-fields hidden mb-2">
+        <div class="grid grid-cols-2 gap-2 mb-2">
           <div>
-            <label class="text-xs text-gray-600 mb-1 block">Órgão/Empresa</label>
-            <input type="text" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm" placeholder="Nome do órgão ou empresa">
+            <label class="text-xs text-gray-600 mb-0.5 block">Órgão/Empresa</label>
+            <input type="text" class="w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-0.5 text-xs" placeholder="Nome do órgão">
           </div>
           <div>
-            <label class="text-xs text-gray-600 mb-1 block">Forma de solicitação</label>
-            <input type="text" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm" placeholder="Ex: ofício, processo administrativo">
+            <label class="text-xs text-gray-600 mb-0.5 block">Forma de solicitação</label>
+            <input type="text" class="w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-0.5 text-xs" placeholder="Ex: ofício">
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-xs text-gray-600 mb-1 block">Data da solicitação</label>
-            <input type="date" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm">
+            <label class="text-xs text-gray-600 mb-0.5 block">Data da solicitação</label>
+            <input type="date" class="w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-0.5 text-xs">
           </div>
           <div>
-            <label class="text-xs text-gray-600 mb-1 block">Prazo/Protocolo</label>
-            <input type="text" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-1 text-sm" placeholder="Ex: 30 dias, nº protocolo">
+            <label class="text-xs text-gray-600 mb-0.5 block">Prazo/Protocolo</label>
+            <input type="text" class="w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-0.5 text-xs" placeholder="Ex: 30 dias">
           </div>
         </div>
       </div>
 
-      <div class="document-status-fields nao_disponivel-fields hidden mb-3">
-        <label class="text-xs text-gray-600 mb-1 block">Motivo e alternativas</label>
-        <textarea class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-3 py-2 text-gray-800 bg-gray-50 text-sm" rows="1" placeholder="Motivo da indisponibilidade e possíveis alternativas"></textarea>
+      <div class="document-status-fields nao_disponivel-fields hidden mb-2">
+        <label class="text-xs text-gray-600 mb-0.5 block">Motivo e alternativas</label>
+        <textarea class="w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-1 text-gray-800 bg-gray-50 text-xs" rows="1" placeholder="Motivo da indisponibilidade"></textarea>
       </div>
     </div>
   </div>
