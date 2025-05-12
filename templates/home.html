@@ -149,8 +149,24 @@
 
     // Configurar eventos
     document.getElementById('btn-new-attendance').addEventListener('click', function() {
+      console.log('Botão Novo Atendimento clicado');
+
       if (typeof window.startNewAttendance === 'function') {
+        console.log('Função startNewAttendance encontrada no objeto window');
         window.startNewAttendance();
+      } else if (typeof startNewAttendance === 'function') {
+        console.log('Função startNewAttendance encontrada no escopo atual');
+        startNewAttendance();
+      } else {
+        console.error('Função startNewAttendance não encontrada!');
+        // Implementação de fallback direta
+        console.log('Executando implementação de fallback');
+        // Limpar dados locais
+        if (window.formStateManager) {
+          window.formStateManager.clearState();
+        }
+        // Navegar para o primeiro passo
+        navigateTo('personal');
       }
     });
 

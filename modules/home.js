@@ -472,6 +472,8 @@ function updateCountsFromData(attendances) {
  * Inicia um novo atendimento
  */
 function startNewAttendance() {
+  console.log('Função startNewAttendance executada no modules/home.js');
+
   // Verificar se há dados não salvos
   const formStateManager = window.formStateManager;
   if (formStateManager && formStateManager.currentFormId) {
@@ -502,7 +504,17 @@ function startNewAttendance() {
   }
 
   // Navegar para o primeiro passo
-  navigateTo('personal');
+  if (typeof window.navigateTo === 'function') {
+    console.log('Chamando window.navigateTo("personal")');
+    window.navigateTo('personal');
+  } else if (typeof navigateTo === 'function') {
+    console.log('Chamando navigateTo("personal") local');
+    navigateTo('personal');
+  } else {
+    console.error('Função navigateTo não encontrada!');
+    // Tentar redirecionar manualmente
+    window.location.hash = 'personal';
+  }
 }
 
 /**

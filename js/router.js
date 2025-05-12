@@ -58,6 +58,8 @@ let currentRoute = null;
 
 // Função para navegar para uma rota
 function navigateTo(routeName) {
+  console.log('navigateTo chamado com rota:', routeName);
+
   if (!routes[routeName]) {
     console.error(`Rota "${routeName}" não encontrada`);
     return false;
