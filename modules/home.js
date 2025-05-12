@@ -501,20 +501,16 @@ function startNewAttendance() {
   // Limpar dados locais
   if (window.formStateManager) {
     window.formStateManager.clearState();
+  } else {
+    // Fallback se o formStateManager não estiver disponível
+    localStorage.removeItem('formId');
+    localStorage.removeItem('formData');
+    localStorage.removeItem('currentStep');
   }
 
-  // Navegar para o primeiro passo
-  if (typeof window.navigateTo === 'function') {
-    console.log('Chamando window.navigateTo("personal")');
-    window.navigateTo('personal');
-  } else if (typeof navigateTo === 'function') {
-    console.log('Chamando navigateTo("personal") local');
-    navigateTo('personal');
-  } else {
-    console.error('Função navigateTo não encontrada!');
-    // Tentar redirecionar manualmente
-    window.location.hash = 'personal';
-  }
+  // Navegar para o primeiro passo usando hash diretamente
+  console.log('Navegando para: personal (via startNewAttendance)');
+  window.location.hash = 'personal';
 }
 
 /**
@@ -555,8 +551,10 @@ function continueAttendance(id) {
             window.formStateManager.saveToLocalStorage();
           }
 
-          // Navegar para a etapa atual ou a primeira
-          navigateTo(data.currentStep || 'personal');
+          // Navegar para a etapa atual ou a primeira usando hash diretamente
+          const route = data.currentStep || 'personal';
+          console.log('Navegando para:', route);
+          window.location.hash = route;
         } else {
           appContent.innerHTML = `
             <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
@@ -580,9 +578,10 @@ function continueAttendance(id) {
     const formId = localStorage.getItem('formId');
 
     if (formId === id) {
-      // Navegar para o formulário local
+      // Navegar para o formulário local usando hash diretamente
       const currentStep = localStorage.getItem('currentStep') || 'personal';
-      navigateTo(currentStep);
+      console.log('Navegando para (offline):', currentStep);
+      window.location.hash = currentStep;
     } else {
       appContent.innerHTML = `
         <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 rounded-lg">
