@@ -5,6 +5,12 @@
 
 // Definição das rotas disponíveis
 const routes = {
+  home: {
+    title: 'Dashboard',
+    templateUrl: 'templates/home.html',
+    scriptUrl: 'modules/home.js',
+    step: 0
+  },
   personal: {
     title: 'Dados Pessoais',
     templateUrl: 'templates/personal.html',
@@ -39,6 +45,7 @@ const routes = {
 
 // Mapa de rotas com seus respectivos números de etapas
 const routeSteps = {
+  'home': 0,
   'personal': 1,
   'social': 2,
   'incapacity': 3,
@@ -122,6 +129,14 @@ async function loadModuleWithTemplate(route) {
       setTimeout(() => {
         window.initCidSystem();
       }, 500);
+    }
+
+    // Restaurar o estado do formulário para o módulo carregado
+    if (window.formStateManager && window.formStateManager.currentFormId) {
+      window.formStateManager.currentStep = route.scriptUrl.split('/').pop().replace('.js', '');
+      setTimeout(() => {
+        window.formStateManager.restoreFormData(window.formStateManager.currentStep);
+      }, 300);
     }
 
   } catch (error) {
@@ -280,7 +295,7 @@ function initRouter() {
   if (initialRoute === 'professional') {
     window._professionalInitialized = false;
   }
-  navigateTo(initialRoute && routes[initialRoute] ? initialRoute : 'personal');
+  navigateTo(initialRoute && routes[initialRoute] ? initialRoute : 'home');
 
   // Ajustar o slider quando a janela for redimensionada
   window.addEventListener('resize', updateNavSlider);

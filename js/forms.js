@@ -47,6 +47,12 @@ function clearForm(showConfirmation = true) {
 function newForm() {
   if (confirm('Deseja iniciar um novo formulário? Os dados não salvos serão perdidos.')) {
     clearForm(false);
+
+    // Inicializar novo formulário com o gerenciador de estado simplificado
+    if (window.formStateManager) {
+      window.formStateManager.clearState();
+    }
+
     showSuccess('Novo formulário iniciado!', null, { duration: 3000 });
   }
 }
@@ -55,6 +61,58 @@ function newForm() {
 function saveForm() {
   // Mostrar indicador de carregamento
   showLoading('Salvando dados...');
+
+  // Usar o gerenciador de estado simplificado
+  if (window.formStateManager) {
+    // Capturar os dados atuais antes de salvar
+    window.formStateManager.captureCurrentFormData();
+    window.formStateManager.saveToLocalStorage();
+
+    // Tentar salvar no Firebase se estiver online
+    if (typeof FIAP.firebase !== 'undefined' && FIAP.firebase.db && navigator.onLine) {
+      // Usar uma única coleção - 'formularios' - para todos os formulários
+      const formData = {
+        id: window.formStateManager.currentFormId,
+        // Configurar todos os campos em um único objeto
+        dados: window.formStateManager.formData,
+        currentStep: window.formStateManager.currentStep,
+        ultimaAtualizacao: new Date().toISOString()
+      };
+
+      // Adicionar informações do CPF para facilitar buscas
+      const cpf = window.formStateManager.formData.personal?.cpf || '';
+      if (cpf) {
+        formData.cpf = cpf;
+      }
+
+      FIAP.firebase.db.collection('formularios').doc(formData.id).set(formData, { merge: true })
+        .then(() => {
+          hideLoading();
+          showSuccess('Dados salvos com sucesso no Firebase!', null, {
+            duration: 3000,
+            position: 'top-right'
+          });
+        })
+        .catch(error => {
+          hideLoading();
+          console.error("Erro ao salvar no Firebase:", error);
+          showSuccess('Dados salvos localmente. Serão sincronizados quando a conexão for restabelecida.', null, {
+            duration: 3000,
+            position: 'top-right'
+          });
+        });
+    } else {
+      // Estamos offline, mostrar mensagem de sucesso local
+      hideLoading();
+      showSuccess('Dados salvos localmente. Serão sincronizados quando a conexão for restabelecida.', null, {
+        duration: 3000,
+        position: 'top-right'
+      });
+    }
+    return;
+  }
+
+  // Código antigo como fallback (caso o gerenciador de estado não esteja disponível)
 
   // Coletar todos os dados do formulário atual
   const formData = {};
@@ -156,54 +214,30 @@ function loadFormByKey(key) {
   // Mostrar carregamento
   showLoading('Buscando formulário...');
 
-  // Verificar se o Firebase está disponível
-  if (typeof FIAP.firebase !== 'undefined' && FIAP.firebase.db) {
+  // Tentar carregar do Firebase primeiro
+  if (typeof FIAP.firebase !== 'undefined' && FIAP.firebase.db && navigator.onLine) {
+    // Primeiro tentar buscar pelo ID exato
     FIAP.firebase.db.collection('formularios').doc(key).get()
       .then(doc => {
-        hideLoading();
-
         if (doc.exists) {
-          // Limpar formulário atual
-          clearForm(false);
-
-          // Preencher campos com os dados do Firestore
-          const data = doc.data();
-          Object.entries(data).forEach(([fieldId, value]) => {
-            const field = document.getElementById(fieldId);
-            if (field && value) {
-              field.value = value;
-              field.classList.add('field-filled');
-            }
-          });
-
-          // Se existe uma rota salva, navegar para ela
-          if (data.currentRoute) {
-            navigateTo(data.currentRoute);
-          }
-
-          showSuccess(`Formulário de ${key} carregado com sucesso!`, null, {
-            duration: 3000
-          });
+          handleFormLoaded(doc.data(), key);
         } else {
-          // Tentar buscar do localStorage como fallback
-          showError(`Nenhum formulário encontrado no Firebase para ${key}. Tentando localStorage...`);
-
-          // Lógica de busca no localStorage (implementação simplificada)
-          let found = false;
-          for (let i = 0; i < localStorage.length; i++) {
-            const localKey = localStorage.key(i);
-            if (localKey && localKey.includes(key)) {
-              found = true;
-              break;
-            }
-          }
-
-          if (found) {
-            // Você pode adicionar uma lógica mais robusta aqui para carregar do localStorage
-            showSuccess(`Dados encontrados localmente para ${key}`);
-          } else {
-            showError(`Nenhum dado encontrado para ${key}`);
-          }
+          // Se não encontrar pelo ID, tentar buscar pelo CPF
+          FIAP.firebase.db.collection('formularios').where('cpf', '==', key).get()
+            .then(snapshot => {
+              if (!snapshot.empty) {
+                // Usar o primeiro documento encontrado
+                const doc = snapshot.docs[0];
+                handleFormLoaded(doc.data(), doc.id);
+              } else {
+                // Tentar buscar nos dados locais
+                tryLoadLocalForm(key);
+              }
+            })
+            .catch(error => {
+              console.error("Erro ao buscar por CPF:", error);
+              tryLoadLocalForm(key);
+            });
         }
       })
       .catch(error => {
@@ -214,11 +248,114 @@ function loadFormByKey(key) {
   } else {
     // Firebase não disponível, tentar localStorage
     hideLoading();
-    showError('Firebase não disponível. Tentando usar localStorage...');
-
-    // Implementar busca no localStorage (similar ao que está acima)
-    // ...
+    tryLoadLocalForm(key);
   }
+}
+
+// Função auxiliar para carregar o formulário encontrado
+function handleFormLoaded(formData, formId) {
+  hideLoading();
+
+  // Limpar formulário atual
+  clearForm(false);
+
+  // Se temos o gerenciador de estado, usar ele
+  if (window.formStateManager) {
+    // Inicializar com o ID do formulário carregado
+    window.formStateManager.currentFormId = formId;
+
+    // Organizar os dados do formulário
+    if (formData.dados) {
+      // Nova estrutura: dados contém todos os passos
+      window.formStateManager.formData = formData.dados;
+    } else {
+      // Estrutura antiga ou personalizada
+      window.formStateManager.formData = {
+        personal: formData.personal || {},
+        social: formData.social || {},
+        incapacity: formData.incapacity || {},
+        professional: formData.professional || {},
+        documents: formData.documents || {}
+      };
+    }
+
+    window.formStateManager.currentStep = formData.currentStep || 'personal';
+    window.formStateManager.isInitialized = true;
+
+    // Salvar no localStorage
+    window.formStateManager.saveToLocalStorage();
+
+    // Navegar para a página correta
+    navigateTo(window.formStateManager.currentStep);
+
+    // Mostrar mensagem de sucesso
+    showSuccess(`Formulário carregado com sucesso!`, null, {
+      duration: 3000,
+      position: 'top-right'
+    });
+  } else {
+    // Fallback para o sistema antigo
+    Object.entries(formData).forEach(([fieldId, value]) => {
+      const field = document.getElementById(fieldId);
+      if (field && value) {
+        field.value = value;
+        field.classList.add('field-filled');
+      }
+    });
+
+    // Se existe uma rota salva, navegar para ela
+    if (formData.currentStep) {
+      navigateTo(formData.currentStep);
+    }
+
+    showSuccess(`Formulário de ${formId} carregado com sucesso!`, null, {
+      duration: 3000
+    });
+  }
+}
+
+// Função auxiliar para tentar carregar dados locais
+function tryLoadLocalForm(key) {
+  hideLoading();
+
+  if (window.formStateManager) {
+    const storedData = localStorage.getItem('formData');
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        const personal = parsedData.personal || {};
+
+        // Verificar se o CPF ou ID corresponde
+        if (personal.cpf === key ||
+            localStorage.getItem('formId') === key) {
+
+          // Restaurar do localStorage
+          window.formStateManager.currentFormId = localStorage.getItem('formId');
+          window.formStateManager.formData = parsedData;
+          window.formStateManager.currentStep = localStorage.getItem('currentStep') || 'personal';
+          window.formStateManager.isInitialized = true;
+
+          // Navegar para a página inicial
+          navigateTo(window.formStateManager.currentStep);
+
+          // Restaurar dados
+          setTimeout(() => {
+            window.formStateManager.restoreFormData(window.formStateManager.currentStep);
+          }, 300);
+
+          showSuccess(`Formulário carregado do armazenamento local!`, null, {
+            duration: 3000,
+            position: 'top-right'
+          });
+          return;
+        }
+      } catch (e) {
+        console.error('Erro ao analisar dados do localStorage:', e);
+      }
+    }
+  }
+
+  showError(`Nenhum formulário encontrado para ${key}`);
 }
 
 // Função para impressão do formulário

@@ -34,7 +34,7 @@
   <div class="fixed top-0 left-0 right-0 bg-white shadow-sm border-b z-50" style="scrollbar-gutter: stable;">
     <div class="max-w-[1440px] mx-auto px-4 py-2">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 cursor-pointer" id="logo-container">
           <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center shadow-sm">
             <span class="font-bold text-lg">FIAP</span>
           </div>
@@ -66,6 +66,12 @@
           </div>
         </div>        <!-- Botões de ação no canto superior direito -->
         <div class="flex items-center gap-3">
+          <!-- Indicador de status de conexão -->
+          <div id="connection-status" class="flex items-center text-sm mr-2">
+            <span id="online-indicator" class="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+            <span id="online-text" class="text-xs text-gray-600">Online</span>
+          </div>
+
           <button type="button" class="navbar-action" title="Buscar formulário" id="btn-search">
             <i class="fas fa-search text-lg"></i>
           </button>
@@ -128,6 +134,12 @@
   <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-analytics-compat.js"></script>
 
+  <!-- Script de Persistência -->
+  <script src="js/persistence.js"></script>
+
+  <!-- Script de Estado -->
+  <script src="js/state.js"></script>
+
   <!-- Scripts da aplicação -->
   <script src="js/config.js"></script>
   <script src="js/cache.js"></script>
@@ -156,6 +168,11 @@
       document.getElementById('btn-save').addEventListener('click', saveForm);
       document.getElementById('btn-print').addEventListener('click', printForm);
       document.getElementById('btn-search').addEventListener('click', openSearchFormModal);
+
+      // Adicionar evento de clique no logo para ir para a home
+      document.getElementById('logo-container').addEventListener('click', function() {
+        navigateTo('home');
+      });
 
       // Configuração do modal de busca
       const searchModal = document.getElementById('searchFormModal');
@@ -190,7 +207,69 @@
           closeSearchFormModal();
         }
       });
+
+      // Configurar o indicador de status de conexão
+      setupConnectionStatus();
+
+      // Verificar compatibilidade do navegador
+      checkBrowserCompatibility();
     });
+
+    // Função para configurar o indicador de status de conexão
+    function setupConnectionStatus() {
+      const indicator = document.getElementById('online-indicator');
+      const text = document.getElementById('online-text');
+
+      function updateConnectionStatus() {
+        if (navigator.onLine) {
+          indicator.classList.remove('bg-red-500');
+          indicator.classList.add('bg-green-500');
+          text.textContent = 'Online';
+          text.classList.remove('text-red-600');
+          text.classList.add('text-gray-600');
+        } else {
+          indicator.classList.remove('bg-green-500');
+          indicator.classList.add('bg-red-500');
+          text.textContent = 'Offline';
+          text.classList.remove('text-gray-600');
+          text.classList.add('text-red-600');
+        }
+      }
+
+      // Atualizar status inicial
+      updateConnectionStatus();
+
+      // Adicionar listeners para eventos de mudança de conexão
+      window.addEventListener('online', updateConnectionStatus);
+      window.addEventListener('offline', updateConnectionStatus);
+    }
+
+    // Função para verificar compatibilidade do navegador
+    function checkBrowserCompatibility() {
+      // Verificar suporte a localStorage
+      let storageAvailable = false;
+      try {
+        localStorage.setItem('test', 'test');
+        localStorage.removeItem('test');
+        storageAvailable = true;
+      } catch (e) {
+        console.error('localStorage não disponível:', e);
+      }
+
+      if (!storageAvailable) {
+        const warningDiv = document.createElement('div');
+        warningDiv.className = 'fixed bottom-4 left-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg z-50';
+        warningDiv.innerHTML = `
+          <div class="flex items-center">
+            <div class="text-yellow-500 rounded-full p-1">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <span class="ml-2">Seu navegador não suporta armazenamento local. A persistência de dados pode não funcionar corretamente.</span>
+          </div>
+        `;
+        document.body.appendChild(warningDiv);
+      }
+    }
 
     // Funções para manipulação do modal de busca
     function openSearchFormModal() {
