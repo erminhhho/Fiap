@@ -19,6 +19,103 @@ function initModule() {
 
   // Configurar filtros e busca
   setupFilterHandlers();
+
+  // Configurar busca por CPF
+  setupCpfSearch();
+}
+
+/**
+ * Configura a busca por CPF
+ */
+function setupCpfSearch() {
+  const cpfSearchInput = document.getElementById('cpf-search');
+  const cpfSearchBtn = document.getElementById('btn-search-cpf');
+
+  if (cpfSearchInput) {
+    // Aplicar máscara de CPF ao campo
+    if (window.FIAP && window.FIAP.masks && window.FIAP.masks.cpf) {
+      cpfSearchInput.addEventListener('input', function() {
+        window.FIAP.masks.cpf(this);
+      });
+    }
+
+    // Buscar ao pressionar Enter
+    cpfSearchInput.addEventListener('keyup', function(event) {
+      if (event.key === 'Enter') {
+        searchByCpf();
+      }
+    });
+  }
+
+  if (cpfSearchBtn) {
+    cpfSearchBtn.addEventListener('click', searchByCpf);
+  }
+}
+
+/**
+ * Busca atendimento por CPF
+ */
+function searchByCpf() {
+  const cpfInput = document.getElementById('cpf-search');
+  const cpf = cpfInput?.value?.trim();
+
+  if (!cpf) {
+    showErrorMessage('Por favor, informe um CPF válido');
+    return;
+  }
+
+  // Exibir indicador de carregamento
+  showLoading('Buscando atendimento...');
+
+  // Verificar se estamos online para buscar no Firebase
+  if (navigator.onLine && window.FIAP && window.FIAP.firebase && window.FIAP.firebase.db) {
+    window.FIAP.firebase.db.collection('formularios')
+      .where('cpf', '==', cpf)
+      .limit(1)
+      .get()
+      .then(snapshot => {
+        hideLoading();
+
+        if (snapshot.empty) {
+          showErrorMessage('Nenhum atendimento encontrado com este CPF');
+          return;
+        }
+
+        // Encontrou um atendimento, continuar
+        const doc = snapshot.docs[0];
+        continueAttendance(doc.id);
+      })
+      .catch(error => {
+        hideLoading();
+        console.error('Erro ao buscar por CPF:', error);
+        showErrorMessage('Erro ao buscar atendimento: ' + error.message);
+      });
+  } else {
+    // Estamos offline, verificar no localStorage
+    hideLoading();
+
+    const formId = localStorage.getItem('formId');
+    const formData = localStorage.getItem('formData');
+
+    if (formId && formData) {
+      try {
+        const parsedData = JSON.parse(formData);
+        const personalData = parsedData.personal || {};
+
+        if (personalData.cpf === cpf) {
+          // Encontrou o atendimento local
+          continueAttendance(formId);
+        } else {
+          showErrorMessage('Nenhum atendimento encontrado localmente com este CPF');
+        }
+      } catch (e) {
+        console.error('Erro ao processar dados locais:', e);
+        showErrorMessage('Erro ao processar dados locais');
+      }
+    } else {
+      showErrorMessage('Nenhum atendimento encontrado localmente');
+    }
+  }
 }
 
 /**
@@ -177,8 +274,16 @@ function renderAttendances(attendances) {
   document.getElementById('total-items').textContent = attendances.length;
 
   // Configurar estado dos botões de paginação
-  document.getElementById('prev-page').disabled = currentPage === 1;
-  document.getElementById('next-page').disabled = endIndex >= attendances.length;
+  const prevPageBtn = document.getElementById('prev-page');
+  const nextPageBtn = document.getElementById('next-page');
+
+  if (prevPageBtn) {
+    prevPageBtn.disabled = currentPage === 1;
+  }
+
+  if (nextPageBtn) {
+    nextPageBtn.disabled = endIndex >= attendances.length;
+  }
 }
 
 /**
@@ -251,23 +356,11 @@ function filterAttendances() {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
+  // Resetar a paginação para a primeira página
+  currentPage = 1;
+
   // Atualizar a visualização da tabela
   renderAttendances(filteredAttendances);
-
-  // Atualizar contadores de paginação
-  document.getElementById('showing-count').textContent = filteredAttendances.length;
-
-  // Desabilitar botões de paginação se necessário
-  const prevPageBtn = document.getElementById('prev-page');
-  const nextPageBtn = document.getElementById('next-page');
-
-  if (prevPageBtn) {
-    prevPageBtn.disabled = currentPage === 1;
-  }
-
-  if (nextPageBtn) {
-    nextPageBtn.disabled = currentPage >= Math.ceil(filteredAttendances.length / itemsPerPage);
-  }
 }
 
 /**
@@ -276,7 +369,7 @@ function filterAttendances() {
 function goToPrevPage() {
   if (currentPage > 1) {
     currentPage--;
-    filterAttendances();
+    renderAttendances(filteredAttendances.length > 0 ? filteredAttendances : allAttendances);
   }
 }
 
@@ -284,10 +377,10 @@ function goToPrevPage() {
  * Navega para a próxima página
  */
 function goToNextPage() {
-  const maxPage = Math.ceil(filteredAttendances.length / itemsPerPage);
+  const maxPage = Math.ceil((filteredAttendances.length > 0 ? filteredAttendances : allAttendances).length / itemsPerPage);
   if (currentPage < maxPage) {
     currentPage++;
-    filterAttendances();
+    renderAttendances(filteredAttendances.length > 0 ? filteredAttendances : allAttendances);
   }
 }
 
@@ -379,6 +472,30 @@ function updateCountsFromData(attendances) {
  * Inicia um novo atendimento
  */
 function startNewAttendance() {
+  // Verificar se há dados não salvos
+  const formStateManager = window.formStateManager;
+  if (formStateManager && formStateManager.currentFormId) {
+    // Verificar se o formulário tem dados preenchidos que precisam ser salvos
+    let hasData = false;
+
+    // Verificar se há dados em qualquer etapa
+    for (const step in formStateManager.formData) {
+      if (Object.keys(formStateManager.formData[step]).length > 0) {
+        hasData = true;
+        break;
+      }
+    }
+
+    if (hasData) {
+      if (confirm('Há um formulário em andamento. Deseja salvá-lo antes de iniciar um novo?')) {
+        // Salvar o formulário atual antes de iniciar um novo
+        if (window.saveForm) {
+          window.saveForm();
+        }
+      }
+    }
+  }
+
   // Limpar dados locais
   if (window.formStateManager) {
     window.formStateManager.clearState();
@@ -583,11 +700,87 @@ function deleteAttendance(id) {
   }
 }
 
+/**
+ * Exibe mensagem de erro
+ * @param {string} message - Mensagem de erro
+ */
+function showErrorMessage(message) {
+  // Verificar se existe a função global de erro
+  if (window.showError) {
+    window.showError(message);
+    return;
+  }
+
+  // Implementação alternativa
+  const alertDiv = document.createElement('div');
+  alertDiv.className = 'fixed bottom-4 left-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg z-50';
+  alertDiv.innerHTML = `
+    <div class="flex items-center">
+      <div class="text-red-500 rounded-full p-1">
+        <i class="fas fa-exclamation-circle"></i>
+      </div>
+      <span class="ml-2">${message}</span>
+    </div>
+  `;
+  document.body.appendChild(alertDiv);
+
+  // Remover após 4 segundos
+  setTimeout(() => {
+    alertDiv.remove();
+  }, 4000);
+}
+
+/**
+ * Exibe indicador de carregamento
+ * @param {string} message - Mensagem a ser exibida
+ */
+function showLoading(message = 'Carregando...') {
+  // Verificar se existe a função global
+  if (window.showLoading) {
+    window.showLoading(message);
+    return;
+  }
+
+  // Implementação alternativa
+  if (document.getElementById('loading-overlay')) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'loading-overlay';
+  overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]';
+  overlay.innerHTML = `
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
+      <div class="flex flex-col items-center">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
+        <p class="text-gray-700">${message}</p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+/**
+ * Oculta o indicador de carregamento
+ */
+function hideLoading() {
+  // Verificar se existe a função global
+  if (window.hideLoading) {
+    window.hideLoading();
+    return;
+  }
+
+  // Implementação alternativa
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
 // Exportar funções auxiliares
 window.startNewAttendance = startNewAttendance;
 window.continueAttendance = continueAttendance;
 window.printAttendance = printAttendance;
 window.deleteAttendance = deleteAttendance;
+window.searchByCpf = searchByCpf;
 
 // Exportar funções de inicialização e paginação
 window.initModule = initModule;

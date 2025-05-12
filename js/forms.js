@@ -59,13 +59,45 @@ function newForm() {
 
 // Função para salvar o formulário com Firebase
 function saveForm() {
-  // Mostrar indicador de carregamento
-  showLoading('Salvando dados...');
-
   // Usar o gerenciador de estado simplificado
   if (window.formStateManager) {
     // Capturar os dados atuais antes de salvar
     window.formStateManager.captureCurrentFormData();
+
+    // Verificar se existe algum dado preenchido no formulário
+    let hasData = false;
+
+    // Verificar cada etapa do formulário
+    for (const step in window.formStateManager.formData) {
+      const stepData = window.formStateManager.formData[step];
+
+      // Verificar se a etapa tem dados
+      if (Object.keys(stepData).length > 0) {
+        // Verificar se existem campos preenchidos (não vazios)
+        for (const field in stepData) {
+          if (stepData[field] && typeof stepData[field] === 'string' && stepData[field].trim() !== '') {
+            hasData = true;
+            break;
+          } else if (stepData[field] && typeof stepData[field] === 'object' && Object.keys(stepData[field]).length > 0) {
+            hasData = true;
+            break;
+          }
+        }
+
+        if (hasData) break;
+      }
+    }
+
+    // Se não existir nenhum dado preenchido, mostrar mensagem e não salvar
+    if (!hasData) {
+      showError('Não é possível salvar um formulário vazio. Por favor, preencha pelo menos um campo.');
+      return;
+    }
+
+    // Mostrar indicador de carregamento
+    showLoading('Salvando dados...');
+
+    // Salvar no localStorage
     window.formStateManager.saveToLocalStorage();
 
     // Tentar salvar no Firebase se estiver online

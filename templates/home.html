@@ -5,7 +5,17 @@
       <i class="fas fa-clipboard-list text-blue-600 text-3xl"></i>
       <h1 class="text-2xl font-bold text-gray-800">Gerenciamento de Atendimentos</h1>
     </div>
-    <div>
+    <div class="flex items-center gap-3">
+      <!-- Campo de busca por CPF -->
+      <div class="relative">
+        <input type="text" id="cpf-search" class="w-64 rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-2 text-gray-800 bg-gray-50 pl-9" placeholder="Buscar por CPF..." oninput="if(window.FIAP && window.FIAP.masks) window.FIAP.masks.cpf(this)">
+        <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <i class="fas fa-id-card"></i>
+        </div>
+        <button id="btn-search-cpf" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-600 hover:text-blue-800">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
       <button id="btn-new-attendance" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2">
         <i class="fas fa-plus"></i> Novo Atendimento
       </button>
@@ -138,12 +148,47 @@
     loadAttendances();
 
     // Configurar eventos
-    document.getElementById('btn-new-attendance').addEventListener('click', startNewAttendance);
+    document.getElementById('btn-new-attendance').addEventListener('click', function() {
+      if (typeof window.startNewAttendance === 'function') {
+        window.startNewAttendance();
+      }
+    });
+
     document.getElementById('search-attendances').addEventListener('input', filterAttendances);
     document.getElementById('filter-status').addEventListener('change', filterAttendances);
     document.getElementById('filter-date').addEventListener('change', filterAttendances);
-    document.getElementById('prev-page').addEventListener('click', goToPrevPage);
-    document.getElementById('next-page').addEventListener('click', goToNextPage);
+
+    // Configurar paginação
+    document.getElementById('prev-page').addEventListener('click', function() {
+      if (typeof goToPrevPage === 'function') {
+        goToPrevPage();
+      }
+    });
+    document.getElementById('next-page').addEventListener('click', function() {
+      if (typeof goToNextPage === 'function') {
+        goToNextPage();
+      }
+    });
+
+    // Configurar busca por CPF
+    const cpfSearchBtn = document.getElementById('btn-search-cpf');
+    if (cpfSearchBtn) {
+      cpfSearchBtn.addEventListener('click', function() {
+        if (typeof searchByCpf === 'function') {
+          searchByCpf();
+        }
+      });
+    }
+
+    // Permitir buscar ao pressionar Enter no campo de CPF
+    const cpfInput = document.getElementById('cpf-search');
+    if (cpfInput) {
+      cpfInput.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter' && typeof searchByCpf === 'function') {
+          searchByCpf();
+        }
+      });
+    }
   });
 
   // Função para carregar atendimentos
@@ -222,17 +267,6 @@
       document.getElementById('attendances-table-body').innerHTML =
         `<tr><td colspan="6" class="py-4 text-center text-red-500">Erro ao carregar dados: ${error.message}</td></tr>`;
     }
-  }
-
-  // Função para iniciar novo atendimento
-  function startNewAttendance() {
-    // Limpar dados locais
-    if (window.formStateManager) {
-      window.formStateManager.clearState();
-    }
-
-    // Navegar para o primeiro passo
-    navigateTo('personal');
   }
 
   // Funções auxiliares
@@ -437,15 +471,5 @@
   function filterAttendances() {
     // A ser implementado com dados reais
     console.log('Filtrando atendimentos...');
-  }
-
-  function goToPrevPage() {
-    // A ser implementado com dados reais
-    console.log('Página anterior');
-  }
-
-  function goToNextPage() {
-    // A ser implementado com dados reais
-    console.log('Próxima página');
   }
 </script>
