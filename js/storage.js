@@ -17,7 +17,7 @@ window.FIAP.storage = {};
     autoSaveDelay: 800,
     debug: false,
     notificationDuration: 2000,
-    createSaveIndicator: true
+    createSaveIndicator: false
   };
 
   // Cache de dados em memória
@@ -89,17 +89,15 @@ window.FIAP.storage = {};
    * Mostra o indicador de salvamento
    */
   function showSaveIndicator() {
-    if (!saveIndicator) return;
-
-    // Adicionar classe ou estilo de ativo
-    saveIndicator.style.opacity = '1';
-    saveIndicator.style.transform = 'translateY(0)';
-
-    // Esconder após alguns segundos
-    setTimeout(() => {
-      saveIndicator.style.opacity = '0';
-      saveIndicator.style.transform = 'translateY(10px)';
-    }, CONFIG.notificationDuration);
+    const saveBtnIcon = document.querySelector('#btn-save i');
+    if (saveBtnIcon) {
+      // Adicionar animação de pulso e cor para indicar salvamento
+      saveBtnIcon.classList.add('text-green-500', 'animate-pulse');
+      // Remover animação após a duração configurada
+      setTimeout(() => {
+        saveBtnIcon.classList.remove('text-green-500', 'animate-pulse');
+      }, CONFIG.notificationDuration);
+    }
   }
 
   /**

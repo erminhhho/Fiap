@@ -19,10 +19,6 @@
       <button id="btn-new-attendance" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" onclick="window.location.href = '#personal'; localStorage.removeItem('formId'); localStorage.removeItem('formData'); localStorage.removeItem('currentStep');">
         <i class="fas fa-plus"></i> Novo Atendimento
       </button>
-      <!-- Botão de teste (diagnóstico) -->
-      <button id="btn-test-direct" class="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg px-4 py-2 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-green-300 flex items-center gap-2" onclick="resetAndRedirect()">
-        <i class="fas fa-vial"></i> Teste Direto
-      </button>
     </div>
   </div>
 
@@ -147,27 +143,6 @@
 
 <!-- Scripts específicos da home -->
 <script>
-  // Função para limpar dados e redirecionar
-  function resetAndRedirect() {
-    console.log("Função resetAndRedirect() chamada");
-
-    // Limpar dados do localStorage
-    localStorage.removeItem('formId');
-    localStorage.removeItem('formData');
-    localStorage.removeItem('currentStep');
-
-    // Usar redirecionamento direto
-    window.location.href = '#personal';
-
-    // Tentar recarregar a página também, após um pequeno delay
-    setTimeout(function() {
-      console.log("Recarregando página após redirecionamento...");
-      window.location.reload();
-    }, 100);
-
-    return false; // Prevenir ação padrão
-  }
-
   document.addEventListener('DOMContentLoaded', function() {
     // Verificar se as dependências estão carregadas corretamente
     function checkDependencies() {
