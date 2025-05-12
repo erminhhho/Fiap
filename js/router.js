@@ -113,6 +113,17 @@ async function loadModuleWithTemplate(route) {
       window.initModule();
     }
 
+    // Inicializar o sistema CID se estiver na página de incapacidades
+    if (route.scriptUrl.includes('incapacity.js') && typeof window.initCidSystem === 'function') {
+      // Inicializa imediatamente
+      window.initCidSystem();
+
+      // E também com um pequeno atraso para garantir que todos os elementos foram carregados
+      setTimeout(() => {
+        window.initCidSystem();
+      }, 500);
+    }
+
   } catch (error) {
     console.error('Erro ao carregar módulo:', error);
     appContent.innerHTML = `
