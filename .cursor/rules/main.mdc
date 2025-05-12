@@ -1,0 +1,8 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+sempre use nomes em ingle e não compostos para nomear novos arquivos
+
+não crie subpastas, use a estrutura existente do projeto se isso não for pedido de forma explícita

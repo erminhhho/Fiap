@@ -134,13 +134,16 @@
   <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-analytics-compat.js"></script>
 
-  <!-- Script de Persistência -->
+  <!-- Sistema de persistência simplificado e unificado -->
+  <script src="js/storage.js"></script>
+
+  <!-- Camada de compatibilidade com código antigo -->
   <script src="js/persistence.js"></script>
 
-  <!-- Script de Estado -->
+  <!-- Script de Estado - versão existente -->
   <script src="js/state.js"></script>
 
-  <!-- Scripts da aplicação -->
+  <!-- Scripts da aplicação existente -->
   <script src="js/config.js"></script>
   <script src="js/cache.js"></script>
   <script src="js/mask.js"></script>
@@ -151,7 +154,12 @@
   <script src="js/address.js"></script>
   <script src="js/search.js"></script>
   <script src="js/cid.js"></script>
-  <script src="js/router.js"></script>  <script>
+  <script src="js/router.js"></script>
+
+  <!-- Novo sistema de persistência complementar (carregado depois) -->
+  <script type="module" src="js/app.js"></script>
+
+  <script>
     // Inicialização da aplicação
     document.addEventListener('DOMContentLoaded', function() {
       // Inicia o router
