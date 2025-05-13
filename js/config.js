@@ -7,6 +7,17 @@ const CONFIG = {
   version: '1.0.0',
   lastUpdate: '2024-03-20',
 
+  // Configurações de debug
+  debug: {
+    enabled: false, // Defina como true para ativar logs de debug
+    levels: {
+      navigation: false, // Logs de navegação do router
+      storage: false,    // Logs de armazenamento
+      forms: false,      // Logs de manipulação de formulários
+      api: true          // Logs de chamadas de API (mantido para diagnóstico)
+    }
+  },
+
   // Configurações financeiras
   financial: {
     minimumWage: 1518.00,

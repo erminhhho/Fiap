@@ -56,13 +56,28 @@ const routeSteps = {
 // Estado atual da navegação
 let currentRoute = null;
 
+/**
+ * Log condicional com base nas configurações de debug
+ * @param {string} message - Mensagem a ser registrada
+ * @param {Error} [error] - Objeto de erro opcional
+ */
+function routerLog(message, error) {
+  if (window.CONFIG?.debug?.enabled && window.CONFIG.debug.levels.navigation) {
+    if (error) {
+      console.error(`[Router] ${message}`, error);
+    } else {
+      console.log(`[Router] ${message}`);
+    }
+  }
+}
+
 // Função para navegar para uma rota
 function navigateTo(routeName) {
-  console.log('[navigateTo] Iniciando navegação para:', routeName);
+  routerLog(`Iniciando navegação para: ${routeName}`);
 
   try {
     if (!routes[routeName]) {
-      console.error(`[navigateTo] ERRO: Rota "${routeName}" não encontrada`);
+      routerLog(`ERRO: Rota "${routeName}" não encontrada`, new Error('Rota não encontrada'));
       return false;
     }
 
@@ -71,15 +86,15 @@ function navigateTo(routeName) {
     currentRoute = routeName;
 
     // Atualizar a URL com hash
-    console.log('[navigateTo] Atualizando hash para:', routeName);
+    routerLog(`Atualizando hash para: ${routeName}`);
     window.location.hash = routeName;
 
     // Atualizar título da página
-    console.log('[navigateTo] Atualizando título da página para:', route.title);
+    routerLog(`Atualizando título da página para: ${route.title}`);
     document.title = `FIAP - ${route.title}`;
 
     // Marcar o link ativo na navegação
-    console.log('[navigateTo] Atualizando link ativo');
+    routerLog('Atualizando link ativo');
     document.querySelectorAll('.step-link').forEach(link => {
       if (link.getAttribute('href') === `#${routeName}`) {
         link.classList.add('active');
@@ -89,17 +104,17 @@ function navigateTo(routeName) {
     });
 
     // Atualizar o slider da barra de navegação
-    console.log('[navigateTo] Atualizando slider da navegação');
+    routerLog('Atualizando slider da navegação');
     updateNavSlider();
 
     // Carregar o conteúdo do módulo usando o template HTML
-    console.log('[navigateTo] Carregando template da rota:', route.templateUrl);
+    routerLog(`Carregando template da rota: ${route.templateUrl}`);
     loadModuleWithTemplate(route);
 
-    console.log('[navigateTo] Navegação concluída com sucesso para:', routeName);
+    routerLog(`Navegação concluída com sucesso para: ${routeName}`);
     return true;
   } catch (error) {
-    console.error('[navigateTo] ERRO CRÍTICO durante a navegação:', error);
+    routerLog('ERRO CRÍTICO durante a navegação', error);
     const appContent = document.getElementById('app-content');
     if (appContent) {
       appContent.innerHTML = `
@@ -116,11 +131,11 @@ function navigateTo(routeName) {
 
 // Função para carregar um módulo via template HTML e script
 async function loadModuleWithTemplate(route) {
-  console.log('[loadModuleWithTemplate] Iniciando carregamento do módulo:', route.scriptUrl);
+  routerLog(`Iniciando carregamento do módulo: ${route.scriptUrl}`);
   const appContent = document.getElementById('app-content');
 
   if (!appContent) {
-    console.error('[loadModuleWithTemplate] ERRO: Elemento app-content não encontrado no DOM!');
+    routerLog('ERRO: Elemento app-content não encontrado no DOM!', new Error('Elemento não encontrado'));
     return;
   }
 
@@ -136,55 +151,55 @@ async function loadModuleWithTemplate(route) {
 
   try {
     // Carregar o template HTML
-    console.log('[loadModuleWithTemplate] Carregando template HTML:', route.templateUrl);
+    routerLog(`Carregando template HTML: ${route.templateUrl}`);
     const templateHTML = await loadTemplate(route.templateUrl);
-    console.log('[loadModuleWithTemplate] Template HTML carregado com sucesso');
+    routerLog('Template HTML carregado com sucesso');
 
     // Renderizar o template no container
-    console.log('[loadModuleWithTemplate] Renderizando template no container');
+    routerLog('Renderizando template no container');
     appContent.innerHTML = templateHTML;
 
     // Carregar e executar o script do módulo
-    console.log('[loadModuleWithTemplate] Carregando script do módulo:', route.scriptUrl);
+    routerLog(`Carregando script do módulo: ${route.scriptUrl}`);
     await loadScript(route.scriptUrl);
-    console.log('[loadModuleWithTemplate] Script do módulo carregado com sucesso');
+    routerLog('Script do módulo carregado com sucesso');
 
     // Inicializar o módulo se a função estiver definida
     if (typeof window.initModule === 'function') {
-      console.log('[loadModuleWithTemplate] Inicializando módulo via window.initModule()');
+      routerLog('Inicializando módulo via window.initModule()');
       window.initModule();
     } else {
-      console.warn('[loadModuleWithTemplate] Função window.initModule não encontrada');
+      routerLog('Função window.initModule não encontrada');
     }
 
     // Inicializar o sistema CID se estiver na página de incapacidades
     if (route.scriptUrl.includes('incapacity.js') && typeof window.initCidSystem === 'function') {
       // Inicializa imediatamente
-      console.log('[loadModuleWithTemplate] Inicializando sistema CID');
+      routerLog('Inicializando sistema CID');
       window.initCidSystem();
 
       // E também com um pequeno atraso para garantir que todos os elementos foram carregados
       setTimeout(() => {
-        console.log('[loadModuleWithTemplate] Re-inicializando sistema CID após delay');
+        routerLog('Re-inicializando sistema CID após delay');
         window.initCidSystem();
       }, 500);
     }
 
     // Restaurar o estado do formulário para o módulo carregado
     if (window.formStateManager && window.formStateManager.currentFormId) {
-      console.log('[loadModuleWithTemplate] Restaurando estado do formulário');
+      routerLog('Restaurando estado do formulário');
       window.formStateManager.currentStep = route.scriptUrl.split('/').pop().replace('.js', '');
       setTimeout(() => {
-        console.log('[loadModuleWithTemplate] Restaurando dados do formulário após delay');
+        routerLog('Restaurando dados do formulário após delay');
         window.formStateManager.restoreFormData(window.formStateManager.currentStep);
       }, 300);
     } else {
-      console.log('[loadModuleWithTemplate] Nenhum estado de formulário para restaurar');
+      routerLog('Nenhum estado de formulário para restaurar');
     }
 
-    console.log('[loadModuleWithTemplate] Módulo carregado e inicializado com sucesso');
+    routerLog('Módulo carregado e inicializado com sucesso');
   } catch (error) {
-    console.error('[loadModuleWithTemplate] ERRO ao carregar módulo:', error);
+    routerLog('ERRO ao carregar módulo', error);
     appContent.innerHTML = `
       <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
         <h3 class="font-bold mb-2">Erro ao carregar módulo</h3>
@@ -318,66 +333,73 @@ function navigateToPrevStep() {
   return false; // Não há etapa anterior
 }
 
-// Inicialização do router
+// Inicializa o router
 function initRouter() {
-  console.log('[initRouter] Inicializando o router');
+  routerLog('Inicializando o router');
 
-  // Adicionar listeners para os links de navegação
-  document.querySelectorAll('.step-link').forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      const route = this.getAttribute('href').substring(1); // Remover o # do início
-      console.log('[initRouter] Link de navegação clicado:', route);
-      navigateTo(route);
+  try {
+    // Definir evento para navegação via links
+    document.querySelectorAll('.step-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const route = this.getAttribute('href').replace('#', '');
+        routerLog(`Link de navegação clicado: ${route}`);
+        navigateTo(route);
+      });
     });
-  });
 
-  // Ouvir mudanças na hash da URL
-  window.addEventListener('hashchange', function() {
-    console.log('===== EVENTO HASHCHANGE DETECTADO =====');
-    const route = window.location.hash.substring(1);
-    console.log('Rota solicitada via hash:', route);
-    console.log('Hash completa:', window.location.hash);
-    console.log('Rotas disponíveis:', Object.keys(routes));
-    console.log('A rota existe?', routes[route] ? 'Sim' : 'Não');
+    // Adicionar listener para eventos de mudança de hash na URL
+    window.addEventListener('hashchange', function() {
+      routerLog('===== EVENTO HASHCHANGE DETECTADO =====');
 
-    if (route && routes[route]) {
-      // Limpar flags de inicialização ao mudar de rota via hash
-      if (route === 'professional') {
-        window._professionalInitialized = false;
+      // Obter rota da hash da URL
+      const hash = window.location.hash;
+      const requestedRoute = hash.replace('#', '');
+
+      routerLog(`Rota solicitada via hash: ${requestedRoute}`);
+      routerLog(`Hash completa: ${hash}`);
+
+      if (window.CONFIG?.debug?.enabled && window.CONFIG.debug.levels.navigation) {
+        console.log('[Router] Rotas disponíveis:', Object.keys(routes));
+        console.log('[Router] A rota existe?', routes[requestedRoute] ? 'Sim' : 'Não');
       }
-      console.log('Chamando navigateTo com rota:', route);
-      navigateTo(route);
+
+      // Verificar se a rota existe
+      if (routes[requestedRoute]) {
+        routerLog(`Chamando navigateTo com rota: ${requestedRoute}`);
+        navigateTo(requestedRoute);
+      } else if (hash && hash !== '#') {
+        // Rota inválida na URL, redirecionar para home
+        routerLog(`Rota inválida detectada na URL: ${requestedRoute}`);
+        window.location.hash = '';
+        navigateTo('home');
+      }
+    });
+
+    // Verificar se há uma rota na URL inicial
+    const initialHash = window.location.hash;
+    const initialRoute = initialHash.replace('#', '');
+
+    routerLog(`Rota inicial da hash: ${initialRoute}`);
+
+    // Se não houver rota ou for uma rota inválida, usar a rota padrão
+    if (!initialRoute || !routes[initialRoute]) {
+      routerLog('Usando rota padrão (home)');
+      navigateTo('home');
     } else {
-      console.warn('A rota não foi encontrada ou está vazia. Não realizando navegação.');
+      routerLog(`Navegando para a rota inicial: ${initialRoute}`);
+      navigateTo(initialRoute);
     }
-  });
 
-  // Navegar para a rota inicial
-  const initialRoute = window.location.hash.substring(1);
-  console.log('[initRouter] Rota inicial da hash:', initialRoute);
+    // Ajustar o slider quando a janela for redimensionada
+    window.addEventListener('resize', updateNavSlider);
 
-  // Verificar se a rota é válida
-  let targetRoute = 'home'; // Default
-
-  if (initialRoute && routes[initialRoute]) {
-    console.log('[initRouter] Usando rota da hash:', initialRoute);
-    targetRoute = initialRoute;
-  } else {
-    console.log('[initRouter] Usando rota padrão (home)');
+    routerLog('Router inicializado com sucesso');
+    return true;
+  } catch (error) {
+    routerLog('ERRO ao inicializar router', error);
+    return false;
   }
-
-  if (targetRoute === 'professional') {
-    window._professionalInitialized = false;
-  }
-
-  console.log('[initRouter] Navegando para a rota inicial:', targetRoute);
-  navigateTo(targetRoute);
-
-  // Ajustar o slider quando a janela for redimensionada
-  window.addEventListener('resize', updateNavSlider);
-
-  console.log('[initRouter] Router inicializado com sucesso');
 }
 
 // Exportar funções

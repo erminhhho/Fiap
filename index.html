@@ -7,7 +7,15 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Importação de CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Verificar se estamos em ambiente de desenvolvimento
+    const isDev = window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1' ||
+                window.location.hostname.includes('.local');
+  </script>
+  <script src="https://cdn.tailwindcss.com?v=3.3.5"></script>
+  <!-- NOTA: em produção, o Tailwind deve ser compilado localmente -->
+  <!-- consulte: https://tailwindcss.com/docs/installation -->
   <script>
     tailwind.config = {
       theme: {
@@ -154,7 +162,7 @@
   <script src="js/router.js"></script>
 
   <!-- Novo sistema de persistência complementar (carregado depois) -->
-  <script type="module" src="js/app.js"></script>
+  <!-- <script type="module" src="js/app.js"></script> -->
 
   <script>
     // Inicialização da aplicação

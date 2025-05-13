@@ -12,25 +12,25 @@ window.FIAP.storage = {};
  */
 (function() {
   /**
-   * Limita a frequência de chamadas de função (debounce)
-   * @param {Function} func - Função a ser executada
-   * @param {Number} wait - Tempo de espera em ms
-   * @return {Function} Função decorada com debounce
+   * Log condicional com base nas configurações de debug
+   * @param {string} message - Mensagem a ser registrada
+   * @param {Error} [error] - Objeto de erro opcional
    */
-  function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), wait);
-    };
+  function storageLog(message, error) {
+    if (window.CONFIG?.debug?.enabled && window.CONFIG.debug.levels.storage) {
+      if (error) {
+        console.error(`[Storage] ${message}`, error);
+      } else {
+        console.log(`[Storage] ${message}`);
+      }
+    }
   }
 
-  // Configurações
+  // Configurações locais
   const CONFIG = {
     storageKey: 'fiap_form_data',
     storeKey: 'fiap_store_data', // Chave adicional para compatibilidade com store.js
     autoSaveDelay: 800,
-    debug: false,
     notificationDuration: 2000,
     createSaveIndicator: false
   };
@@ -121,6 +121,13 @@ window.FIAP.storage = {};
       if (!this.data[collection]) this.data[collection] = [];
 
       const index = this.data[collection].findIndex(i => i.id === item.id);
+      const generateId = function() {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          return crypto.randomUUID();
+        } else {
+          return Date.now().toString() + '-' + Math.random().toString(36).substring(2, 9);
+        }
+      };
 
       if (index >= 0) {
         this.data[collection][index] = {
@@ -130,7 +137,7 @@ window.FIAP.storage = {};
       } else {
         this.data[collection].push({
           ...item,
-          id: item.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString()),
+          id: item.id || generateId(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
@@ -225,9 +232,13 @@ window.FIAP.storage = {};
      * Configura sistema de autosave
      */
     setupAutoSave() {
-      this.autoSave = debounce(() => {
-        this.save();
-      }, 800); // Salvar 800ms após última modificação
+      const self = this;
+      this.autoSave = function() {
+        if (this._saveTimeout) clearTimeout(this._saveTimeout);
+        this._saveTimeout = setTimeout(() => {
+          self.save();
+        }, 800);
+      };
 
       // Salvar ao fechar/recarregar página
       window.addEventListener('beforeunload', () => this.save());
@@ -244,12 +255,25 @@ window.FIAP.storage = {};
      * @param {Object} detail - Detalhes do evento
      */
     dispatchEvent(name, detail = {}) {
-      window.dispatchEvent(new CustomEvent(`store:${name}`, {
-        detail: {
+      try {
+        const eventDetail = {
           source: this.storageKey,
           ...detail
+        };
+
+        if (typeof CustomEvent === 'function') {
+          window.dispatchEvent(new CustomEvent(`store:${name}`, {
+            detail: eventDetail
+          }));
+        } else {
+          // Fallback para IE
+          const event = document.createEvent('CustomEvent');
+          event.initCustomEvent(`store:${name}`, true, true, eventDetail);
+          window.dispatchEvent(event);
         }
-      }));
+      } catch (e) {
+        console.warn(`Erro ao disparar evento store:${name}`, e);
+      }
     }
   }
 
@@ -284,7 +308,18 @@ window.FIAP.storage = {};
     initialized = true;
 
     // Disparar evento de inicialização
-    document.dispatchEvent(new CustomEvent('storage:ready'));
+    try {
+      if (typeof CustomEvent === 'function') {
+        document.dispatchEvent(new CustomEvent('storage:ready'));
+      } else {
+        // Fallback para IE
+        const event = document.createEvent('CustomEvent');
+        event.initCustomEvent('storage:ready', true, true, {});
+        document.dispatchEvent(event);
+      }
+    } catch (e) {
+      console.warn('Erro ao disparar evento storage:ready', e);
+    }
   }
 
   /**
@@ -361,13 +396,17 @@ window.FIAP.storage = {};
     }
 
     // Escutar eventos de formulário
-    document.addEventListener('input', debounce(event => {
-      if (event.target.form) {
-        const formId = event.target.form.id || 'default_form';
-        const formData = collectFormData(event.target.form);
-        setData(formId, formData);
-      }
-    }, CONFIG.autoSaveDelay));
+    let formInputTimer;
+    document.addEventListener('input', event => {
+      if (formInputTimer) clearTimeout(formInputTimer);
+      formInputTimer = setTimeout(() => {
+        if (event.target.form) {
+          const formId = event.target.form.id || 'default_form';
+          const formData = collectFormData(event.target.form);
+          setData(formId, formData);
+        }
+      }, CONFIG.autoSaveDelay);
+    });
   }
 
   /**
@@ -444,8 +483,16 @@ window.FIAP.storage = {};
 
         // Disparar evento de mudança para triggers
         try {
-          const event = new Event('change', { bubbles: true });
-          element.dispatchEvent(event);
+          // Usar método que funciona em navegadores mais antigos
+          if (typeof Event === 'function') {
+            const event = new Event('change', { bubbles: true });
+            element.dispatchEvent(event);
+          } else {
+            // Fallback para IE
+            const event = document.createEvent('Event');
+            event.initEvent('change', true, true);
+            element.dispatchEvent(event);
+          }
         } catch (e) {
           // Alguns navegadores antigos podem não suportar isso
         }
@@ -562,9 +609,20 @@ window.FIAP.storage = {};
       showSaveIndicator();
 
       // Notificar aplicação
-      document.dispatchEvent(new CustomEvent('storage:saved', {
-        detail: { data: dataCache }
-      }));
+      try {
+        if (typeof CustomEvent === 'function') {
+          document.dispatchEvent(new CustomEvent('storage:saved', {
+            detail: { data: dataCache }
+          }));
+        } else {
+          // Fallback para navegadores antigos
+          const event = document.createEvent('CustomEvent');
+          event.initCustomEvent('storage:saved', true, true, { data: dataCache });
+          document.dispatchEvent(event);
+        }
+      } catch (e) {
+        console.warn('Erro ao disparar evento storage:saved', e);
+      }
 
       return true;
     } catch (error) {
@@ -643,17 +701,18 @@ window.FIAP.storage = {};
    * Registra mensagens de debug se ativado
    */
   function log(message) {
-    if (CONFIG.debug) {
-      console.log(`[Storage] ${message}`);
-    }
+    storageLog(message);
   }
 
   /**
    * Ativa modo de debug
    */
   function enableDebug() {
-    CONFIG.debug = true;
-    log('Modo debug ativado');
+    if (window.CONFIG && window.CONFIG.debug) {
+      window.CONFIG.debug.enabled = true;
+      window.CONFIG.debug.levels.storage = true;
+      storageLog('Modo debug ativado');
+    }
     return true;
   }
 
@@ -734,7 +793,7 @@ window.FIAP.persistence = {
 
   // Emular API IndexedDB/WebSQL
   openDatabase: function(formId) {
-    console.log('[Storage] Emulando IndexedDB para compatibilidade');
+    storageLog('Interceptando chamada para openDatabase - usando localStorage');
     return this._mockDB;
   },
 
@@ -782,14 +841,14 @@ window.FIAP.persistence = {
 
 // Substituir funções globais
 window.openDatabase = function(name, version, displayName, size) {
-  console.log('[Storage] Interceptando chamada para openDatabase - usando localStorage');
+  storageLog('Interceptando chamada para openDatabase - usando localStorage');
   return window.FIAP.persistence._mockDB;
 };
 
 // Substituir chamadas para IDB específicas
 window.indexedDB = window.indexedDB || {};
 window.indexedDB.open = function(name, version) {
-  console.log('[Storage] Interceptando chamada para indexedDB.open - usando localStorage');
+  storageLog('Interceptando chamada para indexedDB.open - usando localStorage');
 
   // Objeto mock que simula abertura de banco
   return {
