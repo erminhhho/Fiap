@@ -112,12 +112,6 @@ const CONFIG = {
       duration: 300,
       easing: 'ease-in-out'
     }
-  },
-
-  // Configurações de produção
-  production: {
-    // Se true, força o uso do modo de produção para evitar avisos do CDN Tailwind
-    useProdMode: true
   }
 };
 

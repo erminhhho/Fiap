@@ -5,57 +5,28 @@
   <title>Ficha de Atendimento Previdenciário</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Importação de CSS -->
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com?v=3.3.5"></script>
+
+  <!-- Configuração do Tailwind -->
   <script>
-    // Verificar se estamos em ambiente de desenvolvimento
-    const isDev = window.location.hostname === 'localhost' ||
-                window.location.hostname === '127.0.0.1' ||
-                window.location.hostname.includes('.local');
-  </script>
-  <!-- Carregamento condicional do Tailwind CSS -->
-  <script>
-    // Carregar Tailwind em produção sem avisos ou via CDN em desenvolvimento
-    (function() {
-      // Verificação de ambiente de desenvolvimento
-      const isDev = window.location.hostname === 'localhost' ||
-                  window.location.hostname === '127.0.0.1' ||
-                  window.location.hostname.includes('.local');
-
-      const forceProdMode = window.CONFIG?.production?.useProdMode || false;
-
-      if (isDev && !forceProdMode) {
-        // Em desenvolvimento, usar o CDN com script dinâmico
-        const script = document.createElement('script');
-        script.src = "https://cdn.tailwindcss.com?v=3.3.5";
-        document.head.appendChild(script);
-
-        // Carregar também a configuração
-        script.onload = function() {
-          tailwind.config = {
-            theme: {
-              extend: {
-                colors: {
-                  whatsapp: '#25D366',
-                  'form-bg': '#f3f6fb',
-                  'filled-bg': '#f7f9ff'
-                },
-                gridTemplateColumns: {
-                  '24': 'repeat(24, minmax(0, 1fr))',
-                }
-              }
-            }
-          };
-        };
-      } else {
-        // Em produção, usar versão compilada
-        const link = document.createElement('link');
-        link.rel = "stylesheet";
-        link.href = "css/tailwind.min.css";
-        document.head.appendChild(link);
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            whatsapp: '#25D366',
+            'form-bg': '#f3f6fb',
+            'filled-bg': '#f7f9ff'
+          },
+          gridTemplateColumns: {
+            '24': 'repeat(24, minmax(0, 1fr))',
+          }
+        }
       }
-    })();
+    };
   </script>
-  <!-- Configuração do Tailwind apenas para desenvolvimento -->
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/search.css">
