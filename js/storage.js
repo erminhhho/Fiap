@@ -315,7 +315,7 @@ window.FIAP.storage = {};
     // Disparar evento de inicialização
     try {
       if (typeof CustomEvent === 'function') {
-        document.dispatchEvent(new CustomEvent('storage:ready'));
+    document.dispatchEvent(new CustomEvent('storage:ready'));
       } else {
         // Fallback para IE
         const event = document.createEvent('CustomEvent');
@@ -371,9 +371,9 @@ window.FIAP.storage = {};
       // Adicionar animação de pulso e cor para indicar salvamento
       saveBtnIcon.classList.add('text-green-500', 'animate-pulse');
       // Remover animação após a duração configurada
-      setTimeout(() => {
+    setTimeout(() => {
         saveBtnIcon.classList.remove('text-green-500', 'animate-pulse');
-      }, CONFIG.notificationDuration);
+    }, CONFIG.notificationDuration);
     }
   }
 
@@ -405,11 +405,11 @@ window.FIAP.storage = {};
     document.addEventListener('input', event => {
       if (formInputTimer) clearTimeout(formInputTimer);
       formInputTimer = setTimeout(() => {
-        if (event.target.form) {
-          const formId = event.target.form.id || 'default_form';
-          const formData = collectFormData(event.target.form);
-          setData(formId, formData);
-        }
+      if (event.target.form) {
+        const formId = event.target.form.id || 'default_form';
+        const formData = collectFormData(event.target.form);
+        setData(formId, formData);
+      }
       }, CONFIG.autoSaveDelay);
     });
   }
@@ -490,8 +490,8 @@ window.FIAP.storage = {};
         try {
           // Usar método que funciona em navegadores mais antigos
           if (typeof Event === 'function') {
-            const event = new Event('change', { bubbles: true });
-            element.dispatchEvent(event);
+          const event = new Event('change', { bubbles: true });
+          element.dispatchEvent(event);
           } else {
             // Fallback para IE
             const event = document.createEvent('Event');
@@ -616,9 +616,9 @@ window.FIAP.storage = {};
       // Notificar aplicação
       try {
         if (typeof CustomEvent === 'function') {
-          document.dispatchEvent(new CustomEvent('storage:saved', {
-            detail: { data: dataCache }
-          }));
+      document.dispatchEvent(new CustomEvent('storage:saved', {
+        detail: { data: dataCache }
+      }));
         } else {
           // Fallback para navegadores antigos
           const event = document.createEvent('CustomEvent');
