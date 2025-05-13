@@ -116,7 +116,7 @@ const CONFIG = {
 
   // Configurações de produção
   production: {
-    // Se true, ajuda a evitar avisos do CDN Tailwind
+    // Se true, força o uso do modo de produção para evitar avisos do CDN Tailwind
     useProdMode: true
   }
 };

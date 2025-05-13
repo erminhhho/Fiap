@@ -797,15 +797,11 @@ function showErrorMessage(message) {
  * @param {string} message - Mensagem a ser exibida
  */
 function showLoading(message = 'Carregando...') {
-  // Verificar se existe a função global
-  if (window.showLoading) {
-    window.showLoading(message);
-    return;
-  }
-
-  // Implementação alternativa
+  // Prevenção contra recursão infinita
+  // Se já temos um overlay de carregamento, não criar outro
   if (document.getElementById('loading-overlay')) return;
 
+  // Implementação alternativa
   const overlay = document.createElement('div');
   overlay.id = 'loading-overlay';
   overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]';
@@ -824,8 +820,8 @@ function showLoading(message = 'Carregando...') {
  * Oculta o indicador de carregamento
  */
 function hideLoading() {
-  // Verificar se existe a função global
-  if (window.hideLoading) {
+  // Verificar se existe a função global que não é esta mesma função
+  if (window.hideLoading && window.hideLoading !== hideLoading) {
     window.hideLoading();
     return;
   }
