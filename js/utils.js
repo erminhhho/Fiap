@@ -383,13 +383,21 @@ FIAP.masks = {
   money: function(input) {
     if (!input) return;
 
-    // Salvar a posição do cursor
-    const start = input.selectionStart;
-    const end = input.selectionEnd;
+    // Verificar se o elemento pode receber seleção
+    const canSetSelection = input.type !== 'hidden' &&
+                          !input.hasAttribute('data-no-mask') &&
+                          typeof input.setSelectionRange === 'function' &&
+                          document.activeElement === input;
+
+    // Salvar a posição do cursor apenas se puder definir seleção
+    const start = canSetSelection ? input.selectionStart : 0;
+    const end = canSetSelection ? input.selectionEnd : 0;
     const oldLength = input.value.length;
 
     // Remove tudo que não for número
-    let value = input.value.replace(/\D/g, '');    // Converter para número e formatar
+    let value = input.value.replace(/\D/g, '');
+
+    // Converter para número e formatar
     if (value) {
       // Converte para reais (somente valor inteiro)
       value = parseInt(value);
@@ -408,12 +416,20 @@ FIAP.masks = {
     // Atualiza o campo
     input.value = value;
 
-    // Recalcula e restaura a posição do cursor
-    if (oldLength < input.value.length) {
-      const diff = input.value.length - oldLength;
-      input.setSelectionRange(start + diff, end + diff);
-    } else {
-      input.setSelectionRange(start, end);
+    // Restaurar a posição do cursor apenas se puder definir seleção
+    if (canSetSelection) {
+      try {
+        // Recalcula e restaura a posição do cursor
+        if (oldLength < input.value.length) {
+          const diff = input.value.length - oldLength;
+          input.setSelectionRange(start + diff, end + diff);
+        } else {
+          input.setSelectionRange(start, end);
+        }
+      } catch (e) {
+        // Ignora erros de seleção (pode ocorrer em certos navegadores ou inputs especiais)
+        console.debug('Não foi possível ajustar a seleção no campo monetário:', e.message);
+      }
     }
   }
 };

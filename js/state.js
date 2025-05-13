@@ -145,16 +145,36 @@ class FormStateManager {
 
     // Adicionar listeners para botões de navegação internos
     document.addEventListener('click', (e) => {
-      // Botão de próximo
+      // Botão de próximo - prevenção de múltiplos clicks
       if (e.target.id === 'btn-next' || e.target.closest('#btn-next')) {
+        // Usar um flag para evitar múltiplas capturas em um curto período
+        if (this._nextClickProcessing) return;
+        this._nextClickProcessing = true;
+
+        // Capturar e salvar dados
         this.captureCurrentFormData();
         this.saveToLocalStorage();
+
+        // Resetar o flag após um curto período
+        setTimeout(() => {
+          this._nextClickProcessing = false;
+        }, 500);
       }
 
-      // Botão de anterior
+      // Botão de anterior - prevenção de múltiplos clicks
       if (e.target.id === 'btn-back' || e.target.closest('#btn-back')) {
+        // Usar um flag para evitar múltiplas capturas em um curto período
+        if (this._backClickProcessing) return;
+        this._backClickProcessing = true;
+
+        // Capturar e salvar dados
         this.captureCurrentFormData();
         this.saveToLocalStorage();
+
+        // Resetar o flag após um curto período
+        setTimeout(() => {
+          this._backClickProcessing = false;
+        }, 500);
       }
     });
   }
@@ -323,9 +343,16 @@ class FormStateManager {
         // Marcar o campo como preenchido
         field.classList.add('filled');
 
-        // Disparar eventos para atualizar UI
-        field.dispatchEvent(new Event('change', { bubbles: true }));
-        field.dispatchEvent(new Event('input', { bubbles: true }));
+        // Verificar se o campo não deve receber eventos de máscara
+        if (field.type !== 'hidden' && !field.hasAttribute('data-no-mask')) {
+          // Disparar eventos para atualizar UI apenas para campos não hidden
+          try {
+            field.dispatchEvent(new Event('change', { bubbles: true }));
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+          } catch (e) {
+            console.debug(`Erro ao disparar eventos para o campo ${key}:`, e.message);
+          }
+        }
       }
     });
 

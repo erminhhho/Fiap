@@ -351,8 +351,20 @@ function setupEvents() {
 
     nextButton.parentNode.replaceChild(newBtn, nextButton);
 
+    // Flag para prevenir múltiplos cliques
+    let isNavigating = false;
+
     // Adicionar evento de clique diretamente
     newBtn.onclick = function() {
+      // Evitar múltiplos cliques
+      if (isNavigating) return;
+      isNavigating = true;
+
+      // Feedback visual
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
+      this.classList.add('opacity-75');
+
       // Salvar dados do formulário (opcional)
       saveAssistidoData();
 
@@ -366,12 +378,16 @@ function setupEvents() {
         // Tentar usar a navegação direta como último recurso
         window.location.hash = 'social';
       }
-    };
 
-    // Adicionar também como addEventListener para garantir
-    newBtn.addEventListener('click', function(event) {
-      // Evento de clique para garantia
-    });
+      // Restaurar o botão após um tempo, caso a navegação não tenha ocorrido
+      setTimeout(() => {
+        if (document.body.contains(this)) {
+          this.innerHTML = originalText;
+          this.classList.remove('opacity-75');
+          isNavigating = false;
+        }
+      }, 1000);
+    };
   } else {
     console.error('Botão próximo não encontrado!');
   }

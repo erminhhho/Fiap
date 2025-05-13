@@ -134,8 +134,35 @@ function setupEvents() {
       window.tw.applyTo(nextButton, 'button.primary');
     }
 
-    nextButton.addEventListener('click', function() {
+    // Remover eventos existentes
+    const newBtn = nextButton.cloneNode(true);
+    nextButton.parentNode.replaceChild(newBtn, nextButton);
+
+    // Flag para prevenir múltiplos cliques
+    let isNavigating = false;
+
+    // Adicionar novo evento com proteção
+    newBtn.addEventListener('click', function() {
+      // Evitar múltiplos cliques
+      if (isNavigating) return;
+      isNavigating = true;
+
+      // Feedback visual
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
+      this.classList.add('opacity-75');
+
+      // Navegar para a próxima página
       navigateTo('incapacity');
+
+      // Restaurar o botão após um tempo, caso a navegação não tenha ocorrido
+      setTimeout(() => {
+        if (document.body.contains(this)) {
+          this.innerHTML = originalText;
+          this.classList.remove('opacity-75');
+          isNavigating = false;
+        }
+      }, 1000);
     });
   }
 
@@ -213,7 +240,7 @@ function inicializarAssistido() {
           </label>
         </div><!-- CadÚnico - 2 colunas (editável) -->
         <div class="relative md:col-span-2 flex items-center justify-center">
-          <input type="hidden" name="familiar_cadunico[]" value="Não">
+          <input type="hidden" name="familiar_cadunico[]" value="Não" data-no-mask="true">
           <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
             CadÚnico
           </button>

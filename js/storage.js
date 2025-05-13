@@ -17,6 +17,11 @@ window.FIAP.storage = {};
    * @param {Error} [error] - Objeto de erro opcional
    */
   function storageLog(message, error) {
+    if (window.logSystem) {
+      window.logSystem('Storage', message, error);
+      return;
+    }
+
     if (window.CONFIG?.debug?.enabled && window.CONFIG.debug.levels.storage) {
       if (error) {
         console.error(`[Storage] ${message}`, error);

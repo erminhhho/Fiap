@@ -5,78 +5,86 @@
  * O arquivo modules/disability.js foi marcado como obsoleto em favor deste.
  */
 
-// Lista de CIDs que dispensam carência
-const cidsSemCarencia = [
-  // Tuberculose ativa
-  'a15', 'a16', 'a17', 'a18', 'a19',
-  // Hanseníase
-  'a30',
-  // Alienação mental / transtornos mentais graves
-  'f00', 'f01', 'f02', 'f03', 'f20', 'f21', 'f22', 'f23', 'f24', 'f25', 'f28', 'f29',
-  'f30', 'f31', 'f32', 'f33',
-  // Neoplasia maligna (câncer)
-  'c00', 'c01', 'c02', 'c03', 'c04', 'c05', 'c06', 'c07', 'c08', 'c09',
-  'c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16', 'c17', 'c18', 'c19',
-  'c20', 'c21', 'c22', 'c23', 'c24', 'c25', 'c26', 'c27', 'c28', 'c29',
-  'c30', 'c31', 'c32', 'c33', 'c34', 'c35', 'c36', 'c37', 'c38', 'c39',
-  'c40', 'c41', 'c42', 'c43', 'c44', 'c45', 'c46', 'c47', 'c48', 'c49',
-  'c50', 'c51', 'c52', 'c53', 'c54', 'c55', 'c56', 'c57', 'c58', 'c59',
-  'c60', 'c61', 'c62', 'c63', 'c64', 'c65', 'c66', 'c67', 'c68', 'c69',
-  'c70', 'c71', 'c72', 'c73', 'c74', 'c75', 'c76', 'c77', 'c78', 'c79',
-  'c80', 'c81', 'c82', 'c83', 'c84', 'c85', 'c86', 'c87', 'c88', 'c89',
-  'c90', 'c91', 'c92', 'c93', 'c94', 'c95', 'c96', 'c97',
-  // Cegueira
-  'h54.0', 'h54.1', 'h54.3',
-  // Paralisia irreversível e incapacitante
-  'g80', 'g81', 'g82', 'g83',
-  // Cardiopatia grave
-  'i20', 'i21', 'i22', 'i24', 'i25', 'i42', 'i50',
-  // Doença de Parkinson
-  'g20',
-  // Espondiloartrose anquilosante
-  'm45',
-  // Nefropatia grave
-  'n17', 'n18', 'n19',
-  // Estado avançado da Doença de Paget (osteíte deformante)
-  'm88',
-  // AIDS
-  'b20', 'b21', 'b22', 'b23', 'b24',
-  // Contaminação por radiação
-  't66',
-  // Hepatopatia grave
-  'k72', 'k74', 'k76.6', 'k76.7'
-];
+// Lista de CIDs e doenças que dispensam carência
+// Verificar se já existe para evitar redeclaração
+if (typeof window.cidsSemCarencia === 'undefined') {
+  // Definir no escopo global para evitar redeclaração
+  window.cidsSemCarencia = [
+    // Tuberculose ativa
+    'a15', 'a16', 'a17', 'a18', 'a19',
+    // Hanseníase
+    'a30',
+    // Alienação mental / transtornos mentais graves
+    'f00', 'f01', 'f02', 'f03', 'f20', 'f21', 'f22', 'f23', 'f24', 'f25', 'f28', 'f29',
+    'f30', 'f31', 'f32', 'f33',
+    // Neoplasia maligna (câncer)
+    'c00', 'c01', 'c02', 'c03', 'c04', 'c05', 'c06', 'c07', 'c08', 'c09',
+    'c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16', 'c17', 'c18', 'c19',
+    'c20', 'c21', 'c22', 'c23', 'c24', 'c25', 'c26', 'c27', 'c28', 'c29',
+    'c30', 'c31', 'c32', 'c33', 'c34', 'c35', 'c36', 'c37', 'c38', 'c39',
+    'c40', 'c41', 'c42', 'c43', 'c44', 'c45', 'c46', 'c47', 'c48', 'c49',
+    'c50', 'c51', 'c52', 'c53', 'c54', 'c55', 'c56', 'c57', 'c58', 'c59',
+    'c60', 'c61', 'c62', 'c63', 'c64', 'c65', 'c66', 'c67', 'c68', 'c69',
+    'c70', 'c71', 'c72', 'c73', 'c74', 'c75', 'c76', 'c77', 'c78', 'c79',
+    'c80', 'c81', 'c82', 'c83', 'c84', 'c85', 'c86', 'c87', 'c88', 'c89',
+    'c90', 'c91', 'c92', 'c93', 'c94', 'c95', 'c96', 'c97',
+    // Cegueira
+    'h54.0', 'h54.1', 'h54.3',
+    // Paralisia irreversível e incapacitante
+    'g80', 'g81', 'g82', 'g83',
+    // Cardiopatia grave
+    'i20', 'i21', 'i22', 'i24', 'i25', 'i42', 'i50',
+    // Doença de Parkinson
+    'g20',
+    // Espondiloartrose anquilosante
+    'm45',
+    // Nefropatia grave
+    'n17', 'n18', 'n19',
+    // Estado avançado da Doença de Paget (osteíte deformante)
+    'm88',
+    // AIDS
+    'b20', 'b21', 'b22', 'b23', 'b24',
+    // Contaminação por radiação
+    't66',
+    // Hepatopatia grave
+    'k72', 'k74', 'k76.6', 'k76.7'
+  ];
+}
 
 // Lista de doenças que dispensam carência (mantida para compatibilidade)
-const doencasSemCarencia = [
-  'tuberculose ativa',
-  'hanseníase',
-  'alienação mental',
-  'transtorno mental grave',
-  'esquizofrenia',
-  'transtorno bipolar',
-  'neoplasia maligna',
-  'câncer',
-  'cancer',
-  'cegueira',
-  'paralisia irreversível',
-  'paralisia incapacitante',
-  'cardiopatia grave',
-  'doença de parkinson',
-  'espondiloartrose anquilosante',
-  'nefropatia grave',
-  'doença de paget',
-  'osteíte deformante',
-  'aids',
-  'hiv',
-  'síndrome da deficiência imunológica adquirida',
-  'contaminação por radiação',
-  'hepatopatia grave',
-  'cirrose hepática'
-];
+if (typeof window.doencasSemCarencia === 'undefined') {
+  window.doencasSemCarencia = [
+    'tuberculose ativa',
+    'hanseníase',
+    'alienação mental',
+    'transtorno mental grave',
+    'esquizofrenia',
+    'transtorno bipolar',
+    'neoplasia maligna',
+    'câncer',
+    'cancer',
+    'cegueira',
+    'paralisia irreversível',
+    'paralisia incapacitante',
+    'cardiopatia grave',
+    'doença de parkinson',
+    'espondiloartrose anquilosante',
+    'nefropatia grave',
+    'doença de paget',
+    'osteíte deformante',
+    'aids',
+    'hiv',
+    'síndrome da deficiência imunológica adquirida',
+    'contaminação por radiação',
+    'hepatopatia grave',
+    'cirrose hepática'
+  ];
+}
 
 // Variável para evitar inicialização múltipla
-let isDropdownHandlersInitialized = false;
+if (typeof window.isDropdownHandlersInitialized === 'undefined') {
+  window.isDropdownHandlersInitialized = false;
+}
 
 // Limpar função de inicialização anterior
 window.initModule = null;
@@ -513,7 +521,7 @@ function cleanupSelectedItems() {
 
 // Configurar fechamento automático dos dropdowns ao selecionar um item ou clicar fora
 function setupDropdownHandlers() {
-  if (isDropdownHandlersInitialized) return;
+  if (window.isDropdownHandlersInitialized) return;
 
   // Sobrescrever funções globais associadas a autocomplete
   overrideAutocompleteFunctions();
@@ -634,7 +642,7 @@ function setupDropdownHandlers() {
   // Observar o documento inteiro
   documentObserver.observe(document.body, { childList: true, subtree: true });
 
-  isDropdownHandlersInitialized = true;
+  window.isDropdownHandlersInitialized = true;
 }
 
 // Sobrescrever funções globais associadas a componentes de autocomplete
@@ -700,7 +708,7 @@ function verificarIsencaoCarencia(input) {
     const cidValor = cidInput.value.toLowerCase().replace(/\s+/g, '').replace(/\./g, '.');
 
     // Verificar se o CID está na lista de isentos
-    isento = cidsSemCarencia.some(cid => {
+    isento = window.cidsSemCarencia.some(cid => {
       // Comparação exata do início do CID (prefixo)
       return cidValor.startsWith(cid.toLowerCase().replace(/\s+/g, ''));
     });
@@ -709,7 +717,7 @@ function verificarIsencaoCarencia(input) {
   // Se não encontrou pelo CID, tenta pelo nome da doença (método secundário)
   if (!isento) {
     const doencaValor = input.value.toLowerCase();
-    isento = doencasSemCarencia.some(doenca => doencaValor.includes(doenca));
+    isento = window.doencasSemCarencia.some(doenca => doencaValor.includes(doenca));
   }
 
   // Encontrar a tag de isenção associada a este input
@@ -884,8 +892,35 @@ function setupEvents() {
       window.tw.applyTo(nextButton, 'button.primary');
     }
 
-    nextButton.addEventListener('click', function() {
+    // Remover eventos existentes
+    const newBtn = nextButton.cloneNode(true);
+    nextButton.parentNode.replaceChild(newBtn, nextButton);
+
+    // Flag para prevenir múltiplos cliques
+    let isNavigating = false;
+
+    // Adicionar novo evento com proteção
+    newBtn.addEventListener('click', function() {
+      // Evitar múltiplos cliques
+      if (isNavigating) return;
+      isNavigating = true;
+
+      // Feedback visual
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
+      this.classList.add('opacity-75');
+
+      // Navegar para a próxima página
       navigateTo('professional');
+
+      // Restaurar o botão após um tempo, caso a navegação não tenha ocorrido
+      setTimeout(() => {
+        if (document.body.contains(this)) {
+          this.innerHTML = originalText;
+          this.classList.remove('opacity-75');
+          isNavigating = false;
+        }
+      }, 1000);
     });
   }
 }

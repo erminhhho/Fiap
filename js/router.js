@@ -56,12 +56,20 @@ const routeSteps = {
 // Estado atual da navegação
 let currentRoute = null;
 
+// Variável para controlar navegações em andamento
+let navigationInProgress = false;
+
 /**
  * Log condicional com base nas configurações de debug
  * @param {string} message - Mensagem a ser registrada
  * @param {Error} [error] - Objeto de erro opcional
  */
 function routerLog(message, error) {
+  if (window.logSystem) {
+    window.logSystem('Navigation', message, error);
+    return;
+  }
+
   if (window.CONFIG?.debug?.enabled && window.CONFIG.debug.levels.navigation) {
     if (error) {
       console.error(`[Router] ${message}`, error);
@@ -73,11 +81,21 @@ function routerLog(message, error) {
 
 // Função para navegar para uma rota
 function navigateTo(routeName) {
+  // Evitar navegações múltiplas para a mesma rota ou durante uma navegação em andamento
+  if (navigationInProgress || currentRoute === routeName) {
+    routerLog(`Navegação ignorada: ${navigationInProgress ? 'navegação em andamento' : 'mesma rota'}`);
+    return false;
+  }
+
+  // Bloquear novas navegações temporariamente
+  navigationInProgress = true;
+
   routerLog(`Iniciando navegação para: ${routeName}`);
 
   try {
     if (!routes[routeName]) {
       routerLog(`ERRO: Rota "${routeName}" não encontrada`, new Error('Rota não encontrada'));
+      navigationInProgress = false;
       return false;
     }
 
@@ -109,7 +127,13 @@ function navigateTo(routeName) {
 
     // Carregar o conteúdo do módulo usando o template HTML
     routerLog(`Carregando template da rota: ${route.templateUrl}`);
-    loadModuleWithTemplate(route);
+    loadModuleWithTemplate(route).finally(() => {
+      // Desbloquear navegação após finalizar o carregamento do módulo
+      setTimeout(() => {
+        navigationInProgress = false;
+        routerLog(`Navegação desbloqueada após carregamento`);
+      }, 300);
+    });
 
     routerLog(`Navegação concluída com sucesso para: ${routeName}`);
     return true;
@@ -125,6 +149,9 @@ function navigateTo(routeName) {
         </div>
       `;
     }
+
+    // Desbloquear navegação em caso de erro
+    navigationInProgress = false;
     return false;
   }
 }
@@ -213,200 +240,69 @@ async function loadModuleWithTemplate(route) {
         </div>
       </div>
     `;
-  }
-}
 
-// Função para carregar um script JS de forma assíncrona
-function loadScript(url) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = url;
-
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error(`Não foi possível carregar o script: ${url}`));
-
-    document.body.appendChild(script);
-  });
-}
-
-// Cache de templates para evitar múltiplas requisições
-const templateCache = {};
-
-// Função para carregar um template HTML de forma assíncrona com cache
-function loadTemplate(url) {
-  // Verificar se o template já está em cache
-  if (templateCache[url]) {
-    return Promise.resolve(templateCache[url]);
-  }
-
-  // Se não estiver em cache, carregar via fetch
-  return fetch(url)
-    .then(response => {
-      if (!response.ok) {
-        console.error(`Erro ao carregar template: ${url} - Status: ${response.status}`);
-        throw new Error(`Não foi possível carregar o template: ${url}`);
-      }
-      return response.text();
-    })
-    .then(html => {
-      // Armazenar em cache para uso futuro
-      templateCache[url] = html;
-      return html;
-    });
-}
-
-/**
- * Renderiza um template com dados
- *
- * @param {string} templateHTML - HTML do template
- * @param {object} data - Dados para renderizar no template
- * @returns {string} - HTML renderizado com os dados
- */
-function renderTemplate(templateHTML, data = {}) {
-  // Implementação simples de substituição de variáveis no formato {{variavel}}
-  return templateHTML.replace(/\{\{(\w+)\}\}/g, (match, variable) => {
-    return data[variable] !== undefined ? data[variable] : match;
-  });
-}
-
-// Função para atualizar o slider da barra de navegação
-function updateNavSlider() {
-  const activeLink = document.querySelector('.step-link.active');
-  const slider = document.querySelector('.nav-slider');
-
-  if (activeLink && slider) {
-    const rect = activeLink.getBoundingClientRect();
-    const containerRect = activeLink.parentElement.getBoundingClientRect();
-
-    slider.style.width = `${rect.width}px`;
-    slider.style.left = `${rect.left - containerRect.left}px`;
-  }
-}
-
-// Função para navegar para a próxima etapa
-function navigateToNextStep() {
-  // Obtém a rota atual
-  const currentRoute = window.location.hash.substring(1) || 'personal';
-
-  // Obtém o número da etapa atual
-  const currentStep = routeSteps[currentRoute];
-
-  // Encontra a próxima rota baseada no número da etapa
-  let nextRoute = '';
-  Object.entries(routeSteps).forEach(([route, step]) => {
-    if (step === currentStep + 1) {
-      nextRoute = route;
-    }
-  });
-
-  // Se encontrou uma próxima rota, navega para ela
-  if (nextRoute) {
-    window.location.hash = nextRoute;
-    return true;
-  }
-
-  return false; // Não há próxima etapa
-}
-
-// Função para navegar para a etapa anterior
-function navigateToPrevStep() {
-  // Obtém a rota atual
-  const currentRoute = window.location.hash.substring(1) || 'personal';
-
-  // Obtém o número da etapa atual
-  const currentStep = routeSteps[currentRoute];
-
-  // Encontra a rota anterior baseada no número da etapa
-  let prevRoute = '';
-  Object.entries(routeSteps).forEach(([route, step]) => {
-    if (step === currentStep - 1) {
-      prevRoute = route;
-    }
-  });
-
-  // Se encontrou uma rota anterior, navega para ela
-  if (prevRoute) {
-    window.location.hash = prevRoute;
-    return true;
-  }
-
-  return false; // Não há etapa anterior
-}
-
-// Inicializa o router
-function initRouter() {
-  routerLog('Inicializando o router');
-
-  try {
-    // Definir evento para navegação via links
-    document.querySelectorAll('.step-link').forEach(link => {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const route = this.getAttribute('href').replace('#', '');
-        routerLog(`Link de navegação clicado: ${route}`);
-        navigateTo(route);
-      });
-    });
-
-    // Adicionar listener para eventos de mudança de hash na URL
-    window.addEventListener('hashchange', function() {
-      routerLog('===== EVENTO HASHCHANGE DETECTADO =====');
-
-      // Obter rota da hash da URL
-      const hash = window.location.hash;
-      const requestedRoute = hash.replace('#', '');
-
-      routerLog(`Rota solicitada via hash: ${requestedRoute}`);
-      routerLog(`Hash completa: ${hash}`);
-
-      if (window.CONFIG?.debug?.enabled && window.CONFIG.debug.levels.navigation) {
-        console.log('[Router] Rotas disponíveis:', Object.keys(routes));
-        console.log('[Router] A rota existe?', routes[requestedRoute] ? 'Sim' : 'Não');
-      }
-
-      // Verificar se a rota existe
-      if (routes[requestedRoute]) {
-        routerLog(`Chamando navigateTo com rota: ${requestedRoute}`);
-        navigateTo(requestedRoute);
-      } else if (hash && hash !== '#') {
-        // Rota inválida na URL, redirecionar para home
-        routerLog(`Rota inválida detectada na URL: ${requestedRoute}`);
-        window.location.hash = '';
-        navigateTo('home');
-      }
-    });
-
-    // Verificar se há uma rota na URL inicial
-    const initialHash = window.location.hash;
-    const initialRoute = initialHash.replace('#', '');
-
-    routerLog(`Rota inicial da hash: ${initialRoute}`);
-
-    // Se não houver rota ou for uma rota inválida, usar a rota padrão
-    if (!initialRoute || !routes[initialRoute]) {
-      routerLog('Usando rota padrão (home)');
-      navigateTo('home');
-    } else {
-      routerLog(`Navegando para a rota inicial: ${initialRoute}`);
-      navigateTo(initialRoute);
-    }
-
-    // Ajustar o slider quando a janela for redimensionada
-    window.addEventListener('resize', updateNavSlider);
-
-    routerLog('Router inicializado com sucesso');
-    return true;
-  } catch (error) {
-    routerLog('ERRO ao inicializar router', error);
+    // Desbloquear navegação em caso de erro
+    navigationInProgress = false;
     return false;
   }
 }
 
-// Exportar funções
+// Função para atualizar a posição do slider da navegação
+function updateNavSlider() {
+  const activeStep = document.querySelector('.step-link.active');
+  const slider = document.getElementById('nav-slider');
+
+  if (activeStep && slider) {
+    const stepRect = activeStep.getBoundingClientRect();
+    const navRect = document.querySelector('.main-nav').getBoundingClientRect();
+
+    slider.style.left = `${stepRect.left - navRect.left}px`;
+    slider.style.width = `${stepRect.width}px`;
+  }
+}
+
+// Função para carregar um template HTML
+async function loadTemplate(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Erro ao carregar template: ${response.status} ${response.statusText}`);
+  }
+  return await response.text();
+}
+
+// Função para carregar um script JavaScript
+async function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = () => resolve();
+    script.onerror = e => reject(new Error(`Erro ao carregar script: ${url}`));
+    document.head.appendChild(script);
+  });
+}
+
+// Inicializar o sistema de rotas
+function initRouter() {
+  routerLog('Inicializando sistema de rotas');
+
+  // Navegar para a rota especificada na hash URL, ou para a home se não houver hash
+  const initialRoute = window.location.hash.substring(1) || 'home';
+
+  // Configurar listener para mudanças na hash URL
+  window.addEventListener('hashchange', function() {
+    const route = window.location.hash.substring(1);
+    if (route && route !== currentRoute) {
+      navigateTo(route);
+    }
+  });
+
+  // Realizar a navegação inicial
+  navigateTo(initialRoute);
+
+  routerLog('Sistema de rotas inicializado com sucesso');
+}
+
+// Exportar funções globalmente
 window.navigateTo = navigateTo;
 window.initRouter = initRouter;
-window.navigateToNextStep = navigateToNextStep;
-window.navigateToPreviousStep = navigateToPreviousStep;
-window.navigateToPrevStep = navigateToPrevStep;
-window.loadTemplate = loadTemplate;
-window.renderTemplate = renderTemplate;
+window.updateNavSlider = updateNavSlider;

@@ -13,14 +13,27 @@ window.homeModule = window.homeModule || {
   currentPage: currentPage,
   itemsPerPage: itemsPerPage,
   allAttendances: allAttendances,
-  filteredAttendances: filteredAttendances
+  filteredAttendances: filteredAttendances,
+  initialized: false
 };
 
 /**
  * Inicializa o módulo
  */
 function initModule() {
-  console.log('Inicializando módulo Home');
+  // Verificar se já foi inicializado para evitar duplicação
+  if (window.homeModule.initialized) {
+    if (window.logSystem) {
+      window.logSystem('Modules', 'Módulo Home já inicializado, ignorando chamada duplicada');
+    }
+    return;
+  }
+
+  if (window.logSystem) {
+    window.logSystem('Modules', 'Inicializando módulo Home');
+  } else if (window.CONFIG?.debug?.enabled && window.CONFIG.debug.levels.modules) {
+    console.log('[Modules] Inicializando módulo Home');
+  }
 
   // Carregar dados iniciais
   loadAttendances();
@@ -30,6 +43,9 @@ function initModule() {
 
   // Configurar busca por CPF
   setupCpfSearch();
+
+  // Marcar como inicializado
+  window.homeModule.initialized = true;
 }
 
 /**
@@ -95,7 +111,11 @@ function searchByCpf() {
       })
       .catch(error => {
         hideLoading();
-        console.error('Erro ao buscar por CPF:', error);
+        if (window.logSystem) {
+          window.logSystem('API', 'Erro ao buscar por CPF', error);
+        } else {
+          console.error('Erro ao buscar por CPF:', error);
+        }
         showErrorMessage('Erro ao buscar atendimento: ' + error.message);
       });
   } else {
@@ -117,7 +137,11 @@ function searchByCpf() {
           showErrorMessage('Nenhum atendimento encontrado localmente com este CPF');
         }
       } catch (e) {
-        console.error('Erro ao processar dados locais:', e);
+        if (window.logSystem) {
+          window.logSystem('Storage', 'Erro ao processar dados locais', e);
+        } else {
+          console.error('Erro ao processar dados locais:', e);
+        }
         showErrorMessage('Erro ao processar dados locais');
       }
     } else {

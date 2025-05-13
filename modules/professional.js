@@ -93,25 +93,40 @@ function setupEvents() {
   // Botão Próximo
   const nextButton = document.getElementById('btn-next');
   if (nextButton) {
-    // Preservar classes originais
-    const originalClasses = nextButton.className;
-
-    // Remover eventos existentes
-    const newNextBtn = nextButton.cloneNode(true);
-
-    // Garantir que todas as classes originais sejam mantidas
-    newNextBtn.className = originalClasses;
-
-    // Se houver classes específicas que precisam ser adicionadas
+    // Aplicar estilo centralizado ao botão próximo
     if (window.tw && typeof window.tw.applyTo === 'function') {
-      window.tw.applyTo(newNextBtn, 'button.primary');
+      window.tw.applyTo(nextButton, 'button.primary');
     }
 
-    nextButton.parentNode.replaceChild(newNextBtn, nextButton);
+    // Remover eventos existentes
+    const newBtn = nextButton.cloneNode(true);
+    nextButton.parentNode.replaceChild(newBtn, nextButton);
 
-    // Adicionar novo evento
-    newNextBtn.addEventListener('click', function() {
+    // Flag para prevenir múltiplos cliques
+    let isNavigating = false;
+
+    // Adicionar novo evento com proteção
+    newBtn.addEventListener('click', function() {
+      // Evitar múltiplos cliques
+      if (isNavigating) return;
+      isNavigating = true;
+
+      // Feedback visual
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
+      this.classList.add('opacity-75');
+
+      // Navegar para a próxima página
       navigateTo('documents');
+
+      // Restaurar o botão após um tempo, caso a navegação não tenha ocorrido
+      setTimeout(() => {
+        if (document.body.contains(this)) {
+          this.innerHTML = originalText;
+          this.classList.remove('opacity-75');
+          isNavigating = false;
+        }
+      }, 1000);
     });
   }
 }

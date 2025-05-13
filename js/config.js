@@ -14,8 +14,12 @@ const CONFIG = {
       navigation: false, // Logs de navegação do router
       storage: false,    // Logs de armazenamento
       forms: false,      // Logs de manipulação de formulários
-      api: true          // Logs de chamadas de API (mantido para diagnóstico)
-    }
+      api: false,        // Logs de chamadas de API
+      modules: false     // Logs de inicialização dos módulos
+    },
+    // Controle de logs para evitar duplicação
+    preventDuplicates: true,
+    lastLogs: {}
   },
 
   // Configurações financeiras
@@ -108,6 +112,45 @@ const CONFIG = {
       duration: 300,
       easing: 'ease-in-out'
     }
+  },
+
+  // Configurações de produção
+  production: {
+    // Se true, ajuda a evitar avisos do CDN Tailwind
+    useProdMode: true
+  }
+};
+
+// Função auxiliar para logging condicional e evitar duplicatas
+window.logSystem = function(module, message, data) {
+  if (!CONFIG.debug.enabled) return;
+
+  // Verificar se devemos registrar este módulo
+  const moduleType = module.toLowerCase();
+  if (!CONFIG.debug.levels[moduleType]) return;
+
+  // Evitar logs duplicados se a configuração estiver ativada
+  if (CONFIG.debug.preventDuplicates) {
+    const logKey = `${moduleType}:${message}`;
+    const now = Date.now();
+
+    // Se o mesmo log foi registrado nos últimos 500ms, ignore
+    if (CONFIG.debug.lastLogs[logKey] && (now - CONFIG.debug.lastLogs[logKey] < 500)) {
+      return;
+    }
+
+    // Registrar este log
+    CONFIG.debug.lastLogs[logKey] = now;
+  }
+
+  // Formatar a mensagem
+  const formattedMessage = `[${module}] ${message}`;
+
+  // Registrar no console
+  if (data) {
+    console.log(formattedMessage, data);
+  } else {
+    console.log(formattedMessage);
   }
 };
 
