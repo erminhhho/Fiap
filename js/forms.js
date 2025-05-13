@@ -1294,3 +1294,84 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+// Exportar funções para uso global
+window.clearForm = clearForm;
+window.newForm = newForm;
+window.saveForm = saveForm;
+window.printForm = printForm;
+window.addFamilyMember = addFamilyMember;
+window.addAuthor = addAuthor;
+window.removeLastFamilyMember = removeLastFamilyMember;
+window.showError = showError;
+window.showSuccess = showSuccess;
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.loadFormByKey = loadFormByKey;
+window.setupContextualButtons = setupContextualButtons;
+
+/**
+ * Função para adicionar botões contextuais nos módulos
+ * - Botão Limpar em cada página do formulário, alinhado com o título do card
+ * - Botão Imprimir apenas na página final (documents)
+ * @param {string} currentModule - Nome do módulo atual (personal, social, incapacity, professional ou documents)
+ */
+function setupContextualButtons(currentModule) {
+  // Remover botões contextuais existentes
+  document.querySelectorAll('.contextual-button').forEach(btn => btn.remove());
+
+  // Encontrar o container do card principal da página
+  const cardHeaders = document.querySelectorAll('.card-header, h2.text-xl, .flex.items-center.gap-2.mb-4');
+
+  if (cardHeaders.length > 0) {
+    // Usar o primeiro header encontrado
+    const cardHeader = cardHeaders[0];
+
+    // Verificar se o cardHeader já tem um elemento de flex para alinhar itens
+    let flexContainer;
+
+    if (cardHeader.classList.contains('flex')) {
+      // Se já é um container flex, usar ele diretamente
+      flexContainer = cardHeader;
+    } else {
+      // Se não é flex, envolver o conteúdo em um container flex
+      const headerContent = cardHeader.innerHTML;
+      flexContainer = document.createElement('div');
+      flexContainer.className = 'flex items-center justify-between w-full';
+      cardHeader.innerHTML = '';
+
+      // Container para o título
+      const titleContainer = document.createElement('div');
+      titleContainer.innerHTML = headerContent;
+
+      flexContainer.appendChild(titleContainer);
+      cardHeader.appendChild(flexContainer);
+    }
+
+    // Container para os botões (à direita)
+    let buttonContainer = flexContainer.querySelector('.buttons-container');
+    if (!buttonContainer) {
+      buttonContainer = document.createElement('div');
+      buttonContainer.className = 'buttons-container flex items-center gap-2';
+      flexContainer.appendChild(buttonContainer);
+    }
+
+    // Adicionar botão Limpar em todos os módulos
+    const clearButton = document.createElement('button');
+    clearButton.type = 'button';
+    clearButton.className = 'contextual-button px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm flex items-center';
+    clearButton.innerHTML = '<i class="fas fa-eraser mr-1"></i> Limpar';
+    clearButton.onclick = function() { clearForm(); };
+    buttonContainer.appendChild(clearButton);
+
+    // Adicionar botão Imprimir apenas na página documents (última etapa)
+    if (currentModule === 'documents') {
+      const printButton = document.createElement('button');
+      printButton.type = 'button';
+      printButton.className = 'contextual-button px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center';
+      printButton.innerHTML = '<i class="fas fa-print mr-1"></i> Imprimir';
+      printButton.onclick = function() { printForm(); };
+      buttonContainer.appendChild(printButton);
+    }
+  }
+}

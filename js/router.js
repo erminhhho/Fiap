@@ -224,6 +224,13 @@ async function loadModuleWithTemplate(route) {
       routerLog('Nenhum estado de formulário para restaurar');
     }
 
+    // Configurar botões contextuais (Limpar em cada página e Imprimir na última)
+    if (typeof window.setupContextualButtons === 'function') {
+      routerLog('Configurando botões contextuais');
+      const currentModule = route.scriptUrl.split('/').pop().replace('.js', '');
+      window.setupContextualButtons(currentModule);
+    }
+
     routerLog('Módulo carregado e inicializado com sucesso');
   } catch (error) {
     routerLog('ERRO ao carregar módulo', error);

@@ -104,17 +104,12 @@
             <span id="online-text" class="text-xs text-gray-600">Online</span>
           </div>
 
+          <!-- Ações essenciais -->
           <button type="button" class="navbar-action" title="Buscar formulário" id="btn-search">
             <i class="fas fa-search text-lg"></i>
           </button>
-          <button type="button" class="navbar-action" title="Limpar formulário" id="btn-clear">
-            <i class="fas fa-eraser text-lg"></i>
-          </button>
           <button type="button" class="navbar-action" title="Novo formulário" id="btn-new">
             <i class="fas fa-file-medical text-lg"></i>
-          </button>
-          <button type="button" class="navbar-action" title="Imprimir formulário" id="btn-print">
-            <i class="fas fa-print text-lg"></i>
           </button>
           <button type="button" class="navbar-action" title="Salvar formulário" id="btn-save">
             <i class="fas fa-save text-lg"></i>
@@ -200,10 +195,8 @@
       }
 
       // Configuração dos botões da navbar
-      document.getElementById('btn-clear').addEventListener('click', clearForm);
       document.getElementById('btn-new').addEventListener('click', newForm);
       document.getElementById('btn-save').addEventListener('click', saveForm);
-      document.getElementById('btn-print').addEventListener('click', printForm);
       document.getElementById('btn-search').addEventListener('click', openSearchFormModal);
 
       // Adicionar evento de clique no logo para ir para a home
