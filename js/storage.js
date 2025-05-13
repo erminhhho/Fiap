@@ -1,6 +1,6 @@
 /**
  * FIAP - Sistema de persistência simplificado
- * Integrado com sistema existente e pronto para uso
+ * Baseado exclusivamente em localStorage
  */
 
 // Namespace global para expor funções públicas
@@ -29,13 +29,13 @@ window.FIAP.storage = {};
   // Configurações locais
   const CONFIG = {
     storageKey: 'fiap_form_data',
-    storeKey: 'fiap_store_data', // Chave adicional para compatibilidade com store.js
+    storeKey: 'fiap_store_data',
     autoSaveDelay: 800,
     notificationDuration: 2000,
     createSaveIndicator: false
   };
 
-  // Componente DataStore (migrado de store.js) para coleções de dados
+  // Componente DataStore para coleções de dados
   class DataStore {
     constructor(storageKey = CONFIG.storeKey) {
       this.storageKey = storageKey;
@@ -48,7 +48,7 @@ window.FIAP.storage = {};
                              typeof window.FIAP.state !== 'undefined';
 
       if (this.hasExistingSystem) {
-        console.log('Sistema de persistência existente detectado, operando em modo de integração');
+        storageLog('Sistema de persistência existente detectado, operando em modo de integração');
       }
     }
 
@@ -60,7 +60,7 @@ window.FIAP.storage = {};
       try {
         return JSON.parse(localStorage.getItem(this.storageKey));
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        storageLog('Erro ao carregar dados:', error);
         return null;
       }
     }
@@ -102,7 +102,7 @@ window.FIAP.storage = {};
             return existingData;
           }
         } catch (e) {
-          console.warn('Erro ao acessar dados do sistema existente:', e);
+          storageLog('Erro ao acessar dados do sistema existente:', e);
         }
       }
 
@@ -149,7 +149,7 @@ window.FIAP.storage = {};
         try {
           window.FIAP.state.saveFormData(collection, this.data[collection]);
         } catch (e) {
-          console.warn('Erro ao salvar no sistema existente:', e);
+          storageLog('Erro ao salvar no sistema existente:', e);
         }
       }
 
@@ -176,7 +176,7 @@ window.FIAP.storage = {};
           try {
             window.FIAP.state.saveFormData(collection, this.data[collection]);
           } catch (e) {
-            console.warn('Erro ao atualizar o sistema existente após remoção:', e);
+            storageLog('Erro ao atualizar o sistema existente após remoção:', e);
           }
         }
 
@@ -191,12 +191,12 @@ window.FIAP.storage = {};
      * @param {Error} error - Objeto de erro
      */
     handleStorageError(error) {
-      console.error('Erro de armazenamento:', error);
+      storageLog('Erro de armazenamento:', error);
 
       // Verificar se é erro de cota excedida
       if (error.name === 'QuotaExceededError' || error.code === 22) {
         this.dispatchEvent('storage-full');
-        console.warn('Armazenamento cheio! Alguns dados mais antigos serão removidos.');
+        storageLog('Armazenamento cheio! Alguns dados mais antigos serão removidos.');
         this.clearOldData();
       }
     }
@@ -272,7 +272,7 @@ window.FIAP.storage = {};
           window.dispatchEvent(event);
         }
       } catch (e) {
-        console.warn(`Erro ao disparar evento store:${name}`, e);
+        storageLog(`Erro ao disparar evento store:${name}`, e);
       }
     }
   }
@@ -301,10 +301,10 @@ window.FIAP.storage = {};
     // Conectar eventos para salvamento automático
     setupAutoSave();
 
-    // Inicializar o DataStore (antigo store.js)
+    // Inicializar o DataStore
     store = new DataStore(CONFIG.storeKey);
 
-    log('Sistema de persistência inicializado');
+    storageLog('Sistema de persistência inicializado');
     initialized = true;
 
     // Disparar evento de inicialização
@@ -318,7 +318,7 @@ window.FIAP.storage = {};
         document.dispatchEvent(event);
       }
     } catch (e) {
-      console.warn('Erro ao disparar evento storage:ready', e);
+      storageLog('Erro ao disparar evento storage:ready', e);
     }
   }
 
@@ -510,7 +510,7 @@ window.FIAP.storage = {};
         window.FIAP.showMessage(message, type);
         return;
       } catch (e) {
-        console.warn('Erro ao usar notificação do sistema existente:', e);
+        storageLog('Erro ao usar notificação do sistema existente:', e);
       }
     }
 
@@ -603,7 +603,7 @@ window.FIAP.storage = {};
   function saveToStorage() {
     try {
       localStorage.setItem(CONFIG.storageKey, JSON.stringify(dataCache));
-      log('Dados salvos com sucesso');
+      storageLog('Dados salvos com sucesso');
 
       // Mostrar feedback visual
       showSaveIndicator();
@@ -621,12 +621,12 @@ window.FIAP.storage = {};
           document.dispatchEvent(event);
         }
       } catch (e) {
-        console.warn('Erro ao disparar evento storage:saved', e);
+        storageLog('Erro ao disparar evento storage:saved', e);
       }
 
       return true;
     } catch (error) {
-      console.error('Erro ao salvar dados:', error);
+      storageLog('Erro ao salvar dados:', error);
       handleStorageError(error);
       return false;
     }
@@ -640,11 +640,11 @@ window.FIAP.storage = {};
       const saved = localStorage.getItem(CONFIG.storageKey);
       if (saved) {
         dataCache = JSON.parse(saved);
-        log('Dados carregados com sucesso');
+        storageLog('Dados carregados com sucesso');
       }
       return true;
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
+      storageLog('Erro ao carregar dados:', error);
       dataCache = {};
       return false;
     }
@@ -660,7 +660,7 @@ window.FIAP.storage = {};
     if (!data) return false;
 
     populateForm(form, data);
-    log(`Formulário ${formId} restaurado com ${Object.keys(data).length} campos`);
+    storageLog(`Formulário ${formId} restaurado com ${Object.keys(data).length} campos`);
 
     return true;
   }
@@ -685,7 +685,7 @@ window.FIAP.storage = {};
    * Limpa dados antigos em caso de memória cheia
    */
   function clearOldData() {
-    console.warn('Armazenamento cheio. Limpando dados antigos...');
+    storageLog('Armazenamento cheio. Limpando dados antigos...');
 
     // Abordagem simples: remover dados que não sejam do formulário atual
     const currentPage = window.location.hash.replace('#', '') || 'home';
@@ -695,13 +695,6 @@ window.FIAP.storage = {};
         delete dataCache[key];
       }
     });
-  }
-
-  /**
-   * Registra mensagens de debug se ativado
-   */
-  function log(message) {
-    storageLog(message);
   }
 
   /**
@@ -726,7 +719,7 @@ window.FIAP.storage = {};
     collectFormData,
     showNotification,
     enableDebug,
-    // Adicionar API do DataStore
+    // API do DataStore
     store: {
       get: function(collection, id) {
         if (!store) store = new DataStore(CONFIG.storeKey);
@@ -770,10 +763,9 @@ if (typeof FormStateManager !== 'undefined') {
   }
 }
 
-// Compatibilidade com persistence.js (substituindo completamente)
-// Criar namespace para manter APIs antigas
+// Funções de compatibilidade para APIs antigas
+// Simplificadas para usar apenas localStorage
 window.FIAP.persistence = {
-  // Compatibilidade com funções antigas
   saveForm: function(formId, data) {
     return window.FIAP.storage.setData(formId, data || {});
   },
@@ -789,77 +781,5 @@ window.FIAP.persistence = {
       return true;
     }
     return false;
-  },
-
-  // Emular API IndexedDB/WebSQL
-  openDatabase: function(formId) {
-    storageLog('Interceptando chamada para openDatabase - usando localStorage');
-    return this._mockDB;
-  },
-
-  // Mock object para APIs antigas
-  _mockDB: {
-    transaction: function() {
-      return {
-        objectStore: function() {
-          return {
-            get: function(key) {
-              const result = { data: window.FIAP.storage.getData(key) };
-              return {
-                onsuccess: function(callback) {
-                  if (callback) callback({ target: { result: result } });
-                  return this;
-                },
-                onerror: function() { return this; }
-              };
-            },
-            put: function(data) {
-              window.FIAP.storage.setData(data.id || 'default', data);
-              return {
-                onsuccess: function(callback) {
-                  if (callback) callback();
-                  return this;
-                },
-                onerror: function() { return this; }
-              };
-            },
-            delete: function(key) {
-              window.FIAP.storage.setData(key, null);
-              return {
-                onsuccess: function(callback) {
-                  if (callback) callback();
-                  return this;
-                }
-              };
-            }
-          };
-        }
-      };
-    }
   }
-};
-
-// Substituir funções globais
-window.openDatabase = function(name, version, displayName, size) {
-  storageLog('Interceptando chamada para openDatabase - usando localStorage');
-  return window.FIAP.persistence._mockDB;
-};
-
-// Substituir chamadas para IDB específicas
-window.indexedDB = window.indexedDB || {};
-window.indexedDB.open = function(name, version) {
-  storageLog('Interceptando chamada para indexedDB.open - usando localStorage');
-
-  // Objeto mock que simula abertura de banco
-  return {
-    onsuccess: function(callback) {
-      if (callback) {
-        callback({ target: { result: window.FIAP.persistence._mockDB } });
-      }
-      if (this.onsuccess) this.onsuccess({ target: { result: window.FIAP.persistence._mockDB } });
-      return this;
-    },
-    onerror: function() { return this; },
-    onupgradeneeded: function() { return this; }
-  };
 };
