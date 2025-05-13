@@ -961,194 +961,6 @@ function validateField(field) {
 }
 
 /**
- * Mostra uma mensagem de validação para um campo e adiciona ícone dentro do campo
- * @param {HTMLElement} field - O campo relacionado
- * @param {string} message - A mensagem a ser exibida
- * @param {boolean} isValid - Se o campo é válido ou não
- */
-function showValidationMessage(field, message, isValid) {
-    const messageId = `${field.id}-validation-message`;
-    const messageElement = document.getElementById(messageId);
-
-    if (messageElement) {
-        // Atualiza o estilo do campo
-        field.classList.remove('field-valid', 'field-invalid');
-        field.classList.add(isValid ? 'field-valid' : 'field-invalid');
-
-        // Atualiza a mensagem de validação (apenas texto, sem background, sem borda)
-        messageElement.textContent = message;
-        messageElement.classList.remove('validation-error', 'validation-success');
-        messageElement.classList.add('validation-active');
-        messageElement.classList.add(isValid ? 'validation-success' : 'validation-error');
-
-        // Adicionar ícone dentro do campo alinhado à direita
-        let iconId = `${field.id}-validation-icon`;
-        let iconElement = document.getElementById(iconId);
-
-        // Se não existir, criar o ícone
-        if (!iconElement) {
-            iconElement = document.createElement('i');
-            iconElement.id = iconId;
-            iconElement.className = 'validation-icon';
-            field.parentElement.appendChild(iconElement);
-        }
-
-        // Limpar classes anteriores do ícone
-        iconElement.className = 'validation-icon';
-
-        // Adicionar o ícone apropriado
-        if (isValid) {
-            iconElement.className += ' success fas fa-check';
-        } else {
-            iconElement.className += ' error fas fa-exclamation-circle';
-        }
-    }
-}
-
-/**
- * Limpa a validação de um campo
- * @param {HTMLElement} field - O campo a ser limpo
- */
-function clearValidation(field) {
-    const messageId = `${field.id}-validation-message`;
-    const messageElement = document.getElementById(messageId);
-    const iconId = `${field.id}-validation-icon`;
-    const iconElement = document.getElementById(iconId);
-
-    if (messageElement) {
-        field.classList.remove('field-valid', 'field-invalid');
-        messageElement.classList.remove('validation-active', 'validation-error', 'validation-success');
-        messageElement.textContent = '';
-    }
-
-    // Remover o ícone se existir
-    if (iconElement) {
-        iconElement.remove();
-    }
-}
-
-/**
- * Valida uma data no formato DD/MM/AAAA
- * @param {string} value - O valor a ser validado
- * @returns {boolean} - Se é uma data válida
- */
-function validateDate(value) {
-    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = value.match(regex);
-
-    if (!match) return false;
-
-    const day = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10) - 1;
-    const year = parseInt(match[3], 10);
-
-    const date = new Date(year, month, day);
-
-    return date.getDate() === day &&
-           date.getMonth() === month &&
-           date.getFullYear() === year;
-}
-
-/**
- * Valida um nome (apenas letras e espaços)
- * @param {string} value - O valor a ser validado
- * @returns {boolean} - Se é um nome válido
- */
-function validateName(value) {
-    return /^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(value);
-}
-
-/**
- * Valida um valor numérico
- * @param {string} value - O valor a ser validado
- * @returns {boolean} - Se é um valor numérico
- */
-function validateNumeric(value) {
-    return /^\d+$/.test(value);
-}
-
-/**
- * Capitaliza a primeira letra de cada palavra
- * @param {string} str
- * @returns {string}
- */
-function capitalizeWords(str) {
-  return str.replace(/\b\w+/g, function(word) {
-    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-  });
-}
-
-/**
- * Aplica capitalização automática em campos de texto, exceto os que não fazem sentido
- */
-function setupAutoCapitalize() {
-  document.querySelectorAll('input[type="text"], textarea').forEach(field => {
-    // Exceções: campos numéricos, UF, observações
-    const id = field.id ? field.id.toLowerCase() : '';
-    const name = field.name ? field.name.toLowerCase() : '';
-    const cls = field.className ? field.className.toLowerCase() : '';
-    const isNumeric = field.type === 'number' || field.getAttribute('data-validate') === 'numeric';
-    const isUF = id === 'uf' || name === 'uf';
-    const isObs = id.includes('observacao') || name.includes('observacao') || cls.includes('observacao');
-
-    // Identificar corretamente campos de telefone vs. detalhes do telefone
-    // Campo principal de telefone (número) não deve ser capitalizado
-    // Campo de detalhes do telefone (descrição) deve ser capitalizado
-    const isPhoneNumber = id === 'telefone' || name === 'telefone';
-    const isPhoneDetails = id === 'telefone_detalhes' || name === 'telefone_detalhes';
-
-    // Não aplicar capitalização em campos numéricos, UF, observações ou número de telefone
-    // Mas SIM aplicar em detalhes do telefone
-    if ((isNumeric || isUF || isObs || isPhoneNumber) && !isPhoneDetails) return;
-
-    field.addEventListener('blur', function() {
-      if (field.value.trim() !== '') {
-        field.value = capitalizeWords(field.value);
-      }
-    });
-  });
-}
-
-// Funções para feedback visual durante operações com Firebase
-
-/**
- * Mostra um indicador de carregamento
- * @param {string} message - Mensagem a ser exibida
- */
-function showLoading(message = 'Carregando...') {
-  // Verificar se já existe um indicador
-  let loading = document.getElementById('loading-indicator');
-
-  if (!loading) {
-    loading = document.createElement('div');
-    loading.id = 'loading-indicator';
-    loading.className = 'fixed top-4 right-4 bg-blue-600 text-white py-2 px-4 rounded-lg shadow-lg flex items-center space-x-2 z-50';
-
-    const spinner = document.createElement('div');
-    spinner.className = 'animate-spin rounded-full h-4 w-4 border-2 border-white';
-
-    const messageEl = document.createElement('span');
-
-    loading.appendChild(spinner);
-    loading.appendChild(messageEl);
-    document.body.appendChild(loading);
-  }
-
-  loading.querySelector('span').textContent = message;
-  loading.style.display = 'flex';
-}
-
-/**
- * Esconde o indicador de carregamento
- */
-function hideLoading() {
-  const loading = document.getElementById('loading-indicator');
-  if (loading) {
-    loading.style.display = 'none';
-  }
-}
-
-/**
  * Mostra uma mensagem de erro
  * @param {string} message - Mensagem de erro
  * @param {Element} parentElement - Elemento pai opcional
@@ -1163,7 +975,7 @@ function showError(message, parentElement = null, options = {}) {
   const settings = { ...defaults, ...options };
 
   const notification = document.createElement('div');
-  notification.className = 'notification bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg fixed z-50';
+  notification.className = 'notification bg-red-100 bg-opacity-90 backdrop-blur-sm border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg fixed z-50';
 
   // Posicionamento
   if (settings.position === 'top-right') {
@@ -1212,7 +1024,7 @@ function showSuccess(message, parentElement = null, options = {}) {
   const settings = { ...defaults, ...options };
 
   const notification = document.createElement('div');
-  notification.className = 'notification bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg fixed z-50';
+  notification.className = 'notification bg-green-100 bg-opacity-90 backdrop-blur-sm border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg fixed z-50';
 
   // Posicionamento
   if (settings.position === 'top-right') {
@@ -1260,7 +1072,7 @@ document.addEventListener('DOMContentLoaded', function() {
   setupAutoCapitalize();
 });
 
-// Funções de exportação
+// Exportar funções para uso global
 window.clearForm = clearForm;
 window.newForm = newForm;
 window.saveForm = saveForm;
@@ -1269,7 +1081,7 @@ window.addFamilyMember = addFamilyMember;
 window.addAuthor = addAuthor;
 window.removeLastFamilyMember = removeLastFamilyMember;
 window.updateRemoveMemberButton = updateRemoveMemberButton;
-window.loadFormByKey = loadFormByKey;
+window.loadFormByKey = loadFormByKey;window.showError = showError;window.showSuccess = showSuccess;window.showLoading = showLoading;window.hideLoading = hideLoading;window.showClearConfirmation = showClearConfirmation;window.executeClearSection = executeClearSection;
 
 /**
  * Sistema de auto-salvamento de dados entre páginas
@@ -1295,83 +1107,171 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// Exportar funções para uso global
-window.clearForm = clearForm;
-window.newForm = newForm;
-window.saveForm = saveForm;
-window.printForm = printForm;
-window.addFamilyMember = addFamilyMember;
-window.addAuthor = addAuthor;
-window.removeLastFamilyMember = removeLastFamilyMember;
-window.showError = showError;
-window.showSuccess = showSuccess;
-window.showLoading = showLoading;
-window.hideLoading = hideLoading;
-window.loadFormByKey = loadFormByKey;
-window.setupContextualButtons = setupContextualButtons;
 
-/**
- * Função para adicionar botões contextuais nos módulos
- * - Botão Limpar em cada página do formulário, alinhado com o título do card
- * - Botão Imprimir apenas na página final (documents)
- * @param {string} currentModule - Nome do módulo atual (personal, social, incapacity, professional ou documents)
- */
-function setupContextualButtons(currentModule) {
-  // Remover botões contextuais existentes
-  document.querySelectorAll('.contextual-button').forEach(btn => btn.remove());
 
-  // Encontrar o container do card principal da página
-  const cardHeaders = document.querySelectorAll('.card-header, h2.text-xl, .flex.items-center.gap-2.mb-4');
-
-  if (cardHeaders.length > 0) {
-    // Usar o primeiro header encontrado
-    const cardHeader = cardHeaders[0];
-
-    // Verificar se o cardHeader já tem um elemento de flex para alinhar itens
-    let flexContainer;
-
-    if (cardHeader.classList.contains('flex')) {
-      // Se já é um container flex, usar ele diretamente
-      flexContainer = cardHeader;
-    } else {
-      // Se não é flex, envolver o conteúdo em um container flex
-      const headerContent = cardHeader.innerHTML;
-      flexContainer = document.createElement('div');
-      flexContainer.className = 'flex items-center justify-between w-full';
-      cardHeader.innerHTML = '';
-
-      // Container para o título
-      const titleContainer = document.createElement('div');
-      titleContainer.innerHTML = headerContent;
-
-      flexContainer.appendChild(titleContainer);
-      cardHeader.appendChild(flexContainer);
-    }
-
-    // Container para os botões (à direita)
-    let buttonContainer = flexContainer.querySelector('.buttons-container');
-    if (!buttonContainer) {
-      buttonContainer = document.createElement('div');
-      buttonContainer.className = 'buttons-container flex items-center gap-2';
-      flexContainer.appendChild(buttonContainer);
-    }
-
-    // Adicionar botão Limpar em todos os módulos
-    const clearButton = document.createElement('button');
-    clearButton.type = 'button';
-    clearButton.className = 'contextual-button px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm flex items-center';
-    clearButton.innerHTML = '<i class="fas fa-eraser mr-1"></i> Limpar';
-    clearButton.onclick = function() { clearForm(); };
-    buttonContainer.appendChild(clearButton);
-
-    // Adicionar botão Imprimir apenas na página documents (última etapa)
-    if (currentModule === 'documents') {
-      const printButton = document.createElement('button');
-      printButton.type = 'button';
-      printButton.className = 'contextual-button px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center';
-      printButton.innerHTML = '<i class="fas fa-print mr-1"></i> Imprimir';
-      printButton.onclick = function() { printForm(); };
-      buttonContainer.appendChild(printButton);
-    }
+// Função para mostrar a confirmação de limpeza de forma moderna e não invasiva
+function showClearConfirmation(event, section) {
+  // Remover qualquer confirmação existente
+  const existingConfirmation = document.getElementById('clear-confirmation');
+  if (existingConfirmation) {
+    existingConfirmation.remove();
   }
+
+  // Criar o popup de confirmação
+  const confirmation = document.createElement('div');
+  confirmation.id = 'clear-confirmation';
+  confirmation.className = 'absolute bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg p-3 z-50 border border-gray-200 animate-fade-in';
+  confirmation.style.minWidth = '200px';
+
+  // Posicionar o popup próximo ao clique do mouse
+  const rect = event.target.getBoundingClientRect();
+  confirmation.style.top = (window.scrollY + rect.bottom + 5) + 'px';  // 5px abaixo do botão
+  confirmation.style.right = (document.body.clientWidth - rect.right) + 'px';
+
+  // Conteúdo do popup
+  confirmation.innerHTML = `
+    <p class="text-sm text-gray-700 mb-2">Tem certeza que deseja limpar esta seção?</p>
+    <div class="flex justify-end space-x-2">
+      <button class="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-md text-gray-700" onclick="document.getElementById('clear-confirmation').remove()">
+        Cancelar
+      </button>
+      <button class="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 rounded-md text-white" onclick="executeClearSection('${section}')">
+        Limpar
+      </button>
+    </div>
+  `;
+
+  // Adicionar ao documento
+  document.body.appendChild(confirmation);
+
+  // Adicionar estilo CSS para animação
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Fechar ao clicar fora
+  document.addEventListener('click', function closeConfirmation(e) {
+    if (!confirmation.contains(e.target) && e.target !== event.target) {
+      confirmation.remove();
+      document.removeEventListener('click', closeConfirmation);
+    }
+  });
 }
+
+// Função para executar a limpeza da seção
+function executeClearSection(section) {
+  // Remover o popup de confirmação
+  const confirmation = document.getElementById('clear-confirmation');
+  if (confirmation) {
+    confirmation.remove();
+  }
+
+  // Limpa os dados da seção no gerenciador de estado
+  if (!window.formStateManager) return;
+  window.formStateManager.formData[section] = {};
+
+  // Limpa os campos do formulário visíveis na tela
+  const form = document.querySelector('form');
+  if (form) {
+    // Seleciona todos os campos que pertencem à seção pelo id ou name
+    let fields = [];
+    if (section === 'personal') {
+      fields = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes'];
+    } else if (section === 'address') {
+      fields = ['cep', 'bairro', 'cidade', 'uf', 'endereco', 'numero'];
+    } else if (section === 'familia') {
+      // Limpa os membros da família, mantendo apenas o assistido
+      const familiaContainer = document.getElementById('membros-familia-list');
+      if (familiaContainer) {
+        const assistido = familiaContainer.querySelector('.assistido');
+        familiaContainer.innerHTML = '';
+        if (assistido) {
+          familiaContainer.appendChild(assistido);
+        }
+      }
+    } else if (section === 'renda') {
+      fields = ['renda_total_familiar', 'renda_per_capita'];
+      // Resetar displays
+      const rendaDisplay = document.getElementById('renda_total_display');
+      const percapitaDisplay = document.getElementById('renda_per_capita_display');
+      if (rendaDisplay) rendaDisplay.textContent = 'R$ 0';
+      if (percapitaDisplay) percapitaDisplay.textContent = 'R$ 0';
+    } else if (section === 'doencas') {
+      // Limpa a lista de doenças mantendo apenas a primeira linha vazia
+      const doencasList = document.getElementById('doencasList');
+      if (doencasList && doencasList.children.length > 0) {
+        const primeiraLinha = doencasList.firstElementChild.cloneNode(true);
+        // Limpar campos da primeira linha
+        primeiraLinha.querySelectorAll('input, select').forEach(campo => {
+          campo.value = '';
+        });
+        doencasList.innerHTML = '';
+        doencasList.appendChild(primeiraLinha);
+      }
+    } else if (section === 'duracao') {
+      fields = ['trabalhaAtualmente', 'ultimoTrabalho'];
+    } else if (section === 'limitacoes') {
+      fields = ['limitacoesDiarias', 'tratamentosRealizados', 'medicamentosAtuais'];
+    } else if (section === 'atividades') {
+      // Limpa a lista de atividades mantendo apenas a primeira linha vazia
+      const atividadesList = document.getElementById('atividadesList');
+      if (atividadesList && atividadesList.children.length > 0) {
+        const primeiraLinha = atividadesList.firstElementChild.cloneNode(true);
+        // Limpar campos da primeira linha
+        primeiraLinha.querySelectorAll('input, select').forEach(campo => {
+          campo.value = '';
+        });
+        atividadesList.innerHTML = '';
+        atividadesList.appendChild(primeiraLinha);
+      }
+    } else if (section === 'documentos') {
+      // Limpa a lista de documentos
+      const documentsList = document.getElementById('documentos-container');
+      if (documentsList) {
+        documentsList.innerHTML = '';
+      }
+    }
+
+    // Limpar campos da seção
+    fields.forEach(fieldId => {
+      const field = form.querySelector(`[id='${fieldId}'], [name='${fieldId}']`);
+      if (field) {
+        field.value = '';
+        field.classList.remove('field-filled', 'cpf-valid', 'cpf-invalid', 'cep-valid', 'cep-invalid');
+      }
+    });
+  }
+
+  // Salva o estado atualizado
+  window.formStateManager.saveToLocalStorage();
+
+  // Mostra notificação sutil de sucesso com transparência
+  const notification = document.createElement('div');
+  notification.className = 'fixed bottom-4 right-4 bg-green-100 bg-opacity-90 backdrop-blur-sm border-l-4 border-green-500 text-green-700 p-3 rounded shadow-md z-50 animate-fade-in';
+  notification.innerHTML = `
+    <div class="flex items-center">
+      <i class="fas fa-check-circle text-green-500 mr-2"></i>
+      <span class="text-sm">Seção limpa com sucesso!</span>
+    </div>
+  `;
+  document.body.appendChild(notification);
+
+  // Remove a notificação após 2 segundos
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transition = 'opacity 0.5s ease';
+    setTimeout(() => notification.remove(), 500);
+  }, 2000);
+}
+
+// Exportar funções para uso global
+window.showClearConfirmation = showClearConfirmation;
+window.executeClearSection = executeClearSection;
