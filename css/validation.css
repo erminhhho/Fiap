@@ -77,7 +77,7 @@
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 20 !important;
+  z-index: 5;
   font-size: 1rem;
   pointer-events: none;
 }
