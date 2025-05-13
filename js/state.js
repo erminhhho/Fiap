@@ -241,6 +241,14 @@ class FormStateManager {
   captureCurrentFormData() {
     if (!this.isInitialized) return;
 
+    // Evitar capturas múltiplas em um curto período de tempo
+    const now = Date.now();
+    if (this._lastCapture && (now - this._lastCapture) < 500) {
+      console.debug('Ignorando captura de dados muito próxima da anterior');
+      return;
+    }
+    this._lastCapture = now;
+
     const currentRoute = window.location.hash.substring(1) || 'personal';
     const form = document.querySelector('form');
     if (!form) return;
@@ -288,11 +296,23 @@ class FormStateManager {
     }
 
     // Adicionar timestamp para controle
-    formData._timestamp = Date.now();
+    formData._timestamp = now;
 
-    // Atualizar o objeto de dados
-    this.formData[currentRoute] = formData;
-    console.log(`Dados capturados da página ${currentRoute}:`, formData);
+    // Verificar se os dados são diferentes dos anteriores para evitar salvamentos desnecessários
+    const previousData = this.formData[currentRoute];
+    const hasChanges = !previousData ||
+                       JSON.stringify(formData) !== JSON.stringify(previousData);
+
+    if (hasChanges) {
+      // Atualizar o objeto de dados
+      this.formData[currentRoute] = formData;
+      console.log(`Dados capturados da página ${currentRoute}:`, formData);
+
+      // Salvar imediatamente ao detectar mudanças
+      this.saveToLocalStorage();
+    } else {
+      console.debug(`Sem alterações na página ${currentRoute}, ignorando captura`);
+    }
   }
 
   /**
@@ -326,33 +346,66 @@ class FormStateManager {
       // Ignorar campos internos que começam com _
       if (key.startsWith('_')) return;
 
-      // Tentar encontrar o campo pelo name ou id
-      const field = form.querySelector(`[name="${key}"]`) || form.querySelector(`#${key}`);
+      try {
+        // Estratégia 1: Buscar por atributo name (mais seguro com colchetes)
+        let field = null;
 
-      if (field) {
-        if (field.type === 'checkbox') {
-          field.checked = value === 'true';
-        } else if (field.type === 'radio') {
-          const radio = form.querySelector(`[name="${key}"][value="${value}"]`) ||
-                      form.querySelector(`#${key}[value="${value}"]`);
-          if (radio) radio.checked = true;
-        } else {
-          field.value = value;
+        // Tenta encontrar o elemento pelo atributo name
+        field = form.querySelector(`[name="${key}"]`);
+
+        // Se não encontrou pelo name, e a chave não tem colchetes, tenta pelo ID
+        if (!field && !key.includes('[')) {
+          field = form.querySelector(`#${key}`);
         }
 
-        // Marcar o campo como preenchido
-        field.classList.add('filled');
-
-        // Verificar se o campo não deve receber eventos de máscara
-        if (field.type !== 'hidden' && !field.hasAttribute('data-no-mask')) {
-          // Disparar eventos para atualizar UI apenas para campos não hidden
-          try {
-            field.dispatchEvent(new Event('change', { bubbles: true }));
-            field.dispatchEvent(new Event('input', { bubbles: true }));
-          } catch (e) {
-            console.debug(`Erro ao disparar eventos para o campo ${key}:`, e.message);
+        // Se ainda não encontrou e tem colchetes, tenta encontrar elementos pelo nome com escape
+        if (!field && key.includes('[')) {
+          // Encontrar todos os elementos e filtrar pelo name manualmente
+          const allInputs = form.querySelectorAll('input, select, textarea');
+          for (let i = 0; i < allInputs.length; i++) {
+            if (allInputs[i].name === key || allInputs[i].id === key) {
+              field = allInputs[i];
+              break;
+            }
           }
         }
+
+        if (field) {
+          if (field.type === 'checkbox') {
+            field.checked = value === 'true';
+          } else if (field.type === 'radio') {
+            // Para radio buttons, encontrar o específico com o valor correto
+            try {
+              const radios = form.querySelectorAll(`[name="${key}"]`);
+              for (let i = 0; i < radios.length; i++) {
+                if (radios[i].value === value) {
+                  radios[i].checked = true;
+                  break;
+                }
+              }
+            } catch (e) {
+              console.debug(`Erro ao selecionar radio para ${key}:`, e.message);
+            }
+          } else {
+            field.value = value;
+          }
+
+          // Marcar o campo como preenchido
+          field.classList.add('filled');
+
+          // Verificar se o campo não deve receber eventos de máscara
+          if (field.type !== 'hidden' && !field.hasAttribute('data-no-mask')) {
+            // Disparar eventos para atualizar UI apenas para campos não hidden
+            try {
+              field.dispatchEvent(new Event('change', { bubbles: true }));
+              field.dispatchEvent(new Event('input', { bubbles: true }));
+            } catch (e) {
+              console.debug(`Erro ao disparar eventos para o campo ${key}:`, e.message);
+            }
+          }
+        }
+      } catch (e) {
+        console.debug(`Erro ao processar campo ${key}:`, e.message);
       }
     });
 

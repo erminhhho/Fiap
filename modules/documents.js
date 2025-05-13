@@ -515,16 +515,71 @@ window.initModule = function() {
     // Botão Voltar
     if (btnBack) {
       btnBack.addEventListener('click', () => {
-        if (typeof window.navigateToPrevStep === 'function') {
-          window.navigateToPrevStep();
+        // Evitar múltiplos cliques
+        if (btnBack.getAttribute('data-processing') === 'true') {
+          console.debug('Impedindo múltiplos cliques no botão voltar');
+          return;
         }
+
+        // Marcar como processando
+        btnBack.setAttribute('data-processing', 'true');
+        btnBack.classList.add('opacity-75');
+
+        console.log('Clique no botão voltar detectado, navegando para etapa anterior');
+
+        try {
+          if (typeof window.navigateToPrevStep === 'function') {
+            const result = window.navigateToPrevStep();
+            console.log('Resultado da navegação:', result);
+
+            // Se a navegação falhar, liberar o botão
+            if (result === false) {
+              setTimeout(() => {
+                btnBack.removeAttribute('data-processing');
+                btnBack.classList.remove('opacity-75');
+              }, 200);
+            }
+          } else {
+            console.error('Função navigateToPrevStep não encontrada');
+            // Liberar o botão se a função não existir
+            setTimeout(() => {
+              btnBack.removeAttribute('data-processing');
+              btnBack.classList.remove('opacity-75');
+            }, 200);
+          }
+        } catch (e) {
+          console.error('Erro ao navegar para a etapa anterior:', e);
+          // Liberar o botão em caso de erro
+          setTimeout(() => {
+            btnBack.removeAttribute('data-processing');
+            btnBack.classList.remove('opacity-75');
+          }, 200);
+        }
+
+        // Liberar o botão após um período
+        setTimeout(() => {
+          btnBack.removeAttribute('data-processing');
+          btnBack.classList.remove('opacity-75');
+        }, 1000);
       });
     }
 
-    // Formulário
+    // Botão Salvar (form submit)
     if (form) {
+      // Variável para controlar várias submissões próximas
+      let isProcessingSubmit = false;
+
       form.addEventListener('submit', (e) => {
         e.preventDefault();
+
+        // Evitar múltiplas submissões em sequência
+        if (isProcessingSubmit) {
+          console.debug('Evitando submissão repetida do formulário');
+          return;
+        }
+
+        // Ativar flag de processamento
+        isProcessingSubmit = true;
 
         try {
           // Coletar dados de todos os documentos
@@ -549,6 +604,11 @@ window.initModule = function() {
         } catch (error) {
           console.error('Erro ao salvar formulário:', error);
           alert('Ocorreu um erro ao salvar o formulário. Por favor, tente novamente.');
+        } finally {
+          // Desativar flag após processamento
+          setTimeout(() => {
+            isProcessingSubmit = false;
+          }, 1000);
         }
       });
     }

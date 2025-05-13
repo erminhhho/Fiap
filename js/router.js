@@ -306,3 +306,35 @@ function initRouter() {
 window.navigateTo = navigateTo;
 window.initRouter = initRouter;
 window.updateNavSlider = updateNavSlider;
+
+// Implementar função de navegação para etapas anteriores
+window.navigateToPrevStep = function() {
+  // Obter a etapa atual
+  const currentHash = window.location.hash.substring(1) || 'home';
+
+  // Mapear etapas
+  const steps = [
+    'home',
+    'personal',
+    'social',
+    'incapacity',
+    'professional',
+    'documents'
+  ];
+
+  // Encontrar a posição atual
+  const currentIndex = steps.indexOf(currentHash);
+
+  // Verificar se podemos voltar
+  if (currentIndex <= 0) {
+    console.log('Já estamos na primeira etapa, não é possível voltar');
+    return false;
+  }
+
+  // Navegar para a etapa anterior
+  const prevStep = steps[currentIndex - 1];
+  console.log(`Navegando de ${currentHash} para etapa anterior: ${prevStep}`);
+
+  // Usar a função navigateTo para ir para a etapa anterior
+  return navigateTo(prevStep);
+};
