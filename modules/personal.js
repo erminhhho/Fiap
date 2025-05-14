@@ -260,6 +260,171 @@ window.updateRelationshipLabel = updateRelationshipLabel;
 window.toggleWhatsAppTag = toggleWhatsAppTag;
 window.toggleRelationshipTag = toggleRelationshipTag;
 
+// Array de colaboradores pré-cadastrados para demonstração
+window.colaboradores = [
+  { id: 1, nome: "Ana Silva", cargo: "Assistente Social" },
+  { id: 2, nome: "João Oliveira", cargo: "Defensor Público" },
+  { id: 3, nome: "Maria Santos", cargo: "Psicóloga" },
+  { id: 4, nome: "Carlos Ferreira", cargo: "Médico" },
+  { id: 5, nome: "Patrícia Lima", cargo: "Assistente Social" },
+  { id: 6, nome: "Roberto Almeida", cargo: "Estagiário" },
+  { id: 7, nome: "Fernanda Costa", cargo: "Advogada" },
+  { id: 8, nome: "Lucas Martins", cargo: "Técnico Administrativo" },
+  { id: 9, nome: "Mariana Souza", cargo: "Assistente Administrativo" },
+  { id: 10, nome: "Paulo Ribeiro", cargo: "Defensor Público" }
+];
+
+// Função para pesquisar colaboradores
+function pesquisarColaboradores(query) {
+  if (!query || typeof query !== 'string' || query.length < 2) {
+    return [];
+  }
+
+  query = query.toLowerCase().trim();
+  return window.colaboradores.filter(colab => {
+    // Verificar nome
+    if (colab.nome.toLowerCase().includes(query)) return true;
+    // Verificar cargo
+    if (colab.cargo.toLowerCase().includes(query)) return true;
+    return false;
+  });
+}
+
+// Função para renderizar resultados da pesquisa de colaboradores
+function renderizarResultadosColaborador(resultados, query) {
+  const dropdown = document.getElementById('colaboradorDropdown');
+  if (!dropdown) return;
+
+  // Limpar conteúdo
+  dropdown.innerHTML = '';
+
+  // Se não houver resultados
+  if (!resultados || resultados.length === 0) {
+    dropdown.innerHTML = `
+      <div class="p-4 text-center text-gray-500 bg-white border border-gray-200 rounded-b">
+        Nenhum colaborador encontrado para "${query}"
+      </div>
+      <div class="p-3 bg-blue-50 hover:bg-blue-100 cursor-pointer border border-blue-200 text-center transition-colors rounded-b">
+        <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
+        <span>Adicionar novo colaborador</span>
+      </div>
+    `;
+
+    // Adicionar evento para o botão de criar novo
+    const btnCriar = dropdown.querySelector('.bg-blue-50');
+    if (btnCriar) {
+      btnCriar.addEventListener('click', () => {
+        const inputColaborador = document.getElementById('colaborador');
+        if (inputColaborador) {
+          inputColaborador.value = query;
+          dropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    dropdown.classList.remove('hidden');
+    return;
+  }
+
+  // Criar cabeçalho
+  const header = document.createElement('div');
+  header.className = 'flex justify-between items-center bg-gray-50 p-2 border border-gray-200 rounded-t';
+  header.innerHTML = `
+    <span class="text-sm font-medium text-gray-700">Colaboradores encontrados (${resultados.length})</span>
+    <button id="btn-close-colaborador" class="text-gray-400 hover:text-gray-600">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  dropdown.appendChild(header);
+
+  // Criar lista de resultados
+  const lista = document.createElement('div');
+  lista.className = 'bg-white border border-t-0 border-gray-200 rounded-b max-h-60 overflow-y-auto';
+
+  // Adicionar cada resultado à lista
+  resultados.forEach((colab) => {
+    const item = document.createElement('div');
+    item.className = 'p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 colaborador-resultado';
+    item.innerHTML = `
+      <div class="font-medium text-gray-800">${colab.nome}</div>
+      <div class="text-xs text-gray-500">${colab.cargo}</div>
+    `;
+
+    item.addEventListener('click', function() {
+      const inputColaborador = document.getElementById('colaborador');
+      if (inputColaborador) {
+        inputColaborador.value = colab.nome;
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    lista.appendChild(item);
+  });
+
+  dropdown.appendChild(lista);
+  dropdown.classList.remove('hidden');
+
+  // Adicionar evento para fechar resultados
+  document.getElementById('btn-close-colaborador').addEventListener('click', function() {
+    dropdown.classList.add('hidden');
+  });
+}
+
+// Função para configurar o campo de pesquisa de colaboradores
+function setupColaboradorSearch() {
+  const inputColaborador = document.getElementById('colaborador');
+  const dropdownColaborador = document.getElementById('colaboradorDropdown');
+
+  if (!inputColaborador || !dropdownColaborador) return;
+
+  // Configurar evento de digitação para pesquisa
+  inputColaborador.addEventListener('input', function() {
+    const query = this.value.trim();
+
+    // Se a query for muito curta, ocultar dropdown
+    if (query.length < 2) {
+      dropdownColaborador.classList.add('hidden');
+      return;
+    }
+
+    // Buscar resultados
+    const resultados = pesquisarColaboradores(query);
+
+    // Renderizar resultados
+    renderizarResultadosColaborador(resultados, query);
+  });
+
+  // Configurar evento de tecla Enter
+  inputColaborador.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+
+      // Se o dropdown estiver visível, selecionar o primeiro resultado
+      if (!dropdownColaborador.classList.contains('hidden')) {
+        const primeiroResultado = dropdownColaborador.querySelector('.colaborador-resultado');
+        if (primeiroResultado) {
+          primeiroResultado.click();
+          return;
+        }
+      }
+
+      // Se não há resultados visíveis, adicionar o texto digitado como colaborador
+      if (this.value.trim()) {
+        this.value = this.value.trim();
+        dropdownColaborador.classList.add('hidden');
+      }
+    }
+  });
+
+  // Fechar dropdown ao clicar fora
+  document.addEventListener('click', function(event) {
+    if (!dropdownColaborador.contains(event.target) &&
+        event.target !== inputColaborador) {
+      dropdownColaborador.classList.add('hidden');
+    }
+  });
+}
+
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
   // Evitar múltiplas inicializações
@@ -294,6 +459,9 @@ function setupEvents() {
   if (typeof loadAssistidoData === 'function') {
     loadAssistidoData();
   }
+
+  // Configurar campo de pesquisa de colaborador
+  setupColaboradorSearch();
 
   // Prevenção contra duplicação de botões
   const addAuthorButton = document.querySelector('button[onclick="addAuthor()"]');
