@@ -28,6 +28,9 @@ FIAP.tw = {
     // Botão secundário
     secondary: "bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2",
 
+    // Botão de imprimir (padronizado)
+    print: "bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2",
+
     // Botão de adicionar (circular)
     add: "bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 mx-auto",
 
@@ -154,6 +157,11 @@ FIAP.tw.init = function() {
 
   document.querySelectorAll('#btn-back').forEach(btn => {
     FIAP.tw.applyTo(btn, 'button.secondary');
+  });
+
+  // Aplicar classes ao botão de impressão
+  document.querySelectorAll('#btn-print').forEach(btn => {
+    FIAP.tw.applyTo(btn, 'button.print');
   });
 
   // Aplicar classes aos botões de ação na navbar
