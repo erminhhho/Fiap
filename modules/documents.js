@@ -241,7 +241,7 @@ window.initModule = function() {
       if (template && documentosContainer) {
         // Criar um clone do template
         const clone = document.importNode(template.content, true);
-        const documentoElement = clone.querySelector('.documento-adicionado');
+        const documentoItem = clone.querySelector('.documento-item');
 
         // Preencher o nome do documento se fornecido
         if (textoDocumento) {
@@ -251,70 +251,209 @@ window.initModule = function() {
           }
         }
 
-        // Configurar o ícone de informação para mostrar o popup
-        const infoIcon = documentoElement.querySelector('.fa-info-circle');
-        if (infoIcon) {
-          infoIcon.parentElement.addEventListener('click', function(event) {
-            mostrarPopupInfo(this, event);
-          });
-
-          // Adicionar estilo de cursor pointer para indicar que é clicável
-          infoIcon.parentElement.style.cursor = 'pointer';
-        }
-
         // Configurar botão remover
-        const removerBtn = documentoElement.querySelector('.remover-documento');
+        const removerBtn = clone.querySelector('.remover-documento');
         if (removerBtn) {
           removerBtn.addEventListener('click', function() {
-            confirmarRemoverDocumento(this, () => {
-              // Encontrar o container pai (que contém o card)
-              const documentoContainer = this.closest('.flex.items-start.gap-2.mb-3');
-              if (documentoContainer) {
-                documentoContainer.remove();
-                // Salvar formulário após remoção
-                if (typeof saveFormState === 'function') {
-                  saveFormState();
-                }
-              }
-            });
+            removerDocumento(this);
           });
         }
 
-        // Configurar o dropdown de status
-        const relationshipSelect = documentoElement.querySelector('.relationship-select');
+        // Configurar o select de status
+        const relationshipSelect = documentoItem.querySelector('.relationship-select');
         if (relationshipSelect) {
           relationshipSelect.addEventListener('click', function() {
             toggleDocumentStatusTag(this);
           });
 
-          // Configurar o select dentro do relationship-select
+          // Configurar o select interno
           const statusSelect = relationshipSelect.querySelector('.documento-status');
           if (statusSelect) {
             statusSelect.addEventListener('change', function() {
               updateDocumentStatusTag(this);
             });
-
-            // Definir "Obter" como valor padrão
-            statusSelect.value = "Obter";
-            relationshipSelect.setAttribute('data-selected', 'Obter');
-            relationshipSelect.setAttribute('data-value', 'Obter');
           }
         }
 
-        // Definir status padrão como "obter"
-        documentoElement.dataset.status = 'obter';
-        documentoElement.classList.add('status-obter');
+        // Permitir abrir modal de detalhes ao clicar no nome do documento
+        const nomeDocumento = clone.querySelector('.nome-documento');
+        if (nomeDocumento) {
+          nomeDocumento.addEventListener('dblclick', function() {
+            abrirModalDetalhes(this);
+          });
+        }
+
+        // Configurar botão de informações
+        const infoBtn = clone.querySelector('.info-documento-btn');
+        if (infoBtn) {
+          infoBtn.addEventListener('click', function() {
+            abrirPopupInfoDocumento(this);
+          });
+        }
 
         // Adicionar ao container
         documentosContainer.appendChild(clone);
 
-        // Retornar o elemento principal do documento (o card)
-        return documentoElement;
+        // Salvar após adicionar
+        if (typeof saveFormState === 'function') {
+          saveFormState();
+        }
+
+        return documentoItem;
       }
     } catch (error) {
       console.error('Erro ao adicionar novo documento:', error);
     }
     return null;
+  }
+
+  // Função para remover documento com confirmação simples
+  function removerDocumento(button) {
+    const documentoItem = button.closest('.documento-item');
+    if (!documentoItem) return;
+
+    if (confirm('Tem certeza que deseja remover este documento?')) {
+      documentoItem.remove();
+
+      // Salvar após remover
+      if (typeof saveFormState === 'function') {
+        saveFormState();
+      }
+    }
+  }
+
+  // Função para abrir o modal de detalhes do documento
+  function abrirModalDetalhes(element) {
+    const documentoItem = element.closest('.documento-item');
+    if (!documentoItem) return;
+
+    const modal = document.getElementById('documento-info-modal');
+    if (!modal) return;
+
+    // Obter dados do documento
+    const nomeInput = documentoItem.querySelector('.nome-documento');
+    const anoInput = documentoItem.querySelector('.ano-documento');
+    const detalhesTextarea = documentoItem.querySelector('.detalhes-documento');
+
+    const nome = nomeInput ? nomeInput.value : 'Documento';
+    const ano = anoInput && anoInput.value ? anoInput.value : '';
+    const detalhes = detalhesTextarea ? detalhesTextarea.value : '';
+
+    // Preencher dados no modal
+    const tituloEl = modal.querySelector('.documento-info-titulo');
+    const detalhesEl = modal.querySelector('#documento-info-detalhes');
+
+    if (tituloEl) {
+      if (ano) {
+        tituloEl.textContent = `${nome} (${ano})`;
+      } else {
+        tituloEl.textContent = nome;
+      }
+    }
+
+    if (detalhesEl) {
+      detalhesEl.value = detalhes;
+    }
+
+    // Mostrar o modal
+    modal.classList.remove('hidden');
+
+    // Configurar botão de fechar
+    const fecharBtn = modal.querySelector('.fechar-info');
+    if (fecharBtn) {
+      const closeHandler = function() {
+        modal.classList.add('hidden');
+        fecharBtn.removeEventListener('click', closeHandler);
+      };
+      fecharBtn.addEventListener('click', closeHandler);
+    }
+
+    // Configurar botão de salvar
+    const salvarBtn = modal.querySelector('.salvar-info');
+    if (salvarBtn) {
+      const saveHandler = function() {
+        // Salvar detalhes no textarea oculto
+        if (detalhesTextarea && detalhesEl) {
+          detalhesTextarea.value = detalhesEl.value;
+        }
+
+        // Fechar modal
+        modal.classList.add('hidden');
+
+        // Salvar no estado
+        if (typeof saveFormState === 'function') {
+          saveFormState();
+        }
+
+        salvarBtn.removeEventListener('click', saveHandler);
+      };
+      salvarBtn.addEventListener('click', saveHandler);
+    }
+  }
+
+  // Função para abrir o popup de informações do documento
+  function abrirPopupInfoDocumento(element) {
+    const documentoItem = element.closest('.documento-item');
+    if (!documentoItem) return;
+
+    const popup = document.getElementById('documento-info-popup');
+    if (!popup) return;
+
+    // Obter o nome do documento
+    const nomeInput = documentoItem.querySelector('.nome-documento');
+    const nome = nomeInput ? nomeInput.value : 'Documento';
+
+    // Obter a descrição do documento do banco de dados pré-cadastrado
+    let descricao = '';
+    if (nome && window.documentosPreCadastrados) {
+      const documento = window.documentosPreCadastrados.find(doc => doc.nome.toLowerCase() === nome.toLowerCase());
+      if (documento) {
+        descricao = documento.descricao || '';
+
+        // Se tiver detalhes HTML, adicione-os também
+        if (documento.detalhes) {
+          descricao += '<hr class="my-3 border-gray-200">' + documento.detalhes;
+        }
+      } else {
+        descricao = 'Nenhuma descrição disponível para este documento.';
+      }
+    } else {
+      descricao = 'Nenhuma descrição disponível para este documento.';
+    }
+
+    // Preencher dados no popup
+    const tituloEl = popup.querySelector('.documento-info-popup-titulo');
+    const descricaoEl = popup.querySelector('#documento-info-popup-descricao');
+
+    if (tituloEl) {
+      tituloEl.textContent = nome;
+    }
+
+    if (descricaoEl) {
+      descricaoEl.innerHTML = descricao;
+    }
+
+    // Mostrar o popup
+    popup.classList.remove('hidden');
+
+    // Configurar botão de fechar
+    const fecharBtn = popup.querySelector('.fechar-info-popup');
+    if (fecharBtn) {
+      const closeHandler = function() {
+        popup.classList.add('hidden');
+        fecharBtn.removeEventListener('click', closeHandler);
+      };
+      fecharBtn.addEventListener('click', closeHandler);
+    }
+
+    // Fechar popup ao clicar fora
+    const clickOutsideHandler = function(event) {
+      if (event.target === popup) {
+        popup.classList.add('hidden');
+        popup.removeEventListener('click', clickOutsideHandler);
+      }
+    };
+    popup.addEventListener('click', clickOutsideHandler);
   }
 
   // Função para pesquisar documentos
@@ -408,69 +547,15 @@ window.initModule = function() {
     if (detalhesTextarea && doc.detalhes) {
       detalhesTextarea.value = doc.detalhes.replace(/<[^>]*>/g, ''); // Remover tags HTML
     }
+
+    // Preencher descrição para o popup de informações
+    const descricaoContainer = novoDocumento.querySelector('.descricao-documento');
+    if (descricaoContainer && doc.descricao) {
+      descricaoContainer.innerHTML = doc.descricao;
+    }
   }
 
-  // Função para mostrar o popup de informações do documento
-  function mostrarPopupInfo(element, event) {
-    // Prevenir propagação do evento para evitar fechamentos inesperados
-    event.stopPropagation();
-
-    // Obter o elemento do documento e os detalhes
-    const documentoElement = element.closest('.documento-adicionado');
-    if (!documentoElement) return;
-
-    const nomeDocumento = documentoElement.querySelector('.nome-documento').value || 'Documento';
-    const detalhesTextarea = documentoElement.querySelector('.detalhes-documento');
-    const detalhes = detalhesTextarea ? detalhesTextarea.value : '';
-
-    // Obter o popup
-    const popup = document.getElementById('documento-info-popup');
-    if (!popup) return;
-
-    // Preencher os dados no popup
-    const titulo = popup.querySelector('.documento-info-titulo');
-    const conteudo = popup.querySelector('.documento-info-conteudo');
-
-    if (titulo) titulo.textContent = nomeDocumento;
-    if (conteudo) {
-      if (detalhes) {
-        conteudo.textContent = detalhes;
-      } else {
-        conteudo.innerHTML = '<em class="text-gray-400">Sem detalhes adicionais</em>';
-      }
-    }
-
-    // Posicionar o popup próximo ao elemento
-    const elementRect = element.getBoundingClientRect();
-    popup.style.top = (window.scrollY + elementRect.bottom + 5) + 'px';
-    popup.style.left = (elementRect.left - 100) + 'px'; // Deslocamento à esquerda
-
-    // Mostrar o popup
-    popup.classList.remove('hidden');
-
-    // Configurar o botão de fechar
-    const fecharBtn = popup.querySelector('.fechar-info');
-    if (fecharBtn) {
-      fecharBtn.addEventListener('click', function() {
-        popup.classList.add('hidden');
-      });
-    }
-
-    // Fechar ao clicar fora
-    const closeOutsideClick = function(e) {
-      if (!popup.contains(e.target) && e.target !== element) {
-        popup.classList.add('hidden');
-        document.removeEventListener('click', closeOutsideClick);
-      }
-    };
-
-    // Adicionar com um pequeno atraso para evitar fechamento imediato
-    setTimeout(() => {
-      document.addEventListener('click', closeOutsideClick);
-    }, 100);
-  }
-
-  // Configurar eventos
+  // Função para configurar eventos
   function configurarEventos() {
     // Evento para buscar documentos conforme digita
     documentoPesquisa.addEventListener('input', function() {
@@ -483,6 +568,9 @@ window.initModule = function() {
       if (event.key === 'Enter') {
         event.preventDefault();
 
+        const textoDigitado = this.value.trim();
+        if (!textoDigitado) return;
+
         // Se há resultados visíveis, selecionar o primeiro
         const resultadosContainer = document.getElementById('resultados-pesquisa');
         if (!resultadosContainer.classList.contains('hidden')) {
@@ -493,9 +581,17 @@ window.initModule = function() {
           }
         }
 
-        // Se não há resultados, adicionar um novo documento com o texto digitado
-        if (this.value.trim()) {
-          adicionarNovoDocumento(this.value.trim());
+        // Verificar se o documento já existe na lista
+        let documentoExistente = false;
+        document.querySelectorAll('.nome-documento').forEach(input => {
+          if (input.value.toLowerCase() === textoDigitado.toLowerCase()) {
+            documentoExistente = true;
+          }
+        });
+
+        // Se o documento não existir na lista e não estiver nos resultados, adicionar como novo
+        if (!documentoExistente) {
+          adicionarNovoDocumento(textoDigitado);
           this.value = ''; // Limpar o campo
           document.getElementById('resultados-pesquisa').classList.add('hidden'); // Esconder resultados
 
@@ -503,9 +599,9 @@ window.initModule = function() {
           if (typeof saveFormState === 'function') {
             saveFormState();
           }
-          }
         }
-      });
+      }
+    });
 
     // Configurar botão voltar
     if (btnBack) {
@@ -540,9 +636,17 @@ window.initModule = function() {
         saveFormState();
       }
     });
+
+    // Configurar evento para modal de detalhes/informações do documento
+    document.addEventListener('click', function(event) {
+      // Verificar se o clique foi em um botão de info
+      if (event.target.classList.contains('info-documento-btn')) {
+        abrirPopupInfoDocumento(event.target);
+      }
+    });
   }
 
-  // Carregar dados salvos do formulário
+  // Função para carregar os dados salvos
   function carregarDadosSalvos() {
     try {
       // Verificar se temos dados carregados no formStateManager
@@ -555,25 +659,24 @@ window.initModule = function() {
         // Carregar documentos salvos
         if (dados.documentos && Array.isArray(dados.documentos)) {
           dados.documentos.forEach(doc => {
-            const novoDocumento = adicionarNovoDocumento(doc.nome || '');
-
-            if (!novoDocumento) return;
+            const documentoItem = adicionarNovoDocumento(doc.nome || '');
+            if (!documentoItem) return;
 
             // Definir o ano se existir
-            const anoInput = novoDocumento.querySelector('.ano-documento');
+            const anoInput = documentoItem.querySelector('.ano-documento');
             if (anoInput && doc.ano) {
               anoInput.value = doc.ano;
             }
 
             // Definir os detalhes se existirem
-            const detalhesTextarea = novoDocumento.querySelector('.detalhes-documento');
+            const detalhesTextarea = documentoItem.querySelector('.detalhes-documento');
             if (detalhesTextarea && doc.detalhes) {
               detalhesTextarea.value = doc.detalhes;
             }
 
             // Definir o status do documento
             if (doc.status) {
-              const statusSelect = novoDocumento.querySelector('.documento-status');
+              const statusSelect = documentoItem.querySelector('.documento-status');
               if (statusSelect) {
                 // Mapear o status para o valor correto no select
                 const statusCapitalized = doc.status.charAt(0).toUpperCase() + doc.status.slice(1);
@@ -585,11 +688,6 @@ window.initModule = function() {
                   relationshipSelect.setAttribute('data-selected', statusCapitalized);
                   relationshipSelect.setAttribute('data-value', statusCapitalized);
                 }
-
-                // Atualizar as classes do documento
-                novoDocumento.dataset.status = doc.status;
-                novoDocumento.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
-                novoDocumento.classList.add('status-' + doc.status);
               }
             }
           });
@@ -614,16 +712,23 @@ window.initModule = function() {
         // Coletar dados do formulário de documentos
         const documentosData = [];
 
-        document.querySelectorAll('.documento-adicionado').forEach(docElement => {
-          const nomeInput = docElement.querySelector('.nome-documento');
-          const anoInput = docElement.querySelector('.ano-documento');
-          const detalhesTextarea = docElement.querySelector('.detalhes-documento');
+        document.querySelectorAll('.documento-item').forEach(documentoItem => {
+          const nomeInput = documentoItem.querySelector('.nome-documento');
+          const anoInput = documentoItem.querySelector('.ano-documento');
+          const detalhesTextarea = documentoItem.querySelector('.detalhes-documento');
+
+          // Obter o status a partir do select
+          let status = 'obter'; // padrão
+          const statusSelect = documentoItem.querySelector('.documento-status');
+          if (statusSelect && statusSelect.value) {
+            status = statusSelect.value.toLowerCase();
+          }
 
           documentosData.push({
             nome: nomeInput ? nomeInput.value : '',
             ano: anoInput ? anoInput.value : '',
             detalhes: detalhesTextarea ? detalhesTextarea.value : '',
-            status: docElement.dataset.status || 'obter'
+            status: status
           });
         });
 
@@ -643,29 +748,15 @@ window.initModule = function() {
     // Configurar eventos
     configurarEventos();
 
-    // Configurar evento para o popup de informações
-    document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar o popup de informações se ainda não existir
-      if (!document.getElementById('documento-info-popup')) {
-        const popupTemplate = `
-          <div id="documento-info-popup" class="hidden fixed z-50">
-            <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-md animate-fade-in">
-              <div class="flex justify-between items-center mb-2">
-                <h3 class="text-lg font-semibold text-gray-800 documento-info-titulo"></h3>
-                <button type="button" class="fechar-info text-gray-400 hover:text-gray-600">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-              <div class="documento-info-conteudo text-sm text-gray-600 max-h-60 overflow-y-auto"></div>
-            </div>
-          </div>
-        `;
-
-        const popupDiv = document.createElement('div');
-        popupDiv.innerHTML = popupTemplate;
-        document.body.appendChild(popupDiv.firstElementChild);
-      }
-    });
+    // Configurar evento para fechar o modal ao clicar fora
+    const modal = document.getElementById('documento-info-modal');
+    if (modal) {
+      window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+          modal.classList.add('hidden');
+        }
+      });
+    }
 
     // Carregar dados salvos
     carregarDadosSalvos();
@@ -675,36 +766,30 @@ window.initModule = function() {
   inicializar();
 };
 
-// Função para alternar o status do documento - função global para uso no HTML
+// Função para alternar o status de um documento através das tags clicáveis
 function toggleDocumentStatus(button) {
   if (!button) return;
 
-  const documentoElement = button.closest('.documento-adicionado');
-  if (!documentoElement) return;
+  const documentoItem = button.closest('.documento-item');
+  if (!documentoItem) return;
 
   const status = button.dataset.status;
-  const allTags = documentoElement.querySelectorAll('.documento-tag');
+  const allTags = documentoItem.querySelectorAll('.documento-tag');
 
-  // Removemos as classes de status ativo de todas as tags
+  // Removemos a classe 'active' de todas as tags
   allTags.forEach(tag => {
-    tag.classList.remove('success', 'info', 'warning', 'active');
+    tag.classList.remove('active');
   });
 
   // Atualizar o data-status no elemento do documento
-  documentoElement.dataset.status = status;
+  documentoItem.dataset.status = status;
 
-  // Atualizar a classe do botão clicado de acordo com o status
-  if (status === 'recebido') {
-    button.classList.add('success', 'active');
-  } else if (status === 'solicitado') {
-    button.classList.add('info', 'active');
-  } else if (status === 'obter') {
-    button.classList.add('warning', 'active');
-  }
+  // Atualizar a classe do botão clicado para mostrar que está ativo
+  button.classList.add('active');
 
   // Adicionar classe ao documento para visualização rápida
-  documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
-  documentoElement.classList.add('status-' + status);
+  documentoItem.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+  documentoItem.classList.add('status-' + status);
 
   // Salvar alterações
   if (typeof saveFormState === 'function') {
@@ -767,7 +852,7 @@ function toggleDocumentStatusTag(element) {
   }
 
   // Atualizar o status no elemento do documento
-  const documentoElement = element.closest('.documento-adicionado');
+  const documentoElement = element.closest('.documento-item');
   if (documentoElement) {
     // Mapear o valor do status para o formato correto esperado pelo sistema
     let mappedStatus = statusValue.toLowerCase();
@@ -801,7 +886,7 @@ function updateDocumentStatusTag(select) {
   container.setAttribute('data-value', value);
 
   // Atualizar o status no elemento do documento
-  const documentoElement = container.closest('.documento-adicionado');
+  const documentoElement = container.closest('.documento-item');
   if (documentoElement) {
     // Mapear o valor do status para o formato correto esperado pelo sistema
     let mappedStatus = value.toLowerCase();
@@ -829,74 +914,10 @@ function updateDocumentStatusTag(select) {
 window.toggleDocumentStatusTag = toggleDocumentStatusTag;
 window.updateDocumentStatusTag = updateDocumentStatusTag;
 window.toggleDocumentStatus = toggleDocumentStatus;
-
-// Adicionar esta função para mostrar um diálogo de confirmação moderno
-function confirmarRemoverDocumento(button, callback) {
-  // Remover qualquer diálogo existente
-  const existingConfirmation = document.getElementById('doc-delete-confirmation');
-  if (existingConfirmation) {
-    existingConfirmation.remove();
-  }
-
-  // Criar o popup de confirmação
-  const confirmation = document.createElement('div');
-  confirmation.id = 'doc-delete-confirmation';
-  confirmation.className = 'absolute bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg p-3 z-50 border border-gray-200 animate-fade-in';
-  confirmation.style.minWidth = '200px';
-
-  // Posicionar o popup próximo ao botão
-  const buttonRect = button.getBoundingClientRect();
-  confirmation.style.top = (window.scrollY + buttonRect.bottom + 5) + 'px';
-  confirmation.style.right = (document.body.clientWidth - buttonRect.right + 10) + 'px';
-
-  // Conteúdo do popup
-  confirmation.innerHTML = `
-    <p class="text-sm text-gray-700 mb-2">Remover este documento?</p>
-    <div class="flex justify-end space-x-2">
-      <button class="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-md text-gray-700 cancel-remove">
-        Cancelar
-      </button>
-      <button class="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 rounded-md text-white confirm-remove">
-        Remover
-      </button>
-    </div>
-  `;
-
-  // Adicionar ao documento
-  document.body.appendChild(confirmation);
-
-  // Configurar eventos
-  confirmation.querySelector('.cancel-remove').addEventListener('click', function() {
-    confirmation.remove();
-  });
-
-  confirmation.querySelector('.confirm-remove').addEventListener('click', function() {
-    confirmation.remove();
-    if (typeof callback === 'function') {
-      callback();
-    }
-  });
-
-  // Fechar ao clicar fora
-  document.addEventListener('click', function closeConfirmation(e) {
-    if (confirmation.contains(e.target) || e.target === button) return;
-    confirmation.remove();
-    document.removeEventListener('click', closeConfirmation);
-  });
-
-  // Adicionar estilo CSS para animação
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-      animation: fadeIn 0.2s ease-out forwards;
-    }
-  `;
-  document.head.appendChild(style);
-}
+window.abrirPopupInfoDocumento = abrirPopupInfoDocumento;
 
 // Exposição global das novas funções
-window.mostrarPopupInfo = mostrarPopupInfo;
+window.adicionarNovoDocumento = adicionarNovoDocumento;
+window.removerDocumento = removerDocumento;
+window.abrirModalDetalhes = abrirModalDetalhes;
+

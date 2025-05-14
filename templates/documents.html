@@ -11,7 +11,7 @@
     <!-- Lista de Documentos -->
     <div id="documentsList" class="space-y-1">
       <!-- Campo de pesquisa centralizado com design mais compacto -->
-      <div class="relative mb-3 max-w-lg mx-auto">
+      <div class="relative mb-8 max-w-lg mx-auto">
         <input type="text" id="documento-pesquisa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 text-base" placeholder="Digite o nome do documento para pesquisar ou adicionar...">
         <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
           <i class="fas fa-search"></i>
@@ -24,7 +24,7 @@
       </div>
 
       <!-- Lista de documentos adicionados com espaçamento reduzido -->
-      <div id="documentos-container" class="space-y-1 my-3">
+      <div id="documentos-container" class="space-y-3 my-3">
         <!-- Documentos adicionados serão inseridos aqui -->
       </div>
     </div>
@@ -52,58 +52,63 @@
 
 <!-- Template para novo documento adicionado -->
 <template id="documentoTemplate">
-  <div class="flex items-start gap-2 mb-3">
-    <!-- Card principal do documento -->
-    <div class="documento-adicionado flex-grow relative p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:border-blue-200 transition-colors" data-status="obter">
-      <!-- Layout mais eficiente e compacto -->
-      <div class="flex flex-wrap items-center gap-3">
-        <!-- Ícone de informação e nome -->
-        <div class="flex-grow flex items-center gap-2">
-          <i class="fas fa-info-circle text-blue-500"></i>
-          <input type="text" class="nome-documento text-base font-medium text-gray-800 bg-transparent border-b border-gray-200 focus:border-blue-600 focus:ring-0 px-1 py-0.5 w-full" placeholder="Nome do documento">
-        </div>
+  <div class="documento-item flex items-center gap-3 mb-4">
+    <!-- Ícone de informação -->
+    <div class="flex-shrink-0">
+      <i class="fas fa-info-circle text-blue-400 hover:text-blue-600 text-lg cursor-pointer info-documento-btn" title="Ver descrição do documento"></i>
+    </div>
 
-        <!-- Campo de ano dedicado -->
-        <div class="flex-shrink-0 flex items-center text-sm text-gray-600">
-          <span class="text-gray-500 font-medium mr-1">Ano:</span>
-          <input type="number" min="1900" max="2099" class="ano-documento bg-transparent border-b border-gray-200 focus:border-blue-500 focus:ring-0 px-1 py-0.5 w-16" placeholder="Ano">
-        </div>
+    <!-- Nome do documento -->
+    <div class="flex-grow relative">
+      <input type="text" class="nome-documento w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do documento">
 
-        <!-- Status com posicionamento correto -->
-        <div class="flex-shrink-0">
-          <div class="relationship-select top-auto right-auto" data-selected="Obter" data-value="Obter" onclick="toggleDocumentStatusTag(this)">
-            <select class="documento-status" onchange="updateDocumentStatusTag(this)">
-              <option value="Recebido">Recebido</option>
-              <option value="Solicitado">Solicitado</option>
-              <option value="Obter" selected>Obter</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Botão de remover padrão do projeto -->
-        <button type="button" class="remover-documento flex-shrink-0 text-gray-400 hover:text-red-500 transition" title="Remover documento">
-          <i class="fas fa-trash-alt"></i>
-        </button>
+      <!-- Tags como dropdown na borda superior direita (melhor posicionado) -->
+      <div class="relationship-select absolute -top-3 -right-8 z-10" data-selected="Obter" data-value="Obter" onclick="toggleDocumentStatusTag(this)">
+        <select class="documento-status" onchange="updateDocumentStatusTag(this)">
+          <option value="Recebido">Recebido</option>
+          <option value="Solicitado">Solicitado</option>
+          <option value="Obter" selected>Obter</option>
+        </select>
       </div>
+    </div>
 
-      <!-- Campo de descrição oculto (será exibido no popup) -->
-      <div class="detalhes-documento-container hidden">
-        <textarea class="detalhes-documento w-full" rows="2" placeholder="Detalhes adicionais sobre o documento..."></textarea>
-      </div>
+    <!-- Ano do documento -->
+    <div class="flex-shrink-0 w-24">
+      <input type="number" min="1900" max="2099" class="ano-documento w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Ano">
+    </div>
+
+    <!-- Botão de remover (padrão do projeto) -->
+    <div class="flex-shrink-0 flex items-center justify-center">
+      <button type="button" class="remover-documento bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Remover documento">
+        <i class="fas fa-minus"></i>
+      </button>
+    </div>
+
+    <!-- Campo de detalhes oculto (será exibido no popup) -->
+    <div class="detalhes-documento-container hidden w-0 h-0 overflow-hidden">
+      <textarea class="detalhes-documento" rows="2" placeholder="Detalhes adicionais sobre o documento..."></textarea>
+    </div>
+
+    <!-- Campo de descrição oculto para o popup de informações -->
+    <div class="descricao-documento-container hidden w-0 h-0 overflow-hidden">
+      <div class="descricao-documento"></div>
     </div>
   </div>
 </template>
 
-<!-- Template para o popup de informações do documento -->
-<div id="documento-info-popup" class="hidden fixed z-50">
-  <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-md animate-fade-in">
-    <div class="flex justify-between items-center mb-2">
-      <h3 class="text-lg font-semibold text-gray-800 documento-info-titulo"></h3>
-      <button type="button" class="fechar-info text-gray-400 hover:text-gray-600">
+<!-- Modal de informações do documento -->
+<div id="documento-info-popup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold text-gray-700 documento-info-popup-titulo"></h3>
+      <button type="button" class="fechar-info-popup text-gray-400 hover:text-gray-600 transition-colors">
         <i class="fas fa-times"></i>
       </button>
     </div>
-    <div class="documento-info-conteudo text-sm text-gray-600 max-h-60 overflow-y-auto"></div>
+
+    <div class="mb-4">
+      <div id="documento-info-popup-descricao" class="text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200"></div>
+    </div>
   </div>
 </div>
 
@@ -255,70 +260,7 @@
 </script>
 
 <style>
-  /* Estilos para as tags de status de documento */
-  .documento-tag {
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.25rem 0.6rem;
-    border-radius: 9999px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    background-color: rgba(243, 244, 246, 0.8);
-    color: #6b7280;
-    transition: all 0.2s ease;
-  }
-
-  /* Aparência quando ativa */
-  .documento-tag.active {
-    font-weight: 600;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  }
-
-  /* Status Recebido */
-  .documento-tag[data-status="recebido"].active,
-  .documento-tag.success.active {
-    background-color: rgba(16, 185, 129, 0.1);
-    color: #065f46;
-    border-color: rgba(16, 185, 129, 0.3);
-  }
-
-  /* Status Solicitado */
-  .documento-tag[data-status="solicitado"].active,
-  .documento-tag.info.active {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: #1e40af;
-    border-color: rgba(59, 130, 246, 0.3);
-  }
-
-  /* Status Obter */
-  .documento-tag[data-status="obter"].active,
-  .documento-tag.warning.active {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: #92400e;
-    border-color: rgba(245, 158, 11, 0.3);
-  }
-
-  /* Efeito hover para todas as tags */
-  .documento-tag:hover {
-    transform: translateY(-1px);
-  }
-
-  /* Bordas coloridas para documentos com status definido */
-  .documento-adicionado.status-recebido {
-    border-left: 3px solid #10b981;
-  }
-
-  .documento-adicionado.status-solicitado {
-    border-left: 3px solid #3b82f6;
-  }
-
-  .documento-adicionado.status-obter {
-    border-left: 3px solid #f59e0b;
-  }
-
-  /* Estilos para o sistema de tags relationship-select em documentos */
-  /* Cores específicas para status de documentos */
+  /* Estilos para o select de status do documento */
   .relationship-select[data-value="Recebido"] {
     background-color: #10b981 !important; /* Verde */
     color: white !important;
@@ -334,12 +276,8 @@
     color: white !important;
   }
 
-  /* Posicionamento da etiqueta de status nos documentos */
-  .documento-adicionado .relationship-select {
-    position: relative;
-    transform: none;
-    right: auto;
-    top: auto;
+  /* Estilo para o select do status */
+  .relationship-select {
     font-size: 0.75rem;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
@@ -348,53 +286,40 @@
     justify-content: center;
     font-weight: 500;
     white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: none;
   }
 
-  /* Estilos para o popup de informações */
-  #documento-info-popup {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    backdrop-filter: blur(4px);
+  /* Remover borda e fundo padrão do select dentro da tag */
+  .documento-status {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 1rem;
+    outline: none;
   }
 
-  #documento-info-popup .documento-info-conteudo {
-    line-height: 1.6;
+  /* Remover qualquer borda lateral ou inferior */
+  .documento-item {
+    border-left: none !important;
+    border-bottom: none !important;
   }
 
-  /* Animação de entrada para o popup */
-  @keyframes popup-fade-in {
-    from { opacity: 0; transform: translateY(10px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+  /* Animação do modal */
+  @keyframes modal-fade-in {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
-  #documento-info-popup .animate-fade-in {
-    animation: popup-fade-in 0.25s ease-out forwards;
-  }
-
-  /* Estilo do ícone de informação e interação */
-  .fa-info-circle {
-    transition: transform 0.2s ease, color 0.2s ease;
-  }
-
-  .documento-adicionado .fa-info-circle:hover {
-    transform: scale(1.15);
-    color: #3b82f6;
-  }
-
-  /* Estilo para o campo de ano */
-  .documento-adicionado .ano-documento {
-    width: 4rem;
-    text-align: center;
-  }
-
-  /* Botão de remover documento */
-  .remover-documento {
-    transition: color 0.2s ease;
-    padding: 0.5rem;
-    margin: -0.5rem;
-  }
-
-  .remover-documento:hover {
-    color: #ef4444;
+  #documento-info-modal .bg-white, #documento-info-popup .bg-white {
+    animation: modal-fade-in 0.3s ease-out forwards;
   }
 </style>
 
