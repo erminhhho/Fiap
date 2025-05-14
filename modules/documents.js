@@ -275,9 +275,9 @@ window.initModule = function() {
               if (typeof saveFormState === 'function') {
                 saveFormState();
               }
-            }
-          });
-        }
+              }
+            });
+          }
 
         // Configurar tags de status
         const statusTags = documentoElement.querySelectorAll('.documento-tag');
@@ -287,12 +287,30 @@ window.initModule = function() {
           });
         });
 
+        // Configurar o dropdown de status
+        const relationshipSelect = documentoElement.querySelector('.relationship-select');
+        if (relationshipSelect) {
+          relationshipSelect.addEventListener('click', function() {
+            toggleDocumentStatusTag(this);
+          });
+
+          // Configurar o select dentro do relationship-select
+          const statusSelect = relationshipSelect.querySelector('.documento-status');
+          if (statusSelect) {
+            statusSelect.addEventListener('change', function() {
+              updateDocumentStatusTag(this);
+            });
+
+            // Definir "Obter" como valor padrão
+            statusSelect.value = "Obter";
+            relationshipSelect.setAttribute('data-selected', 'Obter');
+            relationshipSelect.setAttribute('data-value', 'Obter');
+          }
+        }
+
         // Definir status padrão como "obter"
         documentoElement.dataset.status = 'obter';
-        const obterTag = documentoElement.querySelector('.documento-tag[data-status="obter"]');
-        if (obterTag) {
-          setTimeout(() => toggleDocumentStatus(obterTag), 0);
-        }
+        documentoElement.classList.add('status-obter');
 
         // Adicionar ao container
         documentosContainer.appendChild(clone);
@@ -355,10 +373,10 @@ window.initModule = function() {
     const lista = document.createElement('ul');
     lista.className = 'bg-white border border-t-0 border-gray-200 rounded-b max-h-60 overflow-y-auto shadow-sm';
 
-    resultados.forEach(doc => {
+      resultados.forEach(doc => {
       const item = document.createElement('li');
       item.className = 'p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 documento-resultado';
-      item.innerHTML = `
+        item.innerHTML = `
         <div class="font-medium text-gray-800">${doc.nome}</div>
         <div class="text-xs text-gray-500 truncate">${doc.descricao}</div>
       `;
@@ -367,9 +385,9 @@ window.initModule = function() {
       item.dataset.docDetalhes = doc.detalhes || '';
 
       item.addEventListener('click', function() {
-        preencherDocumento(doc);
-        resultadosContainer.classList.add('hidden');
-        documentoPesquisa.value = '';
+          preencherDocumento(doc);
+          resultadosContainer.classList.add('hidden');
+          documentoPesquisa.value = '';
       });
 
       lista.appendChild(item);
@@ -415,7 +433,7 @@ window.initModule = function() {
     // Evento para buscar documentos conforme digita
     documentoPesquisa.addEventListener('input', function() {
       const query = this.value.trim();
-      exibirResultadosPesquisa(query);
+          exibirResultadosPesquisa(query);
     });
 
     // Evento para adicionar documento ao pressionar Enter
@@ -443,9 +461,9 @@ window.initModule = function() {
           if (typeof saveFormState === 'function') {
             saveFormState();
           }
+          }
         }
-      }
-    });
+      });
 
     // Configurar botão voltar
     if (btnBack) {
@@ -581,7 +599,7 @@ window.initModule = function() {
     }
 
     // Configurar eventos
-    configurarEventos();
+  configurarEventos();
 
     // Carregar dados salvos
     carregarDadosSalvos();
@@ -685,3 +703,86 @@ window.executeClearSection = function(section) {
     }
   }
 };
+
+// Função para alternar o status de um documento através da tag de relacionamento
+function toggleDocumentStatusTag(element) {
+  // Obter o status atual
+  const currentStatus = element.getAttribute('data-selected');
+  const statusValue = element.getAttribute('data-value') || element.querySelector('select').value;
+
+  // Garantir que sempre tenhamos o data-value para aplicar a cor correta
+  if (!element.hasAttribute('data-value')) {
+    element.setAttribute('data-value', statusValue);
+  }
+
+  // Se já tem um status selecionado, vamos deixá-lo no formato padrão
+  if (currentStatus) {
+    element.removeAttribute('data-selected');
+  } else {
+    // Caso contrário, vamos usar o valor do data-value como o status selecionado
+    element.setAttribute('data-selected', statusValue);
+  }
+
+  // Atualizar o status no elemento do documento
+  const documentoElement = element.closest('.documento-adicionado');
+  if (documentoElement) {
+    // Mapear o valor do status para o formato correto esperado pelo sistema
+    let mappedStatus = statusValue.toLowerCase();
+
+    // Corrigir o mapeamento para a convenção de nomenclatura do sistema
+    if (mappedStatus === 'recebido') mappedStatus = 'recebido';
+    else if (mappedStatus === 'solicitado') mappedStatus = 'solicitado';
+    else if (mappedStatus === 'obter') mappedStatus = 'obter';
+
+    // Atualizar o atributo data-status
+    documentoElement.dataset.status = mappedStatus;
+
+    // Atualizar as classes CSS para visualização rápida
+    documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+    documentoElement.classList.add('status-' + mappedStatus);
+  }
+
+  // Salvar alterações
+  if (typeof saveFormState === 'function') {
+    saveFormState();
+  }
+}
+
+// Função para atualizar a tag de status do documento
+function updateDocumentStatusTag(select) {
+  const container = select.closest('.relationship-select');
+  const value = select.value;
+
+  // Atualiza os atributos data-selected e data-value
+  container.setAttribute('data-selected', value);
+  container.setAttribute('data-value', value);
+
+  // Atualizar o status no elemento do documento
+  const documentoElement = container.closest('.documento-adicionado');
+  if (documentoElement) {
+    // Mapear o valor do status para o formato correto esperado pelo sistema
+    let mappedStatus = value.toLowerCase();
+
+    // Corrigir o mapeamento para a convenção de nomenclatura do sistema
+    if (mappedStatus === 'recebido') mappedStatus = 'recebido';
+    else if (mappedStatus === 'solicitado') mappedStatus = 'solicitado';
+    else if (mappedStatus === 'obter') mappedStatus = 'obter';
+
+    // Atualizar o atributo data-status
+    documentoElement.dataset.status = mappedStatus;
+
+    // Atualizar as classes CSS para visualização rápida
+    documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+    documentoElement.classList.add('status-' + mappedStatus);
+  }
+
+  // Salvar alterações
+  if (typeof saveFormState === 'function') {
+    saveFormState();
+  }
+}
+
+// Tornar funções acessíveis globalmente
+window.toggleDocumentStatusTag = toggleDocumentStatusTag;
+window.updateDocumentStatusTag = updateDocumentStatusTag;
+window.toggleDocumentStatus = toggleDocumentStatus;

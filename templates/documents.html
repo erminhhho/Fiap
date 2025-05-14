@@ -2,8 +2,8 @@
   <div class="bg-white rounded-2xl shadow p-8 mb-8">
     <div class="flex items-center justify-between gap-2 mb-6">
       <div class="flex items-center gap-2">
-        <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
-        <h2 class="text-xl font-semibold text-blue-600">Documentos</h2>
+      <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
+      <h2 class="text-xl font-semibold text-blue-600">Documentos</h2>
       </div>
       <i class="fas fa-eraser cursor-pointer text-gray-400 hover:text-red-500 transition" title="Limpar seção" onclick="showClearConfirmation(event, 'documentos')"></i>
     </div>
@@ -60,7 +60,7 @@
         <div class="flex items-center mb-2">
           <i class="fas fa-file-alt text-blue-500 mr-2"></i>
           <input type="text" class="nome-documento text-base font-medium text-gray-800 bg-transparent border-b border-gray-200 focus:border-blue-600 focus:ring-0 px-1 py-0.5 w-full" placeholder="Nome do documento">
-        </div>
+      </div>
 
         <!-- Ano em campo separado -->
         <div class="flex items-center text-sm text-gray-600 mb-1">
@@ -74,22 +74,17 @@
         </div>
       </div>
 
-      <!-- Coluna 2: Tags de status clicáveis -->
-      <div class="md:col-span-2 flex flex-wrap gap-1 justify-end items-center mt-1 md:mt-0">
-        <!-- Tag de status "Recebido" -->
-        <button type="button" class="documento-tag status-tag rounded-full text-xs font-medium transition-colors" data-status="recebido" onclick="toggleDocumentStatus(this)">
-          <i class="fas fa-check-circle mr-1"></i>Recebido
-        </button>
-
-        <!-- Tag de status "Solicitado" -->
-        <button type="button" class="documento-tag status-tag rounded-full text-xs font-medium transition-colors" data-status="solicitado" onclick="toggleDocumentStatus(this)">
-          <i class="fas fa-clock mr-1"></i>Solicitado
-        </button>
-
-        <!-- Tag de status "Obter" -->
-        <button type="button" class="documento-tag status-tag rounded-full text-xs font-medium transition-colors" data-status="obter" onclick="toggleDocumentStatus(this)">
-          <i class="fas fa-exclamation-circle mr-1"></i>Obter
-        </button>
+      <!-- Coluna 2: Tag de status usando o sistema relationship-select -->
+      <div class="md:col-span-2 flex items-center justify-end mt-1 md:mt-0">
+        <div class="relative">
+          <div class="relationship-select" data-selected="Obter" data-value="Obter" onclick="toggleDocumentStatusTag(this)">
+            <select class="documento-status" onchange="updateDocumentStatusTag(this)">
+              <option value="Recebido">Recebido</option>
+              <option value="Solicitado">Solicitado</option>
+              <option value="Obter" selected>Obter</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- Coluna 3: Botões de controle -->
@@ -143,6 +138,84 @@
     // Adicionar classe ao documento para visualização rápida
     documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
     documentoElement.classList.add('status-' + status);
+
+    // Salvar alterações
+    if (typeof saveFormState === 'function') {
+      saveFormState();
+    }
+  }
+
+  // Função para alternar o status de um documento através da tag de relacionamento
+  function toggleDocumentStatusTag(element) {
+    // Obter o status atual
+    const currentStatus = element.getAttribute('data-selected');
+    const statusValue = element.getAttribute('data-value') || element.querySelector('select').value;
+
+    // Garantir que sempre tenhamos o data-value para aplicar a cor correta
+    if (!element.hasAttribute('data-value')) {
+      element.setAttribute('data-value', statusValue);
+    }
+
+    // Se já tem um status selecionado, vamos deixá-lo no formato padrão
+    if (currentStatus) {
+      element.removeAttribute('data-selected');
+    } else {
+      // Caso contrário, vamos usar o valor do data-value como o status selecionado
+      element.setAttribute('data-selected', statusValue);
+    }
+
+    // Atualizar o status no elemento do documento
+    const documentoElement = element.closest('.documento-adicionado');
+    if (documentoElement) {
+      // Mapear o valor do status para o formato correto esperado pelo sistema
+      let mappedStatus = statusValue.toLowerCase();
+
+      // Corrigir o mapeamento para a convenção de nomenclatura do sistema
+      if (mappedStatus === 'recebido') mappedStatus = 'recebido';
+      else if (mappedStatus === 'solicitado') mappedStatus = 'solicitado';
+      else if (mappedStatus === 'obter') mappedStatus = 'obter';
+
+      // Atualizar o atributo data-status
+      documentoElement.dataset.status = mappedStatus;
+
+      // Atualizar as classes CSS para visualização rápida
+      documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+      documentoElement.classList.add('status-' + mappedStatus);
+    }
+
+    // Salvar alterações
+    if (typeof saveFormState === 'function') {
+      saveFormState();
+    }
+  }
+
+  // Função para atualizar a tag de status do documento
+  function updateDocumentStatusTag(select) {
+    const container = select.closest('.relationship-select');
+    const value = select.value;
+
+    // Atualiza os atributos data-selected e data-value
+    container.setAttribute('data-selected', value);
+    container.setAttribute('data-value', value);
+
+    // Atualizar o status no elemento do documento
+    const documentoElement = container.closest('.documento-adicionado');
+    if (documentoElement) {
+      // Mapear o valor do status para o formato correto esperado pelo sistema
+      let mappedStatus = value.toLowerCase();
+
+      // Corrigir o mapeamento para a convenção de nomenclatura do sistema
+      if (mappedStatus === 'recebido') mappedStatus = 'recebido';
+      else if (mappedStatus === 'solicitado') mappedStatus = 'solicitado';
+      else if (mappedStatus === 'obter') mappedStatus = 'obter';
+
+      // Atualizar o atributo data-status
+      documentoElement.dataset.status = mappedStatus;
+
+      // Atualizar as classes CSS para visualização rápida
+      documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+      documentoElement.classList.add('status-' + mappedStatus);
+    }
 
     // Salvar alterações
     if (typeof saveFormState === 'function') {
@@ -235,6 +308,31 @@
 
   .documento-adicionado.status-obter {
     border-left: 3px solid #f59e0b;
+  }
+
+  /* Estilos para o sistema de tags relationship-select em documentos */
+  /* Cores específicas para status de documentos */
+  .relationship-select[data-value="Recebido"] {
+    background-color: #10b981 !important; /* Verde */
+    color: white !important;
+  }
+
+  .relationship-select[data-value="Solicitado"] {
+    background-color: #3b82f6 !important; /* Azul */
+    color: white !important;
+  }
+
+  .relationship-select[data-value="Obter"] {
+    background-color: #f59e0b !important; /* Laranja */
+    color: white !important;
+  }
+
+  /* Posicionamento específico para select de status nos documentos */
+  .documento-adicionado .relationship-select {
+    position: relative;
+    transform: none;
+    right: auto;
+    top: auto;
   }
 </style>
 
