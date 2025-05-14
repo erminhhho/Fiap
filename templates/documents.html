@@ -52,11 +52,11 @@
 
 <!-- Template para novo documento adicionado -->
 <template id="documentoTemplate">
-  <div class="documento-adicionado relative p-3 bg-white rounded-lg border border-gray-200 shadow-sm mb-2 hover:border-blue-200 transition-colors">
+  <div class="documento-adicionado relative p-3 bg-white rounded-lg border border-gray-200 shadow-sm mb-2 hover:border-blue-200 transition-colors" data-status="obter">
     <!-- Layout em grid com maior eficiência de espaço -->
     <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-start">
       <!-- Coluna 1: Nome do documento e detalhes - ocupa mais espaço -->
-      <div class="md:col-span-7">
+      <div class="md:col-span-8">
         <div class="flex items-center mb-2">
           <i class="fas fa-file-alt text-blue-500 mr-2"></i>
           <input type="text" class="nome-documento text-base font-medium text-gray-800 bg-transparent border-b border-gray-200 focus:border-blue-600 focus:ring-0 px-1 py-0.5 w-full" placeholder="Nome do documento">
@@ -74,15 +74,22 @@
         </div>
       </div>
 
-      <!-- Coluna 2: Menu dropdown para status -->
-      <div class="md:col-span-3">
-        <div class="relative">
-          <select class="documento-status w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-1.5 text-gray-700 bg-gray-50 text-sm" onchange="updateDocumentStatus(this)">
-            <option value="recebido">📥 Recebido</option>
-            <option value="solicitado">🕒 Solicitado</option>
-            <option value="obter" selected>⚠️ Obter</option>
-          </select>
-        </div>
+      <!-- Coluna 2: Tags de status clicáveis -->
+      <div class="md:col-span-2 flex flex-wrap gap-1 justify-end items-center mt-1 md:mt-0">
+        <!-- Tag de status "Recebido" -->
+        <button type="button" class="documento-tag status-tag rounded-full text-xs font-medium transition-colors" data-status="recebido" onclick="toggleDocumentStatus(this)">
+          <i class="fas fa-check-circle mr-1"></i>Recebido
+        </button>
+
+        <!-- Tag de status "Solicitado" -->
+        <button type="button" class="documento-tag status-tag rounded-full text-xs font-medium transition-colors" data-status="solicitado" onclick="toggleDocumentStatus(this)">
+          <i class="fas fa-clock mr-1"></i>Solicitado
+        </button>
+
+        <!-- Tag de status "Obter" -->
+        <button type="button" class="documento-tag status-tag rounded-full text-xs font-medium transition-colors" data-status="obter" onclick="toggleDocumentStatus(this)">
+          <i class="fas fa-exclamation-circle mr-1"></i>Obter
+        </button>
       </div>
 
       <!-- Coluna 3: Botões de controle -->
@@ -106,22 +113,36 @@
     }
   });
 
-  // Função para atualizar o status de um documento através do dropdown
-  function updateDocumentStatus(selectElement) {
-    if (!selectElement) return;
+  // Função para alternar o status de um documento através das tags clicáveis
+  function toggleDocumentStatus(button) {
+    if (!button) return;
 
-    const documentoElement = selectElement.closest('.documento-adicionado');
+    const documentoElement = button.closest('.documento-adicionado');
     if (!documentoElement) return;
 
-    // Obter o valor selecionado
-    const statusValue = selectElement.value;
+    const status = button.dataset.status;
+    const allTags = documentoElement.querySelectorAll('.documento-tag');
 
-    // Atualizar o atributo data no elemento do documento
-    documentoElement.dataset.status = statusValue;
+    // Removemos as classes de status ativo de todas as tags
+    allTags.forEach(tag => {
+      tag.classList.remove('success', 'info', 'warning', 'active');
+    });
 
-    // Adicionar classe visual para identificar rapidamente o status (opcional)
+    // Atualizar o data-status no elemento do documento
+    documentoElement.dataset.status = status;
+
+    // Atualizar a classe do botão clicado de acordo com o status
+    if (status === 'recebido') {
+      button.classList.add('success', 'active');
+    } else if (status === 'solicitado') {
+      button.classList.add('info', 'active');
+    } else if (status === 'obter') {
+      button.classList.add('warning', 'active');
+    }
+
+    // Adicionar classe ao documento para visualização rápida
     documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
-    documentoElement.classList.add('status-' + statusValue);
+    documentoElement.classList.add('status-' + status);
 
     // Salvar alterações
     if (typeof saveFormState === 'function') {
@@ -152,5 +173,69 @@
     }
   }
 </script>
+
+<style>
+  /* Estilos para as tags de status de documento */
+  .documento-tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: rgba(243, 244, 246, 0.8);
+    color: #6b7280;
+    transition: all 0.2s ease;
+  }
+
+  /* Aparência quando ativa */
+  .documento-tag.active {
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Status Recebido */
+  .documento-tag[data-status="recebido"].active,
+  .documento-tag.success.active {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #065f46;
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+
+  /* Status Solicitado */
+  .documento-tag[data-status="solicitado"].active,
+  .documento-tag.info.active {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #1e40af;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  /* Status Obter */
+  .documento-tag[data-status="obter"].active,
+  .documento-tag.warning.active {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #92400e;
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+
+  /* Efeito hover para todas as tags */
+  .documento-tag:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Bordas coloridas para documentos com status definido */
+  .documento-adicionado.status-recebido {
+    border-left: 3px solid #10b981;
+  }
+
+  .documento-adicionado.status-solicitado {
+    border-left: 3px solid #3b82f6;
+  }
+
+  .documento-adicionado.status-obter {
+    border-left: 3px solid #f59e0b;
+  }
+</style>
 
 

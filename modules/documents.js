@@ -279,15 +279,19 @@ window.initModule = function() {
           });
         }
 
-        // Configurar select de status
-        const statusSelect = documentoElement.querySelector('.documento-status');
-        if (statusSelect) {
-          statusSelect.addEventListener('change', function() {
-            updateDocumentStatus(this);
+        // Configurar tags de status
+        const statusTags = documentoElement.querySelectorAll('.documento-tag');
+        statusTags.forEach(tag => {
+          tag.addEventListener('click', function() {
+            toggleDocumentStatus(this);
           });
-          // Definir status inicial como "obter"
-          statusSelect.value = 'obter';
-          documentoElement.dataset.status = 'obter';
+        });
+
+        // Definir status padrão como "obter"
+        documentoElement.dataset.status = 'obter';
+        const obterTag = documentoElement.querySelector('.documento-tag[data-status="obter"]');
+        if (obterTag) {
+          setTimeout(() => toggleDocumentStatus(obterTag), 0);
         }
 
         // Adicionar ao container
@@ -523,11 +527,9 @@ window.initModule = function() {
 
             // Definir o status do documento
             if (doc.status) {
-              const statusSelect = novoDocumento.querySelector('.documento-status');
-              if (statusSelect) {
-                statusSelect.value = doc.status;
-                novoDocumento.dataset.status = doc.status;
-                novoDocumento.classList.add('status-' + doc.status);
+              const statusTag = novoDocumento.querySelector(`.documento-tag[data-status="${doc.status}"]`);
+              if (statusTag) {
+                setTimeout(() => toggleDocumentStatus(statusTag), 0);
               }
             }
           });
@@ -556,13 +558,12 @@ window.initModule = function() {
           const nomeInput = docElement.querySelector('.nome-documento');
           const anoInput = docElement.querySelector('.ano-documento');
           const detalhesTextarea = docElement.querySelector('.detalhes-documento');
-          const statusSelect = docElement.querySelector('.documento-status');
 
           documentosData.push({
             nome: nomeInput ? nomeInput.value : '',
             ano: anoInput ? anoInput.value : '',
             detalhes: detalhesTextarea ? detalhesTextarea.value : '',
-            status: statusSelect ? statusSelect.value : 'obter'
+            status: docElement.dataset.status || 'obter'
           });
         });
 
@@ -590,22 +591,36 @@ window.initModule = function() {
   inicializar();
 };
 
-// Função para atualizar o status do documento - função global para uso no HTML
-function updateDocumentStatus(selectElement) {
-  if (!selectElement) return;
+// Função para alternar o status do documento - função global para uso no HTML
+function toggleDocumentStatus(button) {
+  if (!button) return;
 
-  const documentoElement = selectElement.closest('.documento-adicionado');
+  const documentoElement = button.closest('.documento-adicionado');
   if (!documentoElement) return;
 
-  // Obter o valor selecionado
-  const statusValue = selectElement.value;
+  const status = button.dataset.status;
+  const allTags = documentoElement.querySelectorAll('.documento-tag');
 
-  // Atualizar o atributo data no elemento do documento
-  documentoElement.dataset.status = statusValue;
+  // Removemos as classes de status ativo de todas as tags
+  allTags.forEach(tag => {
+    tag.classList.remove('success', 'info', 'warning', 'active');
+  });
 
-  // Adicionar classe visual para identificar rapidamente o status (opcional)
+  // Atualizar o data-status no elemento do documento
+  documentoElement.dataset.status = status;
+
+  // Atualizar a classe do botão clicado de acordo com o status
+  if (status === 'recebido') {
+    button.classList.add('success', 'active');
+  } else if (status === 'solicitado') {
+    button.classList.add('info', 'active');
+  } else if (status === 'obter') {
+    button.classList.add('warning', 'active');
+  }
+
+  // Adicionar classe ao documento para visualização rápida
   documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
-  documentoElement.classList.add('status-' + statusValue);
+  documentoElement.classList.add('status-' + status);
 
   // Salvar alterações
   if (typeof saveFormState === 'function') {
