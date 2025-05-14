@@ -1058,6 +1058,76 @@ function showSuccess(message, parentElement = null, options = {}) {
   }
 }
 
+// Função para mostrar loading
+function showLoading(message = 'Carregando...', parentElement = null) {
+  // Verificar se já existe um overlay para evitar duplicação
+  const existingOverlay = document.getElementById('loading-overlay');
+  if (existingOverlay) return;
+
+  // Criar o overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'loading-overlay';
+  overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]';
+
+  // Conteúdo do loading
+  overlay.innerHTML = `
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
+      <div class="flex flex-col items-center">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
+        <p class="text-gray-700">${message}</p>
+      </div>
+    </div>
+  `;
+
+  // Adicionar ao DOM
+  (parentElement || document.body).appendChild(overlay);
+}
+
+// Função para esconder loading
+function hideLoading() {
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+// Função para configurar autocapitalização em campos de texto
+function setupAutoCapitalize() {
+  // Selecionar campos de texto onde queremos capitalizar
+  const camposParaCapitalizar = document.querySelectorAll('input[type="text"]:not([data-no-capitalize]), textarea:not([data-no-capitalize])');
+
+  camposParaCapitalizar.forEach(campo => {
+    // Adicionar atributo de capitalização
+    campo.autocapitalize = "words";
+
+    // Para textos maiores, capitalizar quando o usuário terminar de digitar
+    if (campo.tagName.toLowerCase() === 'textarea') {
+      campo.addEventListener('blur', function() {
+        if (!this.value) return;
+
+        // Capitalizar primeira letra de cada frase
+        this.value = this.value.replace(/(^\s*\w|[.!?]\s*\w)/g, function(c) {
+          return c.toUpperCase();
+        });
+      });
+    }
+    // Para campos de texto simples, capitalizar enquanto digita
+    else {
+      campo.addEventListener('input', function() {
+        if (!this.value) return;
+
+        // Capitalizar primeira letra de palavras para nomes
+        if (this.id === 'nome' || this.name === 'nome' ||
+            this.id.includes('name') || this.name.includes('name')) {
+          this.value = this.value.replace(/\b\w/g, function(c) {
+            return c.toUpperCase();
+          });
+        }
+      });
+    }
+  });
+}
+
 // Inicializar sistema de labels no carregamento da página
 document.addEventListener('DOMContentLoaded', function() {
   setupRightLabels();
@@ -1081,7 +1151,14 @@ window.addFamilyMember = addFamilyMember;
 window.addAuthor = addAuthor;
 window.removeLastFamilyMember = removeLastFamilyMember;
 window.updateRemoveMemberButton = updateRemoveMemberButton;
-window.loadFormByKey = loadFormByKey;window.showError = showError;window.showSuccess = showSuccess;window.showLoading = showLoading;window.hideLoading = hideLoading;window.showClearConfirmation = showClearConfirmation;window.executeClearSection = executeClearSection;
+window.loadFormByKey = loadFormByKey;
+window.showError = showError;
+window.showSuccess = showSuccess;
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.showClearConfirmation = showClearConfirmation;
+window.executeClearSection = executeClearSection;
+window.setupAutoCapitalize = setupAutoCapitalize;
 
 /**
  * Sistema de auto-salvamento de dados entre páginas
@@ -1106,8 +1183,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
-
-
 
 // Função para mostrar a confirmação de limpeza de forma moderna e não invasiva
 function showClearConfirmation(event, section) {
