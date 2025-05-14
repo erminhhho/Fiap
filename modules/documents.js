@@ -224,7 +224,7 @@ window.initModule = function() {
   const documentoPesquisa = document.getElementById('documento-pesquisa');
   const observacoes = document.getElementById('observacoes');
   const btnBack = document.getElementById('btn-back');
-  const btnSave = document.getElementById('btn-save');
+  const btnPrint = document.getElementById('btn-print');
 
   // Usar os documentos pré-cadastrados do objeto global
   const documentosPreCadastrados = window.documentosPreCadastrados || [];
@@ -250,347 +250,397 @@ window.initModule = function() {
       if (documentoElement) {
         documentoElement.id = documentoId;
 
-        // Se foi passado um texto para o documento, preenchê-lo
+        // Definir o nome do documento se fornecido
         if (textoDocumento) {
-          const nomeInput = clone.querySelector('.nome-documento');
-          if (nomeInput) nomeInput.value = textoDocumento;
+          const nomeInput = documentoElement.querySelector('.nome-documento');
+          if (nomeInput) {
+            nomeInput.value = textoDocumento;
+          }
         }
+
+        // Configurar botões de controle
+        const expandirBtn = documentoElement.querySelector('.expandir-documento');
+        if (expandirBtn) {
+          expandirBtn.addEventListener('click', function() {
+            toggleDocumentFields(this);
+          });
+        }
+
+        const removerBtn = documentoElement.querySelector('.remover-documento');
+        if (removerBtn) {
+          removerBtn.addEventListener('click', function() {
+            if (confirm('Tem certeza que deseja remover este documento?')) {
+              documentoElement.remove();
+            }
+          });
+        }
+
+        // Configurar tags de status
+        const statusTags = documentoElement.querySelectorAll('.documento-tag');
+        statusTags.forEach(tag => {
+          tag.addEventListener('click', function() {
+            toggleDocumentStatus(this);
+          });
+        });
 
         // Adicionar ao container
         documentosContainer.appendChild(clone);
 
-        // Adicionar evento para remover este documento
-        const novoDocumento = document.getElementById(documentoId);
-        if (novoDocumento) {
-          const btnRemover = novoDocumento.querySelector('.remover-documento');
-          if (btnRemover) {
-            btnRemover.addEventListener('click', function() {
-              novoDocumento.remove();
-            });
-          }
-
-          // Configurar o botão de expandir/colapsar detalhes
-          const btnExpandir = novoDocumento.querySelector('.expandir-documento');
-          if (btnExpandir) {
-            btnExpandir.addEventListener('click', function() {
-              const detalhesArea = novoDocumento.querySelector('.documento-detalhes');
-              if (detalhesArea) {
-                detalhesArea.classList.toggle('hidden');
-                // Mudar o ícone de acordo com o estado
-                if (detalhesArea.classList.contains('hidden')) {
-                  this.innerHTML = '<i class="fas fa-chevron-down"></i>';
-                } else {
-                  this.innerHTML = '<i class="fas fa-chevron-up"></i>';
-                }
-              }
-            });
-          }
-
-          // Configurar o evento de mudança de status para exibir os campos apropriados
-          const statusSelect = novoDocumento.querySelector('.status-documento');
-          if (statusSelect) {
-            statusSelect.addEventListener('change', function() {
-              toggleDocumentFields(this);
-            });
-          }
-
-          // Rolar a tela para o novo documento
-          setTimeout(() => {
-            novoDocumento.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 100);
+        // Marcar como "obter" por padrão
+        const obterTag = documentoElement.querySelector('.documento-tag[data-status="obter"]');
+        if (obterTag) {
+          setTimeout(() => toggleDocumentStatus(obterTag), 0);
         }
 
-        return novoDocumento;
+        return documentoElement;
       }
     } catch (error) {
-      console.error('Erro ao adicionar documento:', error);
+      console.error('Erro ao adicionar novo documento:', error);
     }
-
     return null;
   }
 
-  // Pesquisar documentos
+  // Função para pesquisar documentos
   function pesquisarDocumentos(query) {
-    if (!query) return [];
+    if (!query || typeof query !== 'string' || query.length < 2) {
+      // Esconder resultados se a consulta for muito curta
+      document.getElementById('resultados-pesquisa').classList.add('hidden');
+      return [];
+    }
 
     query = query.toLowerCase().trim();
-
-    // Filtrar documentos que correspondem à pesquisa
-    return documentosPreCadastrados.filter(doc =>
-      doc.nome.toLowerCase().includes(query) ||
-      (doc.descricao && doc.descricao.toLowerCase().includes(query)) ||
-      (doc.palavrasChave && doc.palavrasChave.toLowerCase().includes(query))
-    );
+    return documentosPreCadastrados.filter(doc => {
+      // Verificar nome
+      if (doc.nome.toLowerCase().includes(query)) return true;
+      // Verificar palavras-chave
+      if (doc.palavrasChave && doc.palavrasChave.toLowerCase().includes(query)) return true;
+      // Verificar descrição
+      if (doc.descricao && doc.descricao.toLowerCase().includes(query)) return true;
+      return false;
+    });
   }
 
   // Exibir resultados da pesquisa
   function exibirResultadosPesquisa(query) {
-    // Verificações de segurança
-    if (!documentoPesquisa) {
-      console.error('Campo de pesquisa não encontrado');
+    const resultados = pesquisarDocumentos(query);
+    const resultadosContainer = document.getElementById('resultados-pesquisa');
+
+    if (!resultadosContainer) return;
+
+    // Se não há resultados ou a consulta é muito curta, esconder o container
+    if (resultados.length === 0 || query.length < 2) {
+      resultadosContainer.classList.add('hidden');
       return;
     }
 
-    // Obter ou criar container de resultados
-    let resultadosContainer = document.getElementById('resultados-pesquisa');
-    if (!resultadosContainer) {
-      console.error('Container de resultados não encontrado');
-      return;
-    }
-
-    // Limpar conteúdo anterior
+    // Limpar resultados anteriores
     resultadosContainer.innerHTML = '';
 
-    // Se não há query, esconder resultados
-    if (!query || query.length < 2) {
-      resultadosContainer.classList.add('hidden');
-      return;
-    }
-
-    // Mostrar container de resultados
-    resultadosContainer.classList.remove('hidden');
-    resultadosContainer.className = 'max-w-lg mx-auto mt-1 bg-white border border-gray-200 rounded shadow-sm z-10 overflow-hidden';
-
-    // Buscar resultados
-    const resultados = pesquisarDocumentos(query);
-
-    // Criar lista de resultados
-    const listaResultados = document.createElement('div');
-    listaResultados.className = 'max-h-48 overflow-y-auto divide-y divide-gray-100';
-
-    // Adicionar resultados à lista
-    if (resultados.length > 0) {
-      resultados.forEach(doc => {
-        const item = document.createElement('div');
-        item.className = 'p-1 hover:bg-gray-50 cursor-pointer transition-colors flex items-center';
-
-        // Extrair ano da descrição, se possível
-        const anoMatch = doc.descricao ? doc.descricao.match(/\b(19|20)\d{2}\b/) : null;
-        const anoText = anoMatch ? `<span class="text-gray-400 ml-1">${anoMatch[0]}</span>` : '';
-
-        item.innerHTML = `
-          <div class="flex-grow min-w-0 overflow-hidden">
-            <div class="font-medium text-gray-800 truncate text-base">${doc.nome}${anoText}</div>
-            <div class="text-sm text-gray-500 truncate">${doc.descricao?.substring(0, 40) || ''}${doc.descricao?.length > 40 ? '...' : ''}</div>
-          </div>
-        `;
-
-        item.addEventListener('click', () => {
-          preencherDocumento(doc);
-          resultadosContainer.classList.add('hidden');
-          documentoPesquisa.value = '';
-          documentoPesquisa.focus();
-        });
-
-        listaResultados.appendChild(item);
-      });
-    } else {
-      // Mensagem quando não há resultados
-      const semResultados = document.createElement('div');
-      semResultados.className = 'p-1 text-gray-500 text-center text-sm';
-      semResultados.textContent = 'Nenhum documento encontrado';
-      listaResultados.appendChild(semResultados);
-    }
-
-    resultadosContainer.appendChild(listaResultados);
-
-    // Sempre adicionar opção para criar novo documento com o texto digitado
-    const criarNovoDoc = document.createElement('div');
-    criarNovoDoc.className = 'p-1 bg-blue-50 hover:bg-blue-100 cursor-pointer border-t border-blue-200 flex items-center transition-colors text-base';
-    criarNovoDoc.innerHTML = `
-      <i class="fas fa-plus-circle text-blue-500 mr-1.5"></i>
-      <span class="flex-grow">Adicionar: "${query}"</span>
+    // Adicionar novo cabeçalho
+    const header = document.createElement('div');
+    header.className = 'bg-blue-50 p-2 rounded-t text-sm text-blue-700 border border-blue-100 flex justify-between items-center';
+    header.innerHTML = `
+      <span><i class="fas fa-search mr-2"></i>Resultados para "${query}" (${resultados.length})</span>
+      <button type="button" class="text-gray-500 hover:text-gray-700" id="btn-close-search">
+        <i class="fas fa-times"></i>
+      </button>
     `;
+    resultadosContainer.appendChild(header);
 
-    criarNovoDoc.addEventListener('click', () => {
-      const novoDoc = adicionarNovoDocumento(query);
-      resultadosContainer.classList.add('hidden');
-      documentoPesquisa.value = '';
-      documentoPesquisa.focus();
+    // Adicionar resultados em uma lista
+    const lista = document.createElement('ul');
+    lista.className = 'bg-white border border-t-0 border-gray-200 rounded-b max-h-60 overflow-y-auto shadow-sm';
+
+    resultados.forEach(doc => {
+      const item = document.createElement('li');
+      item.className = 'p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 documento-resultado';
+      item.innerHTML = `
+        <div class="font-medium text-gray-800">${doc.nome}</div>
+        <div class="text-xs text-gray-500 truncate">${doc.descricao}</div>
+      `;
+      item.dataset.docId = doc.id;
+      item.dataset.docNome = doc.nome;
+      item.dataset.docDetalhes = doc.detalhes || '';
+
+      item.addEventListener('click', function() {
+        preencherDocumento(doc);
+        resultadosContainer.classList.add('hidden');
+        documentoPesquisa.value = '';
+      });
+
+      lista.appendChild(item);
     });
 
-    resultadosContainer.appendChild(criarNovoDoc);
+    resultadosContainer.appendChild(lista);
+    resultadosContainer.classList.remove('hidden');
+
+    // Adicionar evento para fechar resultados
+    document.getElementById('btn-close-search').addEventListener('click', function() {
+      resultadosContainer.classList.add('hidden');
+    });
   }
 
   // Preencher um documento com dados selecionados
   function preencherDocumento(doc) {
-    const novoDocumento = adicionarNovoDocumento();
+    const novoDocumento = adicionarNovoDocumento(doc.nome);
 
-    if (!novoDocumento) {
-      console.error('Erro ao criar novo documento para preenchimento');
-      return;
-    }
+    if (!novoDocumento) return;
 
-    // Preencher campos
-    const nomeInput = novoDocumento.querySelector('.nome-documento');
-    const anoInput = novoDocumento.querySelector('.ano-documento');
-    const detalhesTextarea = novoDocumento.querySelector('.detalhes-documento');
+    // Preencher detalhes do documento
     const detalhesContainer = novoDocumento.querySelector('.detalhes-documento-container');
+    const detalhesTextarea = novoDocumento.querySelector('.detalhes-documento');
 
-    // Preencher nome
-    if (nomeInput) nomeInput.value = doc.nome || '';
+    if (detalhesTextarea && doc.detalhes) {
+      detalhesTextarea.value = doc.detalhes.replace(/<[^>]*>/g, ''); // Remover tags HTML
 
-    // Preencher ano se disponível
-    if (anoInput) {
-      const anoMatch = doc.descricao ? doc.descricao.match(/\b(19|20)\d{2}\b/) : null;
-      anoInput.value = anoMatch ? anoMatch[0] : new Date().getFullYear();
-    }
-
-    // Preencher detalhes - armazenar no textarea oculto e mostrar renderizado no container
-    if (detalhesTextarea && detalhesContainer) {
-      // Guardar o texto original no textarea (oculto)
-      detalhesTextarea.value = doc.detalhes || doc.descricao || '';
-
-      // Renderizar o HTML no container visível
-      detalhesContainer.innerHTML = doc.detalhes || doc.descricao || '';
-    }
-
-    // Expandir os detalhes para mostrar os campos preenchidos
-    const btnExpandir = novoDocumento.querySelector('.expandir-documento');
-    if (btnExpandir) {
-      const detalhesArea = novoDocumento.querySelector('.documento-detalhes');
-      if (detalhesArea) {
-        detalhesArea.classList.remove('hidden');
-        btnExpandir.innerHTML = '<i class="fas fa-chevron-up"></i>';
+      // Mostrar área de detalhes já que temos conteúdo
+      detalhesContainer.classList.remove('hidden');
+      const expandirBtn = novoDocumento.querySelector('.expandir-documento');
+      if (expandirBtn) {
+        const icon = expandirBtn.querySelector('i');
+        if (icon) {
+          icon.classList.remove('fa-chevron-down');
+          icon.classList.add('fa-chevron-up');
+        }
       }
     }
   }
 
   // Configurar eventos
   function configurarEventos() {
-    // Campo de pesquisa
-    if (documentoPesquisa) {
-      documentoPesquisa.addEventListener('input', (e) => {
-        const query = e.target.value.trim();
-        if (query.length >= 2) {
-          // Mostrar resultados da pesquisa
-          exibirResultadosPesquisa(query);
-        } else {
-          // Esconder resultados quando o campo estiver quase vazio
-          const resultadosPesquisa = document.getElementById('resultados-pesquisa');
-          if (resultadosPesquisa) {
-            resultadosPesquisa.classList.add('hidden');
+    // Evento para buscar documentos conforme digita
+    documentoPesquisa.addEventListener('input', function() {
+      const query = this.value.trim();
+      exibirResultadosPesquisa(query);
+    });
+
+    // Evento para adicionar documento ao pressionar Enter
+    documentoPesquisa.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+
+        // Se há resultados visíveis, selecionar o primeiro
+        const resultadosContainer = document.getElementById('resultados-pesquisa');
+        if (!resultadosContainer.classList.contains('hidden')) {
+          const primeiroResultado = resultadosContainer.querySelector('.documento-resultado');
+          if (primeiroResultado) {
+            primeiroResultado.click();
+            return;
           }
         }
-      });
 
-      // Permitir pressionar Enter para adicionar rapidamente
-      documentoPesquisa.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          const query = documentoPesquisa.value.trim();
-          if (query.length > 0) {
-            // Verificar se há resultados selecionados
-            const resultadosPesquisa = document.getElementById('resultados-pesquisa');
-            const resultadosSelecionados = resultadosPesquisa ?
-              resultadosPesquisa.querySelector('.bg-blue-50') : null;
-
-            if (resultadosSelecionados) {
-              resultadosSelecionados.click();
-            } else {
-              // Se não houver selecionado, usar o texto atual
-              adicionarNovoDocumento(query);
-              documentoPesquisa.value = '';
-
-              // Esconder resultados
-              if (resultadosPesquisa) {
-                resultadosPesquisa.classList.add('hidden');
-              }
-            }
-          }
+        // Se não há resultados, adicionar um novo documento com o texto digitado
+        if (this.value.trim()) {
+          adicionarNovoDocumento(this.value.trim());
+          this.value = ''; // Limpar o campo
+          document.getElementById('resultados-pesquisa').classList.add('hidden'); // Esconder resultados
         }
-      });
+      }
+    });
 
-      // Esconder resultados ao clicar fora
-      document.addEventListener('click', (e) => {
-        if (!documentoPesquisa.contains(e.target)) {
-          const resultadosPesquisa = document.getElementById('resultados-pesquisa');
-          if (resultadosPesquisa && !resultadosPesquisa.contains(e.target)) {
-            resultadosPesquisa.classList.add('hidden');
-          }
-        }
-      });
-    }
-
-    // Botão Voltar
+    // Configurar botão voltar
     if (btnBack) {
-      btnBack.addEventListener('click', () => {
-        if (typeof window.navigateToPrevStep === 'function') {
-          window.navigateToPrevStep();
+      btnBack.addEventListener('click', function() {
+        if (typeof navigateTo === 'function') {
+          navigateTo('professional');
         }
       });
     }
 
-    // Formulário
-    if (form) {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        try {
-          // Coletar dados de todos os documentos
-          const documentos = Array.from(documentosContainer.querySelectorAll('.documento-adicionado')).map(el => {
-            return {
-              nome: el.querySelector('.nome-documento')?.value || '',
-              status: el.querySelector('.status-documento')?.value || '',
-              ano: el.querySelector('.ano-documento')?.value || '',
-              detalhes: el.querySelector('.detalhes-documento')?.value || ''
-            };
-          });
-
-          // Coletar observações
-          const obsTexto = observacoes?.value || '';
-
-          // Aqui você enviaria os dados para o servidor
-          console.log('Documentos a serem salvos:', documentos);
-          console.log('Observações:', obsTexto);
-
-          // Mostrar mensagem de sucesso
-          alert('Dados salvos com sucesso!');
-        } catch (error) {
-          console.error('Erro ao salvar formulário:', error);
-          alert('Ocorreu um erro ao salvar o formulário. Por favor, tente novamente.');
-        }
+    // Configurar botão imprimir
+    if (btnPrint) {
+      btnPrint.addEventListener('click', function() {
+        window.print();
       });
     }
+
+    // Fechar resultados ao clicar fora
+    document.addEventListener('click', function(event) {
+      const resultadosContainer = document.getElementById('resultados-pesquisa');
+      const pesquisaInput = document.getElementById('documento-pesquisa');
+
+      if (resultadosContainer && !resultadosContainer.contains(event.target) &&
+          pesquisaInput && !pesquisaInput.contains(event.target)) {
+        resultadosContainer.classList.add('hidden');
+      }
+    });
+
+    // Salvar automaticamente ao alterar o formulário
+    form.addEventListener('change', function() {
+      if (typeof saveFormState === 'function') {
+        saveFormState();
+      }
+    });
   }
 
-  // Função para alternar visibilidade dos campos baseado no status
-  function toggleDocumentFields(selectElement) {
+  // Carregar dados salvos do formulário
+  function carregarDadosSalvos() {
     try {
-      if (!selectElement) return;
+      // Verificar se temos dados carregados no formStateManager
+      if (window.formStateManager && formStateManager.formData && formStateManager.formData.documents) {
+        const dados = formStateManager.formData.documents;
 
-      const documentoElement = selectElement.closest('.documento-adicionado');
-      if (!documentoElement) return;
+        // Limpar documentos existentes
+        documentosContainer.innerHTML = '';
 
-      const status = selectElement.value;
+        // Carregar documentos salvos
+        if (dados.documentos && Array.isArray(dados.documentos)) {
+          dados.documentos.forEach(doc => {
+            const novoDocumento = adicionarNovoDocumento(doc.nome || '');
 
-      // Esconder todos os campos de status primeiro
-      documentoElement.querySelectorAll('.document-status-fields').forEach(field => {
-        field.classList.add('hidden');
-      });
+            if (!novoDocumento) return;
 
-      // Mostrar os campos específicos para o status selecionado
-      if (status) {
-        const campos = documentoElement.querySelector(`.${status}-fields`);
-        if (campos) {
-          campos.classList.remove('hidden');
+            // Definir o ano se existir
+            const anoInput = novoDocumento.querySelector('.ano-documento');
+            if (anoInput && doc.ano) {
+              anoInput.value = doc.ano;
+            }
+
+            // Definir os detalhes se existirem
+            const detalhesTextarea = novoDocumento.querySelector('.detalhes-documento');
+            if (detalhesTextarea && doc.detalhes) {
+              detalhesTextarea.value = doc.detalhes;
+
+              // Mostrar área de detalhes se temos conteúdo
+              const detalhesContainer = novoDocumento.querySelector('.detalhes-documento-container');
+              if (detalhesContainer) {
+                detalhesContainer.classList.remove('hidden');
+                const expandirBtn = novoDocumento.querySelector('.expandir-documento');
+                if (expandirBtn) {
+                  const icon = expandirBtn.querySelector('i');
+                  if (icon) {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                  }
+                }
+              }
+            }
+
+            // Definir o status do documento
+            if (doc.status) {
+              const statusBtn = novoDocumento.querySelector(`.documento-tag[data-status="${doc.status}"]`);
+              if (statusBtn) {
+                setTimeout(() => toggleDocumentStatus(statusBtn), 0);
+              }
+            }
+          });
         }
 
-        // Garantir que a área de detalhes esteja visível quando um status é selecionado
-        const detalhesArea = documentoElement.querySelector('.documento-detalhes');
-        if (detalhesArea && detalhesArea.classList.contains('hidden')) {
-          detalhesArea.classList.remove('hidden');
-          const expandirBtn = documentoElement.querySelector('.expandir-documento');
-          if (expandirBtn) {
-            expandirBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
-          }
+        // Carregar observações
+        if (dados.observacoes) {
+          observacoes.value = dados.observacoes;
         }
       }
     } catch (error) {
-      console.error('Erro ao alternar campos de documento:', error);
+      console.error('Erro ao carregar dados salvos dos documentos:', error);
     }
   }
 
-  // Inicializar
-  configurarEventos();
+  // Inicializar o módulo
+  function inicializar() {
+    if (typeof saveFormState === 'function') {
+      // Sobrescrever a função saveFormState para incluir dados deste módulo
+      const originalSaveFormState = saveFormState;
+      saveFormState = function() {
+        // Coletar dados do formulário de documentos
+        const documentosData = [];
+
+        document.querySelectorAll('.documento-adicionado').forEach(docElement => {
+          const nomeInput = docElement.querySelector('.nome-documento');
+          const anoInput = docElement.querySelector('.ano-documento');
+          const detalhesTextarea = docElement.querySelector('.detalhes-documento');
+
+          documentosData.push({
+            nome: nomeInput ? nomeInput.value : '',
+            ano: anoInput ? anoInput.value : '',
+            detalhes: detalhesTextarea ? detalhesTextarea.value : '',
+            status: docElement.dataset.status || 'obter'
+          });
+        });
+
+        // Configurar os dados a serem salvos
+        if (window.formStateManager) {
+          formStateManager.formData.documents = {
+            documentos: documentosData,
+            observacoes: observacoes ? observacoes.value : ''
+          };
+        }
+
+        // Chamar a função original
+        originalSaveFormState();
+      };
+    }
+
+    // Configurar eventos
+    configurarEventos();
+
+    // Carregar dados salvos
+    carregarDadosSalvos();
+  }
+
+  // Iniciar o módulo
+  inicializar();
 };
+
+// Função para alternar o status do documento - função global para uso no onclick do HTML
+function toggleDocumentStatus(button) {
+  if (!button) return;
+
+  const documentoElement = button.closest('.documento-adicionado');
+  if (!documentoElement) return;
+
+  const statusValue = button.dataset.status;
+  const allTags = documentoElement.querySelectorAll('.documento-tag');
+
+  // Primeiro, reseta todas as tags para seu estado inicial
+  allTags.forEach(tag => {
+    tag.classList.remove('bg-green-100', 'text-green-800', 'border-green-200',
+                        'bg-blue-100', 'text-blue-700', 'border-blue-200',
+                        'bg-yellow-100', 'text-yellow-700', 'border-yellow-200');
+
+    tag.classList.add('bg-gray-100', 'text-gray-500', 'border-gray-200');
+  });
+
+  // Depois, ativa a tag selecionada com o estilo apropriado
+  if (statusValue === 'recebido') {
+    button.classList.remove('bg-gray-100', 'text-gray-500', 'border-gray-200');
+    button.classList.add('bg-green-100', 'text-green-800', 'border-green-200');
+  } else if (statusValue === 'solicitado') {
+    button.classList.remove('bg-gray-100', 'text-gray-500', 'border-gray-200');
+    button.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
+  } else if (statusValue === 'obter') {
+    button.classList.remove('bg-gray-100', 'text-gray-500', 'border-gray-200');
+    button.classList.add('bg-yellow-100', 'text-yellow-700', 'border-yellow-200');
+  }
+
+  // Atualizamos um atributo data no elemento do documento para facilitar o acesso ao status atual
+  documentoElement.dataset.status = statusValue;
+
+  // Salvar alterações
+  if (typeof saveFormState === 'function') {
+    saveFormState();
+  }
+}
+
+// Função para expandir/contrair os detalhes do documento - função global para uso no onclick do HTML
+function toggleDocumentFields(button) {
+  if (!button) return;
+
+  const documentoElement = button.closest('.documento-adicionado');
+  if (!documentoElement) return;
+
+  const detalhesArea = documentoElement.querySelector('.detalhes-documento-container');
+  const icon = button.querySelector('i');
+
+  if (detalhesArea) {
+    if (detalhesArea.classList.contains('hidden')) {
+      detalhesArea.classList.remove('hidden');
+      icon.classList.remove('fa-chevron-down');
+      icon.classList.add('fa-chevron-up');
+    } else {
+      detalhesArea.classList.add('hidden');
+      icon.classList.remove('fa-chevron-up');
+      icon.classList.add('fa-chevron-down');
+    }
+  }
+}
