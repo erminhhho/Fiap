@@ -52,32 +52,26 @@
 
 <!-- Template para novo documento adicionado -->
 <template id="documentoTemplate">
-  <div class="documento-adicionado relative p-3 bg-white rounded-lg border border-gray-200 shadow-sm mb-2 hover:border-blue-200 transition-colors" data-status="obter">
-    <!-- Layout em grid com maior eficiência de espaço -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-start">
-      <!-- Coluna 1: Nome do documento e detalhes - ocupa mais espaço -->
-      <div class="md:col-span-8">
-        <div class="flex items-center mb-2">
-          <i class="fas fa-file-alt text-blue-500 mr-2"></i>
+  <div class="flex items-start gap-2 mb-3">
+    <!-- Card principal do documento -->
+    <div class="documento-adicionado flex-grow relative p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:border-blue-200 transition-colors" data-status="obter">
+      <!-- Layout mais eficiente e compacto -->
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Ícone de informação e nome -->
+        <div class="flex-grow flex items-center gap-2">
+          <i class="fas fa-info-circle text-blue-500"></i>
           <input type="text" class="nome-documento text-base font-medium text-gray-800 bg-transparent border-b border-gray-200 focus:border-blue-600 focus:ring-0 px-1 py-0.5 w-full" placeholder="Nome do documento">
-      </div>
-
-        <!-- Ano em campo separado -->
-        <div class="flex items-center text-sm text-gray-600 mb-1">
-          <i class="fas fa-calendar-alt text-gray-400 mr-1 w-4 text-center"></i>
-          <input type="number" min="1900" max="2099" class="ano-documento bg-transparent border-0 border-b border-gray-200 focus:border-blue-500 focus:ring-0 px-1 py-0.5 w-16" placeholder="Ano">
         </div>
 
-        <!-- Campo de detalhes expansível -->
-        <div class="detalhes-documento-container text-sm text-gray-600 hidden">
-          <textarea class="detalhes-documento w-full rounded border border-gray-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-100 px-2 py-1 text-gray-700 bg-gray-50 text-sm mt-1" rows="2" placeholder="Detalhes adicionais sobre o documento..."></textarea>
+        <!-- Campo de ano dedicado -->
+        <div class="flex-shrink-0 flex items-center text-sm text-gray-600">
+          <span class="text-gray-500 font-medium mr-1">Ano:</span>
+          <input type="number" min="1900" max="2099" class="ano-documento bg-transparent border-b border-gray-200 focus:border-blue-500 focus:ring-0 px-1 py-0.5 w-16" placeholder="Ano">
         </div>
-      </div>
 
-      <!-- Coluna 2: Tag de status usando o sistema relationship-select -->
-      <div class="md:col-span-2 flex items-center justify-end mt-1 md:mt-0">
-        <div class="relative">
-          <div class="relationship-select" data-selected="Obter" data-value="Obter" onclick="toggleDocumentStatusTag(this)">
+        <!-- Status com posicionamento correto -->
+        <div class="flex-shrink-0">
+          <div class="relationship-select top-auto right-auto" data-selected="Obter" data-value="Obter" onclick="toggleDocumentStatusTag(this)">
             <select class="documento-status" onchange="updateDocumentStatusTag(this)">
               <option value="Recebido">Recebido</option>
               <option value="Solicitado">Solicitado</option>
@@ -85,20 +79,33 @@
             </select>
           </div>
         </div>
+
+        <!-- Botão de remover padrão do projeto -->
+        <button type="button" class="remover-documento flex-shrink-0 text-gray-400 hover:text-red-500 transition" title="Remover documento">
+          <i class="fas fa-trash-alt"></i>
+        </button>
       </div>
 
-      <!-- Coluna 3: Botões de controle -->
-      <div class="flex items-center justify-end space-x-1 md:col-span-2">
-        <button type="button" class="expandir-documento w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors" title="Expandir detalhes">
-          <i class="fas fa-chevron-down text-xs"></i>
-        </button>
-        <button type="button" class="remover-documento w-7 h-7 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors" title="Remover documento">
-          <i class="fas fa-trash-alt text-xs"></i>
-        </button>
+      <!-- Campo de descrição oculto (será exibido no popup) -->
+      <div class="detalhes-documento-container hidden">
+        <textarea class="detalhes-documento w-full" rows="2" placeholder="Detalhes adicionais sobre o documento..."></textarea>
       </div>
     </div>
   </div>
 </template>
+
+<!-- Template para o popup de informações do documento -->
+<div id="documento-info-popup" class="hidden fixed z-50">
+  <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-md animate-fade-in">
+    <div class="flex justify-between items-center mb-2">
+      <h3 class="text-lg font-semibold text-gray-800 documento-info-titulo"></h3>
+      <button type="button" class="fechar-info text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="documento-info-conteudo text-sm text-gray-600 max-h-60 overflow-y-auto"></div>
+  </div>
+</div>
 
 <!-- Scripts -->
 <script>
@@ -327,12 +334,67 @@
     color: white !important;
   }
 
-  /* Posicionamento específico para select de status nos documentos */
+  /* Posicionamento da etiqueta de status nos documentos */
   .documento-adicionado .relationship-select {
     position: relative;
     transform: none;
     right: auto;
     top: auto;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Estilos para o popup de informações */
+  #documento-info-popup {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    backdrop-filter: blur(4px);
+  }
+
+  #documento-info-popup .documento-info-conteudo {
+    line-height: 1.6;
+  }
+
+  /* Animação de entrada para o popup */
+  @keyframes popup-fade-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  #documento-info-popup .animate-fade-in {
+    animation: popup-fade-in 0.25s ease-out forwards;
+  }
+
+  /* Estilo do ícone de informação e interação */
+  .fa-info-circle {
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+
+  .documento-adicionado .fa-info-circle:hover {
+    transform: scale(1.15);
+    color: #3b82f6;
+  }
+
+  /* Estilo para o campo de ano */
+  .documento-adicionado .ano-documento {
+    width: 4rem;
+    text-align: center;
+  }
+
+  /* Botão de remover documento */
+  .remover-documento {
+    transition: color 0.2s ease;
+    padding: 0.5rem;
+    margin: -0.5rem;
+  }
+
+  .remover-documento:hover {
+    color: #ef4444;
   }
 </style>
 

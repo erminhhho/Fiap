@@ -104,31 +104,36 @@
                   <i class="fab fa-whatsapp"></i>
                   <span>WhatsApp</span>
                 </div>
-              </div>              <!-- Senha MeuINSS (antigo Detalhes do telefone) -->
-              <div class="relative md:col-span-4">
-                <input type="text" id="telefone_detalhes" name="telefone_detalhes" onblur="formatarNomeProprio(this)"
-                  class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
-                  placeholder="Senha de acesso ao MeuINSS" />
-                <label for="telefone_detalhes" class="input-label">
-                  Senha MeuINSS
-                </label>
               </div>
 
-              <!-- Campo Colaborador com pesquisa -->
-              <div class="relative md:col-span-7">
-                <div class="relative">
-                  <input type="text" id="colaborador" name="colaborador"
+              <!-- Container para Senha e Colaborador com grid aninhado -->
+              <div class="grid grid-cols-24 gap-4 md:col-span-11">
+                <!-- Senha MeuINSS -->
+                <div class="relative col-span-12">
+                  <input type="text" id="telefone_detalhes" name="telefone_detalhes" onblur="formatarNomeProprio(this)"
                     class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
-                    placeholder="Digite para pesquisar colaborador..." />
-                  <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    <i class="fas fa-search"></i>
-                  </div>
-                  <label for="colaborador" class="input-label">
-                    Colaborador
+                    placeholder="Senha de acesso ao MeuINSS" />
+                  <label for="telefone_detalhes" class="input-label">
+                    Senha MeuINSS
                   </label>
                 </div>
-                <!-- Container para resultados da pesquisa -->
-                <div id="colaboradorDropdown" class="colaborador-dropdown absolute left-0 right-0 mt-1 z-50 hidden"></div>
+
+                <!-- Campo Colaborador com pesquisa -->
+                <div class="relative col-span-12">
+                  <div class="relative">
+                    <input type="text" id="colaborador" name="colaborador"
+                      class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                      placeholder="Pesquisar colaborador" />
+                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <i class="fas fa-search"></i>
+                    </div>
+                    <label for="colaborador" class="input-label">
+                      Colaborador
+                    </label>
+                  </div>
+                  <!-- Container para resultados da pesquisa -->
+                  <div id="colaboradorDropdown" class="colaborador-dropdown absolute left-0 right-0 mt-1 z-50 hidden"></div>
+                </div>
               </div>
 
               <!-- Espaço para alinhar com o botão de cima -->

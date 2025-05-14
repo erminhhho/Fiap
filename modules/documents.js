@@ -235,57 +235,50 @@ window.initModule = function() {
   // Adicionar um novo documento em branco
   function adicionarNovoDocumento(textoDocumento = '') {
     try {
-      // Verificar se temos os elementos necessários
-      if (!documentoTemplate || !documentosContainer) {
-        console.error('Elementos do template ou container não encontrados');
-        return;
-      }
+      const template = document.getElementById('documentoTemplate');
+      const documentosContainer = document.getElementById('documentos-container');
 
-      // Clonar o template
-      const clone = document.importNode(documentoTemplate.content, true);
-      const documentoId = 'documento-' + nextId++;
+      if (template && documentosContainer) {
+        // Criar um clone do template
+        const clone = document.importNode(template.content, true);
+        const documentoElement = clone.querySelector('.documento-adicionado');
 
-      // Configurar o novo documento
-      const documentoElement = clone.querySelector('.documento-adicionado');
-      if (documentoElement) {
-        documentoElement.id = documentoId;
-
-        // Definir o nome do documento se fornecido
+        // Preencher o nome do documento se fornecido
         if (textoDocumento) {
-          const nomeInput = documentoElement.querySelector('.nome-documento');
-          if (nomeInput) {
-            nomeInput.value = textoDocumento;
+          const nomeDocumento = clone.querySelector('.nome-documento');
+          if (nomeDocumento) {
+            nomeDocumento.value = textoDocumento;
           }
         }
 
-        // Configurar botões de controle
-        const expandirBtn = documentoElement.querySelector('.expandir-documento');
-        if (expandirBtn) {
-          expandirBtn.addEventListener('click', function() {
-            toggleDocumentFields(this);
+        // Configurar o ícone de informação para mostrar o popup
+        const infoIcon = documentoElement.querySelector('.fa-info-circle');
+        if (infoIcon) {
+          infoIcon.parentElement.addEventListener('click', function(event) {
+            mostrarPopupInfo(this, event);
           });
+
+          // Adicionar estilo de cursor pointer para indicar que é clicável
+          infoIcon.parentElement.style.cursor = 'pointer';
         }
 
+        // Configurar botão remover
         const removerBtn = documentoElement.querySelector('.remover-documento');
         if (removerBtn) {
           removerBtn.addEventListener('click', function() {
-            if (confirm('Tem certeza que deseja remover este documento?')) {
-              documentoElement.remove();
-              // Salvar formulário após remoção
-              if (typeof saveFormState === 'function') {
-                saveFormState();
-              }
+            confirmarRemoverDocumento(this, () => {
+              // Encontrar o container pai (que contém o card)
+              const documentoContainer = this.closest('.flex.items-start.gap-2.mb-3');
+              if (documentoContainer) {
+                documentoContainer.remove();
+                // Salvar formulário após remoção
+                if (typeof saveFormState === 'function') {
+                  saveFormState();
+                }
               }
             });
-          }
-
-        // Configurar tags de status
-        const statusTags = documentoElement.querySelectorAll('.documento-tag');
-        statusTags.forEach(tag => {
-          tag.addEventListener('click', function() {
-            toggleDocumentStatus(this);
           });
-        });
+        }
 
         // Configurar o dropdown de status
         const relationshipSelect = documentoElement.querySelector('.relationship-select');
@@ -314,6 +307,8 @@ window.initModule = function() {
 
         // Adicionar ao container
         documentosContainer.appendChild(clone);
+
+        // Retornar o elemento principal do documento (o card)
         return documentoElement;
       }
     } catch (error) {
@@ -408,24 +403,71 @@ window.initModule = function() {
 
     if (!novoDocumento) return;
 
-    // Preencher detalhes do documento
-    const detalhesContainer = novoDocumento.querySelector('.detalhes-documento-container');
+    // Preencher detalhes do documento (agora ocultos para o popup)
     const detalhesTextarea = novoDocumento.querySelector('.detalhes-documento');
-
     if (detalhesTextarea && doc.detalhes) {
       detalhesTextarea.value = doc.detalhes.replace(/<[^>]*>/g, ''); // Remover tags HTML
+    }
+  }
 
-      // Mostrar área de detalhes já que temos conteúdo
-      detalhesContainer.classList.remove('hidden');
-      const expandirBtn = novoDocumento.querySelector('.expandir-documento');
-      if (expandirBtn) {
-        const icon = expandirBtn.querySelector('i');
-        if (icon) {
-          icon.classList.remove('fa-chevron-down');
-          icon.classList.add('fa-chevron-up');
-        }
+  // Função para mostrar o popup de informações do documento
+  function mostrarPopupInfo(element, event) {
+    // Prevenir propagação do evento para evitar fechamentos inesperados
+    event.stopPropagation();
+
+    // Obter o elemento do documento e os detalhes
+    const documentoElement = element.closest('.documento-adicionado');
+    if (!documentoElement) return;
+
+    const nomeDocumento = documentoElement.querySelector('.nome-documento').value || 'Documento';
+    const detalhesTextarea = documentoElement.querySelector('.detalhes-documento');
+    const detalhes = detalhesTextarea ? detalhesTextarea.value : '';
+
+    // Obter o popup
+    const popup = document.getElementById('documento-info-popup');
+    if (!popup) return;
+
+    // Preencher os dados no popup
+    const titulo = popup.querySelector('.documento-info-titulo');
+    const conteudo = popup.querySelector('.documento-info-conteudo');
+
+    if (titulo) titulo.textContent = nomeDocumento;
+    if (conteudo) {
+      if (detalhes) {
+        conteudo.textContent = detalhes;
+      } else {
+        conteudo.innerHTML = '<em class="text-gray-400">Sem detalhes adicionais</em>';
       }
     }
+
+    // Posicionar o popup próximo ao elemento
+    const elementRect = element.getBoundingClientRect();
+    popup.style.top = (window.scrollY + elementRect.bottom + 5) + 'px';
+    popup.style.left = (elementRect.left - 100) + 'px'; // Deslocamento à esquerda
+
+    // Mostrar o popup
+    popup.classList.remove('hidden');
+
+    // Configurar o botão de fechar
+    const fecharBtn = popup.querySelector('.fechar-info');
+    if (fecharBtn) {
+      fecharBtn.addEventListener('click', function() {
+        popup.classList.add('hidden');
+      });
+    }
+
+    // Fechar ao clicar fora
+    const closeOutsideClick = function(e) {
+      if (!popup.contains(e.target) && e.target !== element) {
+        popup.classList.add('hidden');
+        document.removeEventListener('click', closeOutsideClick);
+      }
+    };
+
+    // Adicionar com um pequeno atraso para evitar fechamento imediato
+    setTimeout(() => {
+      document.addEventListener('click', closeOutsideClick);
+    }, 100);
   }
 
   // Configurar eventos
@@ -527,27 +569,27 @@ window.initModule = function() {
             const detalhesTextarea = novoDocumento.querySelector('.detalhes-documento');
             if (detalhesTextarea && doc.detalhes) {
               detalhesTextarea.value = doc.detalhes;
-
-              // Mostrar área de detalhes se temos conteúdo
-              const detalhesContainer = novoDocumento.querySelector('.detalhes-documento-container');
-              if (detalhesContainer) {
-                detalhesContainer.classList.remove('hidden');
-                const expandirBtn = novoDocumento.querySelector('.expandir-documento');
-                if (expandirBtn) {
-                  const icon = expandirBtn.querySelector('i');
-                  if (icon) {
-                    icon.classList.remove('fa-chevron-down');
-                    icon.classList.add('fa-chevron-up');
-                  }
-                }
-              }
             }
 
             // Definir o status do documento
             if (doc.status) {
-              const statusTag = novoDocumento.querySelector(`.documento-tag[data-status="${doc.status}"]`);
-              if (statusTag) {
-                setTimeout(() => toggleDocumentStatus(statusTag), 0);
+              const statusSelect = novoDocumento.querySelector('.documento-status');
+              if (statusSelect) {
+                // Mapear o status para o valor correto no select
+                const statusCapitalized = doc.status.charAt(0).toUpperCase() + doc.status.slice(1);
+                statusSelect.value = statusCapitalized;
+
+                // Atualizar a aparência do status
+                const relationshipSelect = statusSelect.closest('.relationship-select');
+                if (relationshipSelect) {
+                  relationshipSelect.setAttribute('data-selected', statusCapitalized);
+                  relationshipSelect.setAttribute('data-value', statusCapitalized);
+                }
+
+                // Atualizar as classes do documento
+                novoDocumento.dataset.status = doc.status;
+                novoDocumento.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+                novoDocumento.classList.add('status-' + doc.status);
               }
             }
           });
@@ -599,7 +641,31 @@ window.initModule = function() {
     }
 
     // Configurar eventos
-  configurarEventos();
+    configurarEventos();
+
+    // Configurar evento para o popup de informações
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar o popup de informações se ainda não existir
+      if (!document.getElementById('documento-info-popup')) {
+        const popupTemplate = `
+          <div id="documento-info-popup" class="hidden fixed z-50">
+            <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-md animate-fade-in">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold text-gray-800 documento-info-titulo"></h3>
+                <button type="button" class="fechar-info text-gray-400 hover:text-gray-600">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="documento-info-conteudo text-sm text-gray-600 max-h-60 overflow-y-auto"></div>
+            </div>
+          </div>
+        `;
+
+        const popupDiv = document.createElement('div');
+        popupDiv.innerHTML = popupTemplate;
+        document.body.appendChild(popupDiv.firstElementChild);
+      }
+    });
 
     // Carregar dados salvos
     carregarDadosSalvos();
@@ -643,29 +709,6 @@ function toggleDocumentStatus(button) {
   // Salvar alterações
   if (typeof saveFormState === 'function') {
     saveFormState();
-  }
-}
-
-// Função para expandir/contrair os detalhes do documento - função global para uso no HTML
-function toggleDocumentFields(button) {
-  if (!button) return;
-
-  const documentoElement = button.closest('.documento-adicionado');
-  if (!documentoElement) return;
-
-  const detalhesArea = documentoElement.querySelector('.detalhes-documento-container');
-  const icon = button.querySelector('i');
-
-  if (detalhesArea) {
-    if (detalhesArea.classList.contains('hidden')) {
-      detalhesArea.classList.remove('hidden');
-      icon.classList.remove('fa-chevron-down');
-      icon.classList.add('fa-chevron-up');
-    } else {
-      detalhesArea.classList.add('hidden');
-      icon.classList.remove('fa-chevron-up');
-      icon.classList.add('fa-chevron-down');
-    }
   }
 }
 
@@ -786,3 +829,74 @@ function updateDocumentStatusTag(select) {
 window.toggleDocumentStatusTag = toggleDocumentStatusTag;
 window.updateDocumentStatusTag = updateDocumentStatusTag;
 window.toggleDocumentStatus = toggleDocumentStatus;
+
+// Adicionar esta função para mostrar um diálogo de confirmação moderno
+function confirmarRemoverDocumento(button, callback) {
+  // Remover qualquer diálogo existente
+  const existingConfirmation = document.getElementById('doc-delete-confirmation');
+  if (existingConfirmation) {
+    existingConfirmation.remove();
+  }
+
+  // Criar o popup de confirmação
+  const confirmation = document.createElement('div');
+  confirmation.id = 'doc-delete-confirmation';
+  confirmation.className = 'absolute bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg p-3 z-50 border border-gray-200 animate-fade-in';
+  confirmation.style.minWidth = '200px';
+
+  // Posicionar o popup próximo ao botão
+  const buttonRect = button.getBoundingClientRect();
+  confirmation.style.top = (window.scrollY + buttonRect.bottom + 5) + 'px';
+  confirmation.style.right = (document.body.clientWidth - buttonRect.right + 10) + 'px';
+
+  // Conteúdo do popup
+  confirmation.innerHTML = `
+    <p class="text-sm text-gray-700 mb-2">Remover este documento?</p>
+    <div class="flex justify-end space-x-2">
+      <button class="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-md text-gray-700 cancel-remove">
+        Cancelar
+      </button>
+      <button class="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 rounded-md text-white confirm-remove">
+        Remover
+      </button>
+    </div>
+  `;
+
+  // Adicionar ao documento
+  document.body.appendChild(confirmation);
+
+  // Configurar eventos
+  confirmation.querySelector('.cancel-remove').addEventListener('click', function() {
+    confirmation.remove();
+  });
+
+  confirmation.querySelector('.confirm-remove').addEventListener('click', function() {
+    confirmation.remove();
+    if (typeof callback === 'function') {
+      callback();
+    }
+  });
+
+  // Fechar ao clicar fora
+  document.addEventListener('click', function closeConfirmation(e) {
+    if (confirmation.contains(e.target) || e.target === button) return;
+    confirmation.remove();
+    document.removeEventListener('click', closeConfirmation);
+  });
+
+  // Adicionar estilo CSS para animação
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Exposição global das novas funções
+window.mostrarPopupInfo = mostrarPopupInfo;
