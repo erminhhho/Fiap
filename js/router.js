@@ -257,14 +257,25 @@ async function loadModuleWithTemplate(route) {
 // Função para atualizar a posição do slider da navegação
 function updateNavSlider() {
   const activeStep = document.querySelector('.step-link.active');
-  const slider = document.getElementById('nav-slider');
+  const slider = document.querySelector('.nav-slider');
 
   if (activeStep && slider) {
     const stepRect = activeStep.getBoundingClientRect();
-    const navRect = document.querySelector('.main-nav').getBoundingClientRect();
+    const containerRect = document.querySelector('.main-nav').getBoundingClientRect();
 
-    slider.style.left = `${stepRect.left - navRect.left}px`;
-    slider.style.width = `${stepRect.width}px`;
+    // Posicionar o slider abaixo do ícone ativo
+    const centerX = stepRect.left + (stepRect.width / 2) - containerRect.left;
+    slider.style.left = `${centerX}px`;
+    slider.style.width = `${stepRect.width / 2}px`; // Metade da largura do ícone
+
+    // Adicionar efeito de elevação no ícone
+    document.querySelectorAll('.step-link').forEach(link => {
+      if (link.classList.contains('active')) {
+        link.style.transform = 'translateY(-2px)';
+      } else {
+        link.style.transform = 'none';
+      }
+    });
   }
 }
 
