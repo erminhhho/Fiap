@@ -113,3 +113,28 @@ button, input, select, textarea {
   color: var(--color-text-lighter) !important;
   opacity: 0.7 !important; /* Reduzindo a opacidade para suavizar ainda mais */
 }
+
+/* Estilos para os status de documentos */
+.documento-status {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Cor de fundo sutilmente baseada no status do documento quando selecionado */
+.status-recebido {
+  border-left: 3px solid #10b981 !important;
+}
+
+.status-solicitado {
+  border-left: 3px solid #3b82f6 !important;
+}
+
+.status-obter {
+  border-left: 3px solid #f59e0b !important;
+}
+
+/* Destaque visual opcional para documentos quando pairar o mouse */
+.documento-adicionado:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}

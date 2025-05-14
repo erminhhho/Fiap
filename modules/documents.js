@@ -271,27 +271,27 @@ window.initModule = function() {
           removerBtn.addEventListener('click', function() {
             if (confirm('Tem certeza que deseja remover este documento?')) {
               documentoElement.remove();
+              // Salvar formulário após remoção
+              if (typeof saveFormState === 'function') {
+                saveFormState();
+              }
             }
           });
         }
 
-        // Configurar tags de status
-        const statusTags = documentoElement.querySelectorAll('.documento-tag');
-        statusTags.forEach(tag => {
-          tag.addEventListener('click', function() {
-            toggleDocumentStatus(this);
+        // Configurar select de status
+        const statusSelect = documentoElement.querySelector('.documento-status');
+        if (statusSelect) {
+          statusSelect.addEventListener('change', function() {
+            updateDocumentStatus(this);
           });
-        });
+          // Definir status inicial como "obter"
+          statusSelect.value = 'obter';
+          documentoElement.dataset.status = 'obter';
+        }
 
         // Adicionar ao container
         documentosContainer.appendChild(clone);
-
-        // Marcar como "obter" por padrão
-        const obterTag = documentoElement.querySelector('.documento-tag[data-status="obter"]');
-        if (obterTag) {
-          setTimeout(() => toggleDocumentStatus(obterTag), 0);
-        }
-
         return documentoElement;
       }
     } catch (error) {
@@ -434,6 +434,11 @@ window.initModule = function() {
           adicionarNovoDocumento(this.value.trim());
           this.value = ''; // Limpar o campo
           document.getElementById('resultados-pesquisa').classList.add('hidden'); // Esconder resultados
+
+          // Salvar estado após adicionar o documento
+          if (typeof saveFormState === 'function') {
+            saveFormState();
+          }
         }
       }
     });
@@ -518,9 +523,11 @@ window.initModule = function() {
 
             // Definir o status do documento
             if (doc.status) {
-              const statusBtn = novoDocumento.querySelector(`.documento-tag[data-status="${doc.status}"]`);
-              if (statusBtn) {
-                setTimeout(() => toggleDocumentStatus(statusBtn), 0);
+              const statusSelect = novoDocumento.querySelector('.documento-status');
+              if (statusSelect) {
+                statusSelect.value = doc.status;
+                novoDocumento.dataset.status = doc.status;
+                novoDocumento.classList.add('status-' + doc.status);
               }
             }
           });
@@ -549,12 +556,13 @@ window.initModule = function() {
           const nomeInput = docElement.querySelector('.nome-documento');
           const anoInput = docElement.querySelector('.ano-documento');
           const detalhesTextarea = docElement.querySelector('.detalhes-documento');
+          const statusSelect = docElement.querySelector('.documento-status');
 
           documentosData.push({
             nome: nomeInput ? nomeInput.value : '',
             ano: anoInput ? anoInput.value : '',
             detalhes: detalhesTextarea ? detalhesTextarea.value : '',
-            status: docElement.dataset.status || 'obter'
+            status: statusSelect ? statusSelect.value : 'obter'
           });
         });
 
@@ -582,39 +590,22 @@ window.initModule = function() {
   inicializar();
 };
 
-// Função para alternar o status do documento - função global para uso no onclick do HTML
-function toggleDocumentStatus(button) {
-  if (!button) return;
+// Função para atualizar o status do documento - função global para uso no HTML
+function updateDocumentStatus(selectElement) {
+  if (!selectElement) return;
 
-  const documentoElement = button.closest('.documento-adicionado');
+  const documentoElement = selectElement.closest('.documento-adicionado');
   if (!documentoElement) return;
 
-  const statusValue = button.dataset.status;
-  const allTags = documentoElement.querySelectorAll('.documento-tag');
+  // Obter o valor selecionado
+  const statusValue = selectElement.value;
 
-  // Primeiro, reseta todas as tags para seu estado inicial
-  allTags.forEach(tag => {
-    tag.classList.remove('bg-green-100', 'text-green-800', 'border-green-200',
-                        'bg-blue-100', 'text-blue-700', 'border-blue-200',
-                        'bg-yellow-100', 'text-yellow-700', 'border-yellow-200');
-
-    tag.classList.add('bg-gray-100', 'text-gray-500', 'border-gray-200');
-  });
-
-  // Depois, ativa a tag selecionada com o estilo apropriado
-  if (statusValue === 'recebido') {
-    button.classList.remove('bg-gray-100', 'text-gray-500', 'border-gray-200');
-    button.classList.add('bg-green-100', 'text-green-800', 'border-green-200');
-  } else if (statusValue === 'solicitado') {
-    button.classList.remove('bg-gray-100', 'text-gray-500', 'border-gray-200');
-    button.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-200');
-  } else if (statusValue === 'obter') {
-    button.classList.remove('bg-gray-100', 'text-gray-500', 'border-gray-200');
-    button.classList.add('bg-yellow-100', 'text-yellow-700', 'border-yellow-200');
-  }
-
-  // Atualizamos um atributo data no elemento do documento para facilitar o acesso ao status atual
+  // Atualizar o atributo data no elemento do documento
   documentoElement.dataset.status = statusValue;
+
+  // Adicionar classe visual para identificar rapidamente o status (opcional)
+  documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+  documentoElement.classList.add('status-' + statusValue);
 
   // Salvar alterações
   if (typeof saveFormState === 'function') {
@@ -622,7 +613,7 @@ function toggleDocumentStatus(button) {
   }
 }
 
-// Função para expandir/contrair os detalhes do documento - função global para uso no onclick do HTML
+// Função para expandir/contrair os detalhes do documento - função global para uso no HTML
 function toggleDocumentFields(button) {
   if (!button) return;
 
@@ -644,3 +635,38 @@ function toggleDocumentFields(button) {
     }
   }
 }
+
+// Correção para o problema de botões de adição após limpar seção
+// Sobrescrever a função de limpeza de seção para corrigir o problema
+window.executeClearSectionOriginal = window.executeClearSection || function() {};
+window.executeClearSection = function(section) {
+  // Chamar a função original
+  if (window.executeClearSectionOriginal) {
+    window.executeClearSectionOriginal(section);
+  }
+
+  // Correção específica para a seção de documentos
+  if (section === 'documentos') {
+    // Garantir que o container está limpo
+    const documentosContainer = document.getElementById('documentos-container');
+    if (documentosContainer) {
+      documentosContainer.innerHTML = '';
+    }
+
+    // Reinicializar os eventos para garantir que novos documentos possam ser adicionados
+    const documentoPesquisa = document.getElementById('documento-pesquisa');
+    if (documentoPesquisa) {
+      // Limpar valor do campo de pesquisa
+      documentoPesquisa.value = '';
+
+      // Atualizar o gerenciador de estado
+      if (window.formStateManager) {
+        if (!window.formStateManager.formData.documents) {
+          window.formStateManager.formData.documents = {};
+        }
+        window.formStateManager.formData.documents.documentos = [];
+        window.formStateManager.saveToLocalStorage();
+      }
+    }
+  }
+};
