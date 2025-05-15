@@ -47,6 +47,7 @@ window.FIAP.storage = {};
       this.data = this.load() || {};
       this.lastSyncTime = null;
       this.setupAutoSave();
+      this.savingInProgress = false;
 
       // Verificar se já existe sistema de persistência
       this.hasExistingSystem = typeof window.FIAP !== 'undefined' &&
@@ -71,17 +72,138 @@ window.FIAP.storage = {};
     }
 
     /**
-     * Salva todos os dados no localStorage
-     * @return {Boolean} Sucesso da operação
+     * Salva todos os dados no localStorage de forma atômica
+     * @return {Promise<Boolean>} Promise com o sucesso da operação
      */
     save() {
+      // Implementar salvamento como Promise para garantir atomicidade
+      return new Promise((resolve, reject) => {
+        // Evitar salvamentos simultâneos
+        if (this.savingInProgress) {
+          storageLog('Salvamento já em andamento, enfileirando operação');
+          // Enfileirar a operação para executar quando o salvamento atual terminar
+          if (!this._saveQueue) this._saveQueue = [];
+          this._saveQueue.push({ resolve, reject });
+          return;
+        }
+
+        this.savingInProgress = true;
+
+        try {
+          // Criar cópia dos dados para evitar problemas de referência
+          const dataToSave = JSON.parse(JSON.stringify(this.data));
+
+          // Adicionar metadados de salvamento
+          dataToSave._lastSaved = new Date().toISOString();
+          dataToSave._version = 2; // Versão do formato de dados
+
+          // Salvar no localStorage
+          localStorage.setItem(this.storageKey, JSON.stringify(dataToSave));
+
+          // Verificar integridade do salvamento
+          const savedIntegrity = this.verifyIntegrity();
+          if (!savedIntegrity.success) {
+            storageLog('Aviso: Verificação de integridade falhou após salvamento',
+                      new Error(savedIntegrity.message));
+          }
+
+          this.dispatchEvent('data-saved');
+          this.savingInProgress = false;
+
+          // Processar fila de salvamentos pendentes
+          this._processSaveQueue();
+
+          resolve(true);
+        } catch (error) {
+          this.handleStorageError(error);
+          this.savingInProgress = false;
+
+          // Processar fila mesmo em caso de erro
+          this._processSaveQueue();
+
+          reject(error);
+        }
+      });
+    }
+
+    /**
+     * Processa a fila de salvamentos pendentes
+     * @private
+     */
+    _processSaveQueue() {
+      if (this._saveQueue && this._saveQueue.length > 0) {
+        const nextSave = this._saveQueue.shift();
+        this.save().then(nextSave.resolve).catch(nextSave.reject);
+      }
+    }
+
+    /**
+     * Verifica a integridade dos dados salvos
+     * @param {String} collection - Nome da coleção para verificar (opcional)
+     * @return {Object} Resultado da verificação
+     */
+    verifyIntegrity(collection = null) {
       try {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.data));
-        this.dispatchEvent('data-saved');
-        return true;
+        // Carregar dados salvos
+        const savedData = JSON.parse(localStorage.getItem(this.storageKey));
+
+        // Verificação básica
+        if (!savedData) {
+          return {
+            success: false,
+            message: 'Nenhum dado encontrado no armazenamento'
+          };
+        }
+
+        // Se solicitou verificação específica de coleção
+        if (collection) {
+          // Verificar se a coleção existe nos dados em memória
+          if (!this.data[collection]) {
+            return {
+              success: true,
+              message: 'Coleção não existe em memória, nada para verificar'
+            };
+          }
+
+          // Verificar se a coleção existe nos dados salvos
+          if (!savedData[collection]) {
+            return {
+              success: false,
+              message: `Coleção ${collection} não encontrada nos dados salvos`
+            };
+          }
+
+          // Verificar tamanho da coleção
+          const memorySize = Array.isArray(this.data[collection])
+            ? this.data[collection].length
+            : Object.keys(this.data[collection]).length;
+
+          const savedSize = Array.isArray(savedData[collection])
+            ? savedData[collection].length
+            : Object.keys(savedData[collection]).length;
+
+          if (memorySize !== savedSize) {
+            return {
+              success: false,
+              message: `Tamanho da coleção ${collection} não corresponde: ${memorySize} em memória vs ${savedSize} salvo`
+            };
+          }
+
+          return { success: true, message: 'Verificação de integridade bem-sucedida' };
+        }
+
+        // Verificação global
+        return {
+          success: true,
+          message: 'Verificação de integridade global bem-sucedida',
+          timestamp: savedData._lastSaved
+        };
       } catch (error) {
-        this.handleStorageError(error);
-        return false;
+        storageLog('Erro durante verificação de integridade:', error);
+        return {
+          success: false,
+          message: `Erro durante verificação: ${error.message}`
+        };
       }
     }
 
@@ -241,12 +363,21 @@ window.FIAP.storage = {};
       this.autoSave = function() {
         if (this._saveTimeout) clearTimeout(this._saveTimeout);
         this._saveTimeout = setTimeout(() => {
-          self.save();
+          self.save()
+            .then(() => storageLog('Autosave concluído com sucesso'))
+            .catch(error => storageLog('Erro durante autosave:', error));
         }, 800);
       };
 
       // Salvar ao fechar/recarregar página
-      window.addEventListener('beforeunload', () => this.save());
+      window.addEventListener('beforeunload', () => {
+        // O salvamento síncrono neste caso é necessário
+        try {
+          localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+        } catch (e) {
+          // Não podemos manipular erros durante unload
+        }
+      });
 
       // Restaurar ao voltar online
       window.addEventListener('online', () => {
@@ -719,11 +850,25 @@ window.FIAP.storage = {};
     init,
     getData,
     setData,
-    saveNow: saveToStorage,
+    saveNow: function() {
+      return new Promise((resolve, reject) => {
+        try {
+          const result = saveToStorage();
+          resolve(result);
+        } catch (error) {
+          storageLog('Erro ao salvar dados:', error);
+          reject(error);
+        }
+      });
+    },
     restore: restoreForm,
     collectFormData,
     showNotification,
     enableDebug,
+    checkIntegrity: function(collection) {
+      if (!store) store = new DataStore(CONFIG.storeKey);
+      return store.verifyIntegrity(collection);
+    },
     // API do DataStore
     store: {
       get: function(collection, id) {
@@ -741,6 +886,10 @@ window.FIAP.storage = {};
       save: function() {
         if (!store) store = new DataStore(CONFIG.storeKey);
         return store.save();
+      },
+      verifyIntegrity: function(collection) {
+        if (!store) store = new DataStore(CONFIG.storeKey);
+        return store.verifyIntegrity(collection);
       }
     }
   };
