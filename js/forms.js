@@ -59,7 +59,55 @@ function newForm() {
 
 // Função para salvar o formulário com Firebase
 function saveForm() {
-  // Usar o gerenciador de estado simplificado
+  // Verificar se temos o sistema de armazenamento unificado
+  if (window.FIAP && window.FIAP.storage) {
+    // Capturar dados do formulário atual
+    const form = document.querySelector('form');
+    const currentRoute = window.location.hash.substring(1) || 'home';
+
+    if (form && typeof window.FIAP.storage.collectFormData === 'function') {
+      // Se temos um formulário, vamos capturar os dados
+      const formData = window.FIAP.storage.collectFormData(form, currentRoute);
+
+      // Verificar se existe algum dado preenchido
+      if (!formData || Object.keys(formData).length === 0) {
+        showError('Não é possível salvar um formulário vazio. Por favor, preencha pelo menos um campo.');
+        return;
+      }
+
+      // Mostrar indicador de carregamento
+      showLoading('Salvando dados...');
+
+      // Salvar no localStorage usando o sistema unificado
+      window.FIAP.storage.saveNow()
+        .then(result => {
+          if (result) {
+            // Verificar integridade do salvamento
+            const integrity = window.FIAP.storage.checkIntegrity(currentRoute);
+            if (integrity && !integrity.success) {
+              console.warn('Aviso: Verificação de integridade falhou após salvamento', integrity.message);
+            }
+
+            hideLoading();
+            showSuccess('Dados salvos com sucesso!', null, {
+              duration: 3000,
+              position: 'top-right'
+            });
+          } else {
+            hideLoading();
+            showError('Erro ao salvar dados. Tente novamente.');
+          }
+        })
+        .catch(error => {
+          hideLoading();
+          showError('Erro ao salvar dados: ' + error.message);
+        });
+
+      return;
+    }
+  }
+
+  // Fallback para o sistema antigo
   if (window.formStateManager) {
     // Capturar os dados atuais antes de salvar
     window.formStateManager.captureCurrentFormData();

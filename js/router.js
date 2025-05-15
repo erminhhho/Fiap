@@ -92,68 +92,119 @@ function navigateTo(routeName) {
 
   routerLog(`Iniciando navegação para: ${routeName}`);
 
-  try {
-    if (!routes[routeName]) {
-      routerLog(`ERRO: Rota "${routeName}" não encontrada`, new Error('Rota não encontrada'));
-      navigationInProgress = false;
-      return false;
-    }
+  // Salvar dados atuais antes de navegar (de forma assíncrona)
+  const savePromise = saveCurrentData();
 
-    const route = routes[routeName];
-    const previousRoute = currentRoute;
-    currentRoute = routeName;
-
-    // Atualizar a URL com hash
-    routerLog(`Atualizando hash para: ${routeName}`);
-    window.location.hash = routeName;
-
-    // Atualizar título da página
-    routerLog(`Atualizando título da página para: ${route.title}`);
-    document.title = `FIAP - ${route.title}`;
-
-    // Marcar o link ativo na navegação
-    routerLog('Atualizando link ativo');
-    document.querySelectorAll('.step-link').forEach(link => {
-      if (link.getAttribute('href') === `#${routeName}`) {
-        link.classList.add('active');
-      } else {
-        link.classList.remove('active');
-      }
-    });
-
-    // Atualizar o slider da barra de navegação
-    routerLog('Atualizando slider da navegação');
-    updateNavSlider();
-
-    // Carregar o conteúdo do módulo usando o template HTML
-    routerLog(`Carregando template da rota: ${route.templateUrl}`);
-    loadModuleWithTemplate(route).finally(() => {
-      // Desbloquear navegação após finalizar o carregamento do módulo
-      setTimeout(() => {
+  return savePromise.then(() => {
+    try {
+      if (!routes[routeName]) {
+        routerLog(`ERRO: Rota "${routeName}" não encontrada`, new Error('Rota não encontrada'));
         navigationInProgress = false;
-        routerLog(`Navegação desbloqueada após carregamento`);
-      }, 300);
-    });
+        return false;
+      }
 
-    routerLog(`Navegação concluída com sucesso para: ${routeName}`);
-    return true;
-  } catch (error) {
-    routerLog('ERRO CRÍTICO durante a navegação', error);
-    const appContent = document.getElementById('app-content');
-    if (appContent) {
-      appContent.innerHTML = `
-        <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-          <h3 class="font-bold mb-2">Erro durante a navegação</h3>
-          <p>${error.message}</p>
-          <pre class="mt-2 bg-red-100 p-2 rounded text-xs overflow-auto">${error.stack}</pre>
-        </div>
-      `;
+      const route = routes[routeName];
+      const previousRoute = currentRoute;
+      currentRoute = routeName;
+
+      // Atualizar a URL com hash
+      routerLog(`Atualizando hash para: ${routeName}`);
+      window.location.hash = routeName;
+
+      // Atualizar título da página
+      routerLog(`Atualizando título da página para: ${route.title}`);
+      document.title = `FIAP - ${route.title}`;
+
+      // Marcar o link ativo na navegação
+      routerLog('Atualizando link ativo');
+      document.querySelectorAll('.step-link').forEach(link => {
+        if (link.getAttribute('href') === `#${routeName}`) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+
+      // Atualizar o slider da barra de navegação
+      routerLog('Atualizando slider da navegação');
+      updateNavSlider();
+
+      // Carregar o conteúdo do módulo usando o template HTML
+      routerLog(`Carregando template da rota: ${route.templateUrl}`);
+      loadModuleWithTemplate(route).finally(() => {
+        // Desbloquear navegação após finalizar o carregamento do módulo
+        setTimeout(() => {
+          navigationInProgress = false;
+          routerLog(`Navegação desbloqueada após carregamento`);
+        }, 300);
+      });
+
+      routerLog(`Navegação concluída com sucesso para: ${routeName}`);
+      return true;
+    } catch (error) {
+      navigationInProgress = false;
+      routerLog('Erro durante navegação:', error);
+      throw error;
     }
-
-    // Desbloquear navegação em caso de erro
+  }).catch(error => {
+    routerLog('ERRO durante salvamento ou navegação:', error);
     navigationInProgress = false;
     return false;
+  });
+}
+
+/**
+ * Salva os dados do formulário atual antes de navegar
+ * @returns {Promise} Promise que resolve quando o salvamento é concluído
+ */
+function saveCurrentData() {
+  routerLog('Salvando dados atuais antes de navegar');
+
+  // Verificar se temos o sistema de armazenamento unificado
+  if (window.FIAP && window.FIAP.storage) {
+    // Capturar dados do formulário atual
+    const form = document.querySelector('form');
+    const currentRoute = window.location.hash.substring(1) || 'home';
+
+    if (form) {
+      // Se temos um formulário, vamos capturar os dados
+      routerLog(`Capturando dados do formulário na rota ${currentRoute}`);
+
+      // Verificar se temos uma função para coletar dados do formulário
+      if (typeof window.FIAP.storage.collectFormData === 'function') {
+        try {
+          window.FIAP.storage.collectFormData(form, currentRoute);
+        } catch (e) {
+          routerLog('Erro ao coletar dados do formulário:', e);
+        }
+      }
+
+      // Salvar os dados
+      return window.FIAP.storage.saveNow()
+        .then(result => {
+          if (result) {
+            routerLog('Dados salvos com sucesso antes da navegação');
+
+            // Verificar integridade do salvamento
+            const integrity = window.FIAP.storage.checkIntegrity(currentRoute);
+            if (integrity && !integrity.success) {
+              routerLog('AVISO: Verificação de integridade falhou após salvamento',
+                       new Error(integrity.message));
+            }
+          } else {
+            routerLog('Salvamento não foi bem-sucedido');
+          }
+          return true;
+        })
+        .catch(error => {
+          routerLog('Erro ao salvar dados:', error);
+          return true; // Continuar navegação mesmo com erro de salvamento
+        });
+    }
   }
+
+  // Se não temos sistema de armazenamento ou formulário, retornamos Promise resolvida
+  return Promise.resolve(true);
 }
 
 // Função para carregar um módulo via template HTML e script

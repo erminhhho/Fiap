@@ -547,36 +547,69 @@ window.FIAP.storage = {};
 
   /**
    * Coleta dados de um formulário
+   * @param {HTMLFormElement} form - Elemento do formulário para coletar dados
+   * @param {String} formName - Nome opcional para associar aos dados coletados
+   * @return {Object} Dados coletados do formulário
    */
-  function collectFormData(form) {
+  function collectFormData(form, formName = null) {
     if (!form) return {};
 
+    const formId = formName || form.id || 'default_form';
     const data = {};
     const elements = form.elements;
 
+    // Timestamp para controle
+    data._timestamp = Date.now();
+    data._formId = formId;
+
+    // Coletar dados de todos os elementos
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
-      if (!element.name) continue;
+
+      // Usar name ou id como identificador
+      const fieldName = element.name || element.id;
+
+      // Pular elementos sem identificador ou botões
+      if (!fieldName || element.type === 'button' || element.type === 'submit') continue;
 
       switch (element.type) {
         case 'checkbox':
-          data[element.name] = element.checked;
+          data[fieldName] = element.checked;
           break;
         case 'radio':
           if (element.checked) {
-            data[element.name] = element.value;
+            data[fieldName] = element.value;
           }
           break;
         case 'select-multiple':
           const selectedOptions = Array.from(element.selectedOptions).map(option => option.value);
-          data[element.name] = selectedOptions;
+          data[fieldName] = selectedOptions;
           break;
         case 'file':
-          // Arquivos não são armazenados
+          // Arquivos não são armazenados no localStorage
           break;
         default:
-          data[element.name] = element.value;
+          data[fieldName] = element.value;
       }
+    }
+
+    // Verificar se existem campos CID para incapacidades
+    if (formId === 'incapacity' || window.location.hash === '#incapacity') {
+      document.querySelectorAll('.cid-input').forEach(input => {
+        const index = input.getAttribute('data-index');
+        if (index) {
+          const doencaInput = document.getElementById(`doenca${index}`);
+          data[`cid${index}`] = input.value;
+          if (doencaInput) {
+            data[`doenca${index}`] = doencaInput.value;
+          }
+        }
+      });
+    }
+
+    // Se informado um formName, salvar imediatamente os dados coletados
+    if (formName) {
+      setData(formName, data);
     }
 
     return data;
