@@ -900,7 +900,11 @@ function setupEvents() {
     let isNavigating = false;
 
     // Adicionar novo evento com proteção
-    newBtn.addEventListener('click', function() {
+    newBtn.addEventListener('click', function(e) {
+      // Evitar comportamento padrão para prevenir propagação de evento
+      e.preventDefault();
+      e.stopPropagation();
+
       // Evitar múltiplos cliques
       if (isNavigating) return;
       isNavigating = true;
@@ -910,17 +914,33 @@ function setupEvents() {
       this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
       this.classList.add('opacity-75');
 
-      // Navegar para a próxima página
-      navigateTo('professional');
-
-      // Restaurar o botão após um tempo, caso a navegação não tenha ocorrido
-      setTimeout(() => {
-        if (document.body.contains(this)) {
-          this.innerHTML = originalText;
-          this.classList.remove('opacity-75');
-          isNavigating = false;
+      try {
+        // Salvar dados manualmente uma única vez, sem depender dos listeners em state.js
+        if (window.formStateManager) {
+          window.formStateManager.captureCurrentFormData();
+          window.formStateManager.saveToLocalStorage();
         }
-      }, 1000);
+
+        // Atraso pequeno para garantir que o salvamento termine
+        setTimeout(() => {
+          // Navegar para a próxima página
+          navigateTo('professional');
+
+          // Restaurar estado do botão após navegação
+          setTimeout(() => {
+            if (document.body.contains(this)) {
+              this.innerHTML = originalText;
+              this.classList.remove('opacity-75');
+            }
+            isNavigating = false;
+          }, 500);
+        }, 100);
+      } catch (error) {
+        console.error('Erro ao navegar para a próxima página:', error);
+        this.innerHTML = originalText;
+        this.classList.remove('opacity-75');
+        isNavigating = false;
+      }
     });
   }
 }

@@ -7,28 +7,6 @@
     </div>
   </div>
 
-  <!-- Campo de busca centralizado e destacado -->
-  <div class="max-w-3xl mx-auto mb-8">
-    <div class="bg-blue-50 rounded-xl p-6 border border-blue-100 shadow-sm">
-      <h2 class="text-lg font-semibold text-blue-700 mb-3 text-center">Buscar ou Cadastrar Atendimento</h2>
-      <div class="flex items-center gap-3">
-        <div class="relative flex-grow">
-          <input type="text" id="cpf-search" class="w-full rounded-lg border border-blue-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white pl-10 text-lg" placeholder="Digite o CPF para buscar ou cadastrar..." oninput="if(window.FIAP && window.FIAP.masks) window.FIAP.masks.cpf(this)" onkeyup="if(event.key === 'Enter' && typeof searchByCpf === 'function') searchByCpf()">
-          <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400">
-            <i class="fas fa-id-card text-lg"></i>
-          </div>
-        </div>
-        <button id="btn-search-cpf" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-5 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2 whitespace-nowrap" onclick="searchByCpf()">
-          <i class="fas fa-search"></i> Buscar
-        </button>
-        <button id="btn-new-with-cpf" class="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg px-5 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-green-300 flex items-center gap-2 whitespace-nowrap" onclick="createNewWithCpf()">
-          <i class="fas fa-plus"></i> Cadastrar
-        </button>
-      </div>
-      <p class="text-xs text-gray-500 mt-2 text-center">Informe o CPF para buscar um atendimento existente ou iniciar um novo cadastro</p>
-    </div>
-  </div>
-
   <!-- Estatísticas rápidas -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
@@ -172,15 +150,7 @@
     // Carregar dados iniciais
     loadAttendances();
 
-    // Permitir buscar ao pressionar Enter no campo de CPF
-    const cpfInput = document.getElementById('cpf-search');
-    if (cpfInput) {
-      cpfInput.addEventListener('keyup', function(event) {
-        if (event.key === 'Enter' && typeof searchByCpf === 'function') {
-          searchByCpf();
-        }
-      });
-    }
+        // O campo de busca por CPF foi removido
 
     // Configurar eventos
     document.getElementById('search-attendances').addEventListener('input', filterAttendances);
@@ -482,63 +452,7 @@
     console.log('Filtrando atendimentos...');
   }
 
-  // Função para criar novo atendimento com CPF já preenchido
-  function createNewWithCpf() {
-    const cpfField = document.getElementById('cpf-search');
-    if (!cpfField || !cpfField.value) {
-      showError('Por favor, informe um CPF válido para iniciar um novo cadastro.');
-      return;
-    }
-
-    const cpfValue = cpfField.value.replace(/\D/g, '');
-    if (cpfValue.length !== 11) {
-      showError('CPF incompleto. Por favor, informe um CPF válido com 11 dígitos.');
-      return;
-    }
-
-    // Limpar dados anteriores
-    localStorage.removeItem('formId');
-    localStorage.removeItem('currentStep');
-
-    // Inicializar o formStateManager com o novo CPF
-    if (window.formStateManager) {
-      window.formStateManager.clearState();
-      window.formStateManager.formData.personal = { cpf: cpfField.value };
-      window.formStateManager.saveToLocalStorage();
-    } else {
-      // Fallback para quem não tem o gerenciador de estado
-      localStorage.setItem('cpf', cpfField.value);
-    }
-
-    // Redirecionar para a página de dados pessoais
-    window.location.href = '#personal';
-  }
-
-  // Função de busca por CPF melhorada
-  function searchByCpf() {
-    const cpfField = document.getElementById('cpf-search');
-    if (!cpfField || !cpfField.value) {
-      showError('Por favor, informe um CPF para buscar.');
-      return;
-    }
-
-    const cpfValue = cpfField.value.replace(/\D/g, '');
-    if (cpfValue.length !== 11) {
-      showError('CPF incompleto. Por favor, informe um CPF válido com 11 dígitos.');
-      return;
-    }
-
-    // Mostrar carregamento
-    showLoading('Buscando pelo CPF...');
-
-    // Verificar se existe formulário com esse CPF
-    if (typeof loadFormByKey === 'function') {
-      loadFormByKey(cpfValue);
-    } else {
-      hideLoading();
-      showError('Função de busca não disponível. Verifique se os módulos estão carregados corretamente.');
-    }
-  }
+    // As funções createNewWithCpf e searchByCpf foram removidas pois o card de busca/cadastro por CPF foi removido
 
   // Função para mostrar erro
   function showError(message) {

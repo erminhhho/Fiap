@@ -523,7 +523,11 @@ function setupEvents() {
     let isNavigating = false;
 
     // Adicionar evento de clique diretamente
-    newBtn.onclick = function() {
+    newBtn.onclick = function(e) {
+      // Evitar comportamento padrão para prevenir propagação de evento
+      e.preventDefault();
+      e.stopPropagation();
+
       // Evitar múltiplos cliques
       if (isNavigating) return;
       isNavigating = true;
@@ -533,28 +537,43 @@ function setupEvents() {
       this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
       this.classList.add('opacity-75');
 
-      // Salvar dados do formulário (opcional)
-      saveAssistidoData();
-
-      // Verificar e usar a melhor função de navegação disponível
-      if (typeof window.navigateToNextStep === 'function') {
-        window.navigateToNextStep();
-      } else if (typeof window.navigateTo === 'function') {
-        window.navigateTo('social');
-      } else {
-        console.error('Nenhuma função de navegação disponível!');
-        // Tentar usar a navegação direta como último recurso
-        window.location.hash = 'social';
-      }
-
-      // Restaurar o botão após um tempo, caso a navegação não tenha ocorrido
-      setTimeout(() => {
-        if (document.body.contains(this)) {
-          this.innerHTML = originalText;
-          this.classList.remove('opacity-75');
-          isNavigating = false;
+      try {
+        // Salvar dados manualmente uma única vez, sem depender dos listeners em state.js
+        if (window.formStateManager) {
+          window.formStateManager.captureCurrentFormData();
+          window.formStateManager.saveToLocalStorage();
+        } else {
+          // Fallback para caso o formStateManager não esteja disponível
+          saveAssistidoData();
         }
-      }, 1000);
+
+        // Atraso pequeno para garantir que o salvamento termine
+        setTimeout(() => {
+          // Navegar apenas uma vez para a próxima página
+          if (typeof window.navigateToNextStep === 'function') {
+            window.navigateToNextStep();
+          } else if (typeof window.navigateTo === 'function') {
+            window.navigateTo('social');
+          } else {
+            console.log('Nenhuma função de navegação disponível, usando navegação direta.');
+            window.location.hash = 'social';
+          }
+
+          // Restaurar estado do botão após navegação
+          setTimeout(() => {
+            if (document.body.contains(this)) {
+              this.innerHTML = originalText;
+              this.classList.remove('opacity-75');
+            }
+            isNavigating = false;
+          }, 500);
+        }, 100);
+      } catch (error) {
+        console.error('Erro ao navegar para a próxima página:', error);
+        this.innerHTML = originalText;
+        this.classList.remove('opacity-75');
+        isNavigating = false;
+      }
     };
   } else {
     console.error('Botão próximo não encontrado!');

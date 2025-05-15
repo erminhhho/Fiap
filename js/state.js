@@ -88,15 +88,29 @@ class FormStateManager {
    * Corrige os botões de navegação (próximo/anterior)
    */
   fixNavigationButtons() {
+    // Variável para controlar o tempo de debounce
+    let lastCaptureTime = 0;
+    const debounceTime = 500; // milissegundos
+
+    // Função para capturar dados com debounce
+    const captureWithDebounce = () => {
+      const now = Date.now();
+      // Só executa se o tempo mínimo entre capturas já tiver passado
+      if (now - lastCaptureTime > debounceTime) {
+        lastCaptureTime = now;
+        this.captureCurrentFormData();
+        this.saveToLocalStorage();
+      }
+    };
+
     // Funções de navegação para próximo e anterior
     if (window.navigateToNextStep || window.navigateToPrevStep) {
       // Função para navegar para o próximo passo
       if (window.navigateToNextStep) {
         const originalNext = window.navigateToNextStep;
         window.navigateToNextStep = () => {
-          // Capturar dados atuais
-          this.captureCurrentFormData();
-          this.saveToLocalStorage();
+          // Capturar dados atuais com debounce
+          captureWithDebounce();
 
           // Determinar próximo passo
           const currentRoute = window.location.hash.substring(1) || 'personal';
@@ -120,9 +134,8 @@ class FormStateManager {
       if (window.navigateToPrevStep) {
         const originalPrev = window.navigateToPrevStep;
         window.navigateToPrevStep = () => {
-          // Capturar dados atuais
-          this.captureCurrentFormData();
-          this.saveToLocalStorage();
+          // Capturar dados atuais com debounce
+          captureWithDebounce();
 
           // Determinar passo anterior
           const currentRoute = window.location.hash.substring(1) || 'personal';
@@ -143,6 +156,10 @@ class FormStateManager {
       }
     }
 
+    // Evitar adicionar múltiplos event listeners para os botões
+    if (this._navigationButtonsFixed) return;
+    this._navigationButtonsFixed = true;
+
     // Adicionar listeners para botões de navegação internos
     document.addEventListener('click', (e) => {
       // Botão de próximo - prevenção de múltiplos clicks
@@ -151,14 +168,13 @@ class FormStateManager {
         if (this._nextClickProcessing) return;
         this._nextClickProcessing = true;
 
-        // Capturar e salvar dados
-        this.captureCurrentFormData();
-        this.saveToLocalStorage();
+        // Capturar e salvar dados com debounce
+        captureWithDebounce();
 
         // Resetar o flag após um curto período
         setTimeout(() => {
           this._nextClickProcessing = false;
-        }, 500);
+        }, debounceTime);
       }
 
       // Botão de anterior - prevenção de múltiplos clicks
@@ -167,14 +183,13 @@ class FormStateManager {
         if (this._backClickProcessing) return;
         this._backClickProcessing = true;
 
-        // Capturar e salvar dados
-        this.captureCurrentFormData();
-        this.saveToLocalStorage();
+        // Capturar e salvar dados com debounce
+        captureWithDebounce();
 
         // Resetar o flag após um curto período
         setTimeout(() => {
           this._backClickProcessing = false;
-        }, 500);
+        }, debounceTime);
       }
     });
   }
