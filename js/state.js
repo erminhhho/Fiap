@@ -88,18 +88,50 @@ class FormStateManager {
    * Corrige os botões de navegação (próximo/anterior)
    */
   fixNavigationButtons() {
-    // Variável para controlar o tempo de debounce
-    let lastCaptureTime = 0;
-    const debounceTime = 500; // milissegundos
+    // Se já inicializou, não inicializar novamente
+    if (this._navigationButtonsFixed) {
+      console.log('Botões de navegação já corrigidos anteriormente');
+      return;
+    }
 
-    // Função para capturar dados com debounce
-    const captureWithDebounce = () => {
+    // Marcar como inicializado para evitar duplicações
+    this._navigationButtonsFixed = true;
+
+    // Criar um lock global se ainda não existir
+    if (typeof window._formNavigationLock === 'undefined') {
+      window._formNavigationLock = false;
+    }
+
+    // Criar um timestamp de última execução global
+    if (typeof window._lastFormNavigation === 'undefined') {
+      window._lastFormNavigation = 0;
+    }
+
+    // Função segura para capturar dados com proteção
+    const captureDataSafely = () => {
       const now = Date.now();
-      // Só executa se o tempo mínimo entre capturas já tiver passado
-      if (now - lastCaptureTime > debounceTime) {
-        lastCaptureTime = now;
+
+      // Verificar se passou tempo suficiente desde a última execução e se não há lock
+      if (now - window._lastFormNavigation < 800 || window._formNavigationLock) {
+        console.log(`Navegação ignorada - última ação há ${now - window._lastFormNavigation}ms ou lock ativo`);
+        return;
+      }
+
+      // Atualizar timestamp e ativar lock
+      window._lastFormNavigation = now;
+      window._formNavigationLock = true;
+
+      // Tentar capturar e salvar dados
+      try {
         this.captureCurrentFormData();
         this.saveToLocalStorage();
+      } catch (err) {
+        console.error('Erro ao capturar dados durante navegação:', err);
+      } finally {
+        // Sempre liberar o lock após execução completa
+        setTimeout(() => {
+          window._formNavigationLock = false;
+        }, 1000);
       }
     };
 
@@ -109,8 +141,14 @@ class FormStateManager {
       if (window.navigateToNextStep) {
         const originalNext = window.navigateToNextStep;
         window.navigateToNextStep = () => {
-          // Capturar dados atuais com debounce
-          captureWithDebounce();
+          // Se o lock estiver ativo, não executar
+          if (window._formNavigationLock) {
+            console.log('Lock ativo, navegação bloqueada');
+            return false;
+          }
+
+          // Capturar dados de forma segura
+          captureDataSafely();
 
           // Determinar próximo passo
           const currentRoute = window.location.hash.substring(1) || 'personal';
@@ -134,8 +172,14 @@ class FormStateManager {
       if (window.navigateToPrevStep) {
         const originalPrev = window.navigateToPrevStep;
         window.navigateToPrevStep = () => {
-          // Capturar dados atuais com debounce
-          captureWithDebounce();
+          // Se o lock estiver ativo, não executar
+          if (window._formNavigationLock) {
+            console.log('Lock ativo, navegação bloqueada');
+            return false;
+          }
+
+          // Capturar dados de forma segura
+          captureDataSafely();
 
           // Determinar passo anterior
           const currentRoute = window.location.hash.substring(1) || 'personal';
@@ -156,40 +200,14 @@ class FormStateManager {
       }
     }
 
-    // Evitar adicionar múltiplos event listeners para os botões
-    if (this._navigationButtonsFixed) return;
-    this._navigationButtonsFixed = true;
-
-    // Adicionar listeners para botões de navegação internos
+    // Remover todos os event listeners existentes dos botões de navegação
+    // Isso evita adicionar múltiplos event listeners que causam salvamentos duplicados
     document.addEventListener('click', (e) => {
-      // Botão de próximo - prevenção de múltiplos clicks
-      if (e.target.id === 'btn-next' || e.target.closest('#btn-next')) {
-        // Usar um flag para evitar múltiplas capturas em um curto período
-        if (this._nextClickProcessing) return;
-        this._nextClickProcessing = true;
-
-        // Capturar e salvar dados com debounce
-        captureWithDebounce();
-
-        // Resetar o flag após um curto período
-        setTimeout(() => {
-          this._nextClickProcessing = false;
-        }, debounceTime);
-      }
-
-      // Botão de anterior - prevenção de múltiplos clicks
-      if (e.target.id === 'btn-back' || e.target.closest('#btn-back')) {
-        // Usar um flag para evitar múltiplas capturas em um curto período
-        if (this._backClickProcessing) return;
-        this._backClickProcessing = true;
-
-        // Capturar e salvar dados com debounce
-        captureWithDebounce();
-
-        // Resetar o flag após um curto período
-        setTimeout(() => {
-          this._backClickProcessing = false;
-        }, debounceTime);
+      // Botão de próximo ou anterior
+      if (e.target.id === 'btn-next' || e.target.closest('#btn-next') ||
+          e.target.id === 'btn-back' || e.target.closest('#btn-back')) {
+        // Não processar nada aqui, deixar para os handlers específicos de cada página
+        return;
       }
     });
   }
@@ -254,6 +272,15 @@ class FormStateManager {
    * Captura os dados do formulário atual
    */
   captureCurrentFormData() {
+    // Implementar proteção contra chamadas repetidas
+    const now = Date.now();
+    if (this._lastCapture && (now - this._lastCapture < 1000)) {
+      console.log(`Captura ignorada - última captura há ${now - this._lastCapture}ms`);
+      return;
+    }
+
+    this._lastCapture = now;
+
     if (!this.isInitialized) return;
 
     const currentRoute = window.location.hash.substring(1) || 'personal';
@@ -314,6 +341,15 @@ class FormStateManager {
    * Salva os dados no localStorage
    */
   saveToLocalStorage() {
+    // Implementar proteção contra chamadas repetidas
+    const now = Date.now();
+    if (this._lastSave && (now - this._lastSave < 1000)) {
+      console.log(`Salvamento ignorado - último salvamento há ${now - this._lastSave}ms`);
+      return;
+    }
+
+    this._lastSave = now;
+
     if (!this.isInitialized) return;
 
     localStorage.setItem('formId', this.currentFormId);

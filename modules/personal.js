@@ -505,32 +505,38 @@ function setupEvents() {
   const nextButton = document.getElementById('btn-next');
 
   if (nextButton) {
-    // Preservar classes originais
-    const originalClasses = nextButton.className;
-
-    // Remover eventos existentes e criar um novo botão
-    const newBtn = nextButton.cloneNode(true);
-    newBtn.className = originalClasses;
+    // Remover completamente o botão original e criar um novo para evitar qualquer manipulador existente
+    const newBtn = document.createElement('button');
+    newBtn.id = 'btn-next';
+    newBtn.className = nextButton.className;
+    newBtn.innerHTML = nextButton.innerHTML;
+    newBtn.type = 'button';
 
     // Aplicar estilos Tailwind centralizados
     if (window.tw && typeof window.tw.applyTo === 'function') {
       window.tw.applyTo(newBtn, 'button.primary');
     }
 
+    // Substituir o botão
     nextButton.parentNode.replaceChild(newBtn, nextButton);
 
-    // Flag para prevenir múltiplos cliques
-    let isNavigating = false;
+    // Flag para prevenir múltiplos cliques (com escopo global para maior segurança)
+    window._personalNextNavigating = false;
 
     // Adicionar evento de clique diretamente
-    newBtn.onclick = function(e) {
-      // Evitar comportamento padrão para prevenir propagação de evento
+    newBtn.addEventListener('click', function(e) {
+      // Evitar comportamento padrão e propagação
       e.preventDefault();
       e.stopPropagation();
 
-      // Evitar múltiplos cliques
-      if (isNavigating) return;
-      isNavigating = true;
+      // Verificar flag global
+      if (window._personalNextNavigating) {
+        console.log('Navegação já em andamento, ignorando clique');
+        return;
+      }
+
+      // Ativar flag global
+      window._personalNextNavigating = true;
 
       // Feedback visual
       const originalText = this.innerHTML;
@@ -538,18 +544,20 @@ function setupEvents() {
       this.classList.add('opacity-75');
 
       try {
-        // Salvar dados manualmente uma única vez, sem depender dos listeners em state.js
+        // Uma única chamada de captura e salvamento
+        console.log('Salvando dados antes da navegação...');
         if (window.formStateManager) {
           window.formStateManager.captureCurrentFormData();
           window.formStateManager.saveToLocalStorage();
         } else {
-          // Fallback para caso o formStateManager não esteja disponível
+          // Fallback
           saveAssistidoData();
         }
 
-        // Atraso pequeno para garantir que o salvamento termine
+        // Atraso para garantir que a navegação ocorra após o salvamento
         setTimeout(() => {
-          // Navegar apenas uma vez para a próxima página
+          console.log('Navegando para a próxima página...');
+          // Navegar usando a primeira função disponível
           if (typeof window.navigateToNextStep === 'function') {
             window.navigateToNextStep();
           } else if (typeof window.navigateTo === 'function') {
@@ -559,22 +567,22 @@ function setupEvents() {
             window.location.hash = 'social';
           }
 
-          // Restaurar estado do botão após navegação
+          // Restaurar estado do botão e flag após navegação
           setTimeout(() => {
             if (document.body.contains(this)) {
               this.innerHTML = originalText;
               this.classList.remove('opacity-75');
             }
-            isNavigating = false;
-          }, 500);
-        }, 100);
+            window._personalNextNavigating = false;
+          }, 1000);
+        }, 200);
       } catch (error) {
         console.error('Erro ao navegar para a próxima página:', error);
         this.innerHTML = originalText;
         this.classList.remove('opacity-75');
-        isNavigating = false;
+        window._personalNextNavigating = false;
       }
-    };
+    });
   } else {
     console.error('Botão próximo não encontrado!');
   }
