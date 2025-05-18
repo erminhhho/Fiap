@@ -128,13 +128,9 @@
   <div>
     <!-- Scripts do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-analytics-compat.js"></script>
-
-    <!-- Sistema de persistência unificado -->
-    <script src="js/storage.js"></script>
 
     <!-- Scripts da aplicação existente -->
     <script src="js/config.js"></script>
@@ -247,17 +243,8 @@
 
     // Função para verificar compatibilidade do navegador
     function checkBrowserCompatibility() {
-      // Verificar suporte a localStorage
-      let storageAvailable = false;
-      try {
-        localStorage.setItem('test', 'test');
-        localStorage.removeItem('test');
-        storageAvailable = true;
-      } catch (e) {
-        console.error('localStorage não disponível:', e);
-      }
-
-      if (!storageAvailable) {
+      // Verificar suporte a IntersectionObserver (exemplo de outra verificação)
+      if (!('IntersectionObserver' in window)) {
         const warningDiv = document.createElement('div');
         warningDiv.className = 'fixed bottom-4 left-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg z-50';
         warningDiv.innerHTML = `
@@ -265,7 +252,7 @@
             <div class="text-yellow-500 rounded-full p-1">
               <i class="fas fa-exclamation-triangle"></i>
             </div>
-            <span class="ml-2">Seu navegador não suporta armazenamento local. A persistência de dados pode não funcionar corretamente.</span>
+            <span class="ml-2">Seu navegador não suporta IntersectionObserver. A persistência de dados pode não funcionar corretamente.</span>
           </div>
         `;
         document.body.appendChild(warningDiv);

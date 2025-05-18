@@ -425,6 +425,92 @@ function setupColaboradorSearch() {
   });
 }
 
+// Função para configurar os eventos da página
+function setupEvents() {
+  // Inicializar estilos para os selects de relacionamento
+  applyRelationshipStyles();
+
+  // Botão de adicionar autor
+  const addAuthorButton = document.getElementById('add-author-button');
+  if (addAuthorButton) {
+    addAuthorButton.addEventListener('click', addAuthor);
+  } else {
+    console.warn('Botão de adicionar autor não encontrado');
+  }
+
+  // Botão de remover autor (o primeiro, que não é dinâmico)
+  const removeAuthorButton = document.querySelector('.remove-author-button');
+  if (removeAuthorButton) {
+    // Este botão só deve remover o autor se houver mais de um.
+    // A lógica de remover autor específico já cuida disso.
+    // A remoção do primeiro autor deve ser tratada com cuidado ou desabilitada.
+  }
+
+  // Configurar validação para campos de data e CPF
+  const dataNascimentoField = document.getElementById('nascimento');
+  if (dataNascimentoField) {
+    dataNascimentoField.addEventListener('blur', function() {
+      FIAP.validation.dateOfBirthRealTime(this);
+      if (this.dataset.targetAge) {
+        FIAP.calculation.age(this.value, this.dataset.targetAge);
+      }
+    });
+  }
+
+  const cpfField = document.getElementById('cpf');
+  if (cpfField) {
+    cpfField.addEventListener('input', function() { FIAP.masks.cpf(this); });
+    cpfField.addEventListener('blur', function() { FIAP.validation.cpfRealTime(this); });
+  }
+
+  // Configurar máscara de telefone
+  const telefoneField = document.getElementById('telefone');
+  if (telefoneField) {
+    telefoneField.addEventListener('input', function() { FIAP.masks.phone(this); });
+  }
+
+  // Adicionar evento de clique aos botões de navegação (próximo/anterior)
+  const btnNext = document.getElementById('btn-next');
+  const btnBack = document.getElementById('btn-back'); // Assumindo que existe um btn-back
+
+  if (btnNext) {
+    btnNext.addEventListener('click', function() {
+      // Apenas navega, o formStateManager cuidará de capturar os dados se necessário (sem salvar localmente)
+      if (typeof navigateToNextStep === 'function') {
+        navigateToNextStep();
+      }
+    });
+  }
+
+  if (btnBack) {
+    btnBack.addEventListener('click', function() {
+      if (typeof navigateToPrevStep === 'function') {
+        navigateToPrevStep();
+      }
+    });
+  }
+
+  // Salvar dados ao sair do campo ou ao mudar valor (usando updateFormData que não salva localmente)
+  const fieldsToUpdate = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes', 'colaborador'];
+  // Adicionar campos de autores dinâmicos se necessário
+  // Ex: document.querySelectorAll('[id^="nome_"], [id^="cpf_"] etc.')
+  fieldsToUpdate.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      field.addEventListener('blur', () => updateFormData('personal', fieldId, field.value));
+      field.addEventListener('change', () => updateFormData('personal', fieldId, field.value));
+    }
+  });
+
+  // Configurar a busca de colaboradores
+  setupColaboradorSearch();
+
+  // Configurar a capitalização automática
+  if (typeof setupAutoCapitalize === 'function') {
+    setupAutoCapitalize();
+  }
+}
+
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
   // Evitar múltiplas inicializações
@@ -444,164 +530,3 @@ window.initModule = function() {
     window._personalInitialized = false;
   }, { once: true });
 };
-
-// Função para configurar eventos do módulo
-function setupEvents() {
-  // Inicializar estilos para os selects de relacionamento
-  applyRelationshipStyles();
-
-  // Destacar campos preenchidos
-  if (typeof destacarCamposPreenchidos === 'function') {
-    destacarCamposPreenchidos();
-  }
-
-  // Carregamento dos dados do assistido
-  if (typeof loadAssistidoData === 'function') {
-    loadAssistidoData();
-  }
-
-  // Configurar campo de pesquisa de colaborador
-  setupColaboradorSearch();
-
-  // Prevenção contra duplicação de botões
-  const addAuthorButton = document.querySelector('button[onclick="addAuthor()"]');
-  if (addAuthorButton) {
-    // Remover evento existente
-    const newBtn = addAuthorButton.cloneNode(true);
-    addAuthorButton.parentNode.replaceChild(newBtn, addAuthorButton);
-
-    // Adicionar novo evento
-    newBtn.addEventListener('click', function() {
-      addAuthor();
-    });
-  }
-
-  // Botão Voltar
-  const backButton = document.getElementById('btn-back');
-  if (backButton) {
-    // Preservar classes originais
-    const originalClasses = backButton.className;
-
-    // Remover eventos existentes
-    const newBtn = backButton.cloneNode(true);
-
-    // Manter as classes originais
-    newBtn.className = originalClasses;
-
-    // Aplicar estilos Tailwind centralizados
-    if (window.tw && typeof window.tw.applyTo === 'function') {
-      window.tw.applyTo(newBtn, 'button.secondary');
-    }
-
-    backButton.parentNode.replaceChild(newBtn, backButton);
-
-    newBtn.addEventListener('click', function() {
-      // Navegação para a tela anterior
-      window.history.back();
-    });
-  }
-
-  // Botão Próximo
-  const nextButton = document.getElementById('btn-next');
-
-  if (nextButton) {
-    // Remover completamente o botão original e criar um novo para evitar qualquer manipulador existente
-    const newBtn = document.createElement('button');
-    newBtn.id = 'btn-next';
-    newBtn.className = nextButton.className;
-    newBtn.innerHTML = nextButton.innerHTML;
-    newBtn.type = 'button';
-
-    // Aplicar estilos Tailwind centralizados
-    if (window.tw && typeof window.tw.applyTo === 'function') {
-      window.tw.applyTo(newBtn, 'button.primary');
-    }
-
-    // Substituir o botão
-    nextButton.parentNode.replaceChild(newBtn, nextButton);
-
-    // Flag para prevenir múltiplos cliques (com escopo global para maior segurança)
-    window._personalNextNavigating = false;
-
-    // Adicionar evento de clique diretamente
-    newBtn.addEventListener('click', function(e) {
-      // Evitar comportamento padrão e propagação
-      e.preventDefault();
-      e.stopPropagation();
-
-      // Verificar flag global
-      if (window._personalNextNavigating) {
-        console.log('Navegação já em andamento, ignorando clique');
-        return;
-      }
-
-      // Ativar flag global
-      window._personalNextNavigating = true;
-
-      // Feedback visual
-      const originalText = this.innerHTML;
-      this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
-      this.classList.add('opacity-75');
-
-      try {
-        // Uma única chamada de captura e salvamento
-        console.log('Salvando dados antes da navegação...');
-        if (window.formStateManager) {
-          window.formStateManager.captureCurrentFormData();
-          window.formStateManager.saveToLocalStorage();
-        } else {
-          // Fallback
-          saveAssistidoData();
-        }
-
-        // Atraso para garantir que a navegação ocorra após o salvamento
-        setTimeout(() => {
-          console.log('Navegando para a próxima página...');
-          // Navegar usando a primeira função disponível
-          if (typeof window.navigateToNextStep === 'function') {
-            window.navigateToNextStep();
-          } else if (typeof window.navigateTo === 'function') {
-            window.navigateTo('social');
-          } else {
-            console.log('Nenhuma função de navegação disponível, usando navegação direta.');
-            window.location.hash = 'social';
-          }
-
-          // Restaurar estado do botão e flag após navegação
-          setTimeout(() => {
-            if (document.body.contains(this)) {
-              this.innerHTML = originalText;
-              this.classList.remove('opacity-75');
-            }
-            window._personalNextNavigating = false;
-          }, 1000);
-        }, 200);
-      } catch (error) {
-        console.error('Erro ao navegar para a próxima página:', error);
-        this.innerHTML = originalText;
-        this.classList.remove('opacity-75');
-        window._personalNextNavigating = false;
-      }
-    });
-  } else {
-    console.error('Botão próximo não encontrado!');
-  }
-}
-
-// Função para salvar os dados do assistido no localStorage
-function saveAssistidoData() {
-  // Dados básicos do assistido (primeira linha do formulário)
-  const nome = document.getElementById('nome')?.value || '';
-  const cpf = document.getElementById('cpf')?.value || '';
-  const nascimento = document.getElementById('nascimento')?.value || '';
-  const idade = document.getElementById('idade')?.value || '';
-
-  // Salvar no localStorage
-  localStorage.setItem('nome', nome);
-  localStorage.setItem('cpf', cpf);
-  localStorage.setItem('nascimento', nascimento);
-  localStorage.setItem('idade', idade);
-
-  // Registrar que os dados foram salvos
-  console.log('Dados do assistido salvos no localStorage');
-}

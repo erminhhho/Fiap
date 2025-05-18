@@ -826,7 +826,6 @@ window.executeClearSection = function(section) {
           window.formStateManager.formData.documents = {};
         }
         window.formStateManager.formData.documents.documentos = [];
-        window.formStateManager.saveToLocalStorage();
       }
     }
   }

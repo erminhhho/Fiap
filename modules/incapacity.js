@@ -94,12 +94,6 @@ window.initModule = function() {
   // Remover a proteção que estava bloqueando a inicialização
   window._incapacityInitialized = false;
 
-  // Verificar se já estamos usando o novo sistema
-  const isUsingNewSystem = localStorage.getItem('use_improved_cid_search') === 'true';
-
-  // Por padrão, usar o novo sistema (mas com fallback para o antigo)
-  localStorage.setItem('use_improved_cid_search', 'true');
-
   // Inicializar configurações básicas
   setupEvents();
 
@@ -116,38 +110,39 @@ window.initModule = function() {
   setupImprovedCidSearch();
 
   // Se estamos usando a abordagem antiga como fallback, carregar também
-  if (!isUsingNewSystem) {
-    // Inicializar o sistema de CID para os campos existentes
-    if (typeof initCidSystem === 'function') {
-      // Inicializa imediatamente
+  // A lógica abaixo será executada OU precisará ser removida se não for mais necessária.
+  // Por agora, vou manter a lógica interna, mas o 'if (!isUsingNewSystem)' foi implicitamente tornado verdadeiro.
+  // Avaliar se initCidSystem() ainda é relevante.
+  // Inicializar o sistema de CID para os campos existentes
+  if (typeof initCidSystem === 'function') {
+    // Inicializa imediatamente
+    try {
+      initCidSystem();
+    } catch (e) {
+      console.warn("Erro na primeira inicialização do sistema CID:", e);
+    }
+
+    // E também com um pequeno atraso para garantir que todos os elementos foram carregados
+    setTimeout(() => {
       try {
         initCidSystem();
       } catch (e) {
-        console.warn("Erro na primeira inicialização do sistema CID:", e);
+        console.warn("Erro na segunda inicialização do sistema CID:", e);
       }
 
-      // E também com um pequeno atraso para garantir que todos os elementos foram carregados
-      setTimeout(() => {
-        try {
-          initCidSystem();
-        } catch (e) {
-          console.warn("Erro na segunda inicialização do sistema CID:", e);
-        }
-
-        // Garantir que os campos sejam verificados após inicialização do sistema CID
-        document.querySelectorAll('.doenca-input, .cid-input').forEach(input => {
-          if (input.classList.contains('doenca-input')) {
-            verificarIsencaoCarencia(input);
-          } else if (input.classList.contains('cid-input')) {
-            const index = input.getAttribute('data-index');
-            const doencaInput = document.getElementById('doenca' + index);
-            if (doencaInput) {
-              verificarIsencaoCarencia(doencaInput);
-            }
+      // Garantir que os campos sejam verificados após inicialização do sistema CID
+      document.querySelectorAll('.doenca-input, .cid-input').forEach(input => {
+        if (input.classList.contains('doenca-input')) {
+          verificarIsencaoCarencia(input);
+        } else if (input.classList.contains('cid-input')) {
+          const index = input.getAttribute('data-index');
+          const doencaInput = document.getElementById('doenca' + index);
+          if (doencaInput) {
+            verificarIsencaoCarencia(doencaInput);
           }
-        });
-      }, 500); // Aumentado para 500ms para garantir que tudo carregue
-    }
+        }
+      });
+    }, 500); // Aumentado para 500ms para garantir que tudo carregue
   }
 };
 
@@ -918,7 +913,6 @@ function setupEvents() {
         // Salvar dados manualmente uma única vez, sem depender dos listeners em state.js
         if (window.formStateManager) {
           window.formStateManager.captureCurrentFormData();
-          window.formStateManager.saveToLocalStorage();
         }
 
         // Atraso pequeno para garantir que o salvamento termine

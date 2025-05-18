@@ -37,7 +37,6 @@ class FormStateManager {
     // Inicializar quando o DOM estiver carregado
     document.addEventListener('DOMContentLoaded', () => {
       this.setupEventListeners();
-      this.initFormFromLocalStorage();
     });
   }
 
@@ -48,7 +47,6 @@ class FormStateManager {
     // Salvar estado antes de fechar a página
     window.addEventListener('beforeunload', () => {
       this.captureCurrentFormData();
-      this.saveToLocalStorage();
     });
 
     // Detectar cliques nos botões de navegação
@@ -57,7 +55,6 @@ class FormStateManager {
       link.onclick = (e) => {
         // Capturar dados do formulário atual antes de navegar
         this.captureCurrentFormData();
-        this.saveToLocalStorage();
 
         // Chamar o handler original, se houver
         if (originalClick) return originalClick.call(link, e);
@@ -70,7 +67,6 @@ class FormStateManager {
       window.navigateTo = (route) => {
         // Capturar dados atuais
         this.captureCurrentFormData();
-        this.saveToLocalStorage();
 
         // Atualizar o passo atual
         this.currentStep = route;
@@ -124,7 +120,6 @@ class FormStateManager {
       // Tentar capturar e salvar dados
       try {
         this.captureCurrentFormData();
-        this.saveToLocalStorage();
       } catch (err) {
         console.error('Erro ao capturar dados durante navegação:', err);
       } finally {
@@ -213,62 +208,6 @@ class FormStateManager {
   }
 
   /**
-   * Inicializa o formulário a partir do localStorage
-   */
-  initFormFromLocalStorage() {
-    // Verificar se existe um ID de formulário no localStorage
-    const formId = localStorage.getItem('formId');
-    const formDataStr = localStorage.getItem('formData');
-
-    if (formId && formDataStr) {
-      try {
-        // Restaurar dados do localStorage
-        this.currentFormId = formId;
-        this.formData = JSON.parse(formDataStr);
-        this.currentStep = localStorage.getItem('currentStep') || 'personal';
-        this.isInitialized = true;
-
-        console.log('Formulário restaurado do localStorage:', formId);
-
-        // Restaurar dados no formulário atual
-        setTimeout(() => {
-          const currentRoute = window.location.hash.substring(1) || 'personal';
-          this.restoreFormData(currentRoute);
-        }, 500);
-      } catch (e) {
-        console.error('Erro ao restaurar formulário do localStorage:', e);
-        this.initNewForm();
-      }
-    } else {
-      // Inicializar novo formulário
-      this.initNewForm();
-    }
-  }
-
-  /**
-   * Inicializa um novo formulário
-   */
-  initNewForm() {
-    // Gerar ID único para o formulário
-    this.currentFormId = 'form_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
-    this.formData = {
-      personal: {},
-      social: {},
-      incapacity: {},
-      professional: {},
-      documents: {}
-    };
-    this.currentStep = window.location.hash.substring(1) || 'personal';
-    this.isInitialized = true;
-
-    localStorage.setItem('formId', this.currentFormId);
-    localStorage.setItem('currentStep', this.currentStep);
-    localStorage.setItem('formData', JSON.stringify(this.formData));
-
-    console.log('Novo formulário inicializado:', this.currentFormId);
-  }
-
-  /**
    * Captura os dados do formulário atual
    */
   captureCurrentFormData() {
@@ -338,28 +277,6 @@ class FormStateManager {
   }
 
   /**
-   * Salva os dados no localStorage
-   */
-  saveToLocalStorage() {
-    // Implementar proteção contra chamadas repetidas
-    const now = Date.now();
-    if (this._lastSave && (now - this._lastSave < 1000)) {
-      console.log(`Salvamento ignorado - último salvamento há ${now - this._lastSave}ms`);
-      return;
-    }
-
-    this._lastSave = now;
-
-    if (!this.isInitialized) return;
-
-    localStorage.setItem('formId', this.currentFormId);
-    localStorage.setItem('currentStep', this.currentStep);
-    localStorage.setItem('formData', JSON.stringify(this.formData));
-
-    console.log('Dados salvos no localStorage com sucesso');
-  }
-
-  /**
    * Restaura os dados do formulário para o passo atual
    */
   restoreFormData(step) {
@@ -377,33 +294,94 @@ class FormStateManager {
       // Ignorar campos internos que começam com _
       if (key.startsWith('_')) return;
 
-      // Tentar encontrar o campo pelo name ou id
-      const field = form.querySelector(`[name="${key}"]`) || form.querySelector(`#${key}`);
+      try {
+        // Verificar se o key contém colchetes [] que tornariam o seletor inválido
+        if (key.includes('[') || key.includes(']')) {
+          // Campos com colchetes requerem tratamento especial
+          // Ao invés de usar querySelector, tentamos encontrar o elemento por iteração
+          const allInputs = form.querySelectorAll('input, select, textarea');
+          let field = null;
 
-      if (field) {
-        if (field.type === 'checkbox') {
-          field.checked = value === 'true';
-        } else if (field.type === 'radio') {
-          const radio = form.querySelector(`[name="${key}"][value="${value}"]`) ||
-                      form.querySelector(`#${key}[value="${value}"]`);
-          if (radio) radio.checked = true;
+          // Procura o campo pelo name exato ou id exato
+          for (let i = 0; i < allInputs.length; i++) {
+            if (allInputs[i].name === key || allInputs[i].id === key) {
+              field = allInputs[i];
+              break;
+            }
+          }
+
+          if (field) {
+            if (field.type === 'checkbox') {
+              field.checked = value === 'true';
+            } else if (field.type === 'radio') {
+              // Para radio, precisamos encontrar o específico com o valor correto
+              // (Esta parte da lógica do state-fix para radio é mais robusta se houver múltiplos radios com o mesmo nome mas IDs diferentes)
+              let foundRadio = false;
+              const radiosWithName = form.querySelectorAll(`input[type="radio"][name="${field.name}"]`);
+              for (let i = 0; i < radiosWithName.length; i++) {
+                if (radiosWithName[i].value === String(value)) { // Comparar como string
+                  radiosWithName[i].checked = true;
+                  foundRadio = true;
+                  break;
+                }
+              }
+              // Fallback se não encontrar por nome e valor, tentar por ID (se o campo original tinha ID)
+              if (!foundRadio && field.id === key) {
+                 const radioById = form.querySelector(`input[type="radio"]#${CSS.escape(key)}[value="${CSS.escape(String(value))}"]`);
+                 if (radioById) radioById.checked = true;
+              }
+
+            } else {
+              field.value = value;
+            }
+
+            // Marcar o campo como preenchido
+            field.classList.add('filled');
+
+            // Verificar se o campo não deve receber eventos de máscara
+            if (field.type !== 'hidden' && !field.hasAttribute('data-no-mask')) {
+              // Disparar eventos para atualizar UI apenas para campos não hidden
+              try {
+                field.dispatchEvent(new Event('change', { bubbles: true }));
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+              } catch (e) {
+                console.debug(`Erro ao disparar eventos para o campo ${key}:`, e.message);
+              }
+            }
+          }
         } else {
-          field.value = value;
-        }
+          // Caminho normal - tentar encontrar o campo pelo name ou id (seletor CSS normal)
+          const field = form.querySelector(`[name="${CSS.escape(key)}"]`) || form.querySelector(`#${CSS.escape(key)}`);
 
-        // Marcar o campo como preenchido
-        field.classList.add('filled');
+          if (field) {
+            if (field.type === 'checkbox') {
+              field.checked = value === 'true';
+            } else if (field.type === 'radio') {
+              // Usar CSS.escape para os valores no seletor de atributo
+              const radio = form.querySelector(`[name="${CSS.escape(key)}"][value="${CSS.escape(String(value))}"]`) ||
+                          form.querySelector(`#${CSS.escape(key)}[value="${CSS.escape(String(value))}"]`);
+              if (radio) radio.checked = true;
+            } else {
+              field.value = value;
+            }
 
-        // Verificar se o campo não deve receber eventos de máscara
-        if (field.type !== 'hidden' && !field.hasAttribute('data-no-mask')) {
-          // Disparar eventos para atualizar UI apenas para campos não hidden
-          try {
-            field.dispatchEvent(new Event('change', { bubbles: true }));
-            field.dispatchEvent(new Event('input', { bubbles: true }));
-          } catch (e) {
-            console.debug(`Erro ao disparar eventos para o campo ${key}:`, e.message);
+            // Marcar o campo como preenchido
+            field.classList.add('filled');
+
+            // Verificar se o campo não deve receber eventos de máscara
+            if (field.type !== 'hidden' && !field.hasAttribute('data-no-mask')) {
+              // Disparar eventos para atualizar UI apenas para campos não hidden
+              try {
+                field.dispatchEvent(new Event('change', { bubbles: true }));
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+              } catch (e) {
+                console.debug(`Erro ao disparar eventos para o campo ${key}:`, e.message);
+              }
+            }
           }
         }
+      } catch (error) {
+        console.warn(`Erro ao processar o campo ${key}:`, error);
       }
     });
 
@@ -447,6 +425,8 @@ class FormStateManager {
    * Limpa o estado atual do formulário
    */
   clearState() {
+    // Limpar ID do formulário e dados em memória
+    this.currentFormId = null;
     this.formData = {
       personal: {},
       social: {},
@@ -454,11 +434,13 @@ class FormStateManager {
       professional: {},
       documents: {}
     };
+    this.currentStep = 'personal';
+    this.isInitialized = false;
 
-    localStorage.removeItem('formData');
+    console.log('Estado do formulário limpo.');
 
-    this.initNewForm();
-    console.log('Estado do formulário limpo com sucesso');
+    // Se houver sistema de UI, atualizar
+    // ... existing code ...
   }
 }
 

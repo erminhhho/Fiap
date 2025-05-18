@@ -124,7 +124,6 @@ function setupEvents() {
         // Salvar dados manualmente uma única vez, sem depender dos listeners em state.js
         if (window.formStateManager) {
           window.formStateManager.captureCurrentFormData();
-          window.formStateManager.saveToLocalStorage();
         }
 
         // Atraso pequeno para garantir que o salvamento termine

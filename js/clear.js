@@ -99,9 +99,6 @@ window.executeClearSection = function(section) {
         }
       }
     }
-
-    // Salvar o estado atualizado
-    window.formStateManager.saveToLocalStorage();
   }
 
   // Limpar os campos da interface sem remover elementos adicionados

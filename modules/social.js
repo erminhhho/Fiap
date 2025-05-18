@@ -160,7 +160,6 @@ function setupEvents() {
         // Salvar dados manualmente uma única vez, sem depender dos listeners em state.js
         if (window.formStateManager) {
           window.formStateManager.captureCurrentFormData();
-          window.formStateManager.saveToLocalStorage();
         }
 
         // Atraso pequeno para garantir que o salvamento termine
@@ -285,60 +284,57 @@ function inicializarAssistido() {
 function preencherDadosAssistido() {
   console.log('Preenchendo dados do assistido da primeira página...');
 
-  // Usar o novo módulo de persistência de dados se disponível
-  if (typeof FIAP !== 'undefined' && FIAP.data) {
-    // Mapeamento entre os campos da página anterior e os campos atuais
-    const fieldMapping = {
-      'nome': 'assistido_nome',
-      'cpf': 'assistido_cpf',
-      'idade': 'assistido_idade'
-    };
+  const nomeInput = document.getElementById('assistido_nome');
+  const cpfInput = document.getElementById('assistido_cpf');
+  const idadeInput = document.getElementById('assistido_idade');
 
-    // Carregar dados usando o novo módulo
-    FIAP.data.loadFormData('assistido', fieldMapping);
+  let nomeValue = 'Assistido';
+  let cpfValue = '';
+  let idadeValue = '';
 
-    // Processamento especial para a idade (extrair apenas anos)
-    const idadeInput = document.getElementById('assistido_idade');
-    if (idadeInput && idadeInput.value) {
-      const anosMatch = idadeInput.value.match(/(\d+)\s+anos?/);
-      if (anosMatch && anosMatch[1]) {
-        idadeInput.value = anosMatch[1] + ' anos';
-        console.log('Idade do assistido processada:', idadeInput.value);
-      }
-    }
+  if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.personal) {
+    const personalData = window.formStateManager.formData.personal;
+    nomeValue = personalData.nome || nomeValue;
+    cpfValue = personalData.cpf || cpfValue;
+    idadeValue = personalData.idade || idadeValue;
+    console.log('Dados obtidos do formStateManager:', personalData);
   } else {
-    // Fallback para o método anterior caso o módulo não esteja disponível
-    console.log('Usando método legacy para preencher dados');
+    // Fallback se formStateManager não tiver os dados
+    console.log('formStateManager.formData.personal não encontrado, tentando obter dos elementos do DOM.');
+    const nomePaginaAnterior = document.getElementById('nome');
+    const cpfPaginaAnterior = document.getElementById('cpf');
+    const idadePaginaAnterior = document.getElementById('idade');
 
-    // Obter nome da primeira página (priorizar localStorage para maior confiabilidade)
-    const nomeInput = document.getElementById('assistido_nome');
-    if (nomeInput) {
-      const nomePrimeiraPagina = localStorage.getItem('nome') || document.getElementById('nome')?.value || 'Assistido';
-      nomeInput.value = nomePrimeiraPagina;
-      console.log('Nome do assistido preenchido:', nomePrimeiraPagina);
-    }
+    if (nomePaginaAnterior) nomeValue = nomePaginaAnterior.value || nomeValue;
+    if (cpfPaginaAnterior) cpfValue = cpfPaginaAnterior.value || cpfValue;
+    if (idadePaginaAnterior) idadeValue = idadePaginaAnterior.value || idadeValue;
+  }
 
-    // Obter CPF da primeira página - sem ícone de validação
-    const cpfInput = document.getElementById('assistido_cpf');
-    if (cpfInput) {
-      const cpfPrimeiraPagina = localStorage.getItem('cpf') || document.getElementById('cpf')?.value || '';
-      cpfInput.value = cpfPrimeiraPagina;
-      console.log('CPF do assistido preenchido:', cpfPrimeiraPagina);
-    }
+  if (nomeInput) {
+    nomeInput.value = nomeValue;
+    console.log('Nome do assistido preenchido:', nomeValue);
+  }
 
-    // Obter idade da primeira página (somente anos, sem meses)
-    const idadeInput = document.getElementById('assistido_idade');
-    if (idadeInput) {
-      const idadePrimeiraPagina = localStorage.getItem('idade') || document.getElementById('idade')?.value || '';
-      // Extrair apenas o número de anos (remover os meses)
-      const anosMatch = idadePrimeiraPagina.match(/(\d+)\s+anos?/);
-      if (anosMatch && anosMatch[1]) {
-        idadeInput.value = anosMatch[1] + ' anos';
-      } else {
-        idadeInput.value = idadePrimeiraPagina;
-      }
-      console.log('Idade do assistido preenchida:', idadeInput.value);
+  if (cpfInput) {
+    cpfInput.value = cpfValue;
+    console.log('CPF do assistido preenchido:', cpfValue);
+  }
+
+  if (idadeInput) {
+    // Extrair apenas o número de anos (remover os meses) se a string contiver "anos"
+    if (idadeValue.includes('anos')) {
+        const anosMatch = idadeValue.match(/(\d+)\s+anos?/);
+        if (anosMatch && anosMatch[1]) {
+            idadeInput.value = anosMatch[1] + ' anos';
+        } else {
+            idadeInput.value = idadeValue; // Mantém o valor original se o regex falhar mas "anos" estiver presente
+        }
+    } else if (idadeValue.trim() !== '' && !isNaN(idadeValue)) { // Se for apenas um número, assume que são anos
+        idadeInput.value = idadeValue + ' anos';
+    } else { // Caso contrário, usa o valor como está ou string vazia se for o caso
+        idadeInput.value = idadeValue;
     }
+    console.log('Idade do assistido preenchida:', idadeInput.value);
   }
 }
 

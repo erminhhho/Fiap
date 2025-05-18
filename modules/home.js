@@ -91,63 +91,9 @@ function searchByCpf() {
   // Exibir indicador de carregamento
   showLoading('Buscando atendimento...');
 
-  // Verificar se estamos online para buscar no Firebase
-  if (navigator.onLine && window.FIAP && window.FIAP.firebase && window.FIAP.firebase.db) {
-    window.FIAP.firebase.db.collection('formularios')
-      .where('cpf', '==', cpf)
-      .limit(1)
-      .get()
-      .then(snapshot => {
-        hideLoading();
-
-        if (snapshot.empty) {
-          showErrorMessage('Nenhum atendimento encontrado com este CPF');
-          return;
-        }
-
-        // Encontrou um atendimento, continuar
-        const doc = snapshot.docs[0];
-        continueAttendance(doc.id);
-      })
-      .catch(error => {
-        hideLoading();
-        if (window.logSystem) {
-          window.logSystem('API', 'Erro ao buscar por CPF', error);
-        } else {
-          console.error('Erro ao buscar por CPF:', error);
-        }
-        showErrorMessage('Erro ao buscar atendimento: ' + error.message);
-      });
-  } else {
-    // Estamos offline, verificar no localStorage
-    hideLoading();
-
-    const formId = localStorage.getItem('formId');
-    const formData = localStorage.getItem('formData');
-
-    if (formId && formData) {
-      try {
-        const parsedData = JSON.parse(formData);
-        const personalData = parsedData.personal || {};
-
-        if (personalData.cpf === cpf) {
-          // Encontrou o atendimento local
-          continueAttendance(formId);
-        } else {
-          showErrorMessage('Nenhum atendimento encontrado localmente com este CPF');
-        }
-      } catch (e) {
-        if (window.logSystem) {
-          window.logSystem('Storage', 'Erro ao processar dados locais', e);
-        } else {
-          console.error('Erro ao processar dados locais:', e);
-        }
-        showErrorMessage('Erro ao processar dados locais');
-      }
-    } else {
-      showErrorMessage('Nenhum atendimento encontrado localmente');
-    }
-  }
+  // Lógica de persistência removida.
+  hideLoading();
+  showErrorMessage('Busca por CPF desativada. Persistência na nuvem removida.');
 }
 
 /**
@@ -159,88 +105,19 @@ async function loadAttendances() {
     const tableBody = document.getElementById('attendances-table-body');
     tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Carregando dados...</td></tr>`;
 
-    // Verificar se estamos online
-    if (navigator.onLine && window.FIAP && window.FIAP.firebase && window.FIAP.firebase.db) {
-      // Carregar do Firebase
-      const snapshot = await window.FIAP.firebase.db.collection('formularios').orderBy('ultimaAtualizacao', 'desc').get();
+    // Lógica de persistência removida.
+    tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Carregamento de atendimentos desativado. Persistência na nuvem removida.</td></tr>`;
+    updateCounts({ today: 0, completed: 0, inProgress: 0, total: 0 });
+    allAttendances = []; // Limpar lista de atendimentos
+    filteredAttendances = []; // Limpar lista filtrada
+    window.homeModule.allAttendances = allAttendances;
+    window.homeModule.filteredAttendances = filteredAttendances;
+    renderAttendances(allAttendances); // Renderizar tabela vazia
 
-      if (snapshot.empty) {
-        tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Nenhum atendimento encontrado</td></tr>`;
-        updateCounts({ today: 0, completed: 0, inProgress: 0, total: 0 });
-        return;
-      }
-
-      // Processar dados
-      allAttendances = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const personal = data.dados?.personal || {};
-
-        allAttendances.push({
-          id: doc.id,
-          name: personal.nome || 'Sem nome',
-          cpf: personal.cpf || '-',
-          date: formatDate(data.ultimaAtualizacao),
-          status: getStatusFromData(data),
-          progress: calculateProgress(data),
-          formData: data
-        });
-      });
-
-      // Atualizar também a lista filtrada
-      filteredAttendances = [...allAttendances];
-
-      // Atualizar o namespace global
-      window.homeModule.allAttendances = allAttendances;
-      window.homeModule.filteredAttendances = filteredAttendances;
-
-      // Renderizar dados
-      renderAttendances(allAttendances);
-
-      // Atualizar contadores
-      updateCountsFromData(allAttendances);
-    } else {
-      // Carregar do localStorage
-      const formId = localStorage.getItem('formId');
-      const formData = localStorage.getItem('formData');
-
-      if (formId && formData) {
-        try {
-          const parsedData = JSON.parse(formData);
-          const personal = parsedData.personal || {};
-
-          allAttendances = [{
-            id: formId,
-            name: personal.nome || 'Formulário Local',
-            cpf: personal.cpf || '-',
-            date: formatDate(new Date()),
-            status: 'Em andamento',
-            progress: calculateProgressFromLocalData(parsedData),
-            formData: parsedData
-          }];
-
-          // Atualizar também a lista filtrada
-          filteredAttendances = [...allAttendances];
-
-          // Atualizar o namespace global
-          window.homeModule.allAttendances = allAttendances;
-          window.homeModule.filteredAttendances = filteredAttendances;
-
-          renderAttendances(allAttendances);
-          updateCounts({ today: 1, completed: 0, inProgress: 1, total: 1 });
-        } catch (e) {
-          console.error('Erro ao processar dados locais:', e);
-          tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Erro ao carregar dados locais</td></tr>`;
-        }
-      } else {
-        tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Nenhum atendimento encontrado localmente</td></tr>`;
-        updateCounts({ today: 0, completed: 0, inProgress: 0, total: 0 });
-      }
-    }
   } catch (error) {
-    console.error('Erro ao carregar atendimentos:', error);
+    console.error('Erro ao carregar atendimentos (persistência removida):', error);
     document.getElementById('attendances-table-body').innerHTML =
-      `<tr><td colspan="6" class="py-4 text-center text-red-500">Erro ao carregar dados: ${error.message}</td></tr>`;
+      `<tr><td colspan="6" class="py-4 text-center text-red-500">Erro ao processar (persistência removida): ${error.message}</td></tr>`;
   }
 }
 
@@ -523,43 +400,22 @@ function updateCountsFromData(attendances) {
  * Inicia um novo atendimento
  */
 function startNewAttendance() {
-  console.log('Função startNewAttendance executada no modules/home.js');
-
-  // Verificar se há dados não salvos
-  const formStateManager = window.formStateManager;
-  if (formStateManager && formStateManager.currentFormId) {
-    // Verificar se o formulário tem dados preenchidos que precisam ser salvos
-    let hasData = false;
-
-    // Verificar se há dados em qualquer etapa
-    for (const step in formStateManager.formData) {
-      if (Object.keys(formStateManager.formData[step]).length > 0) {
-        hasData = true;
-        break;
-      }
-    }
-
-    if (hasData) {
-      if (confirm('Há um formulário em andamento. Deseja salvá-lo antes de iniciar um novo?')) {
-        // Salvar o formulário atual antes de iniciar um novo
-        if (window.saveForm) {
-          window.saveForm();
-        }
-      }
-    }
-  }
-
-  // Limpar dados locais
+  // Limpar o estado do formulário atual no gerenciador de estado
   if (window.formStateManager) {
-    window.formStateManager.clearState();
-  } else {
-    // Fallback se o formStateManager não estiver disponível
-    localStorage.removeItem('formId');
-    localStorage.removeItem('formData');
-    localStorage.removeItem('currentStep');
+    window.formStateManager.currentFormId = null; // Novo formulário não tem ID ainda
+    window.formStateManager.formData = {
+      personal: {},
+      social: {},
+      incapacity: {},
+      professional: {},
+      documents: {}
+    };
+    window.formStateManager.currentStep = 'personal'; // Começar sempre da primeira etapa
+    window.formStateManager.isInitialized = true;
   }
 
-  // Navegar para o primeiro passo usando hash diretamente
+  // Navegar para a primeira página do formulário
+  // Usar replace para não adicionar ao histórico de navegação
   console.log('Navegando para: personal (via startNewAttendance)');
   window.location.hash = 'personal';
 }
@@ -580,68 +436,16 @@ function continueAttendance(id) {
     </div>
   `;
 
-  // Primeiro tentar carregar do Firebase se online
-  if (navigator.onLine && window.FIAP && window.FIAP.firebase && window.FIAP.firebase.db) {
-    window.FIAP.firebase.db.collection('formularios').doc(id).get()
-      .then(doc => {
-        if (doc.exists) {
-          const data = doc.data();
-
-          // Configurar o formStateManager
-          if (window.formStateManager) {
-            window.formStateManager.currentFormId = id;
-            window.formStateManager.formData = data.dados || {
-              personal: {},
-              social: {},
-              incapacity: {},
-              professional: {},
-              documents: {}
-            };
-            window.formStateManager.currentStep = data.currentStep || 'personal';
-            window.formStateManager.isInitialized = true;
-            window.formStateManager.saveToLocalStorage();
-          }
-
-          // Navegar para a etapa atual ou a primeira usando hash diretamente
-          const route = data.currentStep || 'personal';
-          console.log('Navegando para:', route);
-          window.location.hash = route;
-        } else {
-          appContent.innerHTML = `
-            <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-              <h3 class="font-bold mb-2">Erro</h3>
-              <p>Atendimento não encontrado</p>
-            </div>
-          `;
-        }
-      })
-      .catch(error => {
-        console.error('Erro ao carregar atendimento:', error);
-        appContent.innerHTML = `
-          <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-            <h3 class="font-bold mb-2">Erro ao carregar atendimento</h3>
-            <p>${error.message}</p>
-          </div>
-        `;
-      });
-  } else {
-    // Se offline, verificar se é o formulário local
-    const formId = localStorage.getItem('formId');
-
-    if (formId === id) {
-      // Navegar para o formulário local usando hash diretamente
-      const currentStep = localStorage.getItem('currentStep') || 'personal';
-      console.log('Navegando para (offline):', currentStep);
-      window.location.hash = currentStep;
-    } else {
-      appContent.innerHTML = `
-        <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 rounded-lg">
-          <h3 class="font-bold mb-2">Conexão offline</h3>
-          <p>Apenas o formulário atual pode ser acessado offline.</p>
-        </div>
-      `;
-    }
-  }
+  // Lógica de persistência removida.
+  appContent.innerHTML = `
+    <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 rounded-lg">
+      <h3 class="font-bold mb-2">Funcionalidade Indisponível</h3>
+      <p>O carregamento de atendimentos foi desativado (persistência na nuvem removida).</p>
+      <button onclick="window.location.hash = 'home'" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+        Voltar para Home
+      </button>
+    </div>
+  `;
 }
 
 /**
@@ -659,106 +463,17 @@ function printAttendance(id) {
  */
 function deleteAttendance(id) {
   if (confirm('Tem certeza que deseja excluir este atendimento? Esta ação não pode ser desfeita.')) {
-    // Verificar se estamos online
-    if (navigator.onLine && window.FIAP && window.FIAP.firebase && window.FIAP.firebase.db) {
-      // Excluir do Firebase
-      window.FIAP.firebase.db.collection('formularios').doc(id).delete()
-        .then(() => {
-          // Mostrar mensagem de sucesso
-          const alertDiv = document.createElement('div');
-          alertDiv.className = 'fixed bottom-4 left-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50';
-          alertDiv.innerHTML = `
-            <div class="flex items-center">
-              <div class="text-green-500 rounded-full p-1">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <span class="ml-2">Atendimento excluído com sucesso</span>
-            </div>
-          `;
-          document.body.appendChild(alertDiv);
-
-          // Remover alerta após 3 segundos
-          setTimeout(() => {
-            alertDiv.remove();
-          }, 3000);
-
-          // Recarregar a lista
-          loadAttendances();
-        })
-        .catch(error => {
-          console.error('Erro ao excluir atendimento:', error);
-
-          // Mostrar mensagem de erro
-          const alertDiv = document.createElement('div');
-          alertDiv.className = 'fixed bottom-4 left-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg z-50';
-          alertDiv.innerHTML = `
-            <div class="flex items-center">
-              <div class="text-red-500 rounded-full p-1">
-                <i class="fas fa-exclamation-circle"></i>
-              </div>
-              <span class="ml-2">Erro ao excluir atendimento: ${error.message}</span>
-            </div>
-          `;
-          document.body.appendChild(alertDiv);
-
-          // Remover alerta após 5 segundos
-          setTimeout(() => {
-            alertDiv.remove();
-          }, 5000);
-        });
-    } else {
-      // Se offline, limpar dados locais se for o formulário atual
-      const formId = localStorage.getItem('formId');
-
-      if (formId === id) {
-        localStorage.removeItem('formId');
-        localStorage.removeItem('formData');
-        localStorage.removeItem('currentStep');
-
-        if (window.formStateManager) {
-          window.formStateManager.clearState();
-        }
-
-        // Mostrar mensagem de sucesso
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'fixed bottom-4 left-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50';
-        alertDiv.innerHTML = `
-          <div class="flex items-center">
-            <div class="text-green-500 rounded-full p-1">
-              <i class="fas fa-check-circle"></i>
-            </div>
-            <span class="ml-2">Formulário local excluído</span>
-          </div>
-        `;
-        document.body.appendChild(alertDiv);
-
-        // Remover alerta após 3 segundos
-        setTimeout(() => {
-          alertDiv.remove();
-        }, 3000);
-
-        // Recarregar a lista
-        loadAttendances();
-      } else {
-        // Mostrar mensagem de erro
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'fixed bottom-4 left-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg z-50';
-        alertDiv.innerHTML = `
-          <div class="flex items-center">
-            <div class="text-yellow-500 rounded-full p-1">
-              <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <span class="ml-2">Conexão offline. Apenas o formulário atual pode ser excluído.</span>
-          </div>
-        `;
-        document.body.appendChild(alertDiv);
-
-        // Remover alerta após 4 segundos
-        setTimeout(() => {
-          alertDiv.remove();
-        }, 4000);
-      }
+    // Lógica de persistência removida.
+    showSuccess('Exclusão (simulada)! Persistência na nuvem desativada.');
+    // Como a persistência foi removida, a recarga da lista não mostrará a remoção real.
+    // Apenas limpamos o estado em memória se for o formulário atual:
+    if (window.formStateManager && window.formStateManager.currentFormId === id) {
+        window.formStateManager.clearState();
     }
+    // Para simular visualmente, podemos remover o item da lista `allAttendances` e `filteredAttendances`
+    // e renderizar novamente, mas isso não reflete uma exclusão real de dados persistidos.
+    // Por ora, apenas exibimos a mensagem e o loadAttendances (que não carrega nada) fará a tabela parecer vazia.
+    loadAttendances(); // Irá mostrar a tabela vazia ou com dados não persistidos.
   }
 }
 

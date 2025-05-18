@@ -97,10 +97,8 @@ function saveForm() {
     // Mostrar indicador de carregamento
     showLoading('Salvando dados...');
 
-    // Salvar no localStorage
-    window.formStateManager.saveToLocalStorage();
-
     // Tentar salvar no Firebase se estiver online
+    /* REMOVIDO: Bloco de salvamento no Firebase
     if (typeof FIAP.firebase !== 'undefined' && FIAP.firebase.db && navigator.onLine) {
       // Usar uma única coleção - 'formularios' - para todos os formulários
       const formData = {
@@ -128,111 +126,28 @@ function saveForm() {
         .catch(error => {
           hideLoading();
           console.error("Erro ao salvar no Firebase:", error);
-          showSuccess('Dados salvos localmente. Serão sincronizados quando a conexão for restabelecida.', null, {
+          showError('Erro ao salvar no Firebase. Verifique sua conexão e tente novamente.', null, {
             duration: 3000,
             position: 'top-right'
           });
         });
     } else {
-      // Estamos offline, mostrar mensagem de sucesso local
+      // Estamos offline, ou Firebase não configurado.
       hideLoading();
-      showSuccess('Dados salvos localmente. Serão sincronizados quando a conexão for restabelecida.', null, {
+      showError('Não foi possível salvar. Verifique sua conexão com a internet e a configuração do Firebase.', null, {
         duration: 3000,
         position: 'top-right'
       });
     }
-    return;
-  }
-
-  // Código antigo como fallback (caso o gerenciador de estado não esteja disponível)
-
-  // Coletar todos os dados do formulário atual
-  const formData = {};
-  document.querySelectorAll('input:not([type="button"]):not([type="submit"]), select, textarea').forEach(field => {
-    if (field.id && field.value) {
-      formData[field.id] = field.value;
-    }
-  });
-
-  // Guardar também a página atual
-  formData.currentRoute = window.location.hash ? window.location.hash.substring(1) : 'personal';
-  formData.timestamp = Date.now();
-
-  // Verificar se temos o CPF como identificador
-  const cpfField = document.getElementById('cpf') || document.getElementById('assistido_cpf');
-  const cpfValue = cpfField ? cpfField.value : null;
-
-  // Se não temos CPF, gerar um ID baseado no timestamp
-  const docId = cpfValue || `form_${Date.now()}`;
-
-  // Verificar se estamos online
-  const isOnlineNow = navigator.onLine && typeof FIAP.firebase !== 'undefined' && FIAP.firebase.db;
-
-  if (isOnlineNow) {
-    // Salvar no Firestore
-    FIAP.firebase.db.collection('formularios').doc(docId).set(formData, { merge: true })
-      .then(() => {
-        hideLoading();
-        showSuccess('Dados salvos com sucesso no Firebase!', null, {
-          duration: 3000,
-          position: 'top-right'
-        });
-
-        // Salvar no localStorage também como backup
-        Object.entries(formData).forEach(([key, value]) => {
-          localStorage.setItem(key, value);
-        });
-      })
-      .catch(error => {
-        hideLoading();
-        console.error("Erro ao salvar no Firebase:", error);
-
-        showError('Erro ao salvar dados. Salvando localmente...', null, {
-          duration: 3000,
-          position: 'top-right'
-        });
-
-        // Salvar no localStorage
-        Object.entries(formData).forEach(([key, value]) => {
-          localStorage.setItem(key, value);
-        });
-
-        // Salvar para sincronização posterior
-        if (typeof saveDataForOfflineSync === 'function') {
-          saveDataForOfflineSync('formularios', docId, formData);
-          showSuccess('Dados salvos localmente. Serão sincronizados automaticamente quando a conexão for restabelecida.', null, {
-            duration: 3000,
-            position: 'top-right'
-          });
-        } else {
-          showSuccess('Dados salvos localmente como fallback!', null, {
-            duration: 3000,
-            position: 'top-right'
-          });
-        }
-      });
-  } else {
-    // Estamos offline ou Firebase não está disponível
+    */
+    // Lógica de persistência removida. Apenas simular o salvamento.
     hideLoading();
-
-    // Salvar no localStorage
-    Object.entries(formData).forEach(([key, value]) => {
-      localStorage.setItem(key, value);
+    showSuccess('Salvo (simulado)! Persistência na nuvem desativada.', null, {
+      duration: 3000,
+      position: 'top-right'
     });
 
-    // Salvar para sincronização posterior
-    if (typeof saveDataForOfflineSync === 'function') {
-      saveDataForOfflineSync('formularios', docId, formData);
-      showSuccess('Dados salvos localmente. Serão sincronizados automaticamente quando a conexão for restabelecida.', null, {
-        duration: 3000,
-        position: 'top-right'
-      });
-    } else {
-      showSuccess('Dados salvos localmente (Firebase não disponível)!', null, {
-        duration: 3000,
-        position: 'top-right'
-      });
-    }
+    return;
   }
 }
 
@@ -247,150 +162,74 @@ function loadFormByKey(key) {
   showLoading('Buscando formulário...');
 
   // Tentar carregar do Firebase primeiro
+  /* REMOVIDO: Bloco de carregamento do Firebase
   if (typeof FIAP.firebase !== 'undefined' && FIAP.firebase.db && navigator.onLine) {
-    // Primeiro tentar buscar pelo ID exato
     FIAP.firebase.db.collection('formularios').doc(key).get()
       .then(doc => {
+        hideLoading();
         if (doc.exists) {
-          handleFormLoaded(doc.data(), key);
+          const formData = doc.data();
+          const formIdToLoad = formData.id || key;
+          handleFormLoaded(formData.dados || formData, formIdToLoad);
+          showSuccess('Formulário carregado com sucesso do Firebase!');
         } else {
-          // Se não encontrar pelo ID, tentar buscar pelo CPF
-          FIAP.firebase.db.collection('formularios').where('cpf', '==', key).get()
-            .then(snapshot => {
-              if (!snapshot.empty) {
-                // Usar o primeiro documento encontrado
-                const doc = snapshot.docs[0];
-                handleFormLoaded(doc.data(), doc.id);
-              } else {
-                // Tentar buscar nos dados locais
-                tryLoadLocalForm(key);
-              }
-            })
-            .catch(error => {
-              console.error("Erro ao buscar por CPF:", error);
-              tryLoadLocalForm(key);
-            });
+          showError('Formulário não encontrado com este CPF/ID no Firebase.');
         }
       })
       .catch(error => {
         hideLoading();
-        console.error("Erro ao buscar documento:", error);
-        showError(`Erro ao buscar formulário: ${error.message}`);
+        console.error("Erro ao buscar formulário no Firebase:", error);
+        showError('Erro ao buscar formulário no Firebase. Verifique sua conexão.');
       });
   } else {
-    // Firebase não disponível, tentar localStorage
+    // Offline ou Firebase não configurado
     hideLoading();
-    tryLoadLocalForm(key);
+    showError('Não é possível buscar formulários online. Verifique sua conexão e a configuração do Firebase.');
   }
+  */
+  // Lógica de persistência removida.
+  hideLoading();
+  showError('Busca de formulário desativada. Persistência na nuvem removida.');
 }
 
-// Função auxiliar para carregar o formulário encontrado
+/**
+ * Processa os dados do formulário carregado e preenche os campos.
+ * @param {Object} formData - Os dados do formulário.
+ * @param {string} formId - O ID do formulário carregado.
+ */
 function handleFormLoaded(formData, formId) {
-  hideLoading();
-
-  // Limpar formulário atual
-  clearForm(false);
-
-  // Se temos o gerenciador de estado, usar ele
   if (window.formStateManager) {
-    // Inicializar com o ID do formulário carregado
+    window.formStateManager.clearState();
     window.formStateManager.currentFormId = formId;
-
-    // Organizar os dados do formulário
-    if (formData.dados) {
-      // Nova estrutura: dados contém todos os passos
-      window.formStateManager.formData = formData.dados;
-    } else {
-      // Estrutura antiga ou personalizada
-      window.formStateManager.formData = {
-        personal: formData.personal || {},
-        social: formData.social || {},
-        incapacity: formData.incapacity || {},
-        professional: formData.professional || {},
-        documents: formData.documents || {}
-      };
-    }
-
+    window.formStateManager.formData = formData;
     window.formStateManager.currentStep = formData.currentStep || 'personal';
     window.formStateManager.isInitialized = true;
 
-    // Salvar no localStorage
-    window.formStateManager.saveToLocalStorage();
-
-    // Navegar para a página correta
-    navigateTo(window.formStateManager.currentStep);
-
-    // Mostrar mensagem de sucesso
-    showSuccess(`Formulário carregado com sucesso!`, null, {
-      duration: 3000,
-      position: 'top-right'
-    });
+    if (window.navigateTo) {
+      window.navigateTo(window.formStateManager.currentStep);
+    } else {
+      window.formStateManager.restoreFormData(window.formStateManager.currentStep);
+    }
+    console.log('Formulário restaurado no gerenciador de estado:', formId);
   } else {
-    // Fallback para o sistema antigo
-    Object.entries(formData).forEach(([fieldId, value]) => {
-      const field = document.getElementById(fieldId);
-      if (field && value) {
-        field.value = value;
-        field.classList.add('field-filled');
-      }
-    });
-
-    // Se existe uma rota salva, navegar para ela
-    if (formData.currentStep) {
-      navigateTo(formData.currentStep);
-    }
-
-    showSuccess(`Formulário de ${formId} carregado com sucesso!`, null, {
-      duration: 3000
-    });
-  }
-}
-
-// Função auxiliar para tentar carregar dados locais
-function tryLoadLocalForm(key) {
-  hideLoading();
-
-  if (window.formStateManager) {
-    const storedData = localStorage.getItem('formData');
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        const personal = parsedData.personal || {};
-
-        // Verificar se o CPF ou ID corresponde
-        if (personal.cpf === key ||
-            localStorage.getItem('formId') === key) {
-
-          // Restaurar do localStorage
-          window.formStateManager.currentFormId = localStorage.getItem('formId');
-          window.formStateManager.formData = parsedData;
-          window.formStateManager.currentStep = localStorage.getItem('currentStep') || 'personal';
-          window.formStateManager.isInitialized = true;
-
-          // Navegar para a página inicial
-          navigateTo(window.formStateManager.currentStep);
-
-          // Restaurar dados
-          setTimeout(() => {
-            window.formStateManager.restoreFormData(window.formStateManager.currentStep);
-          }, 300);
-
-          showSuccess(`Formulário carregado do armazenamento local!`, null, {
-            duration: 3000,
-            position: 'top-right'
-          });
-          return;
+    clearForm(false);
+    Object.keys(formData).forEach(k => {
+      const field = document.getElementById(k);
+      if (field) {
+        field.value = formData[k];
+        if (formData[k]) {
+          field.classList.add('field-filled');
         }
-      } catch (e) {
-        console.error('Erro ao analisar dados do localStorage:', e);
       }
+    });
+    if (formData.currentRoute && window.location.hash !== `#${formData.currentRoute}`) {
+      window.location.hash = formData.currentRoute;
     }
   }
-
-  showError(`Nenhum formulário encontrado para ${key}`);
+  showSuccess('Formulário carregado e campos preenchidos.');
 }
 
-// Função para impressão do formulário
+// Função para imprimir o formulário
 function printForm() {
   window.print();
 }
@@ -1160,30 +999,6 @@ window.showClearConfirmation = showClearConfirmation;
 window.executeClearSection = executeClearSection;
 window.setupAutoCapitalize = setupAutoCapitalize;
 
-/**
- * Sistema de auto-salvamento de dados entre páginas
- * Configura armazenamento automático de dados importantes quando o usuário
- * preenche os campos ou muda de página
- */
-document.addEventListener('DOMContentLoaded', function() {
-  // Configurar auto-salvamento de campos do assistido
-  const keyFields = ['nome', 'cpf', 'nascimento', 'idade', 'sexo', 'cep', 'logradouro', 'bairro', 'cidade', 'uf', 'telefone', 'email'];
-
-  // Aplicar eventos de auto-salvamento aos campos importantes
-  keyFields.forEach(fieldId => {
-    const field = document.getElementById(fieldId);
-    if (field) {
-      // Auto-salvar quando o campo perde o foco
-      field.addEventListener('blur', function() {
-        if (this.value) {
-          localStorage.setItem(fieldId, this.value);
-          console.log(`Campo ${fieldId} salvo automaticamente: ${this.value}`);
-        }
-      });
-    }
-  });
-});
-
 // Função para mostrar a confirmação de limpeza de forma moderna e não invasiva
 function showClearConfirmation(event, section) {
   // Remover qualquer confirmação existente
@@ -1243,110 +1058,77 @@ function showClearConfirmation(event, section) {
 
 // Função para executar a limpeza da seção
 function executeClearSection(section) {
-  // Remover o popup de confirmação
-  const confirmation = document.getElementById('clear-confirmation');
-  if (confirmation) {
-    confirmation.remove();
-  }
-
-  // Limpa os dados da seção no gerenciador de estado
-  if (!window.formStateManager) return;
-  window.formStateManager.formData[section] = {};
-
-  // Limpa os campos do formulário visíveis na tela
+  console.log('Limpando seção:', section);
   const form = document.querySelector('form');
-  if (form) {
-    // Seleciona todos os campos que pertencem à seção pelo id ou name
-    let fields = [];
-    if (section === 'personal') {
-      fields = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes'];
-    } else if (section === 'address') {
-      fields = ['cep', 'bairro', 'cidade', 'uf', 'endereco', 'numero'];
-    } else if (section === 'familia') {
-      // Limpa os membros da família, mantendo apenas o assistido
-      const familiaContainer = document.getElementById('membros-familia-list');
-      if (familiaContainer) {
-        const assistido = familiaContainer.querySelector('.assistido');
-        familiaContainer.innerHTML = '';
-        if (assistido) {
-          familiaContainer.appendChild(assistido);
-        }
+  if (!form) return;
+
+  // Limpar campos da seção específica
+  const sectionElement = document.getElementById(`step-${section}`);
+  if (sectionElement) {
+    sectionElement.querySelectorAll('input:not([type="button"]):not([type="submit"]), select, textarea').forEach(field => {
+      if (field.type === 'checkbox' || field.type === 'radio') {
+        field.checked = false;
+      } else {
+        field.value = '';
       }
-    } else if (section === 'renda') {
-      fields = ['renda_total_familiar', 'renda_per_capita'];
-      // Resetar displays
-      const rendaDisplay = document.getElementById('renda_total_display');
-      const percapitaDisplay = document.getElementById('renda_per_capita_display');
-      if (rendaDisplay) rendaDisplay.textContent = 'R$ 0';
-      if (percapitaDisplay) percapitaDisplay.textContent = 'R$ 0';
-    } else if (section === 'doencas') {
-      // Limpa a lista de doenças mantendo apenas a primeira linha vazia
-      const doencasList = document.getElementById('doencasList');
-      if (doencasList && doencasList.children.length > 0) {
-        const primeiraLinha = doencasList.firstElementChild.cloneNode(true);
-        // Limpar campos da primeira linha
-        primeiraLinha.querySelectorAll('input, select').forEach(campo => {
-          campo.value = '';
-        });
-        doencasList.innerHTML = '';
-        doencasList.appendChild(primeiraLinha);
-      }
-    } else if (section === 'duracao') {
-      fields = ['trabalhaAtualmente', 'ultimoTrabalho'];
-    } else if (section === 'limitacoes') {
-      fields = ['limitacoesDiarias', 'tratamentosRealizados', 'medicamentosAtuais'];
-    } else if (section === 'atividades') {
-      // Limpa a lista de atividades mantendo apenas a primeira linha vazia
-      const atividadesList = document.getElementById('atividadesList');
-      if (atividadesList && atividadesList.children.length > 0) {
-        const primeiraLinha = atividadesList.firstElementChild.cloneNode(true);
-        // Limpar campos da primeira linha
-        primeiraLinha.querySelectorAll('input, select').forEach(campo => {
-          campo.value = '';
-        });
-        atividadesList.innerHTML = '';
-        atividadesList.appendChild(primeiraLinha);
-      }
-    } else if (section === 'documentos') {
-      // Limpa a lista de documentos
-      const documentsList = document.getElementById('documentos-container');
-      if (documentsList) {
-        documentsList.innerHTML = '';
+      field.classList.remove('field-filled', 'cpf-valid', 'cpf-invalid', 'cep-valid', 'cep-invalid');
+    });
+    // Remover mensagens de validação da seção
+    sectionElement.querySelectorAll('.validation-message').forEach(msg => msg.remove());
+    // Limpar o conteúdo de containers específicos da seção, se necessário
+    // Exemplo: limpar lista de membros da família se a seção for 'social'
+    if (section === 'social') {
+      const membrosFamilia = document.getElementById('membros-familia-list');
+      if (membrosFamilia) {
+        membrosFamilia.innerHTML = '';
+        // Adicionar um membro em branco para começar, se for a lógica do seu app
+        if (typeof addFamilyMember === 'function') addFamilyMember();
       }
     }
-
-    // Limpar campos da seção
-    fields.forEach(fieldId => {
-      const field = form.querySelector(`[id='${fieldId}'], [name='${fieldId}']`);
-      if (field) {
-        field.value = '';
-        field.classList.remove('field-filled', 'cpf-valid', 'cpf-invalid', 'cep-valid', 'cep-invalid');
-      }
-    });
+    // Adicione mais casos conforme necessário para outras seções
   }
 
-  // Salva o estado atualizado
-  window.formStateManager.saveToLocalStorage();
+  // Chamar a função de limpeza específica do módulo, se existir
+  if (typeof window.clearSectionModule === 'function') {
+    window.clearSectionModule(section);
+  }
 
-  // Mostra notificação sutil de sucesso com transparência
-  const notification = document.createElement('div');
-  notification.className = 'fixed bottom-4 right-4 bg-green-100 bg-opacity-90 backdrop-blur-sm border-l-4 border-green-500 text-green-700 p-3 rounded shadow-md z-50 animate-fade-in';
-  notification.innerHTML = `
-    <div class="flex items-center">
-      <i class="fas fa-check-circle text-green-500 mr-2"></i>
-      <span class="text-sm">Seção limpa com sucesso!</span>
-    </div>
-  `;
-  document.body.appendChild(notification);
+  // Atualizar o estado no formStateManager
+  if (window.formStateManager) {
+    const currentStep = window.formStateManager.currentStep; // Ou 'section' se for o caso
+    if (currentStep && window.formStateManager.formData[currentStep]) {
+      // Limpar apenas os dados da seção atual no formData
+      window.formStateManager.formData[currentStep] = {};
+    }
+  }
 
-  // Remove a notificação após 2 segundos
-  setTimeout(() => {
-    notification.style.opacity = '0';
-    notification.style.transition = 'opacity 0.5s ease';
-    setTimeout(() => notification.remove(), 500);
-  }, 2000);
+  // Atualizar a interface (ex: destacar campos)
+  if (typeof destacarCamposPreenchidos === 'function') {
+    destacarCamposPreenchidos();
+  }
+
+  showSuccess(`Seção ${section} limpa com sucesso.`);
 }
 
 // Exportar funções para uso global
 window.showClearConfirmation = showClearConfirmation;
 window.executeClearSection = executeClearSection;
+
+// Função para auto-salvamento ao sair do campo (onblur)
+function autoSaveOnChange(fieldId) {
+  const field = document.getElementById(fieldId);
+  if (field) {
+    field.addEventListener('blur', function() {
+      // Atualizar o estado no formStateManager ao invés de localStorage diretamente
+      if (window.formStateManager && window.formStateManager.formData) {
+        const currentRoute = window.location.hash.substring(1) || 'personal';
+        if (!window.formStateManager.formData[currentRoute]) {
+          window.formStateManager.formData[currentRoute] = {};
+        }
+        window.formStateManager.formData[currentRoute][fieldId] = this.value;
+        // Não chamar saveToLocalStorage aqui para evitar salvamentos excessivos.
+        // A captura principal de dados antes da navegação ou em saveForm() cuidará disso.
+      }
+    });
+  }
+}

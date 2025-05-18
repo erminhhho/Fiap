@@ -50,7 +50,7 @@
         <option value="week">Esta Semana</option>
         <option value="month">Este Mês</option>
       </select>
-      <button id="btn-new-attendance" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" onclick="window.location.href = '#personal'; localStorage.removeItem('formId'); localStorage.removeItem('formData'); localStorage.removeItem('currentStep');">
+      <button id="btn-new-attendance" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" onclick="window.location.href = '#personal';">
         <i class="fas fa-plus"></i> Novo
       </button>
     </div>
@@ -138,19 +138,16 @@
       let status = {
         router: typeof window.navigateTo === 'function',
         formStateManager: window.formStateManager !== undefined,
-        hashChange: true, // Assumimos que sempre funciona
-        localStorage: typeof localStorage !== 'undefined'
+        hashChange: true // Assumimos que sempre funciona
       };
 
-      console.log("Status das dependências:", status);
+      console.log("Status das dependências (sem localStorage):", status);
 
       return status;
     }
 
     // Carregar dados iniciais
     loadAttendances();
-
-        // O campo de busca por CPF foi removido
 
     // Configurar eventos
     document.getElementById('search-attendances').addEventListener('input', filterAttendances);
@@ -211,35 +208,8 @@
         // Atualizar contadores
         updateCountsFromData(attendances);
       } else {
-        // Carregar do localStorage
-        const formId = localStorage.getItem('formId');
-        const formData = localStorage.getItem('formData');
-
-        if (formId && formData) {
-          try {
-            const parsedData = JSON.parse(formData);
-            const personal = parsedData.personal || {};
-
-            const attendances = [{
-              id: formId,
-              name: personal.nome || 'Formulário Local',
-              cpf: personal.cpf || '-',
-              date: formatDate(new Date()),
-              status: 'Em andamento',
-              progress: calculateProgressFromLocalData(parsedData),
-              formData: parsedData
-            }];
-
-            renderAttendances(attendances);
-            updateCounts({ today: 1, completed: 0, inProgress: 1, total: 1 });
-          } catch (e) {
-            console.error('Erro ao processar dados locais:', e);
-            tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Erro ao carregar dados locais</td></tr>`;
-          }
-        } else {
-          tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Nenhum atendimento encontrado localmente</td></tr>`;
-          updateCounts({ today: 0, completed: 0, inProgress: 0, total: 0 });
-        }
+        tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Funcionalidade de carregamento offline de atendimentos não está mais disponível.</td></tr>`;
+        updateCounts({ today: 0, completed: 0, inProgress: 0, total: 0 });
       }
     } catch (error) {
       console.error('Erro ao carregar atendimentos:', error);
@@ -379,7 +349,6 @@
               };
               window.formStateManager.currentStep = data.currentStep || 'personal';
               window.formStateManager.isInitialized = true;
-              window.formStateManager.saveToLocalStorage();
             }
 
             // Navegar para a etapa atual ou a primeira
@@ -393,16 +362,7 @@
           showError('Erro ao carregar atendimento: ' + error.message);
         });
     } else {
-      // Se offline, verificar se é o formulário local
-      const formId = localStorage.getItem('formId');
-
-      if (formId === id) {
-        // Navegar para o formulário local
-        const currentStep = localStorage.getItem('currentStep') || 'personal';
-        navigateTo(currentStep);
-      } else {
-        showError('Conexão offline. Apenas o formulário atual pode ser acessado.');
-      }
+      showError('Conexão offline. Não é possível carregar atendimentos.');
     }
   }
 
@@ -425,23 +385,7 @@
             showError('Erro ao excluir atendimento: ' + error.message);
           });
       } else {
-        // Se offline, limpar dados locais se for o formulário atual
-        const formId = localStorage.getItem('formId');
-
-        if (formId === id) {
-          localStorage.removeItem('formId');
-          localStorage.removeItem('formData');
-          localStorage.removeItem('currentStep');
-
-          if (window.formStateManager) {
-            window.formStateManager.clearState();
-          }
-
-          showSuccess('Formulário local excluído');
-          loadAttendances(); // Recarregar a lista
-        } else {
-          showError('Conexão offline. Apenas o formulário atual pode ser excluído.');
-        }
+        showError('Conexão offline. Não é possível excluir atendimentos.');
       }
     }
   }
@@ -451,8 +395,6 @@
     // A ser implementado com dados reais
     console.log('Filtrando atendimentos...');
   }
-
-    // As funções createNewWithCpf e searchByCpf foram removidas pois o card de busca/cadastro por CPF foi removido
 
   // Função para mostrar erro
   function showError(message) {
