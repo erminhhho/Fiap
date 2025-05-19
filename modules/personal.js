@@ -5,15 +5,61 @@
 // Limpar função de inicialização anterior
 window.initModule = null;
 
-// Contador global de autores - usando window para evitar redeclaração
-if (typeof window.authorCount === 'undefined') {
-    window.authorCount = 1;
-}
+// Definir nova função de inicialização do módulo
+window.initModule = function() {
+  console.log('Inicializando módulo de dados pessoais e configurando eventos...');
 
-// Array com etiquetas para os autores adicionais - usando window para evitar redeclaração
-if (typeof window.authorLabels === 'undefined') {
+  // Contador global de autores - usando window para evitar redeclaração
+  if (typeof window.authorCount === 'undefined') {
+    window.authorCount = 1;
+  }
+
+  // Array com etiquetas para os autores adicionais - usando window para evitar redeclaração
+  if (typeof window.authorLabels === 'undefined') {
     window.authorLabels = ['Requerente', 'Instituidor', 'Dependente', 'Representante', 'Requerente Rep.', 'Litsconsorte'];
-}
+  }
+
+  // Forçar reinicialização do módulo ao acessar diretamente pela URL
+  if (window.location.hash === '#personal') {
+    window._personalInitialized = false;
+  }
+
+  // Verificar se o módulo já foi inicializado nesta sessão
+  if (window._personalInitialized && !window.forceModuleReload) {
+    console.log('Módulo de dados pessoais já inicializado.');
+    // Mesmo que já inicializado, garantir que os botões de adicionar estejam configurados
+    // e que os eventos dos campos dinâmicos sejam re-adicionados.
+    setupDynamicFieldEvents(); // Garante eventos para campos de nascimento/idade, CPF, etc.
+    return;
+  }
+
+  // Marcar como inicializado
+  window._personalInitialized = true;
+  window.forceModuleReload = false; // Resetar a flag de forçar recarga
+
+  // Configurar eventos principais do módulo (CEP, pesquisa de colaborador, etc.)
+  setupEvents();
+
+  // Configurar eventos para campos que podem ser adicionados dinamicamente (autores)
+  setupDynamicFieldEvents();
+
+  // Limpar flag quando a página mudar (listener de uso único)
+  document.addEventListener('stepChanged', function handleStepChange() {
+    window._personalInitialized = false;
+    document.removeEventListener('stepChanged', handleStepChange); // Auto-remover
+  }, { once: true });
+
+  // Disponibilizar addAuthor globalmente ANTES de restaurar
+  window.addAuthor = addAuthor;
+
+  // Restaurar dados para esta etapa
+  if (window.formStateManager) {
+    const currentStepKey = 'personal';
+    console.log(`[personal.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
+    window.formStateManager.ensureFormAndRestore(currentStepKey);
+  }
+  console.log('[personal.js] Módulo totalmente inicializado e restauração solicitada.');
+};
 
 // Função para adicionar um novo autor
 function addAuthor() {
@@ -276,7 +322,6 @@ function applyRelationshipStyles() {
 }
 
 // Exportar funções para o escopo global
-window.addAuthor = addAuthor;
 window.removeLastAuthor = removeLastAuthor;
 window.removeSpecificAuthor = removeSpecificAuthor;
 window.updateRelationshipLabel = updateRelationshipLabel;
@@ -601,23 +646,11 @@ function setupEvents() {
   }
 }
 
-// Definir nova função de inicialização do módulo
-window.initModule = function() {
-  // Evitar múltiplas inicializações - REMOVIDO
-  // if (window._personalInitialized) {
-  //   console.log('Módulo de dados pessoais já inicializado.');
-  //   return;
-  // }
-
-  // Marcar como inicializado - REMOVIDO
-  // window._personalInitialized = true;
-
-  // Setup inicial
-  console.log('Inicializando módulo de dados pessoais e configurando eventos...');
-  setupEvents();
-
-  // Resetar flag quando a página mudar - REMOVIDO
-  // document.addEventListener('stepChanged', function() {
-  //   window._personalInitialized = false;
-  // }, { once: true });
-};
+// Função para configurar os eventos dinâmicos do módulo
+function setupDynamicFieldEvents() {
+  // Adicionar eventos para campos dinâmicos (autores)
+  const addAuthorButton = document.querySelector('.add-author-button');
+  if (addAuthorButton) {
+    addAuthorButton.addEventListener('click', addAuthor);
+  }
+}
