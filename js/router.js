@@ -256,16 +256,8 @@ async function loadModuleWithTemplate(route) {
     }
 
     // Restaurar o estado do formulário para o módulo carregado
-    if (window.formStateManager && window.formStateManager.currentFormId) {
-      routerLog('Restaurando estado do formulário');
-      window.formStateManager.currentStep = route.scriptUrl.split('/').pop().replace('.js', '');
-      setTimeout(() => {
-        routerLog('Restaurando dados do formulário após delay');
-        window.formStateManager.restoreFormData(window.formStateManager.currentStep);
-      }, 300);
-    } else {
-      routerLog('Nenhum estado de formulário para restaurar');
-    }
+    // REMOVIDO O BLOCO CONDICIONAL E O SETTIMEOUT QUE CHAMAVA restoreFormData
+    // A restauração será agora responsabilidade de cada initModule.
 
     // Configurar botões contextuais (Limpar em cada página e Imprimir na última)
     if (typeof window.setupContextualButtons === 'function') {

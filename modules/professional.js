@@ -41,6 +41,17 @@ window.initModule = function() {
   document.addEventListener('stepChanged', function() {
     window._professionalInitialized = false;
   }, { once: true });
+
+  window.addAtividade = addAtividade; // Garantir que está definido ANTES da restauração
+
+  // Restaurar dados para esta etapa
+  if (window.formStateManager) {
+    const currentStepKey = 'professional';
+    console.log(`[professional.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
+    window.formStateManager.ensureFormAndRestore(currentStepKey);
+  }
+
+  console.log('[professional.js] Módulo totalmente inicializado e restauração solicitada.');
 };
 
 // Função para configurar eventos do módulo
@@ -248,8 +259,6 @@ function addAtividade() {
     window._atividadeAddLock = false;
   }, 100);
 }
-
-window.addAtividade = addAtividade;
 
 // Função para obter o texto formatado
 function getFormattedText(value) {
