@@ -115,20 +115,6 @@ function addAuthor() {
   }
 }
 
-// Função para ativar/desativar a etiqueta de WhatsApp
-function toggleWhatsAppTag(element) {
-  // Alternar a classe 'active'
-  element.classList.toggle('active');
-
-  // Obter o checkbox dentro da etiqueta
-  const checkbox = element.querySelector('input[type="checkbox"]');
-
-  // Inverter o estado do checkbox
-  if (checkbox) {
-    checkbox.checked = !checkbox.checked;
-  }
-}
-
 // Função para ativar/desativar a etiqueta de relacionamento
 function toggleRelationshipTag(element) {
   // Obter o tipo de relacionamento atual
@@ -257,7 +243,6 @@ window.addAuthor = addAuthor;
 window.removeLastAuthor = removeLastAuthor;
 window.removeSpecificAuthor = removeSpecificAuthor;
 window.updateRelationshipLabel = updateRelationshipLabel;
-window.toggleWhatsAppTag = toggleWhatsAppTag;
 window.toggleRelationshipTag = toggleRelationshipTag;
 
 // Array de colaboradores pré-cadastrados para demonstração
@@ -430,12 +415,19 @@ function setupEvents() {
   // Inicializar estilos para os selects de relacionamento
   applyRelationshipStyles();
 
-  // Botão de adicionar autor
-  const addAuthorButton = document.getElementById('add-author-button');
-  if (addAuthorButton) {
-    addAuthorButton.addEventListener('click', addAuthor);
-  } else {
-    console.warn('Botão de adicionar autor não encontrado');
+  // Restaurar estado do Checkbox de WhatsApp para o telefone principal
+  try {
+    const whatsAppCheckbox = document.getElementById('telefone_whatsapp_ativo');
+
+    if (whatsAppCheckbox && window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.personal) {
+      // O FormStateManager salva 'true'/'false' como strings
+      const temWhatsApp = window.formStateManager.formData.personal.telefone_whatsapp_ativo === 'true';
+      whatsAppCheckbox.checked = temWhatsApp;
+    } else {
+      if (!whatsAppCheckbox) console.warn('Checkbox de WhatsApp (telefone_whatsapp_ativo) não encontrado para restauração.');
+    }
+  } catch (e) {
+    console.error('Erro ao restaurar estado do checkbox de WhatsApp:', e);
   }
 
   // Botão de remover autor (o primeiro, que não é dinâmico)
@@ -471,34 +463,99 @@ function setupEvents() {
 
   // Adicionar evento de clique aos botões de navegação (próximo/anterior)
   const btnNext = document.getElementById('btn-next');
-  const btnBack = document.getElementById('btn-back'); // Assumindo que existe um btn-back
+  const btnBack = document.getElementById('btn-back');
 
   if (btnNext) {
-    btnNext.addEventListener('click', function() {
-      // Apenas navega, o formStateManager cuidará de capturar os dados se necessário (sem salvar localmente)
-      if (typeof navigateToNextStep === 'function') {
-        navigateToNextStep();
+    // Remover eventuais listeners antigos para evitar duplicação
+    const newBtnNext = btnNext.cloneNode(true);
+    btnNext.parentNode.replaceChild(newBtnNext, btnNext);
+
+    let isNavigating = false;
+    newBtnNext.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (isNavigating) return;
+      isNavigating = true;
+
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
+      this.disabled = true;
+      this.classList.add('opacity-75');
+
+      try {
+        if (window.formStateManager && typeof window.formStateManager.captureCurrentFormData === 'function') {
+          console.log('Capturando dados do formulário pessoal...');
+          window.formStateManager.captureCurrentFormData();
+        } else {
+          console.warn('formStateManager ou captureCurrentFormData não está disponível.');
+        }
+
+        // Pequeno atraso para garantir que a captura de dados (se houver) seja processada
+        setTimeout(() => {
+          if (typeof navigateTo === 'function') {
+            console.log('Navegando para a próxima etapa: social');
+            navigateTo('social'); // Assumindo que 'social' é a próxima etapa
+          } else {
+            console.error('Função navigateTo não encontrada.');
+            this.innerHTML = originalText; // Restaura o botão em caso de erro
+            this.disabled = false;
+            this.classList.remove('opacity-75');
+            isNavigating = false;
+          }
+
+          // O botão será re-habilitado pela mudança de página ou se a navegação falhar no catch
+        }, 100);
+
+      } catch (error) {
+        console.error('Erro ao tentar navegar ou capturar dados:', error);
+        this.innerHTML = originalText;
+        this.disabled = false;
+        this.classList.remove('opacity-75');
+        isNavigating = false;
       }
     });
   }
 
   if (btnBack) {
-    btnBack.addEventListener('click', function() {
-      if (typeof navigateToPrevStep === 'function') {
-        navigateToPrevStep();
+    // Remover eventuais listeners antigos para evitar duplicação
+    const newBtnBack = btnBack.cloneNode(true);
+    btnBack.parentNode.replaceChild(newBtnBack, btnBack);
+
+    newBtnBack.addEventListener('click', function() {
+      if (typeof navigateTo === 'function') {
+        navigateTo('home'); // Ou a etapa anterior correta, ex: 'welcome' ou a identificada pelo router
+      } else {
+        console.error('Função navigateTo não encontrada para voltar.');
       }
     });
   }
 
-  // Salvar dados ao sair do campo ou ao mudar valor (usando updateFormData que não salva localmente)
-  const fieldsToUpdate = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes', 'colaborador'];
-  // Adicionar campos de autores dinâmicos se necessário
-  // Ex: document.querySelectorAll('[id^="nome_"], [id^="cpf_"] etc.')
+  // Salvar dados ao sair do campo ou ao mudar valor
+  const fieldsToUpdate = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes', 'colaborador', 'telefone_whatsapp_ativo'];
   fieldsToUpdate.forEach(fieldId => {
     const field = document.getElementById(fieldId);
     if (field) {
-      field.addEventListener('blur', () => updateFormData('personal', fieldId, field.value));
-      field.addEventListener('change', () => updateFormData('personal', fieldId, field.value));
+      const eventType = (field.type === 'checkbox' || field.type === 'select-one' || field.type === 'select-multiple') ? 'change' : 'blur';
+      field.addEventListener(eventType, () => {
+        if (window.formStateManager && typeof window.formStateManager.updateSpecificField === 'function') {
+          let valueToSave = field.type === 'checkbox' ? field.checked : field.value;
+          window.formStateManager.updateSpecificField('personal', fieldId, valueToSave);
+        } else {
+          console.warn('[PersonalModule] formStateManager.updateSpecificField não disponível.');
+        }
+      });
+      // Adicionar também para 'change' em campos de texto para capturar alterações via scripts ou auto-fill, se necessário
+      if (eventType === 'blur') {
+        field.addEventListener('change', () => {
+          if (window.formStateManager && typeof window.formStateManager.updateSpecificField === 'function') {
+            let valueToSave = field.type === 'checkbox' ? field.checked : field.value;
+            window.formStateManager.updateSpecificField('personal', fieldId, valueToSave);
+          } else {
+            console.warn('[PersonalModule] formStateManager.updateSpecificField não disponível para evento change.');
+          }
+        });
+      }
     }
   });
 
@@ -513,20 +570,21 @@ function setupEvents() {
 
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
-  // Evitar múltiplas inicializações
-  if (window._personalInitialized) {
-    console.log('Módulo de dados pessoais já inicializado.');
-    return;
-  }
+  // Evitar múltiplas inicializações - REMOVIDO
+  // if (window._personalInitialized) {
+  //   console.log('Módulo de dados pessoais já inicializado.');
+  //   return;
+  // }
 
-  // Marcar como inicializado
-  window._personalInitialized = true;
+  // Marcar como inicializado - REMOVIDO
+  // window._personalInitialized = true;
 
   // Setup inicial
+  console.log('Inicializando módulo de dados pessoais e configurando eventos...');
   setupEvents();
 
-  // Resetar flag quando a página mudar
-  document.addEventListener('stepChanged', function() {
-    window._personalInitialized = false;
-  }, { once: true });
+  // Resetar flag quando a página mudar - REMOVIDO
+  // document.addEventListener('stepChanged', function() {
+  //   window._personalInitialized = false;
+  // }, { once: true });
 };

@@ -9,30 +9,32 @@ window.initModule = null;
 window.initModule = function() {
   setupEvents();
 
-  // Usar MutationObserver para garantir que o DOM foi carregado completamente
-  // e que o contêiner "membros-familia-list" existe antes de tentar inicializá-lo
-  const observer = new MutationObserver(function(mutations, obs) {
+  // Tentativa de inicializar o assistido após um breve delay para garantir que o DOM esteja pronto
+  // Substitui o MutationObserver anterior para simplificar.
+  const tryInitializeAssistido = () => {
     const container = document.getElementById('membros-familia-list');
     if (container) {
       console.log("Container 'membros-familia-list' encontrado, inicializando assistido...");
       inicializarAssistido();
-      obs.disconnect(); // Parar de observar quando o elemento for encontrado
+    } else {
+      // Tentar novamente após um pequeno atraso se o container ainda não estiver pronto
+      // Isso pode acontecer se o script do módulo executar antes do HTML ser totalmente renderizado pelo router.
+      console.warn("Container 'membros-familia-list' não encontrado na primeira tentativa, tentando novamente em breve...");
+      setTimeout(() => {
+        const containerRetry = document.getElementById('membros-familia-list');
+        if (containerRetry) {
+          console.log("Container 'membros-familia-list' encontrado na RETENTATIVA, inicializando assistido...");
+          inicializarAssistido();
+        } else {
+          console.error("ERRO CRÍTICO: Container 'membros-familia-list' NÃO encontrado após retentativa. A lista de família não será populada corretamente.");
+        }
+      }, 500); // Tenta novamente após 500ms
     }
-  });
+  };
 
-  // Configurar e iniciar o observer
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-
-  // Defina um timeout para garantir que o observer não continuará indefinidamente
-  setTimeout(() => {
-    observer.disconnect();
-    if (!document.getElementById('membros-familia-list')) {
-      console.warn("O container 'membros-familia-list' não foi encontrado após espera máxima.");
-    }
-  }, 2000);
+  // Chamar a tentativa de inicialização.
+  // Um setTimeout aqui pode dar um ciclo de renderização para o navegador.
+  setTimeout(tryInitializeAssistido, 100); // Pequeno delay inicial
 };
 
 // Função para configurar eventos do módulo

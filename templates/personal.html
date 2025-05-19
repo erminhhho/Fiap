@@ -99,11 +99,8 @@
                 <label for="telefone" class="input-label">
                   Telefone
                 </label>
-                <!-- Etiqueta WhatsApp no canto superior direito -->
-                <div class="whatsapp-tag" onclick="toggleWhatsAppTag(this)">
-                  <i class="fab fa-whatsapp"></i>
-                  <span>WhatsApp</span>
-                </div>
+                <!-- O checkbox sr-only é mantido para controle de estado, a tag visual foi removida -->
+                <input type="checkbox" id="telefone_whatsapp_ativo" name="telefone_whatsapp_ativo" class="sr-only" />
               </div>
 
               <!-- Container para Senha e Colaborador com grid aninhado -->

@@ -20,7 +20,7 @@ firebase.initializeApp(firebaseConfig);
 const analytics = firebase.analytics();
 
 // Referências aos serviços do Firebase
-const db = firebase.firestore();
+// const db = firebase.firestore(); // REMOVIDO - Firestore não é mais usado para persistência de formulário
 const auth = firebase.auth();
 const storage = firebase.storage();
 
@@ -29,7 +29,7 @@ const storage = firebase.storage();
  */
 FIAP.firebase = {
   // Referências aos serviços
-  db,
+  db: null, // Definido como null já que firestore não está sendo usado para formulários
   auth,
   storage,
 
