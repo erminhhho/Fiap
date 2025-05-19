@@ -9,16 +9,12 @@ window.initModule = null;
 window.initModule = function() {
   setupEvents();
 
-  // Tentativa de inicializar o assistido após um breve delay para garantir que o DOM esteja pronto
-  // Substitui o MutationObserver anterior para simplificar.
   const tryInitializeAssistido = () => {
     const container = document.getElementById('membros-familia-list');
     if (container) {
       console.log("Container 'membros-familia-list' encontrado, inicializando assistido...");
-      inicializarAssistido();
+      inicializarAssistido(); // Isso preenche a linha do assistido e os campos de nome/cpf/idade
     } else {
-      // Tentar novamente após um pequeno atraso se o container ainda não estiver pronto
-      // Isso pode acontecer se o script do módulo executar antes do HTML ser totalmente renderizado pelo router.
       console.warn("Container 'membros-familia-list' não encontrado na primeira tentativa, tentando novamente em breve...");
       setTimeout(() => {
         const containerRetry = document.getElementById('membros-familia-list');
@@ -28,13 +24,34 @@ window.initModule = function() {
         } else {
           console.error("ERRO CRÍTICO: Container 'membros-familia-list' NÃO encontrado após retentativa. A lista de família não será populada corretamente.");
         }
-      }, 500); // Tenta novamente após 500ms
+      }, 500);
     }
   };
 
-  // Chamar a tentativa de inicialização.
-  // Um setTimeout aqui pode dar um ciclo de renderização para o navegador.
-  setTimeout(tryInitializeAssistido, 100); // Pequeno delay inicial
+  setTimeout(tryInitializeAssistido, 100);
+
+  // Garantir que addFamilyMember esteja disponível globalmente ANTES da restauração
+  // A definição de window.addFamilyMember já existe mais abaixo no arquivo, mas é bom ter clareza da ordem.
+  // Se addFamilyMember ainda não estiver definida como window.addFamilyMember, faça aqui.
+  if (typeof window.addFamilyMember === 'undefined' && typeof addFamilyMember === 'function') {
+    window.addFamilyMember = addFamilyMember;
+    console.log("[social.js] initModule: window.addFamilyMember definido.");
+  }
+
+  // Restaurar dados para esta etapa APÓS a inicialização do assistido e configuração de addFamilyMember
+  if (window.formStateManager) {
+    const currentStepKey = 'social';
+    // Pequeno delay para dar tempo ao tryInitializeAssistido de popular a linha do assistido,
+    // para que a restauração encontre os campos do assistido já no DOM.
+    setTimeout(() => {
+        console.log(`[social.js] initModule: Solicitando restauração para a etapa: ${currentStepKey} após inicialização do assistido.`);
+        window.formStateManager.ensureFormAndRestore(currentStepKey);
+    }, 600); // Aumentar um pouco o delay para garantir que o assistido foi inicializado (era 500ms na retentativa do container)
+  } else {
+    console.error("[social.js] initModule: formStateManager não encontrado. A restauração de dados não ocorrerá.");
+  }
+
+  console.log('[social.js] Módulo social: eventos configurados e inicialização do assistido/restauração solicitada.');
 };
 
 // Função para configurar eventos do módulo

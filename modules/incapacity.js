@@ -109,28 +109,18 @@ window.initModule = function() {
   // Implementar o novo sistema de pesquisa e autocomplete para CID e doença
   setupImprovedCidSearch();
 
-  // Se estamos usando a abordagem antiga como fallback, carregar também
-  // A lógica abaixo será executada OU precisará ser removida se não for mais necessária.
-  // Por agora, vou manter a lógica interna, mas o 'if (!isUsingNewSystem)' foi implicitamente tornado verdadeiro.
-  // Avaliar se initCidSystem() ainda é relevante.
-  // Inicializar o sistema de CID para os campos existentes
   if (typeof initCidSystem === 'function') {
-    // Inicializa imediatamente
     try {
       initCidSystem();
     } catch (e) {
       console.warn("Erro na primeira inicialização do sistema CID:", e);
     }
-
-    // E também com um pequeno atraso para garantir que todos os elementos foram carregados
     setTimeout(() => {
       try {
         initCidSystem();
       } catch (e) {
         console.warn("Erro na segunda inicialização do sistema CID:", e);
       }
-
-      // Garantir que os campos sejam verificados após inicialização do sistema CID
       document.querySelectorAll('.doenca-input, .cid-input').forEach(input => {
         if (input.classList.contains('doenca-input')) {
           verificarIsencaoCarencia(input);
@@ -142,8 +132,27 @@ window.initModule = function() {
           }
         }
       });
-    }, 500); // Aumentado para 500ms para garantir que tudo carregue
+    }, 500);
   }
+
+  // Expor addDoencaField globalmente ANTES da restauração
+  if (typeof window.addDoencaField === 'undefined' && typeof addDoencaField === 'function') {
+    window.addDoencaField = addDoencaField;
+    console.log("[incapacity.js] initModule: window.addDoencaField definido.");
+  }
+
+  // Restaurar dados para esta etapa
+  if (window.formStateManager) {
+    const currentStepKey = 'incapacity';
+    // Adicionar um pequeno delay para garantir que os sistemas de CID e dropdowns estejam prontos
+    setTimeout(() => {
+        console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
+        window.formStateManager.ensureFormAndRestore(currentStepKey);
+    }, 700); // Delay um pouco maior devido às inicializações de CID
+  } else {
+    console.error("[incapacity.js] initModule: formStateManager não encontrado. A restauração não ocorrerá.");
+  }
+  console.log('[incapacity.js] Módulo de incapacidade totalmente inicializado e restauração solicitada.');
 };
 
 /**

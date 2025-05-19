@@ -25,7 +25,7 @@ window.initModule = function() {
       btn.parentNode.replaceChild(newBtn, btn);
 
       // Adicionar evento ao novo botão
-      newBtn.addEventListener('click', addAtividade);
+      newBtn.addEventListener('click', handleAddAtividadeClick);
     });
 
     return;
@@ -61,16 +61,12 @@ function setupEvents() {
     destacarCamposPreenchidos();
   }
 
-  // Corrigido: Abordagem para o botão de adicionar atividade
+  // Botão de adicionar atividade
   document.querySelectorAll('.add-atividade-btn').forEach(btn => {
-    // Remover eventos existentes
     const newBtn = btn.cloneNode(true);
-
-    // Substituir o botão original pelo clone
     btn.parentNode.replaceChild(newBtn, btn);
-
-    // Adicionar evento ao novo botão
-    newBtn.addEventListener('click', addAtividade);
+    // MODIFICADO: Chamar o novo handler com lock
+    newBtn.addEventListener('click', handleAddAtividadeClick);
   });
 
   // Configurar tags da primeira linha
@@ -213,19 +209,15 @@ function restoreOriginalIcon(icon, tag) {
   }
 }
 
-// Função para adicionar uma nova atividade
+// Função para adicionar uma nova atividade (SEM o lock interno)
 function addAtividade() {
-  // Evitar múltiplos cliques
-  if (window._atividadeAddLock) return;
-  window._atividadeAddLock = true;
+  console.log("[professional.js] addAtividade (programático ou via handler): Iniciando.");
 
-  // Abordagem simplificada que funcionará com garantia
   const template = document.getElementById('atividadeTemplate');
   const atividadesList = document.getElementById('atividadesList');
 
   if (!template || !atividadesList) {
     console.error("Template ou lista de atividades não encontrado");
-    window._atividadeAddLock = false;
     return;
   }
 
@@ -248,16 +240,27 @@ function addAtividade() {
   if (typeof destacarCamposPreenchidos === 'function') {
     destacarCamposPreenchidos();
   }
+}
 
-  // Reconfigurar os botões de adicionar após adicionar uma nova atividade
-  setTimeout(() => {
-    document.querySelectorAll('.add-atividade-btn').forEach(btn => {
-      const newBtn = btn.cloneNode(true);
-      btn.parentNode.replaceChild(newBtn, btn);
-      newBtn.addEventListener('click', addAtividade);
-    });
-    window._atividadeAddLock = false;
-  }, 100);
+// NOVO: Handler para o clique do botão Adicionar Atividade, contendo o lock
+function handleAddAtividadeClick() {
+  if (window._atividadeAddButtonClickLock) {
+    console.log("[professional.js] handleAddAtividadeClick: Lock ativo, prevenindo novo clique.");
+    return;
+  }
+  window._atividadeAddButtonClickLock = true;
+  console.log("[professional.js] handleAddAtividadeClick: Botão Adicionar Atividade clicado, lock ativado.");
+
+  try {
+    addAtividade(); // Chama a função addAtividade (que agora está sem lock interno)
+  } catch (error) {
+    console.error("[professional.js] handleAddAtividadeClick: Erro ao chamar addAtividade:", error);
+  } finally {
+    setTimeout(() => {
+      window._atividadeAddButtonClickLock = false;
+      console.log("[professional.js] handleAddAtividadeClick: Lock do botão Adicionar Atividade liberado.");
+    }, 300); // Lock para cliques do usuário
+  }
 }
 
 // Função para obter o texto formatado
