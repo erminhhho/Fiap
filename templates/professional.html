@@ -15,7 +15,7 @@
         <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
           <!-- Tipo de Atividade -->
           <div class="relative md:col-span-6">
-            <select class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+            <select name="atividade_tipo[]" class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
               <option value="" selected disabled>Selecione...</option>
               <option value="segurado_especial">Segurado Especial</option>
               <option value="empregado">Empregado (CLT)</option>
@@ -31,7 +31,7 @@
             </label>
             <!-- Tags como dropdown -->
             <div class="relationship-select" data-selected="Contribuiu" data-value="Contribuiu" onclick="toggleActivityTag(this)">
-              <select class="activity-tag" onchange="updateActivityTag(this)">
+              <select name="atividade_tag_status[]" class="activity-tag" onchange="updateActivityTag(this)">
                 <option value="Contribuiu">Contribuiu</option>
                 <option value="Pagou Guia">Pagou Guia</option>
                 <option value="Subsistência">Subsistência</option>
@@ -44,13 +44,13 @@
           <div class="relative md:col-span-5">
             <div class="grid grid-cols-2 gap-3">
               <div class="relative">
-                <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Início" min="1900" max="2100">
+                <input name="atividade_periodo_inicio[]" type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Início" min="1900" max="2100">
                 <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
                   Início
                 </label>
               </div>
               <div class="relative">
-                <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Fim" min="1900" max="2100">
+                <input name="atividade_periodo_fim[]" type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Fim" min="1900" max="2100">
                 <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
                   Fim
                 </label>
@@ -63,7 +63,7 @@
 
           <!-- Detalhes -->
           <div class="relative md:col-span-12">
-            <input type="text" class="detalhes peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Detalhes da atividade">
+            <input name="atividade_detalhes[]" type="text" class="detalhes peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Detalhes da atividade">
             <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
               Detalhes
             </label>
@@ -105,7 +105,7 @@
     <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
       <!-- Tipo de Atividade -->
       <div class="relative md:col-span-6">
-        <select class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+        <select name="atividade_tipo[]" class="tipo-atividade peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
           <option value="" selected disabled>Selecione...</option>
           <option value="segurado_especial">Segurado Especial</option>
           <option value="empregado">Empregado (CLT)</option>
@@ -121,7 +121,7 @@
         </label>
         <!-- Tags como dropdown -->
         <div class="relationship-select" data-selected="Contribuiu" data-value="Contribuiu" onclick="toggleActivityTag(this)">
-          <select class="activity-tag" onchange="updateActivityTag(this)">
+          <select name="atividade_tag_status[]" class="activity-tag" onchange="updateActivityTag(this)">
             <option value="Contribuiu">Contribuiu</option>
             <option value="Pagou Guia">Pagou Guia</option>
             <option value="Subsistência">Subsistência</option>
@@ -134,13 +134,13 @@
       <div class="relative md:col-span-5">
         <div class="grid grid-cols-2 gap-3">
           <div class="relative">
-            <input type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Início" min="1900" max="2100">
+            <input name="atividade_periodo_inicio[]" type="number" class="periodo-inicio peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Início" min="1900" max="2100">
             <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
               Início
             </label>
           </div>
           <div class="relative">
-            <input type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Fim" min="1900" max="2100">
+            <input name="atividade_periodo_fim[]" type="number" class="periodo-fim peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Fim" min="1900" max="2100">
             <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
               Fim
             </label>
@@ -153,7 +153,7 @@
 
       <!-- Detalhes -->
       <div class="relative md:col-span-12">
-        <input type="text" class="detalhes peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Detalhes da atividade">
+        <input name="atividade_detalhes[]" type="text" class="detalhes peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200" placeholder="Detalhes da atividade">
         <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
           Detalhes
         </label>

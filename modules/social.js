@@ -380,6 +380,8 @@ function addFamilyMember() {
   updateRemoveMemberButton();
 }
 
+window.addFamilyMember = addFamilyMember;
+
 // Função para remover o último membro da família (nunca remove o assistido)
 function removeLastFamilyMember() {
   const list = document.getElementById('membros-familia-list');
@@ -662,6 +664,7 @@ function calcularRendaTotal() {
     atualizarTermometro();
   }
 }
+window.calcularRendaTotal = calcularRendaTotal;
 
 // Calcular renda per capita (total dividido pelo número de membros com CadÚnico)
 function calcularRendaPerCapita(totalCadunico, membrosCadunico) {
@@ -800,3 +803,38 @@ function formatarMoeda(valor) {
     maximumFractionDigits: 0
   });
 }
+
+function updateCadUnicoButtonVisual(hiddenInput) {
+  if (!hiddenInput || hiddenInput.type !== 'hidden') return;
+
+  const button = hiddenInput.nextElementSibling;
+  // Garantir que o próximo irmão é realmente o botão CadÚnico esperado
+  if (!button || !button.classList.contains('cadunico-btn')) {
+    // Tentar encontrar o botão de forma mais robusta se não for o próximo irmão direto
+    // Isso pode acontecer se houver outros elementos ou a estrutura mudar.
+    // Esta busca é um fallback e pode precisar de ajuste se a estrutura for complexa.
+    const parentContainer = hiddenInput.closest('.relative'); // Ou o container mais apropriado
+    const cadUnicoButtonInContainer = parentContainer ? parentContainer.querySelector('.cadunico-btn') : null;
+    if (!cadUnicoButtonInContainer) {
+        console.warn('Botão CadÚnico não encontrado para o input hidden:', hiddenInput);
+        return;
+    }
+     // Se encontrou, usar o botão encontrado
+     if(cadUnicoButtonInContainer && cadUnicoButtonInContainer.classList.contains('cadunico-btn')) {
+        // Se o botão encontrado for o correto, prosseguir
+     } else {
+        return; // Não é o botão esperado
+     }
+  }
+
+  const isActive = hiddenInput.value === 'Sim';
+
+  if (isActive) {
+    button.classList.add('active', 'bg-green-500', 'text-white', 'border-green-500');
+    button.classList.remove('text-gray-500', 'border-gray-300');
+  } else {
+    button.classList.remove('active', 'bg-green-500', 'text-white', 'border-green-500');
+    button.classList.add('text-gray-500', 'border-gray-300');
+  }
+}
+window.updateCadUnicoButtonVisual = updateCadUnicoButtonVisual;

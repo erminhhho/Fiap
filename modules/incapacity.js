@@ -1051,6 +1051,5 @@ function addDoencaField() {
   }
 }
 
-// Exportar funções para uso global
-window.setupIncapacityEvents = setupEvents;
-window.addIncapacityDoencaField = addDoencaField;
+// Expor a função para ser chamada externamente (ex: pelo FormStateManager)
+window.addDoencaField = addDoencaField;

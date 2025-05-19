@@ -1,3 +1,35 @@
+// Definição do FIAP.cache usando localStorage
+if (!window.FIAP) {
+  window.FIAP = {};
+}
+
+FIAP.cache = {
+  set: function(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error('Erro ao salvar no FIAP.cache (localStorage):', e);
+    }
+  },
+  get: function(key) {
+    try {
+      const value = localStorage.getItem(key);
+      return value ? JSON.parse(value) : null;
+    } catch (e) {
+      console.error('Erro ao obter do FIAP.cache (localStorage):', e);
+      return null;
+    }
+  },
+  remove: function(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.error('Erro ao remover do FIAP.cache (localStorage):', e);
+    }
+  }
+};
+console.log('FIAP.cache (localStorage) inicializado internamente em state.js.');
+
 /**
  * Gerenciador de Estado do Formulário
  * Mantém o estado do formulário durante navegação e refresh
@@ -289,20 +321,6 @@ class FormStateManager {
       }
     });
 
-    // Capturar CIDs se estiver na página de incapacidade
-    if (currentRoute === 'incapacity') {
-      document.querySelectorAll('.cid-input').forEach(input => {
-        const index = input.getAttribute('data-index');
-        if (index) {
-          const doencaInput = document.getElementById(`doenca${index}`);
-          formData[`cid${index}`] = input.value;
-          if (doencaInput) {
-            formData[`doenca${index}`] = doencaInput.value;
-          }
-        }
-      });
-    }
-
     // Adicionar timestamp para controle
     formData._timestamp = Date.now();
 
@@ -337,100 +355,333 @@ class FormStateManager {
     const stepData = this.formData[step];
     console.log(`[FormStateManager] Tentando restaurar dados para a etapa ${step}. Dados disponíveis:`, stepData ? JSON.parse(JSON.stringify(stepData)) : 'Nenhum');
 
-    if (stepData) {
-      const form = document.querySelector('form');
-      if (!form) return;
+    if (!stepData) return;
 
-      // Restaurar dados para cada campo
-      const elements = form.querySelectorAll('input, select, textarea');
-      elements.forEach(element => {
-        const keyToUse = element.name || element.id;
-        if (stepData.hasOwnProperty(keyToUse)) {
-          let valueToRestore = stepData[keyToUse];
+    const form = document.querySelector('form');
+    if (!form) {
+      console.error('[FormStateManager] Formulário não encontrado no DOM para restauração.');
+      return;
+    }
 
-          if (element.type === 'checkbox') {
-            element.checked = typeof valueToRestore === 'boolean' ? valueToRestore : valueToRestore === 'true';
-            console.log(`[FormStateManager] Restaurando checkbox ${keyToUse}: ${element.checked}`);
-          } else if (element.type === 'radio') {
-            // Para radio, precisamos encontrar o específico com o valor correto
-            // (Esta parte da lógica do state-fix para radio é mais robusta se houver múltiplos radios com o mesmo nome mas IDs diferentes)
-            let foundRadio = false;
-            const radiosWithName = form.querySelectorAll(`input[type="radio"][name="${element.name}"]`);
-            for (let i = 0; i < radiosWithName.length; i++) {
-              if (radiosWithName[i].value === String(valueToRestore)) { // Comparar como string
-                radiosWithName[i].checked = true;
-                foundRadio = true;
-                break;
-              }
-            }
-            // Fallback se não encontrar por nome e valor, tentar por ID (se o campo original tinha ID)
-            if (!foundRadio && element.id === keyToUse) {
-               const radioById = form.querySelector(`input[type="radio"]#${CSS.escape(keyToUse)}[value="${CSS.escape(String(valueToRestore))}"]`);
-               if (radioById) radioById.checked = true;
-            }
+    // Mapeamento de campos que são arrays e requerem manipulação de linhas dinâmicas
+    // A chave é o nome do campo base (ex: 'cids'), o valor é uma função para adicionar uma nova linha.
+    const dynamicArrayFieldHandlers = {
+      incapacity: {
+        // Estes são os nomes base dos campos que vêm como arrays de captureCurrentFormData
+        // e são usados para popular as linhas de doença.
+        // Ex: stepData.cids = ['CID1', 'CID2'], stepData.doencas = ['Doenca1', 'Doenca2']
+        'tipoDocumentos': window.addDoencaField, // Assumindo que addDoencaField cria uma linha completa
+        'cids': window.addDoencaField,
+        'doencas': window.addDoencaField,
+        'dataDocumentos': window.addDoencaField
+      },
+      social: { // Adicionar esta seção para membros da família
+        'familiar_nome': window.addFamilyMember,
+        'familiar_cpf': window.addFamilyMember,
+        'familiar_idade': window.addFamilyMember,
+        'familiar_parentesco': window.addFamilyMember,
+        'familiar_estado_civil': window.addFamilyMember,
+        'familiar_renda': window.addFamilyMember,
+        'familiar_cadunico': window.addFamilyMember
+      },
+      professional: { // ADICIONADO PARA ATIVIDADES PROFISSIONAIS
+        'atividade_tipo': window.addAtividade,
+        'atividade_tag_status': window.addAtividade,
+        'atividade_periodo_inicio': window.addAtividade,
+        'atividade_periodo_fim': window.addAtividade,
+        'atividade_detalhes': window.addAtividade
+      }
+      // Adicionar outros módulos e seus campos de array aqui, se necessário
+    };
 
-          } else if (element.type === 'select-multiple') {
-            if (Array.isArray(valueToRestore)) {
-              Array.from(element.options).forEach(option => {
-                option.selected = valueToRestore.includes(option.value);
-              });
-              console.log(`[FormStateManager] Restaurando select-multiple ${keyToUse}:`, valueToRestore);
-            }
-          } else {
-            element.value = valueToRestore;
-            console.log(`[FormStateManager] Restaurando campo ${keyToUse} com valor: ${valueToRestore}`);
-          }
-          // Atualizar visual de campos preenchidos, se a função existir
-          if (typeof destacarCampoPreenchido === 'function') {
-            destacarCampoPreenchido(element);
-          }
+    // Primeiro, limpar todos os campos (exceto os protegidos) para evitar dados órfãos
+    form.querySelectorAll('input, select, textarea').forEach(element => {
+      // Não limpar campos específicos do assistido na aba 'social' pois são preenchidos por inicializarAssistido
+      if (step === 'social') {
+        const assistidoFieldsIds = ['assistido_nome', 'assistido_cpf', 'assistido_idade', 'assistido_renda'];
+        // O campo de parentesco do assistido é um input com name="familiar_parentesco[]" e value="Assistido"
+        // Os campos de estado civil e cadunico do assistido são arrays e devem ser limpos/restaurados normalmente.
+        if (assistidoFieldsIds.includes(element.id)) {
+          return; // Não limpa
+        }
+        // Para o campo de parentesco do assistido, que é readonly e preenchido com "Assistido"
+        if (element.name === 'familiar_parentesco[]' && element.closest('.assistido') && element.value === 'Assistido') {
+            return; // Não limpa o parentesco do assistido
+        }
+      }
+
+      if (element.type !== 'submit' && element.type !== 'button' && element.type !== 'hidden' &&
+          !element.classList.contains('no-auto-clear') && !element.closest('.no-auto-clear-parent')) {
+        if (element.type === 'checkbox' || element.type === 'radio') {
+          element.checked = false;
         } else {
-          // Limpar campos que não estão nos dados salvos, exceto se forem botões ou hidden
-          if (element.type !== 'submit' && element.type !== 'button' && element.type !== 'hidden' && !element.classList.contains('no-auto-clear')) {
-            if (element.type === 'checkbox' || element.type === 'radio') {
-              element.checked = false;
-            } else {
-              element.value = '';
+          element.value = '';
+        }
+      }
+    });
+
+    // Se estivermos na etapa de incapacidade, e não houver dados para campos de doença,
+    // mas o container de doenças já tiver linhas, vamos removê-las.
+    if (step === 'incapacity') {
+        const doencasList = document.getElementById('doencasList');
+        if (doencasList) {
+            let hasIncapacityArrayData = false;
+            if (dynamicArrayFieldHandlers.incapacity) {
+                for (const fieldName in dynamicArrayFieldHandlers.incapacity) {
+                    if (stepData[fieldName] && Array.isArray(stepData[fieldName]) && stepData[fieldName].length > 0) {
+                        hasIncapacityArrayData = true;
+                        break;
+                    }
+                }
             }
+            if (!hasIncapacityArrayData) {
+                // Remove todas as linhas de doença exceto a primeira, se ela existir e for modelo
+                const rows = doencasList.querySelectorAll('.mb-4.border-b'); // Seletor genérico para linhas
+                rows.forEach((row, index) => {
+                    // Manter a primeira linha se ela for um template ou se não houver dados.
+                    // A lógica aqui pode precisar ser mais específica para identificar um "template"
+                    // Por enquanto, se não há dados, e há mais de uma linha, remove as extras.
+                    // Se não há dados e só há uma linha, ela pode ser o template.
+                    // Para simplificar, se não há dados de array, remove todas as linhas adicionadas.
+                    // A primeira linha geralmente é parte do HTML estático.
+                    // Se 'addDoencaField' cria a primeira linha do zero, então podemos limpar tudo.
+                    // O HTML original para incapacity parece ter uma linha já.
+                    // Vamos assumir que o HTML inicial tem a primeira linha como modelo.
+                    // E 'addDoencaField' adiciona a partir da segunda.
+                    // Se 'addDoencaField' também manipula o índice 0, esta lógica precisa mudar.
+                    // A função addDoencaField calcula nextIndex = existingFields.length + 1
+                    // então ela sempre adiciona. O HTML deve ter a linha 0/1.
+                    if (index > 0) { // Deixa a primeira linha (índice 0)
+                        row.remove();
+                    }
+                });
+            }
+        }
+    } else if (step === 'social') { // Limpeza para membros da família na etapa social
+        const membrosList = document.getElementById('membros-familia-list');
+        if (membrosList) {
+            let hasSocialArrayData = false;
+            if (dynamicArrayFieldHandlers.social) {
+                for (const fieldName in dynamicArrayFieldHandlers.social) {
+                    if (stepData[fieldName] && Array.isArray(stepData[fieldName]) && stepData[fieldName].length > 0) {
+                        // Consideramos que há dados se qualquer um dos campos de array de familiar tiver dados.
+                        // A primeira entrada de cada array corresponde ao "assistido", que não é adicionado por addFamilyMember
+                        // mas sim por inicializarAssistido(). Os dados do assistido já estão no formData.
+                        // Se familiar_nome.length > 1, significa que há membros além do assistido.
+                        if (stepData[fieldName].length > 1) {
+                            hasSocialArrayData = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Se não há dados para membros *adicionais* (além do assistido),
+            // remover todas as linhas de membro exceto a primeira (o assistido).
+            if (!hasSocialArrayData) {
+                const rows = membrosList.querySelectorAll('.membro-familia'); // Classe para cada linha de membro
+                rows.forEach((row, index) => {
+                    if (index > 0) { // Deixa a primeira linha (o assistido, índice 0)
+                        row.remove();
+                    }
+                });
+            }
+        }
+    } else if (step === 'professional') { // ADICIONADA LÓGICA DE LIMPEZA PARA PROFESSIONAL
+        const atividadesList = document.getElementById('atividadesList');
+        if (atividadesList) {
+            let hasProfessionalArrayData = false;
+            if (dynamicArrayFieldHandlers.professional) {
+                // Verificar se há algum dado de array para atividades profissionais
+                for (const fieldName in dynamicArrayFieldHandlers.professional) {
+                    if (stepData[fieldName] && Array.isArray(stepData[fieldName]) && stepData[fieldName].length > 0) {
+                        hasProfessionalArrayData = true;
+                        break;
+                    }
+                }
+            }
+
+            const rows = atividadesList.querySelectorAll('.atividade-item');
+            let numberOfDataRows = 0;
+            if (hasProfessionalArrayData && dynamicArrayFieldHandlers.professional) {
+                // Usar o primeiro campo definido nos handlers para determinar o número de linhas de dados
+                const firstHandlerKey = Object.keys(dynamicArrayFieldHandlers.professional)[0];
+                if (stepData[firstHandlerKey] && Array.isArray(stepData[firstHandlerKey])) {
+                    numberOfDataRows = stepData[firstHandlerKey].length;
+                }
+            }
+
+            // Remover linhas de atividade que excedem a quantidade de dados salvos.
+            // A primeira linha (índice 0) é estática no HTML e não é adicionada por addAtividade.
+            // As linhas adicionadas por addAtividade são clonadas do template.
+            // Se numberOfDataRows é 1, significa que apenas a primeira linha (estática) deve ter dados.
+            // Se numberOfDataRows é 2, a primeira linha estática + 1 linha adicionada devem ter dados.
+            // Portanto, queremos manter 'numberOfDataRows' no total.
+            for (let i = rows.length - 1; i >= numberOfDataRows; i--) {
+                 // A condição i > 0 foi removida daqui porque a primeira linha (index 0)
+                 // também é uma 'atividade-item'. Se numberOfDataRows é 0, queremos limpar todas as linhas
+                 // exceto a primeira que é parte do layout base (ou recriá-la se foi removida por engano).
+                 // No entanto, addAtividade appenda. A primeira linha estática não é 'adicionada'.
+                 // Se rows.length = 1 (só a estática) e numberOfDataRows = 0, não faz nada.
+                 // Se rows.length = 2 (estática + 1 clone) e numberOfDataRows = 0, remove a clonada (rows[1]).
+                 // Se rows.length = 2 e numberOfDataRows = 1, remove a clonada (rows[1]), pois dados são só para a estática.
+                 // Se rows.length = 1 e numberOfDataRows = 1, não faz nada.
+                 // A lógica de adicionar linhas depois vai criar as que faltam.
+                 // O importante é que rows[0] é a estática e rows[1] em diante são as clones.
+                 // Se há dados para N linhas, e temos M linhas no DOM (M > N), removemos M-N linhas do final,
+                 // mas nunca removemos rows[0].
+                if (i > 0) { // Só remove linhas clonadas (índice > 0)
+                    rows[i].remove();
+                }
+            }
+        }
+    }
+
+
+    // Iterar sobre os dados salvos para a etapa
+    for (const key in stepData) {
+      if (stepData.hasOwnProperty(key)) {
+        const valueToRestore = stepData[key];
+
+        // Verificar se é um campo de array dinâmico para a etapa atual
+        const stepDynamicHandlers = dynamicArrayFieldHandlers[step];
+        if (stepDynamicHandlers && stepDynamicHandlers[key] && Array.isArray(valueToRestore)) {
+          const addRowFunction = stepDynamicHandlers[key];
+          const fieldNameForQuery = `${key}[]`; // Ex: 'cids[]'
+
+          // Garantir que temos linhas suficientes no DOM
+          // Esta parte é um pouco complexa porque addRowFunction (ex: addDoencaField)
+          // adiciona um conjunto de campos, não apenas para 'key'.
+          // Precisamos contar as "linhas" de forma consistente.
+          // Assumindo que o primeiro campo do array (ex: valueToRestore[0]) corresponde à primeira linha dinâmica.
+
+          // Contar quantas linhas de "doença" (ou equivalente) já existem.
+          // Usar um seletor comum para uma linha de doença, ex: o container de cada doença.
+          let existingDynamicRows = 0;
+          if (step === 'incapacity') {
+            // `addDoencaField` adiciona um div com classes 'mb-4 border-b ...'
+            // e dentro dele estão os campos tipoDocumentos[], cids[], doencas[], dataDocumentos[]
+            // A primeira linha estática no HTML pode ou não corresponder a este seletor.
+            // Vamos contar quantos [name="cids[]"] (por exemplo) existem.
+             existingDynamicRows = form.querySelectorAll(`[name="cids[]"]`).length;
+          } else if (step === 'social') {
+            // Para social, contamos quantos campos [name="familiar_nome[]"] existem.
+            // O primeiro é o assistido. Os demais são adicionados por addFamilyMember.
+            const allFamiliarNomeFields = form.querySelectorAll(`[name="familiar_nome[]"]`);
+            // existingDynamicRows deve representar o número de membros *adicionáveis*.
+            // Se todos os nomes forem de length N, e o primeiro é assistido, há N-1 adicionáveis.
+            // A contagem de currentFieldsForName.length dentro do loop de addRowFunction já considera todos.
+            // A lógica de adicionar linhas precisa comparar com numValues, que é o total de dados.
+            // Se numValues é 2 (assistido + 1 membro), e já existe o assistido, precisa adicionar 1.
+            // A lógica do loop `for (let i = currentFieldsForName.length; i < numValues; i++)` deve tratar isso.
+            // Não precisamos de existingDynamicRows aqui da mesma forma que em incapacity, pois
+            // addFamilyMember adiciona um por um.
+          }
+          // Adicionar mais aqui para outros módulos se necessário
+
+          const numValues = valueToRestore.length;
+          if (numValues > 0 && typeof addRowFunction === 'function') {
+            // Se a primeira linha de dados (numValues > 0) não tiver um campo correspondente já
+            // (o que pode acontecer se o HTML inicial não tiver a linha zero),
+            // ou se precisarmos de mais linhas.
+            // addDoencaField() calcula o nextIndex. Se o HTML não tiver a primeira linha (index 1),
+            // precisamos chamá-lo para criar a primeira.
+            // Se o HTML *tem* a primeira linha, e numValues = 1, existingDynamicRows deveria ser 1.
+
+            let currentFieldsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
+            for (let i = currentFieldsForName.length; i < numValues; i++) {
+                try {
+                    addRowFunction(); // Chama addDoencaField() ou similar
+                } catch (e) {
+                    console.error(`[FormStateManager] Erro ao chamar addRowFunction para ${key}:`, e);
+                    break;
+                }
+            }
+            // Re-query os elementos após adicionar novas linhas
+            currentFieldsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
+          }
+
+          const elementsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
+          valueToRestore.forEach((val, index) => {
+            if (elementsForName[index]) {
+              const element = elementsForName[index];
+              if (element.type === 'checkbox') {
+                element.checked = typeof val === 'boolean' ? val : val === 'true';
+              } else if (element.type === 'radio') {
+                 // Esta lógica para radio em array precisaria ser mais específica
+                 // se múltiplos radios com mesmo nome pudessem estar em um array de valores.
+                 // Por agora, assume que o valor corresponde diretamente.
+                if (element.value === String(val)) {
+                    element.checked = true;
+                }
+              } else {
+                element.value = val;
+              }
+              console.log(`[FormStateManager] Restaurando array campo ${element.name}[${index}] com valor: ${val}`);
+              if (typeof destacarCampoPreenchido === 'function') {
+                destacarCampoPreenchido(element);
+              }
+            } else {
+              console.warn(`[FormStateManager] Não encontrado elemento de array ${fieldNameForQuery} no índice ${index} para restaurar valor ${val}`);
+            }
+          });
+
+        } else { // Lógica para campos não-array ou arrays não dinâmicos
+          const elements = form.querySelectorAll(`[name="${key}"], [id="${key}"]`);
+          if (elements.length > 0) {
+            elements.forEach(element => { // Poderia haver múltiplos (ex: radios com mesmo nome)
+              if (element.name === key || element.id === key) { // Prioriza nome, depois ID
+                if (element.type === 'checkbox') {
+                  element.checked = typeof valueToRestore === 'boolean' ? valueToRestore : valueToRestore === 'true';
+                  console.log(`[FormStateManager] Restaurando checkbox ${key}: ${element.checked}`);
+                } else if (element.type === 'radio') {
+                  if (element.value === String(valueToRestore)) {
+                    element.checked = true;
+                    console.log(`[FormStateManager] Restaurando radio ${key} com valor ${valueToRestore}`);
+                  }
+                } else if (element.type === 'select-multiple') {
+                  if (Array.isArray(valueToRestore)) {
+                    Array.from(element.options).forEach(option => {
+                      option.selected = valueToRestore.includes(option.value);
+                    });
+                    console.log(`[FormStateManager] Restaurando select-multiple ${key}:`, valueToRestore);
+                  }
+                } else {
+                  element.value = valueToRestore;
+                  console.log(`[FormStateManager] Restaurando campo ${key} com valor: ${valueToRestore}`);
+                }
+                if (typeof destacarCampoPreenchido === 'function') {
+                  destacarCampoPreenchido(element);
+                }
+              }
+            });
+          } else {
+            // console.warn(`[FormStateManager] Campo ${key} não encontrado no formulário para restauração.`);
           }
         }
-      });
-
-      // Processamento especial para CIDs
-      if (step === 'incapacity') {
-        const cidPattern = /^cid(\d+)$/;
-        const doencaPattern = /^doenca(\d+)$/;
-
-        Object.entries(stepData).forEach(([key, value]) => {
-          // Verificar se é um campo CID
-          const cidMatch = key.match(cidPattern);
-          if (cidMatch && cidMatch[1]) {
-            const index = cidMatch[1];
-            const cidInput = document.getElementById(`cid${index}`);
-            const doencaInput = document.getElementById(`doenca${index}`);
-
-            if (cidInput && value) {
-              cidInput.value = value;
-              cidInput.classList.add('filled');
-              cidInput.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-          }
-
-          // Verificar se é um campo doença
-          const doencaMatch = key.match(doencaPattern);
-          if (doencaMatch && doencaMatch[1]) {
-            const index = doencaMatch[1];
-            const doencaInput = document.getElementById(`doenca${index}`);
-
-            if (doencaInput && value) {
-              doencaInput.value = value;
-              doencaInput.classList.add('filled');
-              doencaInput.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-          }
-        });
       }
     }
+    // A antiga lógica específica para 'incapacity' (cidX, doencaX) é removida,
+    // pois a manipulação de array genérica acima deve cobrir cids[], doencas[].
+
+    // Após restaurar todos os campos, atualizar visuais específicos se necessário
+    if (step === 'social') {
+      if (typeof window.updateCadUnicoButtonVisual === 'function') {
+        const cadUnicoInputs = form.querySelectorAll('input[name="familiar_cadunico[]"]');
+        cadUnicoInputs.forEach(input => {
+          window.updateCadUnicoButtonVisual(input);
+        });
+      }
+      // Chamar aqui outras funções de atualização visual para a etapa social, se houver.
+      if (typeof window.calcularRendaTotal === 'function') {
+        // Chamar após um pequeno delay para garantir que todos os valores de renda dos membros e o total
+        // já foram restaurados no DOM e estão prontos para serem lidos por calcularRendaTotal.
+        setTimeout(() => {
+            window.calcularRendaTotal();
+        }, 100); // Pequeno delay pode ser ajustado se necessário
+      }
+    }
+    // Adicionar mais 'else if (step === ...)' para outras etapas se precisarem de atualizações pós-restauração.
   }
 
   /**
