@@ -390,6 +390,19 @@ class FormStateManager {
         'atividade_periodo_inicio': window.addAtividade,
         'atividade_periodo_fim': window.addAtividade,
         'atividade_detalhes': window.addAtividade
+      },
+      personal: { // ADICIONADO PARA AUTORES
+        // Campos que addAuthor clona e para os quais cria inputs nas novas linhas
+        'autor_relationship': window.addAuthor,
+        'autor_nome': window.addAuthor,
+        'autor_cpf': window.addAuthor,
+        'autor_nascimento': window.addAuthor,
+        'autor_idade': window.addAuthor,
+        // Campos abaixo existem para o primeiro autor (name="autor_...[]") e serão salvos/restaurados no array,
+        // mas addAuthor() NÃO os cria para autores subsequentes. Se precisar, expandir addAuthor().
+        'autor_apelido': null, // Não mapeado para addAuthor pois não é clonado para novas linhas
+        'autor_telefone': null,
+        'autor_senha_meuinss': null
       }
       // Adicionar outros módulos e seus campos de array aqui, se necessário
     };
@@ -534,6 +547,51 @@ class FormStateManager {
                     rows[i].remove();
                 }
             }
+        }
+    } else if (step === 'personal') { // ADICIONADA LÓGICA DE LIMPEZA PARA AUTORES
+        const authorsContainer = document.getElementById('authors-container');
+        if (authorsContainer) {
+            let hasPersonalArrayData = false;
+            if (dynamicArrayFieldHandlers.personal) {
+                // Verificar se há algum dado de array para autores
+                for (const fieldName in dynamicArrayFieldHandlers.personal) {
+                    if (dynamicArrayFieldHandlers.personal[fieldName] !== null && // Considerar apenas campos que addAuthor manipula
+                        stepData[fieldName] && Array.isArray(stepData[fieldName]) && stepData[fieldName].length > 0) {
+                        hasPersonalArrayData = true;
+                        break;
+                    }
+                }
+            }
+
+            const rows = authorsContainer.querySelectorAll('.author-row');
+            let numberOfDataRows = 0;
+            if (hasPersonalArrayData && dynamicArrayFieldHandlers.personal) {
+                // Usar 'autor_nome' para determinar o número de linhas de dados de autores
+                if (stepData['autor_nome'] && Array.isArray(stepData['autor_nome'])) {
+                    numberOfDataRows = stepData['autor_nome'].length;
+                }
+            }
+
+            // Remover linhas de autor que excedem a quantidade de dados salvos.
+            // A primeira linha (author-1) é estática. As adicionadas são author-2, author-3, etc.
+            for (let i = rows.length - 1; i >= numberOfDataRows; i--) {
+                if (i > 0) { // Só remove linhas clonadas (índice > 0, ou seja, author-2 em diante)
+                    // Antes de remover a linha (author-row), remover também o seu separador precedente se houver
+                    const authorToRemove = rows[i];
+                    const prevSibling = authorToRemove.previousElementSibling;
+                    if (prevSibling && prevSibling.classList.contains('author-separator')) {
+                        authorsContainer.removeChild(prevSibling);
+                    }
+                    authorsContainer.removeChild(authorToRemove);
+                    // Atualizar o window.authorCount global se estivermos removendo o último autor visualmente.
+                    // Esta parte é complexa pois authorCount pode dessincronizar. Melhor se addAuthor/removeAuthor gerenciasse visual e contagem.
+                    // Por agora, a limpeza só remove do DOM. addAuthor será chamado para recriar se necessário.
+                }
+            }
+             // Ajustar window.authorCount para o número de linhas de dados, pois a limpeza acima só afeta o DOM.
+             // A função addAuthor usa window.authorCount para gerar IDs únicos.
+             // Se restaurarmos N autores, authorCount deve ser N para o próximo add funcionar corretamente.
+             window.authorCount = numberOfDataRows > 0 ? numberOfDataRows : 1; // Se 0 autores, próximo será autor 1 (o primeiro)
         }
     }
 

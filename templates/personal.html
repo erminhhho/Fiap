@@ -19,7 +19,7 @@
               <!-- Nome com seletor de relacionamento -->
               <div class="relative md:col-span-12">
                 <div class="relationship-select" data-selected="Requerente" data-value="Requerente" onclick="toggleRelationshipTag(this)">
-                  <select id="relationship_1" name="relationship_1" onchange="updateRelationshipLabel(this, 1)">
+                  <select id="relationship_1" name="autor_relationship[]" onchange="updateRelationshipLabel(this, 1)">
                     <option value="Requerente" class="relationship-option requerente">Requerente</option>
                     <option value="Instituidor" class="relationship-option instituidor">Instituidor</option>
                     <option value="Dependente" class="relationship-option dependente">Dependente</option>
@@ -28,18 +28,18 @@
                     <option value="Litsconsorte" class="relationship-option litsconsorte">Litsconsorte</option>
                   </select>
                 </div>
-                <input type="text" id="nome" name="nome" onblur="formatarNomeProprio(this)"
+                <input type="text" id="nome" name="autor_nome[]" onblur="formatarNomeProprio(this)"
                   class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                   placeholder="Digite o nome completo" />
                 <label for="nome" class="input-label">
-                  Requerente
+                  Nome
                 </label>
               </div>
               <!-- Nascimento, Idade e CPF -->
               <div class="grid grid-cols-24 gap-4 md:col-span-11">
                 <!-- CPF -->
                 <div class="relative col-span-8">
-                  <input type="text" id="cpf" name="cpf" oninput="maskCPF(this)" onblur="validateCPF(this)" maxlength="14"
+                  <input type="text" id="cpf" name="autor_cpf[]" oninput="maskCPF(this)" onblur="validateCPF(this)" maxlength="14"
                     class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                     placeholder="000.000.000-00" />
                   <label for="cpf" class="input-label">
@@ -48,7 +48,7 @@
                 </div>
                 <!-- Nascimento -->
                 <div class="relative col-span-8">
-                  <input type="text" id="nascimento" name="nascimento"
+                  <input type="text" id="nascimento" name="autor_nascimento[]"
                     oninput="maskDate(this)"
                     onblur="validateDateOfBirth(this)"
                     data-target-age="idade"
@@ -60,7 +60,7 @@
                 </div>
                 <!-- Idade -->
                 <div class="relative col-span-8">
-                  <input type="text" id="idade" name="idade" readonly
+                  <input type="text" id="idade" name="autor_idade[]" readonly
                     class="peer w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 cursor-not-allowed"
                     placeholder="Idade" />
                   <label for="idade" class="input-label">
@@ -83,7 +83,7 @@
             <div class="grid grid-cols-1 md:grid-cols-24 gap-4 w-full">
               <!-- Apelido -->
               <div class="relative md:col-span-8">
-                <input type="text" id="apelido" name="apelido" onblur="formatarNomeProprio(this)"
+                <input type="text" id="apelido" name="autor_apelido[]" onblur="formatarNomeProprio(this)"
                   class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                   placeholder="Apelido (opcional)" />
                 <label for="apelido" class="input-label">
@@ -93,7 +93,7 @@
 
               <!-- Telefone -->
               <div class="relative md:col-span-4">
-                <input type="text" id="telefone" name="telefone" oninput="Mask.phone(this)"
+                <input type="text" id="telefone" name="autor_telefone[]" oninput="Mask.phone(this)"
                   class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                   placeholder="(00) 00000-0000" />
                 <label for="telefone" class="input-label">
@@ -107,7 +107,7 @@
               <div class="grid grid-cols-24 gap-4 md:col-span-11">
                 <!-- Senha MeuINSS -->
                 <div class="relative col-span-12">
-                  <input type="text" id="telefone_detalhes" name="telefone_detalhes" onblur="formatarNomeProprio(this)"
+                  <input type="text" id="telefone_detalhes" name="autor_senha_meuinss[]" onblur="formatarNomeProprio(this)"
                     class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                     placeholder="Senha de acesso ao MeuINSS" />
                   <label for="telefone_detalhes" class="input-label">

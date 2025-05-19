@@ -47,22 +47,39 @@ function addAuthor() {
     newAuthor.querySelectorAll('input, select').forEach(field => {
       const originalId = field.id;
       if (originalId) {
-        // Extrair o nome base do campo sem o número
-        const baseName = originalId.replace(/(_\d+$|^\w+$)/, '');
-        const newId = baseName ? `${baseName}_${window.authorCount}` : `${originalId}_${window.authorCount}`;
-
-        // Atualizar ID e name
+        // Extrair o nome base do campo sem o número original (ex: "nome" de "nome_1" ou "nome")
+        const baseName = originalId.replace(/_\d+$/, '').replace(/^relationship$/, 'relationship_1'); // Trata "relationship" como "relationship_1" para pegar o nome base
+        const newId = `${baseName}_${window.authorCount}`;
         field.id = newId;
-        field.name = newId;
 
-        // Limpar o valor do campo
-        if (field.tagName === 'INPUT') {
-          field.value = '';
-        }
-
-        // Atualizar atributos de data se existirem
-        if (field.hasAttribute('data-target-age')) {
-          field.setAttribute('data-target-age', `idade_${window.authorCount}`);
+        // Definir o atributo 'name' para o formato de array
+        // e limpar o valor do campo, e atualizar data-target-age
+        switch (baseName) {
+          case 'relationship_1': // O ID original do select é relationship_1
+            field.name = 'autor_relationship[]';
+            break;
+          case 'nome':
+            field.name = 'autor_nome[]';
+            field.value = '';
+            break;
+          case 'cpf':
+            field.name = 'autor_cpf[]';
+            field.value = '';
+            break;
+          case 'nascimento':
+            field.name = 'autor_nascimento[]';
+            field.value = '';
+            if (field.hasAttribute('data-target-age')) {
+              field.setAttribute('data-target-age', `autor_idade_${window.authorCount}`); // ID do campo idade correspondente
+            }
+            break;
+          case 'idade':
+            field.name = 'autor_idade[]';
+            field.value = ''; // Idade é readonly mas limpamos para consistência
+            // O ID do campo idade já deve ser atualizado para autor_idade_X pela lógica de newId
+            // e o data-target-age do campo nascimento correspondente também.
+            break;
+          // Não clonamos apelido, telefone, senha por autor adicional atualmente
         }
       }
     });
@@ -71,10 +88,15 @@ function addAuthor() {
     newAuthor.querySelectorAll('label').forEach(label => {
       const forAttr = label.getAttribute('for');
       if (forAttr) {
-        // Extrair o nome base do campo sem o número
-        const baseName = forAttr.replace(/(_\d+$|^\w+$)/, '');
-        const newFor = baseName ? `${baseName}_${window.authorCount}` : `${forAttr}_${window.authorCount}`;
+        const baseNameOriginal = forAttr.replace(/(_\d+$|^\w+$)/, '');
+        const newFor = baseNameOriginal ? `${baseNameOriginal}_${window.authorCount}` : `${forAttr}_${window.authorCount}`;
         label.setAttribute('for', newFor);
+
+        // Se esta é a label do campo nome recém-clonado, definir seu texto para "Nome"
+        // O ID do campo nome clonado será algo como "nome_2", "nome_3", etc.
+        if (newFor === `nome_${window.authorCount}`) {
+          label.textContent = 'Nome';
+        }
       }
     });
 
@@ -169,16 +191,15 @@ function removeLastAuthor() {
 // Função para atualizar a etiqueta de relacionamento
 function updateRelationshipLabel(selectElement, authorId) {
   const selectedValue = selectElement.value;
-  const nameField = document.getElementById(`nome_${authorId}`);
+  // const nameField = document.getElementById(`nome_${authorId}`); // Não é mais necessário para a label
 
-  // Atualizar o labelText do campo de nome com a relação selecionada
-  const nameLabel = document.querySelector(`label[for="nome_${authorId > 1 ? '_' + authorId : ''}"]`);
+  // A label do nome deve permanecer "Nome". O tipo de relacionamento é indicado pelo estilo do select.
+  // const nameLabel = document.querySelector(`label[for="nome_${authorId > 1 ? '_' + authorId : ''}"]`);
+  // if (nameLabel) {
+  //   nameLabel.textContent = selectedValue; // REMOVER OU COMENTAR ESTA LINHA
+  // }
 
-  if (nameLabel) {
-    nameLabel.textContent = selectedValue;
-  }
-
-  // Atualizar a cor do seletor baseada na opção selecionada
+  // Atualizar a cor/estilo do seletor baseada na opção selecionada
   const relationshipSelect = selectElement.closest('.relationship-select');
   if (relationshipSelect) {
     relationshipSelect.setAttribute('data-selected', selectedValue);
@@ -415,6 +436,30 @@ function setupEvents() {
   // Inicializar estilos para os selects de relacionamento
   applyRelationshipStyles();
 
+  // Lista de campos para salvar individualmente na aba Pessoal
+  const fieldsToUpdatePersonal = [
+    // Campos do autor principal foram movidos para persistência de array (autor_nome[], autor_cpf[], etc.)
+    // 'nome', 'cpf', 'nascimento', 'apelido', 'telefone', 'telefone_detalhes', 'relationship_1',
+    'colaborador', // Campo único de colaborador
+    'cep', 'endereco', 'numero', 'bairro', 'cidade', 'uf', // Endereço
+    'observacoes', // Observações gerais da página
+    'telefone_whatsapp_ativo' // Checkbox único do telefone principal
+    // Adicionar outros IDs de campos estáticos da aba pessoal aqui, se necessário
+  ];
+
+  fieldsToUpdatePersonal.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      const eventType = (field.type === 'checkbox' || field.type === 'radio' || field.tagName === 'SELECT') ? 'change' : 'blur';
+      field.addEventListener(eventType, function() {
+        let valueToSave = this.type === 'checkbox' ? this.checked : this.value;
+        if (window.formStateManager && typeof window.formStateManager.updateSpecificField === 'function') {
+          window.formStateManager.updateSpecificField('personal', this.id, valueToSave);
+        }
+      });
+    }
+  });
+
   // Restaurar estado do Checkbox de WhatsApp para o telefone principal
   try {
     const whatsAppCheckbox = document.getElementById('telefone_whatsapp_ativo');
@@ -530,34 +575,6 @@ function setupEvents() {
       }
     });
   }
-
-  // Salvar dados ao sair do campo ou ao mudar valor
-  const fieldsToUpdate = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes', 'colaborador', 'telefone_whatsapp_ativo'];
-  fieldsToUpdate.forEach(fieldId => {
-    const field = document.getElementById(fieldId);
-    if (field) {
-      const eventType = (field.type === 'checkbox' || field.type === 'select-one' || field.type === 'select-multiple') ? 'change' : 'blur';
-      field.addEventListener(eventType, () => {
-        if (window.formStateManager && typeof window.formStateManager.updateSpecificField === 'function') {
-          let valueToSave = field.type === 'checkbox' ? field.checked : field.value;
-          window.formStateManager.updateSpecificField('personal', fieldId, valueToSave);
-        } else {
-          console.warn('[PersonalModule] formStateManager.updateSpecificField não disponível.');
-        }
-      });
-      // Adicionar também para 'change' em campos de texto para capturar alterações via scripts ou auto-fill, se necessário
-      if (eventType === 'blur') {
-        field.addEventListener('change', () => {
-          if (window.formStateManager && typeof window.formStateManager.updateSpecificField === 'function') {
-            let valueToSave = field.type === 'checkbox' ? field.checked : field.value;
-            window.formStateManager.updateSpecificField('personal', fieldId, valueToSave);
-          } else {
-            console.warn('[PersonalModule] formStateManager.updateSpecificField não disponível para evento change.');
-          }
-        });
-      }
-    }
-  });
 
   // Configurar a busca de colaboradores
   setupColaboradorSearch();
