@@ -425,6 +425,11 @@ class FormStateManager {
         'autor_apelido': null, // Não mapeado para addAuthor pois não é clonado para novas linhas
         'autor_telefone': null,
         'autor_senha_meuinss': null
+      },
+      documents: { // ADICIONADO PARA DOCUMENTOS
+        // A chave 'documentos' corresponde ao array de objetos de documento em formData.documents.documentos
+        // Cada objeto nesse array será passado para adicionarNovoDocumento (ou deveria ser)
+        'documentos': window.adicionarNovoDocumento
       }
       // Adicionar outros módulos e seus campos de array aqui, se necessário
     };
@@ -627,170 +632,205 @@ class FormStateManager {
         const stepDynamicHandlers = dynamicArrayFieldHandlers[step];
         if (stepDynamicHandlers && stepDynamicHandlers[key] && Array.isArray(valueToRestore)) {
           const addRowFunction = stepDynamicHandlers[key];
-          const fieldNameForQuery = `${key}[]`; // Ex: 'cids[]'
+          const numValues = valueToRestore.length; // Definido aqui para uso em ambos os branches
 
-          // Garantir que temos linhas suficientes no DOM
-          // Esta parte é um pouco complexa porque addRowFunction (ex: addDoencaField)
-          // adiciona um conjunto de campos, não apenas para 'key'.
-          // Precisamos contar as "linhas" de forma consistente.
-          // Assumindo que o primeiro campo do array (ex: valueToRestore[0]) corresponde à primeira linha dinâmica.
-
-          // Contar quantas linhas de "doença" (ou equivalente) já existem.
-          // Usar um seletor comum para uma linha de doença, ex: o container de cada doença.
-          let existingDynamicRows = 0;
-          if (step === 'incapacity') {
-            // `addDoencaField` adiciona um div com classes 'mb-4 border-b ...'
-            // e dentro dele estão os campos tipoDocumentos[], cids[], doencas[], dataDocumentos[]
-            // A primeira linha estática no HTML pode ou não corresponder a este seletor.
-            // Vamos contar quantos [name="cids[]"] (por exemplo) existem.
-             existingDynamicRows = form.querySelectorAll(`[name="cids[]"]`).length;
-          } else if (step === 'social') {
-            // Para social, contamos quantos campos [name="familiar_nome[]"] existem.
-            // O primeiro é o assistido. Os demais são adicionados por addFamilyMember.
-            const allFamiliarNomeFields = form.querySelectorAll(`[name="familiar_nome[]"]`);
-            // existingDynamicRows deve representar o número de membros *adicionáveis*.
-            // Se todos os nomes forem de length N, e o primeiro é assistido, há N-1 adicionáveis.
-            // A contagem de currentFieldsForName.length dentro do loop de addRowFunction já considera todos.
-            // A lógica de adicionar linhas precisa comparar com numValues, que é o total de dados.
-            // Se numValues é 2 (assistido + 1 membro), e já existe o assistido, precisa adicionar 1.
-            // A lógica do loop `for (let i = currentFieldsForName.length; i < numValues; i++)` deve tratar isso.
-            // Não precisamos de existingDynamicRows aqui da mesma forma que em incapacity, pois
-            // addFamilyMember adiciona um por um.
-          }
-          // Adicionar mais aqui para outros módulos se necessário
-
-          const numValues = valueToRestore.length;
-          if (numValues > 0 && typeof addRowFunction === 'function') {
-            // Se a primeira linha de dados (numValues > 0) não tiver um campo correspondente já
-            // (o que pode acontecer se o HTML inicial não tiver a linha zero),
-            // ou se precisarmos de mais linhas.
-            // addDoencaField() calcula o nextIndex. Se o HTML não tiver a primeira linha (index 1),
-            // precisamos chamá-lo para criar a primeira.
-            // Se o HTML *tem* a primeira linha, e numValues = 1, existingDynamicRows deveria ser 1.
-
-            let currentFieldsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
-            console.log(`[State] Antes do loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, numValuesNeeded: ${numValues}, step: ${step}`);
-            for (let i = currentFieldsForName.length; i < numValues; i++) {
-                try {
-                    // Log específico para a contagem de 'autor' se relevante
-                    let authorCountLog = '';
-                    if (step === 'personal' && typeof window.authorCount !== 'undefined') {
-                        authorCountLog = `, window.authorCount antes: ${window.authorCount}`;
-                    } else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') { // Assumindo que poderia haver um window.atividadeCount
-                        authorCountLog = `, window.atividadeCount antes: ${window.atividadeCount || 'N/A'}`;
-                    }
-
-                    console.log(`[State] Chamando addRowFunction para ${key} (idx ${i} de ${numValues -1})${authorCountLog}`);
-                    addRowFunction(); // Chama addDoencaField(), addAuthor(), addAtividade() etc.
-
-                    let postAuthorCountLog = '';
-                    if (step === 'personal' && typeof window.authorCount !== 'undefined') {
-                        postAuthorCountLog = `, window.authorCount depois: ${window.authorCount}`;
-                    } else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') {
-                        postAuthorCountLog = `, window.atividadeCount depois: ${window.atividadeCount || 'N/A'}`;
-                    }
-                    console.log(`[State] addRowFunction chamada para ${key} (idx ${i})${postAuthorCountLog}`);
-
-                    // Contar os campos novamente *dentro* do loop:
-                    let tempCount = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`).length;
-                    console.log(`[State] Após addRowFunction ${key} (idx ${i}), campos [name=\"${fieldNameForQuery}\"] no DOM: ${tempCount}`);
-
-                } catch (e) {
-                    console.error(`[FormStateManager] Erro ao chamar addRowFunction para ${key} (idx ${i}):`, e);
-                    break;
-                }
+          if (step === 'documents' && key === 'documentos' && typeof addRowFunction === 'function') {
+            // Lógica especial para restaurar documentos
+            console.log(`[State] Iniciando restauração especial para documents. Documentos a restaurar:`, valueToRestore);
+            const documentosContainer = document.getElementById('documentos-container');
+            if (documentosContainer) {
+              documentosContainer.innerHTML = ''; // Limpa para recomeçar
+              console.log("[State] Container de documentos limpo para restauração.");
             }
-            // Re-query os elementos após adicionar novas linhas
-            currentFieldsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
-            console.log(`[State] Após loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, step: ${step}`);
-          }
-
-          const elementsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
-          valueToRestore.forEach((val, index) => {
-            if (elementsForName[index]) {
-              const element = elementsForName[index];
-              if (element.type === 'checkbox') {
-                element.checked = typeof val === 'boolean' ? val : val === 'true';
-              } else if (element.type === 'radio') {
-                 // Esta lógica para radio em array precisaria ser mais específica
-                 // se múltiplos radios com mesmo nome pudessem estar em um array de valores.
-                 // Por agora, assume que o valor corresponde diretamente.
-                if (element.value === String(val)) {
-                    element.checked = true;
+            valueToRestore.forEach((docData, index) => {
+              if (docData && typeof docData === 'object') { // Certificar que docData é um objeto válido
+                try {
+                  console.log(`[State] Chamando adicionarNovoDocumento (idx ${index}) com dados:`, docData);
+                  const newDocElement = addRowFunction(docData); // Passa o objeto do documento para a função
+                  if (!newDocElement) {
+                    console.warn(`[State] adicionarNovoDocumento não retornou um elemento para o documento idx ${index}`, docData);
+                  }
+                } catch (e) {
+                  console.error(`[FormStateManager] Erro ao chamar addRowFunction para documento (idx ${index}):`, e, docData);
                 }
               } else {
-                element.value = val;
+                console.warn(`[State] Dados do documento inválidos no índice ${index}, pulando:`, docData);
               }
-              console.log(`[FormStateManager] Restaurando array campo ${element.name}[${index}] com valor: ${val}`);
-              if (typeof destacarCampoPreenchido === 'function') {
-                destacarCampoPreenchido(element);
-              }
-            } else {
-              console.warn(`[FormStateManager] Não encontrado elemento de array ${fieldNameForQuery} no índice ${index} para restaurar valor ${val}`);
+            });
+            // Pular o preenchimento genérico abaixo, pois já foi feito
+            console.log("[State] Restauração especial de documentos concluída.");
+            continue;
+          } else if (typeof addRowFunction === 'function') {
+            const fieldNameForQuery = `${key}[]`;
+
+            // Garantir que temos linhas suficientes no DOM
+            // Esta parte é um pouco complexa porque addRowFunction (ex: addDoencaField)
+            // adiciona um conjunto de campos, não apenas para 'key'.
+            // Precisamos contar as "linhas" de forma consistente.
+            // Assumindo que o primeiro campo do array (ex: valueToRestore[0]) corresponde à primeira linha dinâmica.
+
+            // Contar quantas linhas de "doença" (ou equivalente) já existem.
+            // Usar um seletor comum para uma linha de doença, ex: o container de cada doença.
+            let existingDynamicRows = 0;
+            if (step === 'incapacity') {
+              // `addDoencaField` adiciona um div com classes 'mb-4 border-b ...'
+              // e dentro dele estão os campos tipoDocumentos[], cids[], doencas[], dataDocumentos[]
+              // A primeira linha estática no HTML pode ou não corresponder a este seletor.
+              // Vamos contar quantos [name="cids[]"] (por exemplo) existem.
+               existingDynamicRows = form.querySelectorAll(`[name="cids[]"]`).length;
+            } else if (step === 'social') {
+              // Para social, contamos quantos campos [name="familiar_nome[]"] existem.
+              // O primeiro é o assistido. Os demais são adicionados por addFamilyMember.
+              const allFamiliarNomeFields = form.querySelectorAll(`[name="familiar_nome[]"]`);
+              // existingDynamicRows deve representar o número de membros *adicionáveis*.
+              // Se todos os nomes forem de length N, e o primeiro é assistido, há N-1 adicionáveis.
+              // A contagem de currentFieldsForName.length dentro do loop de addRowFunction já considera todos.
+              // A lógica de adicionar linhas precisa comparar com numValues, que é o total de dados.
+              // Se numValues é 2 (assistido + 1 membro), e já existe o assistido, precisa adicionar 1.
+              // A lógica do loop `for (let i = currentFieldsForName.length; i < numValues; i++)` deve tratar isso.
+              // Não precisamos de existingDynamicRows aqui da mesma forma que em incapacity, pois
+              // addFamilyMember adiciona um por um.
             }
-          });
+            // Adicionar mais aqui para outros módulos se necessário
 
-        } else { // Lógica para campos não-array ou arrays não dinâmicos OU arrays cujos handlers são null
-          const directElements = form.querySelectorAll(`[name="${key}"], [id="${key}"]`); // Busca por ID ou NOME direto
-          const arrayElementsByName = form.querySelectorAll(`[name="${key}[]"]`); // Busca por NOME DE ARRAY (ex: autor_apelido[])
+            if (numValues > 0 && typeof addRowFunction === 'function') {
+              // Se a primeira linha de dados (numValues > 0) não tiver um campo correspondente já
+              // (o que pode acontecer se o HTML inicial não tiver a linha zero),
+              // ou se precisarmos de mais linhas.
+              // addDoencaField() calcula o nextIndex. Se o HTML não tiver a primeira linha (index 1),
+              // precisamos chamá-lo para criar a primeira.
+              // Se o HTML *tem* a primeira linha, e numValues = 1, existingDynamicRows deveria ser 1.
 
-          if (Array.isArray(valueToRestore) && arrayElementsByName.length > 0) {
-            // Caso especial: valueToRestore é um array (ex: formData.personal.autor_apelido = ["apelido1"])
-            // E encontramos campos como <input name="autor_apelido[]">.
-            // Isso é para campos como autor_apelido[], autor_telefone[] que não usam addRowFunction diretamente aqui.
+              let currentFieldsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
+              console.log(`[State] Antes do loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, numValuesNeeded: ${numValues}, step: ${step}`);
+              for (let i = currentFieldsForName.length; i < numValues; i++) {
+                  try {
+                      // Log específico para a contagem de 'autor' se relevante
+                      let authorCountLog = '';
+                      if (step === 'personal' && typeof window.authorCount !== 'undefined') {
+                          authorCountLog = `, window.authorCount antes: ${window.authorCount}`;
+                      } else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') { // Assumindo que poderia haver um window.atividadeCount
+                          authorCountLog = `, window.atividadeCount antes: ${window.atividadeCount || 'N/A'}`;
+                      }
+
+                      console.log(`[State] Chamando addRowFunction para ${key} (idx ${i} de ${numValues -1})${authorCountLog}`);
+                      addRowFunction(); // Chama addDoencaField(), addAuthor(), addAtividade() etc.
+
+                      let postAuthorCountLog = '';
+                      if (step === 'personal' && typeof window.authorCount !== 'undefined') {
+                          postAuthorCountLog = `, window.authorCount depois: ${window.authorCount}`;
+                      } else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') {
+                          postAuthorCountLog = `, window.atividadeCount depois: ${window.atividadeCount || 'N/A'}`;
+                      }
+                      console.log(`[State] addRowFunction chamada para ${key} (idx ${i})${postAuthorCountLog}`);
+
+                      // Contar os campos novamente *dentro* do loop:
+                      let tempCount = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`).length;
+                      console.log(`[State] Após addRowFunction ${key} (idx ${i}), campos [name=\"${fieldNameForQuery}\"] no DOM: ${tempCount}`);
+
+                  } catch (e) {
+                      console.error(`[FormStateManager] Erro ao chamar addRowFunction para ${key} (idx ${i}):`, e);
+                      break;
+                  }
+              }
+              // Re-query os elementos após adicionar novas linhas
+              currentFieldsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
+              console.log(`[State] Após loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, step: ${step}`);
+            }
+
+            const elementsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
             valueToRestore.forEach((val, index) => {
-              if (arrayElementsByName[index]) {
-                const element = arrayElementsByName[index];
-                if (element.type === 'checkbox') { // Pouco provável para este cenário, mas incluído por segurança
+              if (elementsForName[index]) {
+                const element = elementsForName[index];
+                if (element.type === 'checkbox') {
                   element.checked = typeof val === 'boolean' ? val : val === 'true';
-                } else if (element.type === 'radio') { // Também pouco provável
-                  if (element.value === String(val)) { element.checked = true; }
+                } else if (element.type === 'radio') {
+                   // Esta lógica para radio em array precisaria ser mais específica
+                   // se múltiplos radios com mesmo nome pudessem estar em um array de valores.
+                   // Por agora, assume que o valor corresponde diretamente.
+                  if (element.value === String(val)) {
+                      element.checked = true;
+                  }
                 } else {
                   element.value = val;
                 }
-                console.log(`[FormStateManager] Restaurando array (bloco else) campo ${element.name}[${index}] com valor: ${val}`);
+                console.log(`[FormStateManager] Restaurando array campo ${element.name}[${index}] com valor: ${val}`);
                 if (typeof destacarCampoPreenchido === 'function') {
                   destacarCampoPreenchido(element);
                 }
               } else {
-                console.warn(`[FormStateManager] (Bloco else) Não encontrado elemento de array ${key}[] no índice ${index} para restaurar valor ${val}`);
+                console.warn(`[FormStateManager] Não encontrado elemento de array ${fieldNameForQuery} no índice ${index} para restaurar valor ${val}`);
               }
             });
-          } else if (directElements.length > 0) { // Lógica original para campos únicos por ID ou nome direto não-array
-            directElements.forEach(element => {
-              if (element.name === key || element.id === key) { // Prioriza nome, depois ID
-                if (element.type === 'checkbox') {
-                  element.checked = typeof valueToRestore === 'boolean' ? valueToRestore : valueToRestore === 'true';
-                  console.log(`[FormStateManager] Restaurando checkbox ${key}: ${element.checked}`);
-                } else if (element.type === 'radio') {
-                  if (element.value === String(valueToRestore)) {
-                    element.checked = true;
-                    console.log(`[FormStateManager] Restaurando radio ${key} com valor ${valueToRestore}`);
+
+          } else { // Lógica para campos não-array ou arrays não dinâmicos OU arrays cujos handlers são null
+            const directElements = form.querySelectorAll(`[name="${key}"], [id="${key}"]`); // Busca por ID ou NOME direto
+            const arrayElementsByName = form.querySelectorAll(`[name="${key}[]"]`); // Busca por NOME DE ARRAY (ex: autor_apelido[])
+
+            if (Array.isArray(valueToRestore) && arrayElementsByName.length > 0) {
+              // Caso especial: valueToRestore é um array (ex: formData.personal.autor_apelido = ["apelido1"])
+              // E encontramos campos como <input name="autor_apelido[]">.
+              // Isso é para campos como autor_apelido[], autor_telefone[] que não usam addRowFunction diretamente aqui.
+              valueToRestore.forEach((val, index) => {
+                if (arrayElementsByName[index]) {
+                  const element = arrayElementsByName[index];
+                  if (element.type === 'checkbox') { // Pouco provável para este cenário, mas incluído por segurança
+                    element.checked = typeof val === 'boolean' ? val : val === 'true';
+                  } else if (element.type === 'radio') { // Também pouco provável
+                    if (element.value === String(val)) { element.checked = true; }
+                  } else {
+                    element.value = val;
                   }
-                } else if (element.type === 'select-multiple') {
-                  if (Array.isArray(valueToRestore)) {
-                    Array.from(element.options).forEach(option => {
-                      option.selected = valueToRestore.includes(option.value);
-                    });
-                    console.log(`[FormStateManager] Restaurando select-multiple ${key}:`, valueToRestore);
+                  console.log(`[FormStateManager] Restaurando array (bloco else) campo ${element.name}[${index}] com valor: ${val}`);
+                  if (typeof destacarCampoPreenchido === 'function') {
+                    destacarCampoPreenchido(element);
                   }
                 } else {
-                  // Se valueToRestore for um array aqui, e o campo for único e não select-multiple, algo está errado.
-                  if (Array.isArray(valueToRestore) && element.type !== 'select-multiple') {
-                    console.warn(`[FormStateManager] Tentando restaurar valor de array ${JSON.stringify(valueToRestore)} para campo único não-múltiplo ${key}. Usando o primeiro valor se disponível.`);
-                    element.value = valueToRestore.length > 0 ? valueToRestore[0] : '';
+                  console.warn(`[FormStateManager] (Bloco else) Não encontrado elemento de array ${key}[] no índice ${index} para restaurar valor ${val}`);
+                }
+              });
+            } else if (directElements.length > 0) { // Lógica original para campos únicos por ID ou nome direto não-array
+              directElements.forEach(element => {
+                if (element.name === key || element.id === key) { // Prioriza nome, depois ID
+                  if (element.type === 'checkbox') {
+                    element.checked = typeof valueToRestore === 'boolean' ? valueToRestore : valueToRestore === 'true';
+                    console.log(`[FormStateManager] Restaurando checkbox ${key}: ${element.checked}`);
+                  } else if (element.type === 'radio') {
+                    if (element.value === String(valueToRestore)) {
+                      element.checked = true;
+                      console.log(`[FormStateManager] Restaurando radio ${key} com valor ${valueToRestore}`);
+                    }
+                  } else if (element.type === 'select-multiple') {
+                    if (Array.isArray(valueToRestore)) {
+                      Array.from(element.options).forEach(option => {
+                        option.selected = valueToRestore.includes(option.value);
+                      });
+                      console.log(`[FormStateManager] Restaurando select-multiple ${key}:`, valueToRestore);
+                    }
                   } else {
-                    element.value = valueToRestore;
+                    // Se valueToRestore for um array aqui, e o campo for único e não select-multiple, algo está errado.
+                    if (Array.isArray(valueToRestore) && element.type !== 'select-multiple') {
+                      console.warn(`[FormStateManager] Tentando restaurar valor de array ${JSON.stringify(valueToRestore)} para campo único não-múltiplo ${key}. Usando o primeiro valor se disponível.`);
+                      element.value = valueToRestore.length > 0 ? valueToRestore[0] : '';
+                    } else {
+                      element.value = valueToRestore;
+                    }
+                    console.log(`[FormStateManager] Restaurando campo ${key} com valor: ${valueToRestore}`);
                   }
-                  console.log(`[FormStateManager] Restaurando campo ${key} com valor: ${valueToRestore}`);
+                  if (typeof destacarCampoPreenchido === 'function') {
+                    destacarCampoPreenchido(element);
+                  }
                 }
-                if (typeof destacarCampoPreenchido === 'function') {
-                  destacarCampoPreenchido(element);
-                }
-              }
-            });
-          } else {
-            // console.warn(`[FormStateManager] Campo ${key} não encontrado no formulário para restauração.`);
+              });
+            } else {
+              // console.warn(`[FormStateManager] Campo ${key} não encontrado no formulário para restauração.`);
+            }
+          }
+
+          // Pular o preenchimento genérico abaixo se for 'documents', pois já foi feito
+          // Esta verificação pode ser redundante devido ao 'continue' acima, mas é uma segurança adicional.
+          if (step === 'documents' && key === 'documentos') {
+            continue; // Próximo item em stepData
           }
         }
       }

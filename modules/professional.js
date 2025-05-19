@@ -48,7 +48,12 @@ window.initModule = function() {
   if (window.formStateManager) {
     const currentStepKey = 'professional';
     console.log(`[professional.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
-    window.formStateManager.ensureFormAndRestore(currentStepKey);
+    // Adicionar um pequeno delay para garantir que o DOM esteja pronto
+    setTimeout(() => {
+        if (window.formStateManager && typeof window.formStateManager.ensureFormAndRestore === 'function') {
+            window.formStateManager.ensureFormAndRestore(currentStepKey);
+        }
+    }, 50);
   }
 
   console.log('[professional.js] Módulo totalmente inicializado e restauração solicitada.');

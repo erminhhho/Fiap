@@ -232,79 +232,116 @@ window.initModule = function() {
   // Inicializar contador para IDs únicos
   let nextId = documentosPreCadastrados.length + 1;
 
-  // Adicionar um novo documento em branco
-  function adicionarNovoDocumento(textoDocumento = '') {
+  // Adicionar um novo documento
+  function adicionarNovoDocumento(docData = null) { // Aceita docData como argumento
     try {
       const template = document.getElementById('documentoTemplate');
       const documentosContainer = document.getElementById('documentos-container');
 
       if (template && documentosContainer) {
-        // Criar um clone do template
         const clone = document.importNode(template.content, true);
         const documentoItem = clone.querySelector('.documento-item');
 
-        // Preencher o nome do documento se fornecido
-        if (textoDocumento) {
-          const nomeDocumento = clone.querySelector('.nome-documento');
-          if (nomeDocumento) {
-            nomeDocumento.value = textoDocumento;
+        // Se docData for fornecido (durante a restauração), preencher os campos
+        if (docData && typeof docData === 'object') {
+          const nomeDocumentoInput = clone.querySelector('.nome-documento');
+          if (nomeDocumentoInput && docData.nome) {
+            nomeDocumentoInput.value = docData.nome;
           }
+
+          const anoDocumentoInput = clone.querySelector('.ano-documento');
+          if (anoDocumentoInput && docData.ano) {
+            anoDocumentoInput.value = docData.ano;
+          }
+
+          const detalhesTextarea = clone.querySelector('.detalhes-documento');
+          if (detalhesTextarea && docData.detalhes) {
+            detalhesTextarea.value = docData.detalhes;
+          }
+
+          // Restaurar o status do documento
+          if (docData.status) {
+            const statusSelect = clone.querySelector('.documento-status');
+            if (statusSelect) {
+              const statusCapitalized = docData.status.charAt(0).toUpperCase() + docData.status.slice(1);
+              statusSelect.value = statusCapitalized; // Ex: 'Recebido', 'Solicitado', 'Obter'
+              // Chamar a função para atualizar visualmente a tag de status
+              // É importante que updateDocumentStatusTag seja definida globalmente ou acessível aqui
+              if (typeof updateDocumentStatusTag === 'function') {
+                // updateDocumentStatusTag espera o elemento select como argumento
+                // A função é chamada mais tarde no código, quando o select é adicionado ao DOM
+                // e o event listener de change é configurado. Por agora, apenas setamos o value.
+                // A atualização visual ocorrerá quando initModule re-configurar os event listeners ou
+                // quando o usuário interagir. Para garantir na restauração, podemos chamar diretamente.
+                // Contudo, updateDocumentStatusTag também salva o estado, o que pode ser redundante durante a restauração.
+                // A forma mais segura é setar o valor e deixar que a inicialização dos listeners/tags cuide do visual.
+                const relationshipSelectDiv = statusSelect.closest('.relationship-select');
+                if(relationshipSelectDiv) {
+                    relationshipSelectDiv.setAttribute('data-selected', statusCapitalized);
+                    relationshipSelectDiv.setAttribute('data-value', statusCapitalized);
+                }
+              } else {
+                  console.warn("[documents.js] updateDocumentStatusTag não definida globalmente ao restaurar status.")
+              }
+            }
+          }
+          // Restaurar tipo e palavrasChave se eles forem usados no futuro
+          if (docData.tipo) {
+            documentoItem.dataset.tipo = docData.tipo;
+          }
+          if (docData.palavrasChave) {
+            documentoItem.dataset.palavrasChave = docData.palavrasChave;
+          }
+
+        } else if (typeof docData === 'string' && docData) { // Comportamento antigo: docData é textoDocumento
+            const nomeDocumento = clone.querySelector('.nome-documento');
+            if (nomeDocumento) {
+              nomeDocumento.value = docData; // docData é o texto do nome do documento
+            }
         }
 
-        // Configurar botão remover
-        const removerBtn = clone.querySelector('.remover-documento');
-        if (removerBtn) {
-          removerBtn.addEventListener('click', function() {
+        // Configurar eventos específicos para o novo item (ex: remover, abrir modal)
+        const removeButton = clone.querySelector('.remove-documento-btn');
+        if (removeButton) {
+          removeButton.addEventListener('click', function() {
             removerDocumento(this);
           });
         }
 
-        // Configurar o select de status
-        const relationshipSelect = documentoItem.querySelector('.relationship-select');
-        if (relationshipSelect) {
-          relationshipSelect.addEventListener('click', function() {
-            toggleDocumentStatusTag(this);
+        const infoButton = clone.querySelector('.info-documento-btn');
+        if (infoButton) {
+          infoButton.addEventListener('click', function() {
+            abrirPopupInfoDocumento(this.closest('.documento-item'));
           });
+        }
 
-          // Configurar o select interno
-          const statusSelect = relationshipSelect.querySelector('.documento-status');
-          if (statusSelect) {
-            statusSelect.addEventListener('change', function() {
-              updateDocumentStatusTag(this);
+        const detailsButton = clone.querySelector('.detalhes-documento-btn');
+        if (detailsButton) {
+            detailsButton.addEventListener('click', function() {
+                abrirModalDetalhes(this.closest('.documento-item'));
             });
-          }
         }
 
-        // Permitir abrir modal de detalhes ao clicar no nome do documento
-        const nomeDocumento = clone.querySelector('.nome-documento');
-        if (nomeDocumento) {
-          nomeDocumento.addEventListener('dblclick', function() {
-            abrirModalDetalhes(this);
-          });
+        // Configurar o select de status
+        const statusSelect = clone.querySelector('.documento-status');
+        if (statusSelect) {
+            statusSelect.addEventListener('change', function() {
+                updateDocumentStatusTag(this);
+            });
+            // Inicializar a aparência da tag de status com base no valor padrão do select
+            updateDocumentStatusTag(statusSelect);
         }
 
-        // Configurar botão de informações
-        const infoBtn = clone.querySelector('.info-documento-btn');
-        if (infoBtn) {
-          infoBtn.addEventListener('click', function() {
-            abrirPopupInfoDocumento(this);
-          });
-        }
-
-        // Adicionar ao container
         documentosContainer.appendChild(clone);
-
-        // Salvar após adicionar
-        if (typeof saveFormState === 'function') {
-          saveFormState();
-        }
-
-        return documentoItem;
+        return documentoItem; // Retornar o elemento principal do item adicionado
+      } else {
+        console.error("Template de documento ou container não encontrado em adicionarNovoDocumento.");
+        return null;
       }
     } catch (error) {
       console.error('Erro ao adicionar novo documento:', error);
+      return null;
     }
-    return null;
   }
 
   // Função para remover documento com confirmação simples
@@ -538,7 +575,7 @@ window.initModule = function() {
 
   // Preencher um documento com dados selecionados
   function preencherDocumento(doc) {
-    const novoDocumento = adicionarNovoDocumento(doc.nome);
+    const novoDocumento = adicionarNovoDocumento(doc);
 
     if (!novoDocumento) return;
 
@@ -659,7 +696,7 @@ window.initModule = function() {
         // Carregar documentos salvos
         if (dados.documentos && Array.isArray(dados.documentos)) {
           dados.documentos.forEach(doc => {
-            const documentoItem = adicionarNovoDocumento(doc.nome || '');
+            const documentoItem = adicionarNovoDocumento(doc);
             if (!documentoItem) return;
 
             // Definir o ano se existir
@@ -706,49 +743,45 @@ window.initModule = function() {
   // Inicializar o módulo
   function inicializar() {
     if (typeof saveFormState === 'function') {
-      // Sobrescrever a função saveFormState para incluir dados deste módulo
       const originalSaveFormState = saveFormState;
       saveFormState = function() {
-        // Coletar dados do formulário de documentos
         const documentosData = [];
-
         document.querySelectorAll('.documento-item').forEach(documentoItem => {
           const nomeInput = documentoItem.querySelector('.nome-documento');
           const anoInput = documentoItem.querySelector('.ano-documento');
           const detalhesTextarea = documentoItem.querySelector('.detalhes-documento');
-
-          // Obter o status a partir do select
-          let status = 'obter'; // padrão
+          let status = 'obter';
           const statusSelect = documentoItem.querySelector('.documento-status');
           if (statusSelect && statusSelect.value) {
             status = statusSelect.value.toLowerCase();
           }
-
           documentosData.push({
             nome: nomeInput ? nomeInput.value : '',
             ano: anoInput ? anoInput.value : '',
             detalhes: detalhesTextarea ? detalhesTextarea.value : '',
-            status: status
+            status: status,
+            // Adicionar outros campos se houver no formStateManager.formData.documents.documentos[X]
+            tipo: documentoItem.dataset.tipo || '', // Exemplo, se você salvar/restaurar 'tipo'
+            palavrasChave: documentoItem.dataset.palavrasChave || '' // Exemplo
           });
         });
 
-        // Configurar os dados a serem salvos
         if (window.formStateManager) {
-          formStateManager.formData.documents = {
-            documentos: documentosData,
-            observacoes: observacoes ? observacoes.value : ''
-          };
+          // Garantir que a estrutura para 'documents' exista
+          if (!window.formStateManager.formData.documents) {
+            window.formStateManager.formData.documents = {};
+          }
+          window.formStateManager.formData.documents.documentos = documentosData;
+          window.formStateManager.formData.documents.observacoes = observacoes ? observacoes.value : '';
+        } else {
+          console.warn("[documents.js] FormStateManager não encontrado durante saveFormState.");
         }
-
-        // Chamar a função original
         originalSaveFormState();
       };
     }
 
-    // Configurar eventos
     configurarEventos();
 
-    // Configurar evento para fechar o modal ao clicar fora
     const modal = document.getElementById('documento-info-modal');
     if (modal) {
       window.addEventListener('click', function(event) {
@@ -758,8 +791,21 @@ window.initModule = function() {
       });
     }
 
-    // Carregar dados salvos
-    carregarDadosSalvos();
+    // REMOVIDO: carregarDadosSalvos(); A restauração será feita pelo FormStateManager
+
+    // CHAMAR A RESTAURAÇÃO PADRONIZADA
+    if (window.formStateManager) {
+      const currentStepKey = 'documents';
+      // Adicionar um pequeno delay para garantir que tudo esteja pronto
+      setTimeout(() => {
+          console.log(`[documents.js] inicializar: Solicitando restauração para a etapa: ${currentStepKey}`);
+          window.formStateManager.ensureFormAndRestore(currentStepKey);
+      }, 100);
+    } else {
+      console.error("[documents.js] inicializar: formStateManager não encontrado. A restauração não ocorrerá.");
+    }
+
+    console.log("[documents.js] Módulo de documentos inicializado e restauração solicitada.");
   }
 
   // Iniciar o módulo
