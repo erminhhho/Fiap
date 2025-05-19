@@ -48,6 +48,7 @@ class FormStateManager {
     };
     this.currentStep = null;
     this.isInitialized = false;
+    this.initialRestorePending = false;
 
     // Mapeamento de rotas e seus índices para navegação
     this.stepRoutes = {
@@ -80,6 +81,7 @@ class FormStateManager {
       console.log('[FormStateManager] Já inicializado, pulando init.');
       return;
     }
+    this.initialRestorePending = true;
 
     const savedState = FIAP.cache.get('formStateManagerData');
     if (savedState) {
@@ -93,9 +95,23 @@ class FormStateManager {
     this.currentStep = this.currentStep || (window.location.hash ? window.location.hash.substring(1) : 'personal');
     console.log('[FormStateManager] Etapa atual definida como:', this.currentStep);
 
-    this.restoreFormData(this.currentStep);
+    this.ensureFormAndRestore(this.currentStep);
     this.isInitialized = true;
     console.log('[FormStateManager] Inicialização completa.');
+  }
+
+  ensureFormAndRestore(step, retries = 5) {
+    const form = document.querySelector('form');
+    if (form) {
+      this.restoreFormData(step);
+      this.initialRestorePending = false;
+    } else if (retries > 0) {
+      console.log(`[FormStateManager] Formulário para ${step} ainda não disponível, tentando novamente... (${retries} tentativas restantes)`);
+      setTimeout(() => this.ensureFormAndRestore(step, retries - 1), 200); // Tentar novamente após 200ms
+    } else {
+      console.error(`[FormStateManager] Formulário não encontrado para ${step} após várias tentativas. A restauração pode não ocorrer até a navegação/interação.`);
+      this.initialRestorePending = false;
+    }
   }
 
   /**
@@ -270,6 +286,12 @@ class FormStateManager {
    */
   captureCurrentFormData() {
     console.log('[FormStateManager] captureCurrentFormData() chamado.');
+
+    if (this.initialRestorePending) {
+      console.log('[FormStateManager] Captura ignorada, restauração inicial ainda pendente.');
+      return;
+    }
+
     // Implementar proteção contra chamadas repetidas
     const now = Date.now();
     if (this._lastCapture && (now - this._lastCapture < 1000)) {
@@ -684,10 +706,34 @@ class FormStateManager {
             }
           });
 
-        } else { // Lógica para campos não-array ou arrays não dinâmicos
-          const elements = form.querySelectorAll(`[name="${key}"], [id="${key}"]`);
-          if (elements.length > 0) {
-            elements.forEach(element => { // Poderia haver múltiplos (ex: radios com mesmo nome)
+        } else { // Lógica para campos não-array ou arrays não dinâmicos OU arrays cujos handlers são null
+          const directElements = form.querySelectorAll(`[name="${key}"], [id="${key}"]`); // Busca por ID ou NOME direto
+          const arrayElementsByName = form.querySelectorAll(`[name="${key}[]"]`); // Busca por NOME DE ARRAY (ex: autor_apelido[])
+
+          if (Array.isArray(valueToRestore) && arrayElementsByName.length > 0) {
+            // Caso especial: valueToRestore é um array (ex: formData.personal.autor_apelido = ["apelido1"])
+            // E encontramos campos como <input name="autor_apelido[]">.
+            // Isso é para campos como autor_apelido[], autor_telefone[] que não usam addRowFunction diretamente aqui.
+            valueToRestore.forEach((val, index) => {
+              if (arrayElementsByName[index]) {
+                const element = arrayElementsByName[index];
+                if (element.type === 'checkbox') { // Pouco provável para este cenário, mas incluído por segurança
+                  element.checked = typeof val === 'boolean' ? val : val === 'true';
+                } else if (element.type === 'radio') { // Também pouco provável
+                  if (element.value === String(val)) { element.checked = true; }
+                } else {
+                  element.value = val;
+                }
+                console.log(`[FormStateManager] Restaurando array (bloco else) campo ${element.name}[${index}] com valor: ${val}`);
+                if (typeof destacarCampoPreenchido === 'function') {
+                  destacarCampoPreenchido(element);
+                }
+              } else {
+                console.warn(`[FormStateManager] (Bloco else) Não encontrado elemento de array ${key}[] no índice ${index} para restaurar valor ${val}`);
+              }
+            });
+          } else if (directElements.length > 0) { // Lógica original para campos únicos por ID ou nome direto não-array
+            directElements.forEach(element => {
               if (element.name === key || element.id === key) { // Prioriza nome, depois ID
                 if (element.type === 'checkbox') {
                   element.checked = typeof valueToRestore === 'boolean' ? valueToRestore : valueToRestore === 'true';
@@ -705,7 +751,13 @@ class FormStateManager {
                     console.log(`[FormStateManager] Restaurando select-multiple ${key}:`, valueToRestore);
                   }
                 } else {
-                  element.value = valueToRestore;
+                  // Se valueToRestore for um array aqui, e o campo for único e não select-multiple, algo está errado.
+                  if (Array.isArray(valueToRestore) && element.type !== 'select-multiple') {
+                    console.warn(`[FormStateManager] Tentando restaurar valor de array ${JSON.stringify(valueToRestore)} para campo único não-múltiplo ${key}. Usando o primeiro valor se disponível.`);
+                    element.value = valueToRestore.length > 0 ? valueToRestore[0] : '';
+                  } else {
+                    element.value = valueToRestore;
+                  }
                   console.log(`[FormStateManager] Restaurando campo ${key} com valor: ${valueToRestore}`);
                 }
                 if (typeof destacarCampoPreenchido === 'function') {
