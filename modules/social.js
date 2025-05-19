@@ -296,10 +296,36 @@ function preencherDadosAssistido() {
 
   if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.personal) {
     const personalData = window.formStateManager.formData.personal;
-    nomeValue = personalData.nome || nomeValue;
-    cpfValue = personalData.cpf || cpfValue;
-    idadeValue = personalData.idade || idadeValue;
-    console.log('Dados obtidos do formStateManager:', personalData);
+    console.log('Dados obtidos do formStateManager (personalData):', JSON.parse(JSON.stringify(personalData)));
+
+    // Assumindo que o assistido é o primeiro autor
+    if (personalData.autor_nome && personalData.autor_nome.length > 0) {
+      nomeValue = personalData.autor_nome[0] || nomeValue;
+    }
+    if (personalData.autor_cpf && personalData.autor_cpf.length > 0) {
+      cpfValue = personalData.autor_cpf[0] || cpfValue;
+    }
+    // Para idade, usar autor_idade se disponível, caso contrário tentar calcular a partir de autor_nascimento
+    if (personalData.autor_idade && personalData.autor_idade.length > 0) {
+      idadeValue = personalData.autor_idade[0] || idadeValue;
+    } else if (personalData.autor_nascimento && personalData.autor_nascimento.length > 0) {
+      const dataNascimentoStr = personalData.autor_nascimento[0];
+      if (dataNascimentoStr) {
+        // Tentar usar a função calcularIdadeCompleta se existir e for robusta
+        if (typeof calcularIdadeCompleta === 'function') {
+          const dataNasc = new Date(dataNascimentoStr.split('/').reverse().join('-')); // DD/MM/YYYY para YYYY-MM-DD
+          if (!isNaN(dataNasc.getTime())) {
+            const idadeObj = calcularIdadeCompleta(dataNasc);
+            idadeValue = `${idadeObj.anos} anos`; // Simplificando para apenas anos por enquanto
+          } else {
+            console.warn('[preencherDadosAssistido] Data de nascimento inválida:', dataNascimentoStr);
+          }
+        } else {
+            console.warn('[preencherDadosAssistido] Função calcularIdadeCompleta não encontrada. Idade não pode ser calculada.');
+        }
+      }
+    }
+
   } else {
     // Fallback se formStateManager não tiver os dados
     console.log('formStateManager.formData.personal não encontrado, tentando obter dos elementos do DOM.');

@@ -249,7 +249,6 @@ function addAtividade() {
   }, 100);
 }
 
-// Exportar funções para uso global
 window.addAtividade = addAtividade;
 
 // Função para obter o texto formatado
