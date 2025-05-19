@@ -27,32 +27,23 @@ window.initModule = function() {
   // Verificar se o módulo já foi inicializado nesta sessão
   if (window._personalInitialized && !window.forceModuleReload) {
     console.log('Módulo de dados pessoais já inicializado.');
-    // Mesmo que já inicializado, garantir que os botões de adicionar estejam configurados
-    // e que os eventos dos campos dinâmicos sejam re-adicionados.
-    setupDynamicFieldEvents(); // Garante eventos para campos de nascimento/idade, CPF, etc.
+    setupDynamicFieldEvents();
     return;
   }
 
-  // Marcar como inicializado
   window._personalInitialized = true;
-  window.forceModuleReload = false; // Resetar a flag de forçar recarga
+  window.forceModuleReload = false;
 
-  // Configurar eventos principais do módulo (CEP, pesquisa de colaborador, etc.)
   setupEvents();
-
-  // Configurar eventos para campos que podem ser adicionados dinamicamente (autores)
   setupDynamicFieldEvents();
 
-  // Limpar flag quando a página mudar (listener de uso único)
   document.addEventListener('stepChanged', function handleStepChange() {
     window._personalInitialized = false;
-    document.removeEventListener('stepChanged', handleStepChange); // Auto-remover
+    document.removeEventListener('stepChanged', handleStepChange);
   }, { once: true });
 
-  // Disponibilizar addAuthor globalmente ANTES de restaurar
   window.addAuthor = addAuthor;
 
-  // Restaurar dados para esta etapa
   if (window.formStateManager) {
     const currentStepKey = 'personal';
     console.log(`[personal.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
@@ -61,14 +52,13 @@ window.initModule = function() {
   console.log('[personal.js] Módulo totalmente inicializado e restauração solicitada.');
 };
 
-// Função para adicionar um novo autor
+// Função addAuthor SEM o lock interno
 function addAuthor() {
-  // Prevenir cliques duplicados
-  if (window._addingAuthor) return;
-  window._addingAuthor = true;
+  console.log(`[personal.js] addAuthor (programático ou via handler): Iniciando. window.authorCount inicial = ${window.authorCount}`);
 
   try {
     window.authorCount++;
+    console.log(`[personal.js] addAuthor: authorCount incrementado para ${window.authorCount}`);
 
     // Obter apenas a primeira linha do autor (não a segunda com apelido e telefone)
     const firstAuthorRow = document.querySelector('.author-row .flex.items-center') ||
@@ -76,7 +66,6 @@ function addAuthor() {
 
     if (!firstAuthorRow) {
       console.error('Elemento da primeira linha do autor não encontrado');
-      window._addingAuthor = false;
       return;
     }
 
@@ -103,14 +92,17 @@ function addAuthor() {
         switch (baseName) {
           case 'relationship_1': // O ID original do select é relationship_1
             field.name = 'autor_relationship[]';
+            console.log(`[personal.js] addAuthor: Campo ${newId} nomeado para autor_relationship[]`);
             break;
           case 'nome':
             field.name = 'autor_nome[]';
             field.value = '';
+            console.log(`[personal.js] addAuthor: Campo ${newId} nomeado para autor_nome[]`);
             break;
           case 'cpf':
             field.name = 'autor_cpf[]';
             field.value = '';
+            console.log(`[personal.js] addAuthor: Campo ${newId} nomeado para autor_cpf[]`);
             // Adicionar máscara e validação de CPF para campos clonados, se FIAP.masks e FIAP.validation estiverem disponíveis
             if (window.FIAP && FIAP.masks && FIAP.validation) {
               field.addEventListener('input', function() { FIAP.masks.cpf(this); });
@@ -185,17 +177,13 @@ function addAuthor() {
     if (authorsContainer) {
       authorsContainer.appendChild(separator);
       authorsContainer.appendChild(newAuthor);
+      console.log(`[personal.js] addAuthor: Novo autor author-${window.authorCount} (elemento ID: ${newAuthor.id}) adicionado ao DOM.`);
     }
 
     // Aplicar estilos ao novo select de relacionamento
     applyRelationshipStyles();
   } catch (error) {
-    console.error('Erro ao adicionar autor:', error);
-  } finally {
-    // Sempre liberar o lock após processamento
-    setTimeout(() => {
-      window._addingAuthor = false;
-    }, 300);
+    console.error('[personal.js] Erro em addAuthor:', error);
   }
 }
 
@@ -648,9 +636,33 @@ function setupEvents() {
 
 // Função para configurar os eventos dinâmicos do módulo
 function setupDynamicFieldEvents() {
-  // Adicionar eventos para campos dinâmicos (autores)
   const addAuthorButton = document.querySelector('.add-author-button');
   if (addAuthorButton) {
-    addAuthorButton.addEventListener('click', addAuthor);
+    // Garantir que o listener seja adicionado apenas uma vez
+    if (!addAuthorButton.dataset.customClickListener) {
+      addAuthorButton.addEventListener('click', handleAddAuthorClick);
+      addAuthorButton.dataset.customClickListener = 'true';
+    }
+  }
+}
+
+// Novo handler para o clique do botão Adicionar Autor, contendo o lock
+function handleAddAuthorClick() {
+  if (window._addingAuthorFromButtonClick) {
+    console.log('[personal.js] handleAddAuthorClick: Lock ativo, prevenindo novo clique.');
+    return;
+  }
+  window._addingAuthorFromButtonClick = true;
+  console.log('[personal.js] handleAddAuthorClick: Botão Adicionar Autor clicado, lock ativado.');
+
+  try {
+    addAuthor(); // Chama a função addAuthor (que agora está sem lock interno)
+  } catch (error) {
+    console.error('[personal.js] handleAddAuthorClick: Erro ao chamar addAuthor:', error);
+  } finally {
+    setTimeout(() => {
+      window._addingAuthorFromButtonClick = false;
+      console.log('[personal.js] handleAddAuthorClick: Lock do botão Adicionar Autor liberado.');
+    }, 300); // Lock para cliques do usuário
   }
 }

@@ -668,20 +668,44 @@ class FormStateManager {
             // precisamos chamá-lo para criar a primeira.
             // Se o HTML *tem* a primeira linha, e numValues = 1, existingDynamicRows deveria ser 1.
 
-            let currentFieldsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
+            let currentFieldsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
+            console.log(`[State] Antes do loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, numValuesNeeded: ${numValues}, step: ${step}`);
             for (let i = currentFieldsForName.length; i < numValues; i++) {
                 try {
-                    addRowFunction(); // Chama addDoencaField() ou similar
+                    // Log específico para a contagem de 'autor' se relevante
+                    let authorCountLog = '';
+                    if (step === 'personal' && typeof window.authorCount !== 'undefined') {
+                        authorCountLog = `, window.authorCount antes: ${window.authorCount}`;
+                    } else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') { // Assumindo que poderia haver um window.atividadeCount
+                        authorCountLog = `, window.atividadeCount antes: ${window.atividadeCount || 'N/A'}`;
+                    }
+
+                    console.log(`[State] Chamando addRowFunction para ${key} (idx ${i} de ${numValues -1})${authorCountLog}`);
+                    addRowFunction(); // Chama addDoencaField(), addAuthor(), addAtividade() etc.
+
+                    let postAuthorCountLog = '';
+                    if (step === 'personal' && typeof window.authorCount !== 'undefined') {
+                        postAuthorCountLog = `, window.authorCount depois: ${window.authorCount}`;
+                    } else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') {
+                        postAuthorCountLog = `, window.atividadeCount depois: ${window.atividadeCount || 'N/A'}`;
+                    }
+                    console.log(`[State] addRowFunction chamada para ${key} (idx ${i})${postAuthorCountLog}`);
+
+                    // Contar os campos novamente *dentro* do loop:
+                    let tempCount = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`).length;
+                    console.log(`[State] Após addRowFunction ${key} (idx ${i}), campos [name=\"${fieldNameForQuery}\"] no DOM: ${tempCount}`);
+
                 } catch (e) {
-                    console.error(`[FormStateManager] Erro ao chamar addRowFunction para ${key}:`, e);
+                    console.error(`[FormStateManager] Erro ao chamar addRowFunction para ${key} (idx ${i}):`, e);
                     break;
                 }
             }
             // Re-query os elementos após adicionar novas linhas
-            currentFieldsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
+            currentFieldsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
+            console.log(`[State] Após loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, step: ${step}`);
           }
 
-          const elementsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
+          const elementsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
           valueToRestore.forEach((val, index) => {
             if (elementsForName[index]) {
               const element = elementsForName[index];
@@ -855,15 +879,14 @@ document.addEventListener('DOMContentLoaded', function() {
       // Chamar a função original
       await originalLoadModuleWithTemplate(route);
 
-      // Após carregar o módulo, restaurar os dados
-      const currentStep = route.scriptUrl.split('/').pop().replace('.js', '');
-
-      setTimeout(() => {
-        if (window.formStateManager) {
-          window.formStateManager.currentStep = currentStep;
-          window.formStateManager.restoreFormData(currentStep);
-        }
-      }, 500);
+      // Após carregar o módulo, podemos ainda querer definir o currentStep no formStateManager,
+      // embora o initModule de cada módulo também possa fazer isso se necessário, ou ser baseado no hash.
+      // Por enquanto, vamos manter a definição do currentStep aqui, pois parece inofensivo
+      // e pode ajudar se a lógica de currentStep dentro de initModule for removida ou falhar.
+      // const currentStep = route.scriptUrl.split('/').pop().replace('.js', '');
+      // if (window.formStateManager) {
+      // window.formStateManager.currentStep = currentStep;
+      // }
     };
   }
 });
