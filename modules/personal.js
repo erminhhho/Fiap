@@ -65,12 +65,28 @@ function addAuthor() {
           case 'cpf':
             field.name = 'autor_cpf[]';
             field.value = '';
+            // Adicionar máscara e validação de CPF para campos clonados, se FIAP.masks e FIAP.validation estiverem disponíveis
+            if (window.FIAP && FIAP.masks && FIAP.validation) {
+              field.addEventListener('input', function() { FIAP.masks.cpf(this); });
+              field.addEventListener('blur', function() { FIAP.validation.cpfRealTime(this); });
+            }
             break;
           case 'nascimento':
             field.name = 'autor_nascimento[]';
             field.value = '';
             if (field.hasAttribute('data-target-age')) {
               field.setAttribute('data-target-age', `autor_idade_${window.authorCount}`); // ID do campo idade correspondente
+            }
+            // Adicionar máscara, validação e cálculo de idade para campos de nascimento clonados
+            if (window.FIAP && FIAP.masks && FIAP.validation && FIAP.calculation) {
+              field.addEventListener('input', function() { FIAP.masks.date(this); }); // Adiciona máscara de data
+              field.addEventListener('blur', function() {
+                FIAP.validation.dateOfBirthRealTime(this);
+                if (this.dataset.targetAge) {
+                  const targetId = this.dataset.targetAge; // Deve ser algo como autor_idade_2
+                  FIAP.calculation.age(this.value, targetId);
+                }
+              });
             }
             break;
           case 'idade':
