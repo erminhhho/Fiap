@@ -215,25 +215,75 @@ if (typeof documentosPreCadastrados === 'undefined') {
   window.documentosPreCadastrados = documentosPreCadastrados;
 }
 
-// Definir nova função de inicialização do módulo
+// Flag para controle (se necessário, mas pode não ser usado com a abordagem atual)
+// let saveFormStateOverridden = false;
+
+// Definir a função de salvamento customizada no escopo do módulo
+function customDocumentsSaveState() {
+  console.log("[documents.js] customDocumentsSaveState CALLED");
+  const documentosData = [];
+  const observacoesEl = document.getElementById('observacoes');
+
+  document.querySelectorAll('.documento-item').forEach(documentoItem => {
+    const nomeInput = documentoItem.querySelector('.nome-documento');
+    const anoInput = documentoItem.querySelector('.ano-documento');
+    const detalhesTextarea = documentoItem.querySelector('.detalhes-documento');
+    let status = 'obter';
+    const statusSelect = documentoItem.querySelector('.documento-status');
+    if (statusSelect && statusSelect.value) {
+      status = statusSelect.value.toLowerCase();
+    }
+    documentosData.push({
+      nome: nomeInput ? nomeInput.value : '',
+      ano: anoInput ? anoInput.value : '',
+      detalhes: detalhesTextarea ? detalhesTextarea.value : '',
+      status: status,
+      tipo: documentoItem.dataset.tipo || '',
+      palavrasChave: documentoItem.dataset.palavrasChave || ''
+    });
+  });
+
+  if (window.formStateManager) {
+    if (!window.formStateManager.formData.documents) {
+      window.formStateManager.formData.documents = {};
+    }
+    window.formStateManager.formData.documents.documentos = documentosData;
+    window.formStateManager.formData.documents.observacoes = observacoesEl ? observacoesEl.value : '';
+    console.log("[documents.js] window.formStateManager.formData.documents ATUALIZADO por customDocumentsSaveState:", JSON.parse(JSON.stringify(window.formStateManager.formData.documents)));
+  } else {
+    console.warn("[documents.js] FormStateManager não encontrado durante customDocumentsSaveState.");
+  }
+}
+
+// Definir initModule aqui para que outras funções possam ser definidas antes se referenciadas por ele
 window.initModule = function() {
-  // Referências aos elementos DOM
+  console.log("[documents.js] initModule chamado.");
   const form = document.getElementById('documents-form');
   const documentosContainer = document.getElementById('documentos-container');
   const documentoTemplate = document.getElementById('documentoTemplate');
   const documentoPesquisa = document.getElementById('documento-pesquisa');
-  const observacoes = document.getElementById('observacoes');
+  // A variável 'observacoes' agora é obtida dentro de customDocumentsSaveState
   const btnBack = document.getElementById('btn-back');
   const btnPrint = document.getElementById('btn-print');
 
-  // Usar os documentos pré-cadastrados do objeto global
-  const documentosPreCadastrados = window.documentosPreCadastrados || [];
+  configurarEventos();
 
-  // Inicializar contador para IDs únicos
-  let nextId = documentosPreCadastrados.length + 1;
+  if (window.formStateManager) {
+    const currentStepKey = 'documents';
+    setTimeout(() => {
+        console.log(`[documents.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
+        window.formStateManager.ensureFormAndRestore(currentStepKey);
+    }, 100);
+  } else {
+    console.error("[documents.js] initModule: formStateManager não encontrado. A restauração não ocorrerá.");
+  }
+  console.log("[documents.js] Módulo de documentos inicializado e restauração solicitada.");
+};
 
-  // Adicionar um novo documento
-  function adicionarNovoDocumento(docData = null) { // Aceita docData como argumento
+// Adicionar um novo documento
+function adicionarNovoDocumento(docData = null) {
+    // ... (código de adicionarNovoDocumento como estava antes, mas sem a lógica de saveFormState interno)
+    // ... (ele já deve preencher os campos baseado em docData se fornecido)
     try {
       const template = document.getElementById('documentoTemplate');
       const documentosContainer = document.getElementById('documentos-container');
@@ -242,98 +292,54 @@ window.initModule = function() {
         const clone = document.importNode(template.content, true);
         const documentoItem = clone.querySelector('.documento-item');
 
-        // Se docData for fornecido (durante a restauração), preencher os campos
         if (docData && typeof docData === 'object') {
           const nomeDocumentoInput = clone.querySelector('.nome-documento');
-          if (nomeDocumentoInput && docData.nome) {
-            nomeDocumentoInput.value = docData.nome;
-          }
+          if (nomeDocumentoInput && docData.nome) nomeDocumentoInput.value = docData.nome;
 
           const anoDocumentoInput = clone.querySelector('.ano-documento');
-          if (anoDocumentoInput && docData.ano) {
-            anoDocumentoInput.value = docData.ano;
-          }
+          if (anoDocumentoInput && docData.ano) anoDocumentoInput.value = docData.ano;
 
           const detalhesTextarea = clone.querySelector('.detalhes-documento');
-          if (detalhesTextarea && docData.detalhes) {
-            detalhesTextarea.value = docData.detalhes;
-          }
+          if (detalhesTextarea && docData.detalhes) detalhesTextarea.value = docData.detalhes;
 
-          // Restaurar o status do documento
           if (docData.status) {
             const statusSelect = clone.querySelector('.documento-status');
             if (statusSelect) {
               const statusCapitalized = docData.status.charAt(0).toUpperCase() + docData.status.slice(1);
-              statusSelect.value = statusCapitalized; // Ex: 'Recebido', 'Solicitado', 'Obter'
-              // Chamar a função para atualizar visualmente a tag de status
-              // É importante que updateDocumentStatusTag seja definida globalmente ou acessível aqui
-              if (typeof updateDocumentStatusTag === 'function') {
-                // updateDocumentStatusTag espera o elemento select como argumento
-                // A função é chamada mais tarde no código, quando o select é adicionado ao DOM
-                // e o event listener de change é configurado. Por agora, apenas setamos o value.
-                // A atualização visual ocorrerá quando initModule re-configurar os event listeners ou
-                // quando o usuário interagir. Para garantir na restauração, podemos chamar diretamente.
-                // Contudo, updateDocumentStatusTag também salva o estado, o que pode ser redundante durante a restauração.
-                // A forma mais segura é setar o valor e deixar que a inicialização dos listeners/tags cuide do visual.
-                const relationshipSelectDiv = statusSelect.closest('.relationship-select');
-                if(relationshipSelectDiv) {
-                    relationshipSelectDiv.setAttribute('data-selected', statusCapitalized);
-                    relationshipSelectDiv.setAttribute('data-value', statusCapitalized);
-                }
-              } else {
-                  console.warn("[documents.js] updateDocumentStatusTag não definida globalmente ao restaurar status.")
+              statusSelect.value = statusCapitalized;
+              const relationshipSelectDiv = statusSelect.closest('.relationship-select');
+              if(relationshipSelectDiv) {
+                  relationshipSelectDiv.setAttribute('data-selected', statusCapitalized);
+                  relationshipSelectDiv.setAttribute('data-value', statusCapitalized);
               }
             }
           }
-          // Restaurar tipo e palavrasChave se eles forem usados no futuro
-          if (docData.tipo) {
-            documentoItem.dataset.tipo = docData.tipo;
-          }
-          if (docData.palavrasChave) {
-            documentoItem.dataset.palavrasChave = docData.palavrasChave;
-          }
-
-        } else if (typeof docData === 'string' && docData) { // Comportamento antigo: docData é textoDocumento
+          if (docData.tipo) documentoItem.dataset.tipo = docData.tipo;
+          if (docData.palavrasChave) documentoItem.dataset.palavrasChave = docData.palavrasChave;
+        } else if (typeof docData === 'string' && docData) {
             const nomeDocumento = clone.querySelector('.nome-documento');
-            if (nomeDocumento) {
-              nomeDocumento.value = docData; // docData é o texto do nome do documento
-            }
+            if (nomeDocumento) nomeDocumento.value = docData;
         }
 
-        // Configurar eventos específicos para o novo item (ex: remover, abrir modal)
         const removeButton = clone.querySelector('.remove-documento-btn');
         if (removeButton) {
-          removeButton.addEventListener('click', function() {
-            removerDocumento(this);
-          });
+          removeButton.addEventListener('click', function() { removerDocumento(this); });
         }
-
         const infoButton = clone.querySelector('.info-documento-btn');
         if (infoButton) {
-          infoButton.addEventListener('click', function() {
-            abrirPopupInfoDocumento(this.closest('.documento-item'));
-          });
+          infoButton.addEventListener('click', function() { abrirPopupInfoDocumento(this.closest('.documento-item')); });
         }
-
         const detailsButton = clone.querySelector('.detalhes-documento-btn');
         if (detailsButton) {
-            detailsButton.addEventListener('click', function() {
-                abrirModalDetalhes(this.closest('.documento-item'));
-            });
+            detailsButton.addEventListener('click', function() { abrirModalDetalhes(this.closest('.documento-item')); });
         }
-
-        // Configurar o select de status
         const statusSelect = clone.querySelector('.documento-status');
         if (statusSelect) {
-            statusSelect.addEventListener('change', function() {
-                updateDocumentStatusTag(this);
-            });
-            // Inicializar a aparência da tag de status com base no valor padrão do select
-            updateDocumentStatusTag(statusSelect);
+            statusSelect.addEventListener('change', function() { updateDocumentStatusTag(this); });
+            updateDocumentStatusTag(statusSelect); // Inicializa a tag visualmente
         }
-
         documentosContainer.appendChild(clone);
-        return documentoItem; // Retornar o elemento principal do item adicionado
+        return documentoItem;
       } else {
         console.error("Template de documento ou container não encontrado em adicionarNovoDocumento.");
         return null;
@@ -342,477 +348,280 @@ window.initModule = function() {
       console.error('Erro ao adicionar novo documento:', error);
       return null;
     }
+}
+
+// Função para remover documento com confirmação simples
+function removerDocumento(button) {
+  const documentoItem = button.closest('.documento-item');
+  if (!documentoItem) return;
+  if (confirm('Tem certeza que deseja remover este documento?')) {
+    documentoItem.remove();
+    customDocumentsSaveState(); // Salvar após remover
   }
+}
 
-  // Função para remover documento com confirmação simples
-  function removerDocumento(button) {
-    const documentoItem = button.closest('.documento-item');
-    if (!documentoItem) return;
-
-    if (confirm('Tem certeza que deseja remover este documento?')) {
-      documentoItem.remove();
-
-      // Salvar após remover
-      if (typeof saveFormState === 'function') {
-        saveFormState();
-      }
-    }
-  }
-
-  // Função para abrir o modal de detalhes do documento
-  function abrirModalDetalhes(element) {
-    const documentoItem = element.closest('.documento-item');
-    if (!documentoItem) return;
-
-    const modal = document.getElementById('documento-info-modal');
-    if (!modal) return;
-
-    // Obter dados do documento
-    const nomeInput = documentoItem.querySelector('.nome-documento');
-    const anoInput = documentoItem.querySelector('.ano-documento');
-    const detalhesTextarea = documentoItem.querySelector('.detalhes-documento');
-
-    const nome = nomeInput ? nomeInput.value : 'Documento';
-    const ano = anoInput && anoInput.value ? anoInput.value : '';
-    const detalhes = detalhesTextarea ? detalhesTextarea.value : '';
-
-    // Preencher dados no modal
-    const tituloEl = modal.querySelector('.documento-info-titulo');
-    const detalhesEl = modal.querySelector('#documento-info-detalhes');
-
-    if (tituloEl) {
-      if (ano) {
-        tituloEl.textContent = `${nome} (${ano})`;
-      } else {
-        tituloEl.textContent = nome;
-      }
-    }
-
-    if (detalhesEl) {
-      detalhesEl.value = detalhes;
-    }
-
-    // Mostrar o modal
-    modal.classList.remove('hidden');
-
-    // Configurar botão de fechar
-    const fecharBtn = modal.querySelector('.fechar-info');
-    if (fecharBtn) {
-      const closeHandler = function() {
-        modal.classList.add('hidden');
-        fecharBtn.removeEventListener('click', closeHandler);
-      };
-      fecharBtn.addEventListener('click', closeHandler);
-    }
-
-    // Configurar botão de salvar
+// Função para abrir o modal de detalhes do documento
+function abrirModalDetalhes(element) {
+    // ... (início da função como estava)
     const salvarBtn = modal.querySelector('.salvar-info');
     if (salvarBtn) {
       const saveHandler = function() {
-        // Salvar detalhes no textarea oculto
         if (detalhesTextarea && detalhesEl) {
           detalhesTextarea.value = detalhesEl.value;
         }
-
-        // Fechar modal
         modal.classList.add('hidden');
-
-        // Salvar no estado
-        if (typeof saveFormState === 'function') {
-          saveFormState();
-        }
-
+        customDocumentsSaveState(); // CHAMAR A FUNÇÃO CORRETA
         salvarBtn.removeEventListener('click', saveHandler);
       };
       salvarBtn.addEventListener('click', saveHandler);
     }
-  }
+}
 
-  // Função para abrir o popup de informações do documento
-  function abrirPopupInfoDocumento(element) {
-    const documentoItem = element.closest('.documento-item');
-    if (!documentoItem) return;
+// Função para abrir o popup de informações do documento
+function abrirPopupInfoDocumento(element) {
+  const documentoItem = element.closest('.documento-item');
+  if (!documentoItem) return;
 
-    const popup = document.getElementById('documento-info-popup');
-    if (!popup) return;
+  const popup = document.getElementById('documento-info-popup');
+  if (!popup) return;
 
-    // Obter o nome do documento
-    const nomeInput = documentoItem.querySelector('.nome-documento');
-    const nome = nomeInput ? nomeInput.value : 'Documento';
+  // Obter o nome do documento
+  const nomeInput = documentoItem.querySelector('.nome-documento');
+  const nome = nomeInput ? nomeInput.value : 'Documento';
 
-    // Obter a descrição do documento do banco de dados pré-cadastrado
-    let descricao = '';
-    if (nome && window.documentosPreCadastrados) {
-      const documento = window.documentosPreCadastrados.find(doc => doc.nome.toLowerCase() === nome.toLowerCase());
-      if (documento) {
-        descricao = documento.descricao || '';
+  // Obter a descrição do documento do banco de dados pré-cadastrado
+  let descricao = '';
+  if (nome && window.documentosPreCadastrados) {
+    const documento = window.documentosPreCadastrados.find(doc => doc.nome.toLowerCase() === nome.toLowerCase());
+    if (documento) {
+      descricao = documento.descricao || '';
 
-        // Se tiver detalhes HTML, adicione-os também
-        if (documento.detalhes) {
-          descricao += '<hr class="my-3 border-gray-200">' + documento.detalhes;
-        }
-      } else {
-        descricao = 'Nenhuma descrição disponível para este documento.';
+      // Se tiver detalhes HTML, adicione-os também
+      if (documento.detalhes) {
+        descricao += '<hr class="my-3 border-gray-200">' + documento.detalhes;
       }
     } else {
       descricao = 'Nenhuma descrição disponível para este documento.';
     }
+  } else {
+    descricao = 'Nenhuma descrição disponível para este documento.';
+  }
 
-    // Preencher dados no popup
-    const tituloEl = popup.querySelector('.documento-info-popup-titulo');
-    const descricaoEl = popup.querySelector('#documento-info-popup-descricao');
+  // Preencher dados no popup
+  const tituloEl = popup.querySelector('.documento-info-popup-titulo');
+  const descricaoEl = popup.querySelector('#documento-info-popup-descricao');
 
-    if (tituloEl) {
-      tituloEl.textContent = nome;
-    }
+  if (tituloEl) {
+    tituloEl.textContent = nome;
+  }
 
-    if (descricaoEl) {
-      descricaoEl.innerHTML = descricao;
-    }
+  if (descricaoEl) {
+    descricaoEl.innerHTML = descricao;
+  }
 
-    // Mostrar o popup
-    popup.classList.remove('hidden');
+  // Mostrar o popup
+  popup.classList.remove('hidden');
 
-    // Configurar botão de fechar
-    const fecharBtn = popup.querySelector('.fechar-info-popup');
-    if (fecharBtn) {
-      const closeHandler = function() {
-        popup.classList.add('hidden');
-        fecharBtn.removeEventListener('click', closeHandler);
-      };
-      fecharBtn.addEventListener('click', closeHandler);
-    }
-
-    // Fechar popup ao clicar fora
-    const clickOutsideHandler = function(event) {
-      if (event.target === popup) {
-        popup.classList.add('hidden');
-        popup.removeEventListener('click', clickOutsideHandler);
-      }
+  // Configurar botão de fechar
+  const fecharBtn = popup.querySelector('.fechar-info-popup');
+  if (fecharBtn) {
+    const closeHandler = function() {
+      popup.classList.add('hidden');
+      fecharBtn.removeEventListener('click', closeHandler);
     };
-    popup.addEventListener('click', clickOutsideHandler);
+    fecharBtn.addEventListener('click', closeHandler);
   }
 
-  // Função para pesquisar documentos
-  function pesquisarDocumentos(query) {
-    if (!query || typeof query !== 'string' || query.length < 2) {
-      // Esconder resultados se a consulta for muito curta
-      document.getElementById('resultados-pesquisa').classList.add('hidden');
-      return [];
+  // Fechar popup ao clicar fora
+  const clickOutsideHandler = function(event) {
+    if (event.target === popup) {
+      popup.classList.add('hidden');
+      popup.removeEventListener('click', clickOutsideHandler);
     }
+  };
+  popup.addEventListener('click', clickOutsideHandler);
+}
 
-    query = query.toLowerCase().trim();
-    return documentosPreCadastrados.filter(doc => {
-      // Verificar nome
-      if (doc.nome.toLowerCase().includes(query)) return true;
-      // Verificar palavras-chave
-      if (doc.palavrasChave && doc.palavrasChave.toLowerCase().includes(query)) return true;
-      // Verificar descrição
-      if (doc.descricao && doc.descricao.toLowerCase().includes(query)) return true;
-      return false;
-    });
+// Função para pesquisar documentos
+function pesquisarDocumentos(query) {
+  if (!query || typeof query !== 'string' || query.length < 2) {
+    // Esconder resultados se a consulta for muito curta
+    document.getElementById('resultados-pesquisa').classList.add('hidden');
+    return [];
   }
 
-  // Exibir resultados da pesquisa
-  function exibirResultadosPesquisa(query) {
-    const resultados = pesquisarDocumentos(query);
-    const resultadosContainer = document.getElementById('resultados-pesquisa');
+  query = query.toLowerCase().trim();
+  return documentosPreCadastrados.filter(doc => {
+    // Verificar nome
+    if (doc.nome.toLowerCase().includes(query)) return true;
+    // Verificar palavras-chave
+    if (doc.palavrasChave && doc.palavrasChave.toLowerCase().includes(query)) return true;
+    // Verificar descrição
+    if (doc.descricao && doc.descricao.toLowerCase().includes(query)) return true;
+    return false;
+  });
+}
 
-    if (!resultadosContainer) return;
+// Exibir resultados da pesquisa
+function exibirResultadosPesquisa(query) {
+  const resultados = pesquisarDocumentos(query);
+  const resultadosContainer = document.getElementById('resultados-pesquisa');
 
-    // Se não há resultados ou a consulta é muito curta, esconder o container
-    if (resultados.length === 0 || query.length < 2) {
-      resultadosContainer.classList.add('hidden');
-      return;
-    }
+  if (!resultadosContainer) return;
 
-    // Limpar resultados anteriores
-    resultadosContainer.innerHTML = '';
+  // Se não há resultados ou a consulta é muito curta, esconder o container
+  if (resultados.length === 0 || query.length < 2) {
+    resultadosContainer.classList.add('hidden');
+    return;
+  }
 
-    // Adicionar novo cabeçalho
-    const header = document.createElement('div');
-    header.className = 'bg-blue-50 p-2 rounded-t text-sm text-blue-700 border border-blue-100 flex justify-between items-center';
-    header.innerHTML = `
-      <span><i class="fas fa-search mr-2"></i>Resultados para "${query}" (${resultados.length})</span>
-      <button type="button" class="text-gray-500 hover:text-gray-700" id="btn-close-search">
-        <i class="fas fa-times"></i>
-      </button>
+  // Limpar resultados anteriores
+  resultadosContainer.innerHTML = '';
+
+  // Adicionar novo cabeçalho
+  const header = document.createElement('div');
+  header.className = 'bg-blue-50 p-2 rounded-t text-sm text-blue-700 border border-blue-100 flex justify-between items-center';
+  header.innerHTML = `
+    <span><i class="fas fa-search mr-2"></i>Resultados para "${query}" (${resultados.length})</span>
+    <button type="button" class="text-gray-500 hover:text-gray-700" id="btn-close-search">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  resultadosContainer.appendChild(header);
+
+  // Adicionar resultados em uma lista
+  const lista = document.createElement('ul');
+  lista.className = 'bg-white border border-t-0 border-gray-200 rounded-b max-h-60 overflow-y-auto shadow-sm';
+
+    resultados.forEach(doc => {
+    const item = document.createElement('li');
+    item.className = 'p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 documento-resultado';
+      item.innerHTML = `
+      <div class="font-medium text-gray-800">${doc.nome}</div>
+      <div class="text-xs text-gray-500 truncate">${doc.descricao}</div>
     `;
-    resultadosContainer.appendChild(header);
+    item.dataset.docId = doc.id;
+    item.dataset.docNome = doc.nome;
+    item.dataset.docDetalhes = doc.detalhes || '';
 
-    // Adicionar resultados em uma lista
-    const lista = document.createElement('ul');
-    lista.className = 'bg-white border border-t-0 border-gray-200 rounded-b max-h-60 overflow-y-auto shadow-sm';
-
-      resultados.forEach(doc => {
-      const item = document.createElement('li');
-      item.className = 'p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 documento-resultado';
-        item.innerHTML = `
-        <div class="font-medium text-gray-800">${doc.nome}</div>
-        <div class="text-xs text-gray-500 truncate">${doc.descricao}</div>
-      `;
-      item.dataset.docId = doc.id;
-      item.dataset.docNome = doc.nome;
-      item.dataset.docDetalhes = doc.detalhes || '';
-
-      item.addEventListener('click', function() {
-          preencherDocumento(doc);
-          resultadosContainer.classList.add('hidden');
-          documentoPesquisa.value = '';
-      });
-
-      lista.appendChild(item);
+    item.addEventListener('click', function() {
+        preencherDocumento(doc);
+        resultadosContainer.classList.add('hidden');
+        documentoPesquisa.value = '';
     });
 
-    resultadosContainer.appendChild(lista);
-    resultadosContainer.classList.remove('hidden');
+    lista.appendChild(item);
+  });
 
-    // Adicionar evento para fechar resultados
-    document.getElementById('btn-close-search').addEventListener('click', function() {
-      resultadosContainer.classList.add('hidden');
-    });
-  }
+  resultadosContainer.appendChild(lista);
+  resultadosContainer.classList.remove('hidden');
 
-  // Preencher um documento com dados selecionados
-  function preencherDocumento(doc) {
-    const novoDocumento = adicionarNovoDocumento(doc);
+  // Adicionar evento para fechar resultados
+  document.getElementById('btn-close-search').addEventListener('click', function() {
+    resultadosContainer.classList.add('hidden');
+  });
+}
 
-    if (!novoDocumento) return;
+// Preencher um documento com dados selecionados
+function preencherDocumento(doc) {
+  const novoDocumento = adicionarNovoDocumento(doc);
+  if (!novoDocumento) return;
+  // ... (lógica de preenchimento já está em adicionarNovoDocumento)
+  customDocumentsSaveState(); // Salvar estado após adicionar o documento preenchido
+  const documentoPesquisa = document.getElementById('documento-pesquisa');
+  const resultadosContainer = document.getElementById('resultados-pesquisa');
+  if (documentoPesquisa) documentoPesquisa.value = '';
+  if (resultadosContainer) resultadosContainer.classList.add('hidden');
+}
 
-    // Preencher detalhes do documento (agora ocultos para o popup)
-    const detalhesTextarea = novoDocumento.querySelector('.detalhes-documento');
-    if (detalhesTextarea && doc.detalhes) {
-      detalhesTextarea.value = doc.detalhes.replace(/<[^>]*>/g, ''); // Remover tags HTML
-    }
+// Função para configurar eventos
+function configurarEventos() {
+  const form = document.getElementById('documents-form');
+  const documentoPesquisa = document.getElementById('documento-pesquisa');
+  const btnBack = document.getElementById('btn-back');
+  const btnPrint = document.getElementById('btn-print');
 
-    // Preencher descrição para o popup de informações
-    const descricaoContainer = novoDocumento.querySelector('.descricao-documento');
-    if (descricaoContainer && doc.descricao) {
-      descricaoContainer.innerHTML = doc.descricao;
-    }
-  }
-
-  // Função para configurar eventos
-  function configurarEventos() {
-    // Evento para buscar documentos conforme digita
+  if (documentoPesquisa) {
     documentoPesquisa.addEventListener('input', function() {
       const query = this.value.trim();
-          exibirResultadosPesquisa(query);
+      exibirResultadosPesquisa(query);
     });
-
-    // Evento para adicionar documento ao pressionar Enter
     documentoPesquisa.addEventListener('keypress', function(event) {
       if (event.key === 'Enter') {
         event.preventDefault();
-
         const textoDigitado = this.value.trim();
         if (!textoDigitado) return;
-
-        // Se há resultados visíveis, selecionar o primeiro
         const resultadosContainer = document.getElementById('resultados-pesquisa');
         if (!resultadosContainer.classList.contains('hidden')) {
           const primeiroResultado = resultadosContainer.querySelector('.documento-resultado');
           if (primeiroResultado) {
-            primeiroResultado.click();
+            primeiroResultado.click(); // preencherDocumento será chamado, que já salva
             return;
           }
         }
-
-        // Verificar se o documento já existe na lista
         let documentoExistente = false;
         document.querySelectorAll('.nome-documento').forEach(input => {
           if (input.value.toLowerCase() === textoDigitado.toLowerCase()) {
             documentoExistente = true;
           }
         });
-
-        // Se o documento não existir na lista e não estiver nos resultados, adicionar como novo
         if (!documentoExistente) {
           adicionarNovoDocumento(textoDigitado);
-          this.value = ''; // Limpar o campo
-          document.getElementById('resultados-pesquisa').classList.add('hidden'); // Esconder resultados
-
-          // Salvar estado após adicionar o documento
-          if (typeof saveFormState === 'function') {
-            saveFormState();
-          }
+          this.value = '';
+          if (resultadosContainer) resultadosContainer.classList.add('hidden');
+          customDocumentsSaveState(); // CHAMAR A FUNÇÃO CORRETA
         }
-      }
-    });
-
-    // Configurar botão voltar
-    if (btnBack) {
-      btnBack.addEventListener('click', function() {
-        if (typeof navigateTo === 'function') {
-          navigateTo('professional');
-        }
-      });
-    }
-
-    // Configurar botão imprimir
-    if (btnPrint) {
-      btnPrint.addEventListener('click', function() {
-        window.print();
-      });
-    }
-
-    // Fechar resultados ao clicar fora
-    document.addEventListener('click', function(event) {
-      const resultadosContainer = document.getElementById('resultados-pesquisa');
-      const pesquisaInput = document.getElementById('documento-pesquisa');
-
-      if (resultadosContainer && !resultadosContainer.contains(event.target) &&
-          pesquisaInput && !pesquisaInput.contains(event.target)) {
-        resultadosContainer.classList.add('hidden');
-      }
-    });
-
-    // Salvar automaticamente ao alterar o formulário
-    form.addEventListener('change', function() {
-      if (typeof saveFormState === 'function') {
-        saveFormState();
-      }
-    });
-
-    // Configurar evento para modal de detalhes/informações do documento
-    document.addEventListener('click', function(event) {
-      // Verificar se o clique foi em um botão de info
-      if (event.target.classList.contains('info-documento-btn')) {
-        abrirPopupInfoDocumento(event.target);
       }
     });
   }
 
-  // Função para carregar os dados salvos
-  function carregarDadosSalvos() {
-    try {
-      // Verificar se temos dados carregados no formStateManager
-      if (window.formStateManager && formStateManager.formData && formStateManager.formData.documents) {
-        const dados = formStateManager.formData.documents;
-
-        // Limpar documentos existentes
-        documentosContainer.innerHTML = '';
-
-        // Carregar documentos salvos
-        if (dados.documentos && Array.isArray(dados.documentos)) {
-          dados.documentos.forEach(doc => {
-            const documentoItem = adicionarNovoDocumento(doc);
-            if (!documentoItem) return;
-
-            // Definir o ano se existir
-            const anoInput = documentoItem.querySelector('.ano-documento');
-            if (anoInput && doc.ano) {
-              anoInput.value = doc.ano;
-            }
-
-            // Definir os detalhes se existirem
-            const detalhesTextarea = documentoItem.querySelector('.detalhes-documento');
-            if (detalhesTextarea && doc.detalhes) {
-              detalhesTextarea.value = doc.detalhes;
-            }
-
-            // Definir o status do documento
-            if (doc.status) {
-              const statusSelect = documentoItem.querySelector('.documento-status');
-              if (statusSelect) {
-                // Mapear o status para o valor correto no select
-                const statusCapitalized = doc.status.charAt(0).toUpperCase() + doc.status.slice(1);
-                statusSelect.value = statusCapitalized;
-
-                // Atualizar a aparência do status
-                const relationshipSelect = statusSelect.closest('.relationship-select');
-                if (relationshipSelect) {
-                  relationshipSelect.setAttribute('data-selected', statusCapitalized);
-                  relationshipSelect.setAttribute('data-value', statusCapitalized);
-                }
-              }
-            }
-          });
-        }
-
-        // Carregar observações
-        if (dados.observacoes) {
-          observacoes.value = dados.observacoes;
-        }
+  if (btnBack) {
+    btnBack.addEventListener('click', function() {
+      customDocumentsSaveState(); // CHAMAR A FUNÇÃO CORRETA
+      if (typeof navigateTo === 'function') {
+        navigateTo('professional');
       }
-    } catch (error) {
-      console.error('Erro ao carregar dados salvos dos documentos:', error);
-    }
+    });
   }
 
-  // Inicializar o módulo
-  function inicializar() {
-    if (typeof saveFormState === 'function') {
-      const originalSaveFormState = saveFormState;
-      saveFormState = function() {
-        const documentosData = [];
-        document.querySelectorAll('.documento-item').forEach(documentoItem => {
-          const nomeInput = documentoItem.querySelector('.nome-documento');
-          const anoInput = documentoItem.querySelector('.ano-documento');
-          const detalhesTextarea = documentoItem.querySelector('.detalhes-documento');
-          let status = 'obter';
-          const statusSelect = documentoItem.querySelector('.documento-status');
-          if (statusSelect && statusSelect.value) {
-            status = statusSelect.value.toLowerCase();
-          }
-          documentosData.push({
-            nome: nomeInput ? nomeInput.value : '',
-            ano: anoInput ? anoInput.value : '',
-            detalhes: detalhesTextarea ? detalhesTextarea.value : '',
-            status: status,
-            // Adicionar outros campos se houver no formStateManager.formData.documents.documentos[X]
-            tipo: documentoItem.dataset.tipo || '', // Exemplo, se você salvar/restaurar 'tipo'
-            palavrasChave: documentoItem.dataset.palavrasChave || '' // Exemplo
-          });
-        });
-
-        if (window.formStateManager) {
-          // Garantir que a estrutura para 'documents' exista
-          if (!window.formStateManager.formData.documents) {
-            window.formStateManager.formData.documents = {};
-          }
-          window.formStateManager.formData.documents.documentos = documentosData;
-          window.formStateManager.formData.documents.observacoes = observacoes ? observacoes.value : '';
-        } else {
-          console.warn("[documents.js] FormStateManager não encontrado durante saveFormState.");
-        }
-        originalSaveFormState();
-      };
-    }
-
-    configurarEventos();
-
-    const modal = document.getElementById('documento-info-modal');
-    if (modal) {
-      window.addEventListener('click', function(event) {
-        if (event.target === modal) {
-          modal.classList.add('hidden');
-        }
-      });
-    }
-
-    // REMOVIDO: carregarDadosSalvos(); A restauração será feita pelo FormStateManager
-
-    // CHAMAR A RESTAURAÇÃO PADRONIZADA
-    if (window.formStateManager) {
-      const currentStepKey = 'documents';
-      // Adicionar um pequeno delay para garantir que tudo esteja pronto
-      setTimeout(() => {
-          console.log(`[documents.js] inicializar: Solicitando restauração para a etapa: ${currentStepKey}`);
-          window.formStateManager.ensureFormAndRestore(currentStepKey);
-      }, 100);
-    } else {
-      console.error("[documents.js] inicializar: formStateManager não encontrado. A restauração não ocorrerá.");
-    }
-
-    console.log("[documents.js] Módulo de documentos inicializado e restauração solicitada.");
+  if (btnPrint) {
+    btnPrint.addEventListener('click', function() { window.print(); });
   }
 
-  // Iniciar o módulo
-  inicializar();
-};
+  document.addEventListener('click', function(event) {
+    const resultadosContainer = document.getElementById('resultados-pesquisa');
+    const pesquisaInput = document.getElementById('documento-pesquisa');
+    if (resultadosContainer && !resultadosContainer.contains(event.target) && pesquisaInput && !pesquisaInput.contains(event.target)) {
+      resultadosContainer.classList.add('hidden');
+    }
+    if (event.target.classList.contains('info-documento-btn')) {
+      abrirPopupInfoDocumento(event.target.closest('.documento-item'));
+    }
+  });
 
-// Função para alternar o status de um documento através das tags clicáveis
+  if (form) {
+    form.addEventListener('change', function(event) {
+      // Evitar salvar em loop se a mudança for programática ou de um select dentro de um item já existente
+      // A mudança no select de status já chama updateDocumentStatusTag -> customDocumentsSaveState
+      if (event.target && event.target.classList.contains('documento-status')) {
+          return;
+      }
+      console.log("[documents.js] Form change event, calling customDocumentsSaveState");
+      customDocumentsSaveState();
+    });
+  }
+
+  const modal = document.getElementById('documento-info-modal');
+  if (modal) {
+    window.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+  }
+}
+
+// As funções de toggle/update de status precisam chamar customDocumentsSaveState
 function toggleDocumentStatus(button) {
   if (!button) return;
 
@@ -838,90 +647,9 @@ function toggleDocumentStatus(button) {
   documentoItem.classList.add('status-' + status);
 
   // Salvar alterações
-  if (typeof saveFormState === 'function') {
-    saveFormState();
-  }
+  customDocumentsSaveState();
 }
 
-// Correção para o problema de botões de adição após limpar seção
-// Sobrescrever a função de limpeza de seção para corrigir o problema
-window.executeClearSectionOriginal = window.executeClearSection || function() {};
-window.executeClearSection = function(section) {
-  // Chamar a função original
-  if (window.executeClearSectionOriginal) {
-    window.executeClearSectionOriginal(section);
-  }
-
-  // Correção específica para a seção de documentos
-  if (section === 'documentos') {
-    // Garantir que o container está limpo
-    const documentosContainer = document.getElementById('documentos-container');
-    if (documentosContainer) {
-      documentosContainer.innerHTML = '';
-    }
-
-    // Reinicializar os eventos para garantir que novos documentos possam ser adicionados
-    const documentoPesquisa = document.getElementById('documento-pesquisa');
-    if (documentoPesquisa) {
-      // Limpar valor do campo de pesquisa
-      documentoPesquisa.value = '';
-
-      // Atualizar o gerenciador de estado
-      if (window.formStateManager) {
-        if (!window.formStateManager.formData.documents) {
-          window.formStateManager.formData.documents = {};
-        }
-        window.formStateManager.formData.documents.documentos = [];
-      }
-    }
-  }
-};
-
-// Função para alternar o status de um documento através da tag de relacionamento
-function toggleDocumentStatusTag(element) {
-  // Obter o status atual
-  const currentStatus = element.getAttribute('data-selected');
-  const statusValue = element.getAttribute('data-value') || element.querySelector('select').value;
-
-  // Garantir que sempre tenhamos o data-value para aplicar a cor correta
-  if (!element.hasAttribute('data-value')) {
-    element.setAttribute('data-value', statusValue);
-  }
-
-  // Se já tem um status selecionado, vamos deixá-lo no formato padrão
-  if (currentStatus) {
-    element.removeAttribute('data-selected');
-  } else {
-    // Caso contrário, vamos usar o valor do data-value como o status selecionado
-    element.setAttribute('data-selected', statusValue);
-  }
-
-  // Atualizar o status no elemento do documento
-  const documentoElement = element.closest('.documento-item');
-  if (documentoElement) {
-    // Mapear o valor do status para o formato correto esperado pelo sistema
-    let mappedStatus = statusValue.toLowerCase();
-
-    // Corrigir o mapeamento para a convenção de nomenclatura do sistema
-    if (mappedStatus === 'recebido') mappedStatus = 'recebido';
-    else if (mappedStatus === 'solicitado') mappedStatus = 'solicitado';
-    else if (mappedStatus === 'obter') mappedStatus = 'obter';
-
-    // Atualizar o atributo data-status
-    documentoElement.dataset.status = mappedStatus;
-
-    // Atualizar as classes CSS para visualização rápida
-    documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
-    documentoElement.classList.add('status-' + mappedStatus);
-  }
-
-  // Salvar alterações
-  if (typeof saveFormState === 'function') {
-    saveFormState();
-  }
-}
-
-// Função para atualizar a tag de status do documento
 function updateDocumentStatusTag(select) {
   const container = select.closest('.relationship-select');
   const value = select.value;
@@ -950,19 +678,30 @@ function updateDocumentStatusTag(select) {
   }
 
   // Salvar alterações
-  if (typeof saveFormState === 'function') {
-    saveFormState();
-  }
+  customDocumentsSaveState();
 }
 
-// Tornar funções acessíveis globalmente
-window.toggleDocumentStatusTag = toggleDocumentStatusTag;
+window.toggleDocumentStatusTag = toggleDocumentStatusTag; // Já existia, mas garantir que use a lógica acima
 window.updateDocumentStatusTag = updateDocumentStatusTag;
 window.toggleDocumentStatus = toggleDocumentStatus;
 window.abrirPopupInfoDocumento = abrirPopupInfoDocumento;
-
-// Exposição global das novas funções
 window.adicionarNovoDocumento = adicionarNovoDocumento;
 window.removerDocumento = removerDocumento;
 window.abrirModalDetalhes = abrirModalDetalhes;
+
+// A antiga função carregarDadosSalvos não é mais necessária no initModule,
+// pois a restauração é feita por FormStateManager + adicionarNovoDocumento(docData)
+
+// A antiga sobrescrita de executeClearSection também deve chamar customDocumentsSaveState
+// Se window.executeClearSectionOriginal é definido em outro lugar.
+if (typeof window.executeClearSection === 'function') {
+    const originalExecuteClearSection = window.executeClearSection;
+    window.executeClearSection = function(section) {
+        originalExecuteClearSection(section);
+        if (section === 'documentos') {
+            // ... (lógica de limpar container, etc.)
+            customDocumentsSaveState(); // Garantir que o estado reflita a limpeza
+        }
+    };
+}
 
