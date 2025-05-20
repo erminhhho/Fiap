@@ -274,31 +274,9 @@ function renderizarResultadosCID(dropdown, resultados, cidInput, doencaInput, qu
       <div class="p-4 text-center text-gray-500">
         Nenhum CID encontrado para "${query}"
       </div>
-      <div class="p-3 bg-blue-50 hover:bg-blue-100 cursor-pointer border-t border-blue-200 text-center transition-colors">
-        <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
-        <span>Criar novo registro com este código</span>
-      </div>
     `;
-
-    // Adicionar evento para o botão de criar novo
-    const btnCriar = dropdown.querySelector('.bg-blue-50');
-    if (btnCriar) {
-      btnCriar.addEventListener('click', () => {
-        cidInput.value = query.toUpperCase();
-        if (doencaInput) doencaInput.value = 'CID personalizado: ' + query.toUpperCase();
-        dropdown.classList.add('hidden');
-
-        // Disparar eventos de mudança
-        cidInput.dispatchEvent(new Event('change', { bubbles: true }));
-        cidInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-        // Verificar isenção de carência
-        if (doencaInput && typeof verificarIsencaoCarencia === 'function') {
-          verificarIsencaoCarencia(doencaInput);
-        }
-      });
-    }
-
+    // Não adicionar mais nada, apenas mostrar a mensagem.
+    // A div e o listener para 'Criar novo registro com este código' foram removidos daqui.
     return;
   }
 
@@ -347,31 +325,6 @@ function renderizarResultadosCID(dropdown, resultados, cidInput, doencaInput, qu
   });
 
   dropdown.appendChild(lista);
-
-  // Sempre adicionar opção de criar novo
-  const opcaoCriarNovo = document.createElement('div');
-  opcaoCriarNovo.className = 'p-3 bg-blue-50 hover:bg-blue-100 cursor-pointer border-t border-blue-200 text-center transition-colors';
-  opcaoCriarNovo.innerHTML = `
-    <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
-    <span>Usar código: ${query.toUpperCase()}</span>
-  `;
-
-  opcaoCriarNovo.addEventListener('click', () => {
-    cidInput.value = query.toUpperCase();
-    if (doencaInput) doencaInput.value = 'CID personalizado: ' + query.toUpperCase();
-    dropdown.classList.add('hidden');
-
-    // Disparar eventos de mudança
-    cidInput.dispatchEvent(new Event('change', { bubbles: true }));
-    cidInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-    // Verificar isenção de carência
-    if (doencaInput && typeof verificarIsencaoCarencia === 'function') {
-      verificarIsencaoCarencia(doencaInput);
-    }
-  });
-
-  dropdown.appendChild(opcaoCriarNovo);
 }
 
 // Injetar estilos CSS para corrigir a exibição de itens selecionados

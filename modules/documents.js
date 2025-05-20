@@ -464,62 +464,98 @@ function pesquisarDocumentos(query) {
 
 // Exibir resultados da pesquisa
 function exibirResultadosPesquisa(query) {
-  const resultados = pesquisarDocumentos(query);
   const resultadosContainer = document.getElementById('resultados-pesquisa');
-
   if (!resultadosContainer) return;
 
-  // Se não há resultados ou a consulta é muito curta, esconder o container
-  if (resultados.length === 0 || query.length < 2) {
+  // Limpar resultados anteriores sempre que a função é chamada
+  resultadosContainer.innerHTML = '';
+
+  // Se não há consulta ou é muito curta para pesquisar, esconder o container e sair
+  if (!query || query.length < 2) {
     resultadosContainer.classList.add('hidden');
     return;
   }
 
-  // Limpar resultados anteriores
-  resultadosContainer.innerHTML = '';
+  const resultados = pesquisarDocumentos(query); // Fazer a pesquisa
 
-  // Adicionar novo cabeçalho
+  // Criar cabeçalho e lista (serão populados condicionalmente)
   const header = document.createElement('div');
-  header.className = 'bg-blue-50 p-2 rounded-t text-sm text-blue-700 border border-blue-100 flex justify-between items-center';
-  header.innerHTML = `
-    <span><i class="fas fa-search mr-2"></i>Resultados para "${query}" (${resultados.length})</span>
-    <button type="button" class="text-gray-500 hover:text-gray-700" id="btn-close-search">
-      <i class="fas fa-times"></i>
-    </button>
-  `;
-  resultadosContainer.appendChild(header);
-
-  // Adicionar resultados em uma lista
   const lista = document.createElement('ul');
   lista.className = 'bg-white border border-t-0 border-gray-200 rounded-b max-h-60 overflow-y-auto shadow-sm';
 
-    resultados.forEach(doc => {
-    const item = document.createElement('li');
-    item.className = 'p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 documento-resultado';
-      item.innerHTML = `
-      <div class="font-medium text-gray-800">${doc.nome}</div>
-      <div class="text-xs text-gray-500 truncate">${doc.descricao}</div>
+  if (resultados.length > 0) {
+    // Resultados encontrados
+    header.className = 'bg-blue-50 p-2 rounded-t text-sm text-blue-700 border border-blue-100 flex justify-between items-center';
+    header.innerHTML = `
+      <span><i class="fas fa-search mr-2"></i>Resultados para "${query}" (${resultados.length})</span>
+      <button type="button" class="text-gray-500 hover:text-gray-700 btn-close-document-search">
+        <i class="fas fa-times"></i>
+      </button>
     `;
-    item.dataset.docId = doc.id;
-    item.dataset.docNome = doc.nome;
-    item.dataset.docDetalhes = doc.detalhes || '';
+    resultadosContainer.appendChild(header);
 
-    item.addEventListener('click', function() {
-        preencherDocumento(doc);
+    resultados.forEach(doc => {
+      const item = document.createElement('li');
+      item.className = 'p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 documento-resultado';
+      item.innerHTML = `
+        <div class="font-medium text-gray-800">${doc.nome}</div>
+        <div class="text-xs text-gray-500 truncate">${doc.descricao}</div>
+      `;
+      item.dataset.docId = doc.id;
+      item.dataset.docNome = doc.nome;
+      item.dataset.docDetalhes = doc.detalhes || '';
+
+      item.addEventListener('click', function() {
+        preencherDocumento(doc); // preencherDocumento chama adicionarNovoDocumento e customDocumentsSaveState
+        const docPesquisaEl = document.getElementById('documento-pesquisa');
+        if(docPesquisaEl) docPesquisaEl.value = ''; // Limpa o campo de pesquisa
         resultadosContainer.classList.add('hidden');
-        documentoPesquisa.value = '';
+      });
+      lista.appendChild(item);
     });
+    resultadosContainer.appendChild(lista);
 
-    lista.appendChild(item);
-  });
+  } else { // Nenhum resultado encontrado (e query.length >= 2)
+    header.className = 'bg-green-50 p-2 rounded-t text-sm text-green-700 border border-green-100 flex justify-between items-center';
+    header.innerHTML = `
+      <span><i class="fas fa-lightbulb mr-2"></i>Nenhum documento encontrado para "${query}"</span>
+      <button type="button" class="text-gray-500 hover:text-gray-700 btn-close-document-search">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+    resultadosContainer.appendChild(header);
 
-  resultadosContainer.appendChild(lista);
+    const addItem = document.createElement('li');
+    addItem.className = 'p-3 hover:bg-green-100 cursor-pointer border-b border-gray-100 text-green-700 flex items-center';
+    addItem.innerHTML = `
+      <i class="fas fa-plus-circle mr-2"></i>Adicionar "<strong>${query}</strong>" como novo documento?
+    `;
+    addItem.addEventListener('click', function() {
+      adicionarNovoDocumento(query); // Adiciona o texto da query como nome
+      if (typeof customDocumentsSaveState === 'function') {
+        customDocumentsSaveState(); // Garante que o estado é salvo
+      }
+      const docPesquisaEl = document.getElementById('documento-pesquisa');
+      if(docPesquisaEl) docPesquisaEl.value = ''; // Limpa o campo de pesquisa
+      resultadosContainer.classList.add('hidden');
+    });
+    lista.appendChild(addItem);
+    resultadosContainer.appendChild(lista);
+  }
+
+  // Mostrar o container se tivermos algo para mostrar (resultados ou sugestão)
   resultadosContainer.classList.remove('hidden');
 
-  // Adicionar evento para fechar resultados
-  document.getElementById('btn-close-search').addEventListener('click', function() {
-    resultadosContainer.classList.add('hidden');
-  });
+  // Adicionar evento para fechar resultados/sugestão
+  const closeButton = resultadosContainer.querySelector('.btn-close-document-search');
+  if (closeButton) {
+    // Remover listener antigo para evitar duplicação, caso a função seja chamada múltiplas vezes
+    const newCloseButton = closeButton.cloneNode(true);
+    closeButton.parentNode.replaceChild(newCloseButton, closeButton);
+    newCloseButton.addEventListener('click', function() {
+      resultadosContainer.classList.add('hidden');
+    });
+  }
 }
 
 // Preencher um documento com dados selecionados
