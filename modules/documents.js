@@ -325,9 +325,15 @@ function adicionarNovoDocumento(docData = null) {
             if (nomeDocumento) nomeDocumento.value = docData;
         }
 
-        const removeButton = clone.querySelector('.remove-documento-btn');
+        const removeButton = clone.querySelector('.remover-documento');
         if (removeButton) {
-          removeButton.addEventListener('click', function() { removerDocumento(this); });
+          console.log('[documents.js] Botão .remover-documento ENCONTRADO no clone. Adicionando listener.', removeButton);
+          removeButton.addEventListener('click', function(event) { // Adicionar event como parâmetro
+            console.log('[documents.js] Event listener de REMOVER CLICADO. Botão:', this, 'Evento:', event);
+            removerDocumento(this);
+          });
+        } else {
+          console.warn('[documents.js] Botão .remover-documento NÃO ENCONTRADO no clone.');
         }
         const infoButton = clone.querySelector('.info-documento-btn');
         if (infoButton) {
@@ -356,12 +362,25 @@ function adicionarNovoDocumento(docData = null) {
 
 // Função para remover documento com confirmação simples
 function removerDocumento(button) {
+  console.log('[documents.js] removerDocumento CALLED. Botão recebido:', button);
   const documentoItem = button.closest('.documento-item');
-  if (!documentoItem) return;
-  if (confirm('Tem certeza que deseja remover este documento?')) {
-    documentoItem.remove();
-    customDocumentsSaveState(); // Salvar após remover
+  if (!documentoItem) {
+    console.warn('[documents.js] removerDocumento: documentoItem não encontrado a partir do botão.');
+    return;
   }
+  console.log('[documents.js] removerDocumento: documentoItem encontrado:', documentoItem);
+
+  // const confirmacao = confirm('Tem certeza que deseja remover este documento?');
+  // console.log('[documents.js] removerDocumento: Resultado da confirmação:', confirmacao);
+
+  // if (confirmacao) {
+  console.log('[documents.js] removerDocumento: Removendo item do DOM diretamente...');
+  documentoItem.remove();
+  console.log('[documents.js] removerDocumento: Item removido do DOM. Chamando customDocumentsSaveState...');
+  customDocumentsSaveState(); // Salvar após remover
+  // } else {
+  //   console.log('[documents.js] removerDocumento: Usuário cancelou a remoção.');
+  // }
 }
 
 // Função para abrir o modal de detalhes do documento
