@@ -921,10 +921,6 @@ class FormStateManager {
   // Função auxiliar para atualizar dados de um campo específico (se necessário)
   updateSpecificField(formType, fieldName, value) {
     console.log(`[FormStateManager] updateSpecificField chamado para ${formType}.${fieldName} com valor:`, value);
-    // Adicionar o trace aqui:
-    if (fieldName === 'bairro' || fieldName === 'endereco') {
-        console.trace(`Trace para updateSpecificField (${formType}.${fieldName})`);
-    }
     if (this.formData[formType]) {
       this.formData[formType][fieldName] = value;
       FIAP.cache.set('formStateManagerData', { formData: this.formData, currentStep: this.currentStep });

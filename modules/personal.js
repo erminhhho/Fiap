@@ -503,7 +503,15 @@ function setupEvents() {
       field.addEventListener(eventType, function() {
         let valueToSave = this.type === 'checkbox' ? this.checked : this.value;
         if (window.formStateManager && typeof window.formStateManager.updateSpecificField === 'function') {
-          window.formStateManager.updateSpecificField('personal', this.id, valueToSave);
+          const currentKnownValue = window.formStateManager.formData.personal[this.id];
+          if (currentKnownValue !== valueToSave && !this.readOnly) {
+              console.log(`[personal.js] Evento '${eventType}' no campo '${this.id}'. Valor DOM: '${valueToSave}', Valor no State: '${currentKnownValue}'. ATUALIZANDO.`);
+              window.formStateManager.updateSpecificField('personal', this.id, valueToSave);
+          } else if (this.readOnly) {
+              console.log(`[personal.js] Evento '${eventType}' no campo '${this.id}'. Campo é readOnly. NÃO atualizando state.`);
+          } else {
+              console.log(`[personal.js] Evento '${eventType}' no campo '${this.id}'. Valor DOM: '${valueToSave}', Valor no State: '${currentKnownValue}'. SEM MUDANÇA. NÃO atualizando state.`);
+          }
         }
       });
     }
