@@ -187,25 +187,45 @@ function addAuthor() {
             field.name = 'autor_nascimento[]';
             field.value = '';
             if (field.hasAttribute('data-target-age')) {
-              field.setAttribute('data-target-age', `autor_idade_${window.authorCount}`); // ID do campo idade correspondente
+              field.setAttribute('data-target-age', `autor_idade_${window.authorCount}`);
+              console.log(`[personal.js] addAuthor: Campo nascimento ${field.id} terá data-target-age: autor_idade_${window.authorCount}`);
             }
             // Adicionar máscara, validação e cálculo de idade para campos de nascimento clonados
             if (window.FIAP && FIAP.masks && FIAP.validation && FIAP.calculation) {
-              field.addEventListener('input', function() { FIAP.masks.date(this); }); // Adiciona máscara de data
+              console.log('[personal.js] addAuthor: FIAP.calculation.age está disponível. Configurando listeners para campo de nascimento clonado:', field.id);
+              field.addEventListener('input', function() { FIAP.masks.date(this); });
               field.addEventListener('blur', function() {
+                console.log(`[personal.js] addAuthor: Evento blur no campo nascimento ${this.id}. Valor: ${this.value}`);
                 FIAP.validation.dateOfBirthRealTime(this);
                 if (this.dataset.targetAge) {
-                  const targetId = this.dataset.targetAge; // Deve ser algo como autor_idade_2
-                  FIAP.calculation.age(this.value, targetId);
+                  const targetId = this.dataset.targetAge;
+                  console.log(`[personal.js] addAuthor: Tentando calcular idade para ${this.id}. Target ID do campo idade: ${targetId}`);
+                  const targetElement = document.getElementById(targetId);
+                  if (targetElement) {
+                    console.log(`[personal.js] addAuthor: Campo de idade ${targetId} ENCONTRADO. Chamando FIAP.calculation.age...`);
+                    try {
+                      FIAP.calculation.age(this.value, targetId);
+                      console.log(`[personal.js] addAuthor: FIAP.calculation.age CHAMDADO para ${this.id} -> ${targetId}. Valor atual do campo idade (${targetId}): ${targetElement.value}`);
+                    } catch (e) {
+                      console.error(`[personal.js] addAuthor: ERRO ao chamar FIAP.calculation.age para ${targetId}:`, e);
+                    }
+                  } else {
+                    console.warn(`[personal.js] addAuthor: Campo de idade ${targetId} NÃO ENCONTRADO no DOM.`);
+                  }
+                } else {
+                  console.log(`[personal.js] addAuthor: Campo nascimento ${this.id} não possui data-target-age.`);
                 }
               });
+            } else {
+              console.warn('[personal.js] addAuthor: FIAP.calculation.age ou outros módulos FIAP NÃO estão disponíveis para o campo de nascimento clonado:', field.id);
             }
             break;
           case 'idade':
             field.name = 'autor_idade[]';
+            field.id = `autor_idade_${window.authorCount}`;
             field.value = ''; // Idade é readonly mas limpamos para consistência
-            // O ID do campo idade já deve ser atualizado para autor_idade_X pela lógica de newId
-            // e o data-target-age do campo nascimento correspondente também.
+            console.log(`[personal.js] addAuthor: Campo idade ${field.id} nomeado para autor_idade[] e ID corrigido.`);
+            // O data-target-age do campo nascimento correspondente já foi atualizado.
             break;
           // Não clonamos apelido, telefone, senha por autor adicional atualmente
         }
