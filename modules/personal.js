@@ -462,29 +462,8 @@ function renderizarResultadosColaborador(resultados, query) {
 
   // Se não houver resultados
   if (!resultados || resultados.length === 0) {
-    dropdown.innerHTML = `
-      <div class="p-4 text-center text-gray-500 bg-white border border-gray-200 rounded-b">
-        Nenhum colaborador encontrado para "${query}"
-      </div>
-      <div class="p-3 bg-blue-50 hover:bg-blue-100 cursor-pointer border border-blue-200 text-center transition-colors rounded-b">
-        <i class="fas fa-plus-circle text-blue-500 mr-2"></i>
-        <span>Adicionar novo colaborador</span>
-      </div>
-    `;
-
-    // Adicionar evento para o botão de criar novo
-    const btnCriar = dropdown.querySelector('.bg-blue-50');
-    if (btnCriar) {
-      btnCriar.addEventListener('click', () => {
-        const inputColaborador = document.getElementById('colaborador');
-        if (inputColaborador) {
-          inputColaborador.value = query;
-          dropdown.classList.add('hidden');
-        }
-      });
-    }
-
-    dropdown.classList.remove('hidden');
+    dropdown.innerHTML = ''; // Limpar qualquer conteúdo anterior
+    dropdown.classList.add('hidden'); // Ocultar o dropdown
     return;
   }
 
