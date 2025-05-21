@@ -50,7 +50,8 @@ function newForm() {
 
     // Inicializar novo formulário com o gerenciador de estado simplificado
     if (window.formStateManager) {
-      window.formStateManager.clearState();
+      // window.formStateManager.clearState(); // TESTE: Comentado temporariamente
+      console.log("[forms.js] newForm: Chamada a clearState() COMENTADA PARA TESTE.");
     }
 
     showSuccess('Novo formulário iniciado!', null, { duration: 3000 });
@@ -134,10 +135,7 @@ function saveForm() {
     } else {
       // Estamos offline, ou Firebase não configurado.
       hideLoading();
-      showError('Não foi possível salvar. Verifique sua conexão com a internet e a configuração do Firebase.', null, {
-        duration: 3000,
-        position: 'top-right'
-      });
+      showError('Não foi possível salvar. Verifique sua conexão com a internet e a configuração do Firebase.');
     }
     */
     // Lógica de persistência removida. Apenas simular o salvamento.
@@ -192,12 +190,15 @@ function loadFormByKey(key) {
   showError('Busca de formulário desativada. Persistência na nuvem removida.');
 }
 
-/**
+/*
  * Processa os dados do formulário carregado e preenche os campos.
  * @param {Object} formData - Os dados do formulário.
  * @param {string} formId - O ID do formulário carregado.
  */
 function handleFormLoaded(formData, formId) {
+  console.log(`[forms.js] handleFormLoaded chamada com formId: ${formId}. Call stack:`);
+  console.trace();
+
   if (window.formStateManager) {
     window.formStateManager.clearState();
     window.formStateManager.currentFormId = formId;

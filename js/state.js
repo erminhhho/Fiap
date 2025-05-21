@@ -77,23 +77,20 @@ class FormStateManager {
 
   init() {
     console.log('[FormStateManager] init() chamado.');
-    if (this.isInitialized) {
-      console.log('[FormStateManager] Já inicializado, pulando init.');
+    if (this.isInitialized && !this.initialRestorePending) {
+      console.log('[FormStateManager] Já inicializado e restauração não pendente, pulando init.');
       return;
     }
     this.initialRestorePending = true;
 
-    const savedState = FIAP.cache.get('formStateManagerData');
-    if (savedState) {
-      console.log('[FormStateManager] Estado encontrado no cache, restaurando:', savedState);
-      this.formData = savedState.formData || this.formData; // Garante que formData não seja undefined
-      this.currentStep = savedState.currentStep;
+    if (this.loadStateFromCache()) {
+      console.log('[FormStateManager] Estado carregado com sucesso do cache durante o init.');
     } else {
-      console.log('[FormStateManager] Nenhum estado salvo encontrado no cache.');
+      console.log('[FormStateManager] Nenhum estado válido encontrado no cache durante o init. Usando padrões.');
     }
 
     this.currentStep = this.currentStep || (window.location.hash ? window.location.hash.substring(1) : 'personal');
-    console.log('[FormStateManager] Etapa atual definida como:', this.currentStep);
+    console.log('[FormStateManager] Etapa atual definida (ou confirmada) como:', this.currentStep);
 
     this.ensureFormAndRestore(this.currentStep);
     this.isInitialized = true;
@@ -311,8 +308,14 @@ class FormStateManager {
     const form = document.querySelector('form');
     if (!form) return;
 
-    // Capturar dados do formulário
+    // LOG ADICIONADO: Ver o estado de this.formData[currentRoute] ANTES de tudo
+    console.log(`[FormStateManager] Estado de this.formData[${currentRoute}] ANTES da coleta:`, this.formData[currentRoute] ? JSON.parse(JSON.stringify(this.formData[currentRoute])) : 'undefined');
+
+    // Capturar dados do formulário - começamos com um objeto vazio para garantir que dados completos sejam coletados
     const formData = {};
+
+    // Mapear campos de array para rastreá-los corretamente
+    const arrayFields = {};
 
     // Processar todos os inputs, selects e textareas
     form.querySelectorAll('input, select, textarea').forEach(input => {
@@ -321,11 +324,23 @@ class FormStateManager {
 
       if (!key) return; // Pular se não houver nome ou id
 
+      // Log detalhado do valor lido do DOM
+      console.log(`[FormStateManager] captureCurrentFormData - Lendo DOM: Campo: ${key}, Tipo: ${input.type}, Valor DOM: '${value}'`);
+
+      // Log específico para campos problemáticos
+      if (key === 'autor_apelido[]' || key === 'autor_telefone[]' || key === 'autor_senha_meuinss[]') {
+        console.log(`[FormStateManager] CAPTURE - Campo de autor problemático: ${key}, Valor: ${value}`);
+      }
+      if (['cep', 'bairro', 'cidade', 'uf', 'endereco', 'numero', 'colaborador', 'observacoes'].includes(key)) {
+        console.log(`[FormStateManager] CAPTURE - Campo personal/endereço: ${key}, Valor: ${value}`);
+      }
+
       if (input.type === 'checkbox') {
         value = input.checked; // Salvar como booleano diretamente
       } else if (input.type === 'radio') {
         if (!input.checked) return; // Salvar apenas o radio selecionado
       }
+
       // Para campos de múltipla seleção (ex: select-multiple), precisamos de tratamento especial
       if (input.type === 'select-multiple') {
         value = Array.from(input.selectedOptions).map(option => option.value);
@@ -334,30 +349,36 @@ class FormStateManager {
       // Se for um array de campos (ex: familiar_nome[]), armazenar como array
       if (key.endsWith('[]')) {
         const baseKey = key.slice(0, -2);
-        if (!formData[baseKey]) {
-          formData[baseKey] = [];
+        if (!arrayFields[baseKey]) {
+          arrayFields[baseKey] = [];
         }
-        formData[baseKey].push(value);
+        arrayFields[baseKey].push(value);
       } else {
         formData[key] = value;
+        // LOG ADICIONADO: Ver atribuição de campos simples
+        console.log(`[FormStateManager] CAMPO SIMPLES Atribuído: formData[${key}] = ${value}`);
       }
+    });
+
+    // Adicionar todos os campos de array ao formData
+    Object.keys(arrayFields).forEach(key => {
+      formData[key] = arrayFields[key];
+      console.log(`[FormStateManager] CAMPO ARRAY Atribuído: formData[${key}] = ${JSON.stringify(arrayFields[key])}`);
     });
 
     // Adicionar timestamp para controle
     formData._timestamp = Date.now();
 
-    console.log('[FormStateManager] Dados do formulário coletados:', JSON.parse(JSON.stringify(formData)));
+    // LOG ADICIONADO: Ver o objeto formData construído a partir do DOM
+    console.log('[FormStateManager] Objeto formData LOCAL construído do DOM (antes da atribuição final):', JSON.parse(JSON.stringify(formData)));
 
-    if (this.formData[currentRoute]) {
-      Object.assign(this.formData[currentRoute], formData);
-      console.log(`[FormStateManager] Dados mesclados em this.formData[${currentRoute}]:`, JSON.parse(JSON.stringify(this.formData[currentRoute])));
-    } else {
+    // Substituir completamente os dados para a rota atual em this.formData
       this.formData[currentRoute] = formData;
-      console.log(`[FormStateManager] Dados atribuídos a this.formData[${currentRoute}]:`, JSON.parse(JSON.stringify(this.formData[currentRoute])));
-    }
+    // LOG ADICIONADO: Ver this.formData[currentRoute] APÓS a atribuição final
+    console.log(`[FormStateManager] this.formData[${currentRoute}] APÓS atribuição final (DEVE REFLETIR O LOCAL ACIMA):`, JSON.parse(JSON.stringify(this.formData[currentRoute])));
 
-    FIAP.cache.set('formStateManagerData', { formData: this.formData, currentStep: this.currentStep });
-    console.log('[FormStateManager] Estado salvo no cache.', JSON.parse(JSON.stringify(this.formData)));
+    // Salvar o estado completo no cache
+    this.saveStateToCache();
   }
 
   /**
@@ -622,7 +643,6 @@ class FormStateManager {
         }
     }
 
-
     // Iterar sobre os dados salvos para a etapa
     for (const key in stepData) {
       if (stepData.hasOwnProperty(key)) {
@@ -630,11 +650,25 @@ class FormStateManager {
 
         // Verificar se é um campo de array dinâmico para a etapa atual
         const stepDynamicHandlers = dynamicArrayFieldHandlers[step];
-        if (stepDynamicHandlers && stepDynamicHandlers[key] && Array.isArray(valueToRestore)) {
-          const addRowFunction = stepDynamicHandlers[key];
-          const numValues = valueToRestore.length; // Definido aqui para uso em ambos os branches
 
-          if (step === 'documents' && key === 'documentos' && typeof addRowFunction === 'function') {
+        // Log para cada chave que tentamos restaurar
+        if (key === '_timestamp') {
+            console.log(`[FormStateManager] RESTORE - Tentando chave: '_timestamp', Valor: ${valueToRestore}. Pulando esta chave.`);
+            continue; // Pular apenas a iteração do _timestamp
+        }
+
+        console.log(`[FormStateManager] RESTORE - Processando Chave: '${key}', Valor:`, JSON.parse(JSON.stringify(valueToRestore)));
+
+        const handler = stepDynamicHandlers ? stepDynamicHandlers[key] : undefined;
+
+        if (typeof handler === 'function' && Array.isArray(valueToRestore)) {
+            // CASO 1: Campo de array com manipulador de função dinâmico (ex: addAuthor para autor_nome)
+            console.log(`[FormStateManager] RESTORE - Chave '${key}' tem MANIPULADOR DE FUNÇÃO DINÂMICO.`);
+
+            const addRowFunction = handler; // Renomeado para clareza
+            const numValues = valueToRestore.length;
+
+            if (step === 'documents' && key === 'documentos') { // Não precisa de typeof addRowFunction === 'function' aqui pois já foi checado
             // Lógica especial para restaurar documentos
             console.log(`[State] Iniciando restauração especial para documents. Documentos a restaurar:`, valueToRestore);
             const documentosContainer = document.getElementById('documentos-container');
@@ -643,10 +677,10 @@ class FormStateManager {
               console.log("[State] Container de documentos limpo para restauração.");
             }
             valueToRestore.forEach((docData, index) => {
-              if (docData && typeof docData === 'object') { // Certificar que docData é um objeto válido
+                if (docData && typeof docData === 'object') {
                 try {
                   console.log(`[State] Chamando adicionarNovoDocumento (idx ${index}) com dados:`, docData);
-                  const newDocElement = addRowFunction(docData); // Passa o objeto do documento para a função
+                    const newDocElement = addRowFunction(docData);
                   if (!newDocElement) {
                     console.warn(`[State] adicionarNovoDocumento não retornou um elemento para o documento idx ${index}`, docData);
                   }
@@ -657,186 +691,187 @@ class FormStateManager {
                 console.warn(`[State] Dados do documento inválidos no índice ${index}, pulando:`, docData);
               }
             });
-            // Pular o preenchimento genérico abaixo, pois já foi feito
             console.log("[State] Restauração especial de documentos concluída.");
+              // Pular o preenchimento genérico abaixo, pois já foi feito
+              console.log(`[FormStateManager] RESTORE - Chave '${key}' tratada por manipulador dinâmico (documentos).`);
             continue;
-          } else if (typeof addRowFunction === 'function') {
+            } else { // Outros campos com manipuladores de função dinâmicos
             const fieldNameForQuery = `${key}[]`;
-
-            // Garantir que temos linhas suficientes no DOM
-            // Esta parte é um pouco complexa porque addRowFunction (ex: addDoencaField)
-            // adiciona um conjunto de campos, não apenas para 'key'.
-            // Precisamos contar as "linhas" de forma consistente.
-            // Assumindo que o primeiro campo do array (ex: valueToRestore[0]) corresponde à primeira linha dinâmica.
-
-            // Contar quantas linhas de "doença" (ou equivalente) já existem.
-            // Usar um seletor comum para uma linha de doença, ex: o container de cada doença.
-            let existingDynamicRows = 0;
-            if (step === 'incapacity') {
-              // `addDoencaField` adiciona um div com classes 'mb-4 border-b ...'
-              // e dentro dele estão os campos tipoDocumentos[], cids[], doencas[], dataDocumentos[]
-              // A primeira linha estática no HTML pode ou não corresponder a este seletor.
-              // Vamos contar quantos [name="cids[]"] (por exemplo) existem.
-               existingDynamicRows = form.querySelectorAll(`[name="cids[]"]`).length;
-            } else if (step === 'social') {
-              // Para social, contamos quantos campos [name="familiar_nome[]"] existem.
-              // O primeiro é o assistido. Os demais são adicionados por addFamilyMember.
-              const allFamiliarNomeFields = form.querySelectorAll(`[name="familiar_nome[]"]`);
-              // existingDynamicRows deve representar o número de membros *adicionáveis*.
-              // Se todos os nomes forem de length N, e o primeiro é assistido, há N-1 adicionáveis.
-              // A contagem de currentFieldsForName.length dentro do loop de addRowFunction já considera todos.
-              // A lógica de adicionar linhas precisa comparar com numValues, que é o total de dados.
-              // Se numValues é 2 (assistido + 1 membro), e já existe o assistido, precisa adicionar 1.
-              // A lógica do loop `for (let i = currentFieldsForName.length; i < numValues; i++)` deve tratar isso.
-              // Não precisamos de existingDynamicRows aqui da mesma forma que em incapacity, pois
-              // addFamilyMember adiciona um por um.
-            }
-            // Adicionar mais aqui para outros módulos se necessário
-
-            if (numValues > 0 && typeof addRowFunction === 'function') {
-              // Se a primeira linha de dados (numValues > 0) não tiver um campo correspondente já
-              // (o que pode acontecer se o HTML inicial não tiver a linha zero),
-              // ou se precisarmos de mais linhas.
-              // addDoencaField() calcula o nextIndex. Se o HTML não tiver a primeira linha (index 1),
-              // precisamos chamá-lo para criar a primeira.
-              // Se o HTML *tem* a primeira linha, e numValues = 1, existingDynamicRows deveria ser 1.
-
-              let currentFieldsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
+              let currentFieldsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
               console.log(`[State] Antes do loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, numValuesNeeded: ${numValues}, step: ${step}`);
+
               for (let i = currentFieldsForName.length; i < numValues; i++) {
                   try {
-                      // Log específico para a contagem de 'autor' se relevante
-                      let authorCountLog = '';
-                      if (step === 'personal' && typeof window.authorCount !== 'undefined') {
-                          authorCountLog = `, window.authorCount antes: ${window.authorCount}`;
-                      } else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') { // Assumindo que poderia haver um window.atividadeCount
-                          authorCountLog = `, window.atividadeCount antes: ${window.atividadeCount || 'N/A'}`;
-                      }
+                      let countLog = '';
+                      if (step === 'personal' && typeof window.authorCount !== 'undefined') countLog = `, window.authorCount antes: ${window.authorCount}`;
+                      else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') countLog = `, window.atividadeCount antes: ${window.atividadeCount || 'N/A'}`;
 
-                      console.log(`[State] Chamando addRowFunction para ${key} (idx ${i} de ${numValues -1})${authorCountLog}`);
-                      addRowFunction(); // Chama addDoencaField(), addAuthor(), addAtividade() etc.
+                      console.log(`[State] Chamando addRowFunction para ${key} (idx ${i} de ${numValues -1})${countLog}`);
+                      addRowFunction();
 
-                      let postAuthorCountLog = '';
-                      if (step === 'personal' && typeof window.authorCount !== 'undefined') {
-                          postAuthorCountLog = `, window.authorCount depois: ${window.authorCount}`;
-                      } else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') {
-                          postAuthorCountLog = `, window.atividadeCount depois: ${window.atividadeCount || 'N/A'}`;
-                      }
-                      console.log(`[State] addRowFunction chamada para ${key} (idx ${i})${postAuthorCountLog}`);
+                      if (step === 'personal' && typeof window.authorCount !== 'undefined') countLog = `, window.authorCount depois: ${window.authorCount}`;
+                      else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') countLog = `, window.atividadeCount depois: ${window.atividadeCount || 'N/A'}`;
+                      console.log(`[State] addRowFunction chamada para ${key} (idx ${i})${countLog}`);
 
-                      // Contar os campos novamente *dentro* do loop:
-                      let tempCount = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`).length;
-                      console.log(`[State] Após addRowFunction ${key} (idx ${i}), campos [name=\"${fieldNameForQuery}\"] no DOM: ${tempCount}`);
-
+                      let tempCount = form.querySelectorAll(`[name="${fieldNameForQuery}"]`).length;
+                      console.log(`[State] Após addRowFunction ${key} (idx ${i}), campos [name="${fieldNameForQuery}"] no DOM: ${tempCount}`);
                   } catch (e) {
                       console.error(`[FormStateManager] Erro ao chamar addRowFunction para ${key} (idx ${i}):`, e);
                       break;
                   }
               }
-              // Re-query os elementos após adicionar novas linhas
-              currentFieldsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
+              currentFieldsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
               console.log(`[State] Após loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, step: ${step}`);
-            }
 
-            const elementsForName = form.querySelectorAll(`[name=\"${fieldNameForQuery}\"]`);
+              const elementsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
             valueToRestore.forEach((val, index) => {
               if (elementsForName[index]) {
                 const element = elementsForName[index];
-                if (element.type === 'checkbox') {
-                  element.checked = typeof val === 'boolean' ? val : val === 'true';
-                } else if (element.type === 'radio') {
-                   // Esta lógica para radio em array precisaria ser mais específica
-                   // se múltiplos radios com mesmo nome pudessem estar em um array de valores.
-                   // Por agora, assume que o valor corresponde diretamente.
-                  if (element.value === String(val)) {
-                      element.checked = true;
-                  }
-                } else {
-                  element.value = val;
-                }
+                  if (element.type === 'checkbox') element.checked = typeof val === 'boolean' ? val : val === 'true';
+                  else if (element.type === 'radio' && element.value === String(val)) element.checked = true;
+                  else element.value = val;
                 console.log(`[FormStateManager] Restaurando array campo ${element.name}[${index}] com valor: ${val}`);
-                if (typeof destacarCampoPreenchido === 'function') {
-                  destacarCampoPreenchido(element);
+                  if (element.name === 'autor_apelido[]' || element.name === 'autor_telefone[]' || element.name === 'autor_senha_meuinss[]') {
+                    console.log(`[FormStateManager] RESTORE ARRAY - Campo de autor problemático: ${element.name}[${index}], Valor Restaurado: ${val}, Elemento Visível/Habilitado: ${!element.hidden && !element.disabled}`);
                 }
+                  if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(element);
               } else {
                 console.warn(`[FormStateManager] Não encontrado elemento de array ${fieldNameForQuery} no índice ${index} para restaurar valor ${val}`);
               }
             });
+            }
+            console.log(`[FormStateManager] RESTORE - Chave '${key}' tratada por manipulador dinâmico.`);
 
-          } else { // Lógica para campos não-array ou arrays não dinâmicos OU arrays cujos handlers são null
-            const directElements = form.querySelectorAll(`[name="${key}"], [id="${key}"]`); // Busca por ID ou NOME direto
-            const arrayElementsByName = form.querySelectorAll(`[name="${key}[]"]`); // Busca por NOME DE ARRAY (ex: autor_apelido[])
+        } else {
+            // CASO 2 & 3: Campo não tem manipulador de função OU não é array para ele (handler é null ou não existe)
+            console.log(`[FormStateManager] RESTORE - Chave '${key}' (handler: ${typeof handler}) NÃO tem manipulador de função ou não é array para ele. Entrando no tratamento GERAL.`);
+
+            const arrayElementsByName = form.querySelectorAll(`[name="${key}[]"]`);
+            console.log(`[FormStateManager] RESTORE (GERAL) - Para chave '${key}\', buscando por nome de array [name="${key}[]"]. Encontrados: ${arrayElementsByName.length}`);
 
             if (Array.isArray(valueToRestore) && arrayElementsByName.length > 0) {
-              // Caso especial: valueToRestore é um array (ex: formData.personal.autor_apelido = ["apelido1"])
-              // E encontramos campos como <input name="autor_apelido[]">.
-              // Isso é para campos como autor_apelido[], autor_telefone[] que não usam addRowFunction diretamente aqui.
+                // CASO 2.1: É um array no stepData E encontramos elementos de array no DOM (ex: autor_apelido[])
+                console.log(`[FormStateManager] RESTORE (GERAL) - Entrando no bloco de restauração para ARRAY (e.g. autor_apelido[]) para chave: '${key}\'`);
+                const isAutorProblematico = ['autor_apelido', 'autor_telefone', 'autor_senha_meuinss'].includes(key);
+                if (isAutorProblematico) {
+                  console.log(`[FormStateManager] RESTORE (GERAL) - Campo problemático de autor detectado: ${key}, valores: ${JSON.stringify(valueToRestore)}`);
+                }
               valueToRestore.forEach((val, index) => {
                 if (arrayElementsByName[index]) {
                   const element = arrayElementsByName[index];
-                  if (element.type === 'checkbox') { // Pouco provável para este cenário, mas incluído por segurança
-                    element.checked = typeof val === 'boolean' ? val : val === 'true';
-                  } else if (element.type === 'radio') { // Também pouco provável
-                    if (element.value === String(val)) { element.checked = true; }
+                    console.log(`[FormStateManager] RESTORE ARRAY (GERAL) - Restaurando elemento ${element.name}[${index}] tipo ${element.type}`);
+                    if (element.type === 'checkbox') element.checked = typeof val === 'boolean' ? val : val === 'true';
+                    else if (element.type === 'radio' && element.value === String(val)) element.checked = true;
+                    else element.value = val;
+                    console.log(`[FormStateManager] Restaurando array (GERAL) campo ${element.name}[${index}] com valor: ${val}`);
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                    if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(element);
                   } else {
-                    element.value = val;
+                    console.warn(`[FormStateManager] (GERAL - ARRAY) Não encontrado elemento de array ${key}[] no índice ${index} para restaurar valor ${val}`);
                   }
-                  console.log(`[FormStateManager] Restaurando array (bloco else) campo ${element.name}[${index}] com valor: ${val}`);
-                  if (typeof destacarCampoPreenchido === 'function') {
-                    destacarCampoPreenchido(element);
-                  }
-                } else {
-                  console.warn(`[FormStateManager] (Bloco else) Não encontrado elemento de array ${key}[] no índice ${index} para restaurar valor ${val}`);
+                });
+            } else if (!Array.isArray(valueToRestore)) {
+                // CASO 3: Não é um array no stepData - TRATAR COMO CAMPO ÚNICO
+                console.log(`[FormStateManager] RESTORE (GERAL) - Entrando no bloco de restauração para CAMPO ÚNICO (e.g. cep, colaborador) para chave: '${key}\'`);
+                let restored = false;
+                const elementById = form.querySelector(`#${CSS.escape(key)}`);
+                if (elementById) {
+                  console.log(`[FormStateManager] RESTORE CAMPO ÚNICO (GERAL) - Encontrado por ID: #${key}, tipo: ${elementById.type}`);
+                  if (elementById.type === 'checkbox') elementById.checked = typeof valueToRestore === 'boolean' ? valueToRestore : String(valueToRestore).toLowerCase() === 'true';
+                  else if (elementById.type === 'radio' && elementById.value === String(valueToRestore)) elementById.checked = true;
+                  else if (elementById.type === 'select-multiple' && Array.isArray(valueToRestore)) Array.from(elementById.options).forEach(o => o.selected = valueToRestore.includes(o.value));
+                  else elementById.value = valueToRestore;
+                  console.log(`[FormStateManager] Restaurado (GERAL - por ID) campo #${key} com valor:`, valueToRestore);
+                  elementById.dispatchEvent(new Event('input', { bubbles: true }));
+                  elementById.dispatchEvent(new Event('change', { bubbles: true }));
+                  if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(elementById);
+                  restored = true;
                 }
-              });
-            } else if (directElements.length > 0) { // Lógica original para campos únicos por ID ou nome direto não-array
-              directElements.forEach(element => {
-                if (element.name === key || element.id === key) { // Prioriza nome, depois ID
-                  if (element.type === 'checkbox') {
-                    element.checked = typeof valueToRestore === 'boolean' ? valueToRestore : valueToRestore === 'true';
-                    console.log(`[FormStateManager] Restaurando checkbox ${key}: ${element.checked}`);
-                  } else if (element.type === 'radio') {
-                    if (element.value === String(valueToRestore)) {
-                      element.checked = true;
-                      console.log(`[FormStateManager] Restaurando radio ${key} com valor ${valueToRestore}`);
-                    }
-                  } else if (element.type === 'select-multiple') {
-                    if (Array.isArray(valueToRestore)) {
-                      Array.from(element.options).forEach(option => {
-                        option.selected = valueToRestore.includes(option.value);
-                      });
-                      console.log(`[FormStateManager] Restaurando select-multiple ${key}:`, valueToRestore);
-                    }
-                  } else {
-                    // Se valueToRestore for um array aqui, e o campo for único e não select-multiple, algo está errado.
-                    if (Array.isArray(valueToRestore) && element.type !== 'select-multiple') {
-                      console.warn(`[FormStateManager] Tentando restaurar valor de array ${JSON.stringify(valueToRestore)} para campo único não-múltiplo ${key}. Usando o primeiro valor se disponível.`);
-                      element.value = valueToRestore.length > 0 ? valueToRestore[0] : '';
-                    } else {
-                      element.value = valueToRestore;
-                    }
-                    console.log(`[FormStateManager] Restaurando campo ${key} com valor: ${valueToRestore}`);
-                  }
-                  if (typeof destacarCampoPreenchido === 'function') {
-                    destacarCampoPreenchido(element);
-                  }
-                }
-              });
-            } else {
-              // console.warn(`[FormStateManager] Campo ${key} não encontrado no formulário para restauração.`);
-            }
-          }
 
-          // Pular o preenchimento genérico abaixo se for 'documents', pois já foi feito
-          // Esta verificação pode ser redundante devido ao 'continue' acima, mas é uma segurança adicional.
-          if (step === 'documents' && key === 'documentos') {
-            continue; // Próximo item em stepData
-          }
+                if (!restored) {
+                  const elementsByName = form.querySelectorAll(`[name="${CSS.escape(key)}"]`);
+                  if (elementsByName.length === 1) {
+                    console.log(`[FormStateManager] RESTORE CAMPO ÚNICO (GERAL) - Encontrado por NAME: ${key}, tipo: ${elementsByName[0].type}`);
+                    const el = elementsByName[0];
+                    if (el.type === 'checkbox') el.checked = typeof valueToRestore === 'boolean' ? valueToRestore : String(valueToRestore).toLowerCase() === 'true';
+                    else if (el.type === 'radio') elementsByName.forEach(r => r.checked = (r.value === String(valueToRestore)));
+                    else if (el.type === 'select-multiple' && Array.isArray(valueToRestore)) Array.from(el.options).forEach(o => o.selected = valueToRestore.includes(o.value));
+                    else el.value = valueToRestore;
+                    console.log(`[FormStateManager] Restaurado (GERAL - por Nome) campo name="${key}" com valor:`, valueToRestore);
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                    if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(el);
+                    restored = true;
+                  } else if (elementsByName.length > 1 && elementsByName[0].type === 'radio') {
+                    console.log(`[FormStateManager] RESTORE CAMPO ÚNICO (GERAL) - Grupo de radios por NAME: ${key}`);
+                    elementsByName.forEach(radioEl => {
+                      radioEl.checked = (radioEl.value === String(valueToRestore));
+                      if (radioEl.checked) console.log(`[FormStateManager] Restaurado (GERAL) radio name="${key}" value="${radioEl.value}"`);
+                    });
+                    restored = true;
+                  }
+                }
+                if (!restored) {
+                    console.warn(`[FormStateManager] (GERAL - CAMPO ÚNICO) Campo '${key}\' não foi encontrado/restaurado no DOM. Valor:`, valueToRestore);
+                }
+
+            } else { // Array.isArray(valueToRestore) é true, mas não arrayElementsByName.length > 0
+                 console.warn(`[FormStateManager] RESTORE (GERAL) - Chave '${key}\' é um array nos dados, mas não foram encontrados elementos DOM '${key}[]'.`);
+                 if (valueToRestore.length === 1) {
+                    const singleValueToRestore = valueToRestore[0];
+                    console.log(`[FormStateManager] RESTORE (GERAL) - Tentando restaurar '${key}\' com valor único de array:`, singleValueToRestore);
+                    let restoredSingle = false;
+                    const elementByIdSingle = form.querySelector(`#${CSS.escape(key)}`);
+                    if (elementByIdSingle) {
+                      console.log(`[FormStateManager] RESTORE CAMPO ÚNICO DE ARRAY (GERAL) - Encontrado por ID: #${key}, tipo: ${elementByIdSingle.type}`);
+                      if (elementByIdSingle.type === 'checkbox') elementByIdSingle.checked = typeof singleValueToRestore === 'boolean' ? singleValueToRestore : String(singleValueToRestore).toLowerCase() === 'true';
+                      else if (elementByIdSingle.type === 'radio' && elementByIdSingle.value === String(singleValueToRestore)) elementByIdSingle.checked = true;
+                      else if (elementByIdSingle.type === 'select-multiple' && Array.isArray(singleValueToRestore)) Array.from(elementByIdSingle.options).forEach(o => o.selected = singleValueToRestore.includes(o.value)); // improvável para singleValue
+                      else elementByIdSingle.value = singleValueToRestore;
+                      console.log(`[FormStateManager] Restaurado (GERAL - ÚNICO DE ARRAY por ID) campo #${key} com valor:`, singleValueToRestore);
+                      elementByIdSingle.dispatchEvent(new Event('input', { bubbles: true }));
+                      elementByIdSingle.dispatchEvent(new Event('change', { bubbles: true }));
+                      if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(elementByIdSingle);
+                      restoredSingle = true;
+                    }
+                    if (!restoredSingle) {
+                      const elementsByNameSingle = form.querySelectorAll(`[name="${CSS.escape(key)}"]`);
+                      if (elementsByNameSingle.length === 1) {
+                        const elSingle = elementsByNameSingle[0];
+                        console.log(`[FormStateManager] RESTORE CAMPO ÚNICO DE ARRAY (GERAL) - Encontrado por NAME: ${key}, tipo: ${elSingle.type}`);
+                        if (elSingle.type === 'checkbox') elSingle.checked = typeof singleValueToRestore === 'boolean' ? singleValueToRestore : String(singleValueToRestore).toLowerCase() === 'true';
+                        else if (elSingle.type === 'radio') elementsByNameSingle.forEach(r => r.checked = (r.value === String(singleValueToRestore)));
+                        else if (elSingle.type === 'select-multiple' && Array.isArray(singleValueToRestore)) Array.from(elSingle.options).forEach(o => o.selected = singleValueToRestore.includes(o.value)); // improvável
+                        else elSingle.value = singleValueToRestore;
+                        console.log(`[FormStateManager] Restaurado (GERAL - ÚNICO DE ARRAY por Nome) campo name="${key}" com valor:`, singleValueToRestore);
+                        elSingle.dispatchEvent(new Event('input', { bubbles: true }));
+                        elSingle.dispatchEvent(new Event('change', { bubbles: true }));
+                        if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(elSingle);
+                        restoredSingle = true;
+                      } else if (elementsByNameSingle.length > 1 && elementsByNameSingle[0].type === 'radio'){
+                        console.log(`[FormStateManager] RESTORE CAMPO ÚNICO DE ARRAY (GERAL) - Grupo de radios por NAME: ${key}`);
+                        elementsByNameSingle.forEach(radioEl => {
+                          radioEl.checked = (radioEl.value === String(singleValueToRestore));
+                           if (radioEl.checked) console.log(`[FormStateManager] Restaurado (GERAL - ÚNICO DE ARRAY) radio name="${key}" value="${radioEl.value}"`);
+                        });
+                        restoredSingle = true;
+                      }
+                    }
+                    if (!restoredSingle) {
+                         console.warn(`[FormStateManager] (GERAL - ÚNICO DE ARRAY) Campo '${key}\' não encontrado/restaurado no DOM com valor único. Valor:`, singleValueToRestore);
+                    }
+                 } else {
+                    console.warn(`[FormStateManager] RESTORE (GERAL) - Chave '${key}\' é um array com múltiplos valores ou vazio (${valueToRestore.length}), e não há elementos DOM '${key}[]'. Não foi possível restaurar.`);
+                 }
+            }
+            console.log(`[FormStateManager] RESTORE - Chave '${key}\' tratada (ou tentativa) por bloco geral.`);
         }
+
+        // A antiga lógica de `if (step === 'documents' && key === 'documentos') { continue; }` foi movida para dentro do primeiro if,
+        // pois só faz sentido pular se foi tratado pelo handler dinâmico de documentos.
       }
     }
-    // A antiga lógica específica para 'incapacity' (cidX, doencaX) é removida,
-    // pois a manipulação de array genérica acima deve cobrir cids[], doencas[].
 
     // Após restaurar todos os campos, atualizar visuais específicos se necessário
     if (step === 'social') {
@@ -862,7 +897,9 @@ class FormStateManager {
    * Limpa o estado atual do formulário
    */
   clearState() {
-    console.log('[FormStateManager] clearState() chamado.');
+    console.log('[FormStateManager] clearState() chamado. Call stack:');
+    console.trace(); // Adiciona o stack trace para depuração
+
     this.formData = {
       personal: {},
       social: {},
@@ -878,18 +915,59 @@ class FormStateManager {
     FIAP.cache.remove('formStateManagerData');
     console.log('[FormStateManager] Estado removido do cache e formData resetado.');
     // Atualizar a UI para refletir o estado limpo
-    this.restoreFormData(this.currentStep || 'personal');
+    // this.restoreFormData(this.currentStep || 'personal'); // COMENTADO - pode causar loops/resets inesperados
   }
 
   // Função auxiliar para atualizar dados de um campo específico (se necessário)
   updateSpecificField(formType, fieldName, value) {
     console.log(`[FormStateManager] updateSpecificField chamado para ${formType}.${fieldName} com valor:`, value);
+    // Adicionar o trace aqui:
+    if (fieldName === 'bairro' || fieldName === 'endereco') {
+        console.trace(`Trace para updateSpecificField (${formType}.${fieldName})`);
+    }
     if (this.formData[formType]) {
       this.formData[formType][fieldName] = value;
       FIAP.cache.set('formStateManagerData', { formData: this.formData, currentStep: this.currentStep });
       console.log(`[FormStateManager] Campo ${formType}.${fieldName} atualizado e estado salvo no cache.`);
     } else {
       console.warn(`[FormStateManager] Tipo de formulário ${formType} não encontrado em formData para updateSpecificField.`);
+    }
+  }
+
+  saveStateToCache() {
+    const dataToCache = {
+      formData: this.formData,
+      currentStep: this.currentStep,
+      // Adicionar outros metadados relevantes se necessário no futuro
+      // currentFormId: this.currentFormId,
+      // isInitialized: this.isInitialized,
+      // initialRestorePending: this.initialRestorePending
+    };
+    console.log('[FormStateManager] saveStateToCache - Salvando no cache:', JSON.parse(JSON.stringify(dataToCache)));
+    FIAP.cache.set('formStateManagerData', dataToCache);
+    console.log('[FormStateManager] Estado efetivamente salvo no cache via saveStateToCache.');
+  }
+
+  loadStateFromCache() {
+    const parsedData = FIAP.cache.get('formStateManagerData');
+
+    console.log('[FormStateManager] loadStateFromCache - Parsed data (objeto) do cache:', parsedData ? JSON.parse(JSON.stringify(parsedData)): null);
+
+    if (parsedData && parsedData.formData) {
+      this.formData = parsedData.formData;
+      this.currentStep = parsedData.currentStep;
+      // Restaurar outros metadados se foram salvos e são necessários
+      // this.currentFormId = parsedData.currentFormId;
+      // this.isInitialized = parsedData.isInitialized;
+      // this.initialRestorePending = parsedData.initialRestorePending;
+      console.log('[FormStateManager] Estado (formData e currentStep) restaurado do cache via loadStateFromCache.');
+      return true;
+    } else {
+      console.warn('[FormStateManager] loadStateFromCache - Dados do cache inválidos, não encontrados ou sem formData.');
+      // Resetar para o padrão se não houver nada ou estiver corrompido
+      this.formData = { personal: {}, social: {}, incapacity: {}, professional: {}, documents: {} };
+      this.currentStep = null; // Ou um valor padrão como 'personal'
+      return false;
     }
   }
 }
