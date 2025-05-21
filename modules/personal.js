@@ -586,6 +586,19 @@ function setupEvents() {
       this.classList.add('opacity-75');
 
       try {
+        // <<< INÍCIO DA MODIFICAÇÃO: Adicionar Logs ANTES da captura >>>
+        if (window.formStateManager) {
+          const bairroField = document.getElementById('bairro');
+          const enderecoField = document.getElementById('endereco');
+          console.log(`[PersonalJS - btnNext] ANTES da captura. Bairro DOM: '${bairroField ? bairroField.value : 'N/A'}', Endereco DOM: '${enderecoField ? enderecoField.value : 'N/A'}'`);
+          if (window.formStateManager.formData && window.formStateManager.formData.personal) {
+            console.log(`[PersonalJS - btnNext] ANTES da captura. Bairro State: '${window.formStateManager.formData.personal.bairro}', Endereco State: '${window.formStateManager.formData.personal.endereco}'`);
+          } else {
+            console.log("[PersonalJS - btnNext] ANTES da captura. formData.personal não disponível no state.");
+          }
+        }
+        // <<< FIM DA MODIFICAÇÃO >>>
+
         if (window.formStateManager && typeof window.formStateManager.captureCurrentFormData === 'function') {
           console.log('Capturando dados do formulário pessoal...');
           window.formStateManager.captureCurrentFormData();

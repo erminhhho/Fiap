@@ -59,27 +59,70 @@ function consultarCEP(cep) {
       mostrarMensagemValidacao(parentDiv, 'CEP encontrado com sucesso!', 'success');
 
       // Preencher os campos com os dados retornados
-      const fields = {
-        'endereco': data.logradouro || '',
-        'bairro': data.bairro || '',
-        'cidade': data.localidade || '',
-        'uf': data.uf || ''
-      };
+      const cidadeParaPreencher = data.localidade || '';
+      const ufParaPreencher = data.uf || '';
 
-      // Preencher e destacar campos
-      Object.keys(fields).forEach(id => {
-        const field = document.getElementById(id);
-        if (field) {
-          field.value = fields[id];
-          field.classList.add('field-filled');
+      const campoEndereco = document.getElementById('endereco');
+      const campoBairro = document.getElementById('bairro');
+      const campoCidade = document.getElementById('cidade');
+      const campoUF = document.getElementById('uf');
 
-          // Animação sutil para destacar o preenchimento
-          field.classList.add('cep-highlight');
-          setTimeout(() => {
-            field.classList.remove('cep-highlight');
-          }, 1500);
+      let enderecoAtualizado = false;
+      let bairroAtualizado = false;
+
+      if (campoEndereco) {
+        const valorAPIEndereco = data.logradouro || '';
+        if (valorAPIEndereco !== '' || campoEndereco.value === '') {
+          if (campoEndereco.value !== valorAPIEndereco) {
+            campoEndereco.value = valorAPIEndereco;
+            enderecoAtualizado = true;
+          }
         }
-      });
+      }
+
+      if (campoBairro) {
+        const valorAPIBairro = data.bairro || '';
+        if (valorAPIBairro !== '' || campoBairro.value === '') {
+          if (campoBairro.value !== valorAPIBairro) {
+            campoBairro.value = valorAPIBairro;
+            bairroAtualizado = true;
+          }
+        }
+      }
+
+      let cidadeAtualizada = false;
+      if (campoCidade && campoCidade.value !== cidadeParaPreencher) {
+        campoCidade.value = cidadeParaPreencher;
+        cidadeAtualizada = true;
+      }
+
+      let ufAtualizado = false;
+      if (campoUF && campoUF.value !== ufParaPreencher) {
+        campoUF.value = ufParaPreencher;
+        ufAtualizado = true;
+      }
+
+      // Aplicar classes e disparar eventos apenas se os valores realmente mudaram
+      if (enderecoAtualizado && campoEndereco) {
+        campoEndereco.classList.add('field-filled', 'cep-highlight');
+        campoEndereco.dispatchEvent(new Event('change', { bubbles: true }));
+        setTimeout(() => campoEndereco.classList.remove('cep-highlight'), 1500);
+      }
+      if (bairroAtualizado && campoBairro) {
+        campoBairro.classList.add('field-filled', 'cep-highlight');
+        campoBairro.dispatchEvent(new Event('change', { bubbles: true }));
+        setTimeout(() => campoBairro.classList.remove('cep-highlight'), 1500);
+      }
+      if (cidadeAtualizada && campoCidade) {
+        campoCidade.classList.add('field-filled', 'cep-highlight');
+        campoCidade.dispatchEvent(new Event('change', { bubbles: true }));
+        setTimeout(() => campoCidade.classList.remove('cep-highlight'), 1500);
+      }
+      if (ufAtualizado && campoUF) {
+        campoUF.classList.add('field-filled', 'cep-highlight');
+        campoUF.dispatchEvent(new Event('change', { bubbles: true }));
+        setTimeout(() => campoUF.classList.remove('cep-highlight'), 1500);
+      }
 
       // Focar no campo número após preenchimento
       document.getElementById('numero')?.focus();
