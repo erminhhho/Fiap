@@ -220,6 +220,10 @@ if (typeof documentosPreCadastrados === 'undefined') {
 
 // Definir a função de salvamento customizada no escopo do módulo
 function customDocumentsSaveState() {
+  if (window.formStateManager && window.formStateManager.isRestoring) {
+    console.log("[documents.js] customDocumentsSaveState ignorado: FormStateManager está restaurando.");
+    return;
+  }
   console.log("[documents.js] customDocumentsSaveState CALLED");
   const documentosData = [];
   const observacoesEl = document.getElementById('observacoes');
@@ -637,6 +641,11 @@ function configurarEventos() {
 
   if (form) {
     form.addEventListener('change', function(event) {
+      if (window.formStateManager && window.formStateManager.isRestoring) {
+        console.log("[documents.js] Evento 'change' no formulário ignorado: FormStateManager está restaurando.");
+        return;
+      }
+
       // Evitar salvar em loop se a mudança for programática ou de um select dentro de um item já existente
       // A mudança no select de status já chama updateDocumentStatusTag -> customDocumentsSaveState
       if (event.target && event.target.classList.contains('documento-status')) {
@@ -658,13 +667,13 @@ function configurarEventos() {
 }
 
 // As funções de toggle/update de status precisam chamar customDocumentsSaveState
-function toggleDocumentStatus(button) {
-  if (!button) return;
+function toggleDocumentStatus(buttonOrTag) {
+  if (!buttonOrTag) return;
 
-  const documentoItem = button.closest('.documento-item');
+  const documentoItem = buttonOrTag.closest('.documento-item');
   if (!documentoItem) return;
 
-  const status = button.dataset.status;
+  const status = buttonOrTag.dataset.status;
   const allTags = documentoItem.querySelectorAll('.documento-tag');
 
   // Removemos a classe 'active' de todas as tags
@@ -676,7 +685,7 @@ function toggleDocumentStatus(button) {
   documentoItem.dataset.status = status;
 
   // Atualizar a classe do botão clicado para mostrar que está ativo
-  button.classList.add('active');
+  buttonOrTag.classList.add('active');
 
   // Adicionar classe ao documento para visualização rápida
   documentoItem.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
@@ -686,9 +695,9 @@ function toggleDocumentStatus(button) {
   customDocumentsSaveState();
 }
 
-function updateDocumentStatusTag(select) {
-  const container = select.closest('.relationship-select');
-  const value = select.value;
+function updateDocumentStatusTag(selectElement) {
+  const container = selectElement.closest('.relationship-select');
+  const value = selectElement.value;
 
   // Atualiza os atributos data-selected e data-value
   container.setAttribute('data-selected', value);
@@ -717,7 +726,6 @@ function updateDocumentStatusTag(select) {
   customDocumentsSaveState();
 }
 
-window.toggleDocumentStatusTag = toggleDocumentStatusTag; // Já existia, mas garantir que use a lógica acima
 window.updateDocumentStatusTag = updateDocumentStatusTag;
 window.toggleDocumentStatus = toggleDocumentStatus;
 window.abrirPopupInfoDocumento = abrirPopupInfoDocumento;
