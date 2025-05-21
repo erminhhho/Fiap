@@ -155,6 +155,53 @@ window.initModule = function() {
   console.log('[incapacity.js] Módulo de incapacidade totalmente inicializado e restauração solicitada.');
 };
 
+// Função para resetar a UI da seção de incapacidade (doenças/CIDs)
+function resetIncapacityUI() {
+  console.log('[incapacity.js] resetIncapacityUI: Iniciando limpeza de linhas de doença/CID.');
+  const doencasListContainer = document.getElementById('doencas-list'); // CONFIRMAR ESTE ID
+
+  if (doencasListContainer) {
+    // Remover todas as linhas de doença existentes
+    const doencaRows = doencasListContainer.querySelectorAll('.doenca-row'); // CONFIRMAR ESTA CLASSE
+    doencaRows.forEach(row => row.remove());
+    console.log(`[incapacity.js] resetIncapacityUI: ${doencaRows.length} linhas de doença removidas.`);
+
+    // Adicionar uma primeira linha em branco, se a função addDoencaField existir e for apropriado
+    if (typeof addDoencaField === 'function') {
+      // addDoencaField(); // Descomentar se uma linha inicial for necessária
+      // console.log('[incapacity.js] resetIncapacityUI: Uma linha de doença inicial adicionada (se configurado).');
+      // Se addDoencaField já é chamada no initModule ou ao carregar o template, talvez não precise chamar aqui.
+      // Por enquanto, apenas limpamos. O initModule/restauração deve lidar com a criação da primeira linha se necessário.
+    } else {
+      console.warn('[incapacity.js] resetIncapacityUI: Função addDoencaField() não encontrada para adicionar linha inicial.');
+    }
+
+    // Limpar campos de observações desta seção
+    const observacoesTextarea = document.querySelector('#incapacity-form #observacoes'); // Ser mais específico
+    if (observacoesTextarea) {
+        observacoesTextarea.value = '';
+    }
+
+  } else {
+    console.warn('[incapacity.js] resetIncapacityUI: Container #doencas-list não encontrado.');
+  }
+  // Resetar outros estados específicos do módulo de incapacidade, se houver.
+  // Por exemplo, limpar seleções de dropdowns, resultados de pesquisa de CID, etc.
+  // Isso pode ser complexo e depender da implementação exata dos componentes de UI.
+  // Exemplo genérico para limpar dropdowns de pesquisa:
+  document.querySelectorAll('.cid-dropdown').forEach(dropdown => dropdown.classList.add('hidden'));
+  document.querySelectorAll('.cid-input').forEach(input => input.value = ''); // Limpa campos de input CID
+  document.querySelectorAll('.doenca-input').forEach(input => input.value = ''); // Limpa campos de input Doença
+
+  // Resetar a verificação de isenção de carência visualmente
+  const carenciaInfo = document.getElementById('carencia-info');
+  if (carenciaInfo) {
+    carenciaInfo.innerHTML = '<p class="text-sm text-gray-500">Preencha os campos de CID ou Doença para verificar a isenção de carência.</p>';
+    carenciaInfo.className = 'mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md'; // Resetar classes
+  }
+}
+window.resetIncapacityUI = resetIncapacityUI;
+
 /**
  * Nova função para implementar a pesquisa melhorada de CID e doença
  * seguindo o padrão utilizado na pesquisa de documentos

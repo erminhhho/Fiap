@@ -52,6 +52,80 @@ window.initModule = function() {
   console.log('[personal.js] Módulo totalmente inicializado e restauração solicitada.');
 };
 
+// Função para resetar a UI da seção de dados pessoais (autores)
+function resetPersonalUI() {
+  console.log('[personal.js] resetPersonalUI: Iniciando limpeza de autores adicionais.');
+  const authorsContainer = document.getElementById('authors-container');
+  if (authorsContainer) {
+    // Selecionar todos os autores adicionais (ID diferente de author-1 ou que não seja o primeiro author-row)
+    // e todos os separadores
+    const autoresAdicionais = authorsContainer.querySelectorAll('.author-row:not(:first-child), .author-separator');
+    autoresAdicionais.forEach(el => el.remove());
+    console.log(`[personal.js] resetPersonalUI: ${autoresAdicionais.length} elementos (autores adicionais e separadores) removidos.`);
+
+    // Resetar o contador de autores para 1 (assumindo que o primeiro autor é estático no HTML)
+    window.authorCount = 1;
+    console.log('[personal.js] resetPersonalUI: window.authorCount resetado para 1.');
+
+    // Limpar campos do primeiro autor (que pode ter sido preenchido)
+    // A função clearForm() em forms.js já deve cuidar disso, mas uma limpeza explícita aqui pode ser um fallback.
+    const firstAuthorRow = authorsContainer.querySelector('.author-row:first-child');
+    if (firstAuthorRow) {
+      firstAuthorRow.querySelectorAll('input, select').forEach(field => {
+        if (field.type === 'checkbox' || field.type === 'radio') {
+          field.checked = false;
+        } else {
+          field.value = '';
+        }
+        if (field.tagName === 'SELECT' && field.options.length > 0) {
+          field.selectedIndex = 0;
+          // Se houver lógica visual para o select (como relationship tags), resetar aqui também
+          const relationshipDiv = field.closest('.relationship-select');
+          if (relationshipDiv && typeof updateRelationshipVisual === 'function') {
+            updateRelationshipVisual(relationshipDiv, field.options[0].value);
+          } else if (relationshipDiv && typeof toggleRelationshipTag === 'function') {
+            // Tentar resetar o data-selected e data-value para o padrão
+            const defaultValue = field.options[0].value;
+            relationshipDiv.setAttribute('data-value', defaultValue);
+            relationshipDiv.setAttribute('data-selected', defaultValue);
+            // Chamar a função para atualizar visualmente se necessário (pode já estar coberto)
+          }
+        }
+      });
+      // Resetar campos de apelido, telefone, senha que estão fora da primeira linha clonada
+      // mas associados ao primeiro autor.
+      const apelidoAutor1 = document.getElementById('apelido'); // ID original é 'apelido'
+      if (apelidoAutor1) apelidoAutor1.value = '';
+      const telefoneAutor1 = document.getElementById('telefone'); // ID original é 'telefone'
+      if (telefoneAutor1) telefoneAutor1.value = '';
+      const senhaAutor1 = document.getElementById('senha_meuinss'); // ID original é 'senha_meuinss'
+      if (senhaAutor1) senhaAutor1.value = '';
+       console.log('[personal.js] resetPersonalUI: Campos do primeiro autor (author-1) limpos.');
+    }
+  } else {
+    console.warn('[personal.js] resetPersonalUI: Container #authors-container não encontrado.');
+  }
+  // Garantir que o botão de adicionar autor no primeiro autor esteja visível e o de remover escondido/correto
+  const firstAuthorAddButton = document.querySelector('#author-1 .add-author-btn'); // Supondo que o botão add tenha essa classe/id
+  const firstAuthorRemoveButton = document.querySelector('#author-1 .remove-author-btn'); // Supondo que o remover tenha essa classe/id
+
+  if(firstAuthorAddButton) firstAuthorAddButton.style.display = 'flex'; // ou 'block' ou o que for apropriado
+  if(firstAuthorRemoveButton) firstAuthorRemoveButton.style.display = 'none';
+
+  // Se o primeiro autor tem um select de relacionamento, resetá-lo visualmente
+  const firstRelationshipSelectDiv = document.querySelector('#author-1 .relationship-select');
+  if (firstRelationshipSelectDiv) {
+      const firstSelect = firstRelationshipSelectDiv.querySelector('select');
+      if (firstSelect && firstSelect.options.length > 0) {
+          firstSelect.value = firstSelect.options[0].value;
+          if (typeof updateRelationshipVisual === 'function') {
+              updateRelationshipVisual(firstRelationshipSelectDiv, firstSelect.options[0].value);
+          }
+      }
+  }
+}
+window.resetPersonalUI = resetPersonalUI;
+
 // Função addAuthor SEM o lock interno
 function addAuthor() {
   console.log(`[personal.js] addAuthor (programático ou via handler): Iniciando. window.authorCount inicial = ${window.authorCount}`);

@@ -59,6 +59,35 @@ window.initModule = function() {
   console.log('[professional.js] Módulo totalmente inicializado e restauração solicitada.');
 };
 
+// Função para resetar a UI da seção de atividades profissionais
+function resetProfessionalUI() {
+  console.log('[professional.js] resetProfessionalUI: Iniciando limpeza de atividades.');
+  const atividadesList = document.getElementById('atividadesList');
+
+  if (atividadesList) {
+    // Remover todas as linhas de atividade (elementos com a classe .atividade-item)
+    const atividadeItems = atividadesList.querySelectorAll('.atividade-item');
+    atividadeItems.forEach(item => item.remove());
+    console.log(`[professional.js] resetProfessionalUI: ${atividadeItems.length} itens de atividade removidos.`);
+
+    // Se o formulário DEVE começar com uma linha de atividade em branco,
+    // e addAtividade() a cria, você pode chamá-la aqui.
+    // Por ora, vamos assumir que pode começar vazio e o usuário adiciona conforme necessário.
+    // if (typeof addAtividade === 'function') {
+    //   addAtividade();
+    // }
+  } else {
+    console.warn('[professional.js] resetProfessionalUI: Container #atividadesList não encontrado.');
+  }
+
+  // Limpar o campo de observações específico desta seção
+  const observacoesTextarea = document.querySelector('#professional-form #observacoes'); // Ser mais específico
+  if (observacoesTextarea) {
+      observacoesTextarea.value = '';
+  }
+}
+window.resetProfessionalUI = resetProfessionalUI;
+
 // Função para configurar eventos do módulo
 function setupEvents() {
   // Destacar campos preenchidos

@@ -54,6 +54,39 @@ window.initModule = function() {
   console.log('[social.js] Módulo social: eventos configurados e inicialização do assistido/restauração solicitada.');
 };
 
+// Função para resetar a UI da seção de perfil social (membros da família)
+function resetSocialUI() {
+  console.log('[social.js] resetSocialUI: Iniciando limpeza de membros da família.');
+  const membrosList = document.getElementById('membros-familia-list');
+  if (membrosList) {
+    membrosList.innerHTML = ''; // Limpa todos os membros, incluindo o assistido
+    console.log('[social.js] resetSocialUI: Container #membros-familia-list limpo.');
+
+    // Recriar a linha do assistido, que é a base da seção
+    if (typeof inicializarAssistido === 'function') {
+      inicializarAssistido();
+      console.log('[social.js] resetSocialUI: Linha do assistido recriada.');
+    } else {
+      console.warn('[social.js] resetSocialUI: Função inicializarAssistido() não encontrada.');
+    }
+  } else {
+    console.warn('[social.js] resetSocialUI: Container #membros-familia-list não encontrado.');
+  }
+  // Limpar campos de renda total e observações, se necessário (clearForm já deve fazer, mas para garantir)
+  const rendaTotalInput = document.getElementById('renda_total_familiar');
+  if (rendaTotalInput) rendaTotalInput.value = '0.00'; // ou '' dependendo do comportamento esperado
+  const rendaPerCapitaInput = document.getElementById('renda_per_capita');
+  if (rendaPerCapitaInput) rendaPerCapitaInput.value = '0'; // ou ''
+  const observacoesTextarea = document.getElementById('observacoes'); // ID genérico, verificar se é o correto para esta seção
+  if (observacoesTextarea && observacoesTextarea.closest('#social-form')) { // Checar se é a observacao desta pagina
+      observacoesTextarea.value = '';
+  }
+  if(typeof setupRendaFamiliar === 'function') {
+    setupRendaFamiliar(); // Recalcular/resetar visualizações de renda
+  }
+}
+window.resetSocialUI = resetSocialUI;
+
 // Função para configurar eventos do módulo
 function setupEvents() {
   // Destacar campos preenchidos

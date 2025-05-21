@@ -752,6 +752,21 @@ window.adicionarNovoDocumento = adicionarNovoDocumento;
 window.removerDocumento = removerDocumento;
 window.abrirModalDetalhes = abrirModalDetalhes;
 
+// Função para resetar a UI da seção de documentos
+function resetDocumentsUI() {
+  const documentosContainer = document.getElementById('documentos-container');
+  if (documentosContainer) {
+    documentosContainer.innerHTML = '';
+    console.log("[documents.js] resetDocumentsUI: Container de documentos limpo.");
+  }
+  // Limpar também o campo de pesquisa e observações, se necessário
+  const pesquisaInput = document.getElementById('documento-pesquisa');
+  if (pesquisaInput) pesquisaInput.value = '';
+  const observacoesInput = document.getElementById('observacoes');
+  if (observacoesInput) observacoesInput.value = ''; // Observações desta seção
+}
+window.resetDocumentsUI = resetDocumentsUI;
+
 // A antiga função carregarDadosSalvos não é mais necessária no initModule,
 // pois a restauração é feita por FormStateManager + adicionarNovoDocumento(docData)
 
