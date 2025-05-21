@@ -356,15 +356,20 @@ function applyRelationshipStyles() {
   // Procurar todos os selects de relacionamento
   const relationshipSelects = document.querySelectorAll('.relationship-select select');
 
+  console.log('[personal.js] applyRelationshipStyles: Iniciando. Processando selects:', relationshipSelects.length);
   relationshipSelects.forEach(select => {
-    // Aplicar a classe inicialmente com base na opção selecionada
     const selectedValue = select.value;
     const container = select.closest('.relationship-select');
+    const authorRow = select.closest('.author-row');
+    const authorRowId = authorRow ? authorRow.id : 'ID não encontrado';
+
+    console.log(`[personal.js] applyRelationshipStyles: Processando select ID: ${select.id} (dentro de ${authorRowId}). Valor atual (select.value): '${selectedValue}'`);
 
     if (container) {
       // Garantir que tanto data-selected quanto data-value estejam configurados
       container.setAttribute('data-selected', selectedValue);
       container.setAttribute('data-value', selectedValue);
+      console.log(`[personal.js] applyRelationshipStyles: Para select ID: ${select.id}, definindo data-selected e data-value para '${selectedValue}'`);
 
       // Remover estilos inline que possam estar causando conflitos
       container.removeAttribute('style');
