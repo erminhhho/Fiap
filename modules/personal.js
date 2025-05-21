@@ -357,22 +357,35 @@ function applyRelationshipStyles() {
   const relationshipSelects = document.querySelectorAll('.relationship-select select');
 
   relationshipSelects.forEach(select => {
-    // Aplicar a classe inicialmente com base na opção selecionada
-    const selectedValue = select.value;
     const container = select.closest('.relationship-select');
+    if (!container) return;
 
-    if (container) {
-      // Garantir que tanto data-selected quanto data-value estejam configurados
-      container.setAttribute('data-selected', selectedValue);
-      container.setAttribute('data-value', selectedValue);
+    let valueToApply = select.value;
 
-      // Remover estilos inline que possam estar causando conflitos
-      container.removeAttribute('style');
-      select.removeAttribute('style');
-
-      // Garantir que o texto da etiqueta está sempre atualizado
-      // Não precisamos mais adicionar o texto manualmente porque estamos usando ::after no CSS
+    // Proteção especial para o primeiro autor (#relationship_1)
+    // Se o select.value estiver vazio, mas já tínhamos um data-selected (estilo aplicado),
+    // não resetar o estilo para "vazio". Tentar usar o data-selected anterior.
+    if (select.id === 'relationship_1' && !select.value) {
+      const previousDataSelected = container.getAttribute('data-selected');
+      if (previousDataSelected && previousDataSelected.trim() !== '') { // Checar se previousDataSelected não é nulo ou só espaços
+        console.log(`[DEBUG] applyRelationshipStyles: Para #relationship_1, select.value é VAZIO, mas data-selected ('${previousDataSelected}') existe. Usando data-selected para valueToApply.`);
+        valueToApply = previousDataSelected;
+        // Não vamos tentar setar select.value aqui para evitar disparar eventos 'change' inesperadamente.
+        // A restauração normal de state.js cuidará de setar o select.value corretamente.
+        // E então uma chamada subsequente a applyRelationshipStyles (ex: no setupEvents) pegará o select.value correto.
+      }
     }
+
+    // Aplicar a classe inicialmente com base na opção selecionada ou no valor deduzido
+    container.setAttribute('data-selected', valueToApply);
+    container.setAttribute('data-value', valueToApply); // data-value é usado para o texto da tag via CSS ::after
+
+    // Remover estilos inline que possam estar causando conflitos
+    container.removeAttribute('style');
+    select.removeAttribute('style');
+
+    // Garantir que o texto da etiqueta está sempre atualizado
+    // Não precisamos mais adicionar o texto manualmente porque estamos usando ::after no CSS
 
     // Adicionar evento change se ainda não tiver
     if (!select.dataset.styleInitialized) {
