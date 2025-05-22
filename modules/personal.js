@@ -246,15 +246,18 @@ function addAuthor() {
     newAuthor.querySelectorAll('label').forEach(label => {
       const forAttr = label.getAttribute('for');
       if (forAttr) {
-        const baseNameOriginal = forAttr.replace(/(_\d+$|^\w+$)/, '');
-        const newFor = baseNameOriginal ? `${baseNameOriginal}_${window.authorCount}` : `${forAttr}_${window.authorCount}`;
-        label.setAttribute('for', newFor);
+        // Extrair o nome base do campo sem o número original (ex: "nome" de "nome_1" ou "cpf" de "cpf_1")
+        // Se forAttr for apenas "nome", "cpf", etc. (sem _1), usamos ele mesmo como base.
+        const baseNameForLabel = forAttr.includes('_') ? forAttr.substring(0, forAttr.lastIndexOf('_')) : forAttr;
+        const newForId = `${baseNameForLabel}_${window.authorCount}`;
 
-        // Se esta é a label do campo nome recém-clonado, definir seu texto para "Nome"
-        // O ID do campo nome clonado será algo como "nome_2", "nome_3", etc.
-        if (newFor === `nome_${window.authorCount}`) {
-          label.textContent = 'Nome';
+        // Caso especial para o label do campo "nome"
+        if (baseNameForLabel === 'nome' || baseNameForLabel === 'nome_autor') { // 'nome_autor' como segurança
+          label.textContent = 'Nome completo:';
         }
+
+        label.setAttribute('for', newForId);
+        console.log(`[personal.js] addAuthor: Label atualizado. For: ${newForId}, TextContent: ${label.textContent}`);
       }
     });
 
