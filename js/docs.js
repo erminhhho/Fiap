@@ -587,9 +587,7 @@ async function gerarRelatorioPDF() {
             <div class="report-header-left">
               <div class="logo-text">FIAP</div>
               <div class="logo-subtext">Ficha Inteligente de Atendimento Previdenciário</div>
-            </div>
-            <div class="report-header-right">
-              <div class="generation-date">Relatório Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
+            </div>            <div class="report-header-right">
             </div>
           </div>
           <div class="report-main-title">Relatório Consolidado de Atendimento</div>
@@ -824,12 +822,10 @@ async function gerarRelatorioPDF() {
         }
       }
       htmlContent += '</div>';
-    }
-
-    // Adiciona o rodapé ao final do conteúdo da .page
+    }    // Adiciona o rodapé ao final do conteúdo da .page
     htmlContent += `<div class="page-footer">
                       <div>FIAP é um serviço de <a href="https://orbitas.com.br" target="_blank">orbitas.com.br</a> &copy; ${new Date().getFullYear()}</div>
-                      <div>Página <span class="page-number">1</span></div>
+                      <div>Relatório Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>`;
 
     htmlContent += '</div></body></html>'; // Fecha a .page e body/html
