@@ -343,6 +343,58 @@ const Mask = {
   whatsappIconsEnabled: true,
 
   /**
+   * Capitaliza apenas a primeira letra do texto.
+   * @param {HTMLInputElement} input - Campo de entrada do texto.
+   */
+  capitalizeFirstLetterOnly: function(input) {
+    let value = input.value;
+    if (value.length > 0) {
+      input.value = value.charAt(0).toUpperCase() + value.slice(1);
+    }
+  },
+
+  /**
+   * Permite apenas números e limita o comprimento para campos de idade (oninput).
+   * @param {HTMLInputElement} input - Campo de entrada do texto.
+   */
+  numericAge: function(input) {
+    let value = input.value.replace(/\D/g, ''); // Remove não dígitos
+    if (value.length > 3) { // Limita a 3 dígitos (ex: max 150)
+      value = value.substring(0, 3);
+    }
+    const numericVal = parseInt(value, 10);
+    if (!isNaN(numericVal) && numericVal > 150) { // Limite superior durante digitação
+        value = "150";
+    }
+    input.value = value;
+  },
+
+  /**
+   * Formata a idade com " anos" e valida o valor (onblur).
+   * @param {HTMLInputElement} input - Campo de entrada do texto.
+   */
+  formatAgeWithSuffix: function(input) {
+    let value = input.value.replace(/\D/g, ''); // Pega só os números
+
+    if (value === '') {
+      input.value = ''; // Limpa se estiver vazio
+      return;
+    }
+
+    let numValue = parseInt(value, 10);
+
+    if (isNaN(numValue)) {
+      input.value = '';
+      return;
+    }
+
+    if (numValue < 0) numValue = 0;
+    if (numValue > 150) numValue = 150; // Limite superior final
+
+    input.value = numValue + " anos";
+  },
+
+  /**
    * Inicializa as máscaras nos elementos da página
    */
   init: function() {
@@ -366,6 +418,12 @@ const Mask = {
         element.oninput = () => Mask.onlyNumbers(element);
       } else if (onInputAttr.includes('formatarNomeProprio')) {
         element.onblur = () => Mask.properName(element);
+      } else if (onInputAttr.includes('capitalizeFirstLetterOnly')) {
+        element.oninput = () => Mask.capitalizeFirstLetterOnly(element);
+      } else if (onInputAttr.includes('maskNumericAge')) {
+        element.oninput = () => Mask.numericAge(element);
+      } else if (onInputAttr.includes('formatAgeWithSuffix')) {
+        element.onblur = () => Mask.formatAgeWithSuffix(element);
       }
     });
   }
@@ -380,6 +438,9 @@ window.maskUF = Mask.uf.bind(Mask);
 window.maskOnlyNumbers = Mask.onlyNumbers.bind(Mask);
 window.maskMoney = Mask.money.bind(Mask);
 window.formatarNomeProprio = Mask.properName.bind(Mask);
+window.capitalizeFirstLetterOnly = Mask.capitalizeFirstLetterOnly.bind(Mask);
+window.maskNumericAge = Mask.numericAge.bind(Mask);
+window.formatAgeWithSuffix = Mask.formatAgeWithSuffix.bind(Mask);
 
 // Exportar todo o objeto Mask
 window.Mask = Mask;

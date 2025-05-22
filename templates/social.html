@@ -95,7 +95,7 @@
           <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
             <!-- Nome do membro - 6 colunas -->
             <div class="relative md:col-span-6">
-              <input type="text" name="familiar_nome[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome completo" />
+              <input type="text" name="familiar_nome[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome completo" onblur="formatarNomeProprio(this)" />
               <label class="input-label">
                 Nome completo
               </label>
@@ -111,7 +111,7 @@
 
             <!-- Idade - 2 colunas -->
             <div class="relative md:col-span-2">
-              <input type="text" name="familiar_idade[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Idade" />
+              <input type="text" name="familiar_idade[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Idade" oninput="maskNumericAge(this)" onblur="formatAgeWithSuffix(this)" />
               <label class="input-label">
                 Idade
               </label>
@@ -238,7 +238,7 @@
 
   <!-- Observações -->
   <div class="relative mt-8">
-    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre o perfil social..."></textarea>
+    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre o perfil social..." oninput="capitalizeFirstLetterOnly(this)"></textarea>
     <label for="observacoes" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
       Observações
     </label>

@@ -7,6 +7,18 @@ window.initModule = null;
 
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
+  console.log('[social.js] initModule: Iniciando módulo social.');
+  if (window.formStateManager && window.formStateManager.formData) {
+    console.log('[social.js] initModule: formStateManager.formData existe.');
+    if (window.formStateManager.formData.personal) {
+      console.log('[social.js] initModule: formStateManager.formData.personal encontrado:', JSON.parse(JSON.stringify(window.formStateManager.formData.personal)));
+    } else {
+      console.warn('[social.js] initModule: formStateManager.formData.personal NÃO encontrado.');
+    }
+  } else {
+    console.warn('[social.js] initModule: formStateManager ou formStateManager.formData NÃO encontrado.');
+  }
+
   setupEvents();
 
   const tryInitializeAssistido = () => {
@@ -88,7 +100,12 @@ function resetSocialUI() {
 window.resetSocialUI = resetSocialUI;
 
 // Variável global para armazenar o select de parentesco que disparou o modal
-let currentParentescoSelect = null;
+// Garantir que currentParentescoSelect seja declarado apenas uma vez globalmente
+if (typeof window.currentParentescoSelectGlobal === 'undefined') {
+  window.currentParentescoSelectGlobal = null;
+}
+// Usar window.currentParentescoSelectGlobal ao invés de currentParentescoSelect localmente
+// let currentParentescoSelect = null; // Comentado ou removido
 
 // Função para configurar eventos do módulo
 function setupEvents() {
@@ -246,7 +263,7 @@ function setupEvents() {
   // Event listener para os selects de parentesco
   document.getElementById('membros-familia-list').addEventListener('change', function(event) {
     if (event.target.classList.contains('parentesco-select') && event.target.value === 'Outro') {
-      currentParentescoSelect = event.target;
+      window.currentParentescoSelectGlobal = event.target;
       openOutroParentescoModal();
     }
   });
@@ -374,7 +391,7 @@ function inicializarAssistido() {
 
 // Função para preencher os dados do assistido baseado na primeira página
 function preencherDadosAssistido() {
-  console.log('Preenchendo dados do assistido da primeira página...');
+  console.log('[social.js] preencherDadosAssistido: Tentando preencher dados do assistido.');
 
   const nomeInput = document.getElementById('assistido_nome');
   const cpfInput = document.getElementById('assistido_cpf');
@@ -386,7 +403,7 @@ function preencherDadosAssistido() {
 
   if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.personal) {
     const personalData = window.formStateManager.formData.personal;
-    console.log('Dados obtidos do formStateManager (personalData):', JSON.parse(JSON.stringify(personalData)));
+    console.log('[social.js] preencherDadosAssistido: Dados encontrados em formStateManager.formData.personal:', JSON.parse(JSON.stringify(personalData)));
 
     // Assumindo que o assistido é o primeiro autor
     if (personalData.autor_nome && personalData.autor_nome.length > 0) {
@@ -418,14 +435,29 @@ function preencherDadosAssistido() {
 
   } else {
     // Fallback se formStateManager não tiver os dados
-    console.log('formStateManager.formData.personal não encontrado, tentando obter dos elementos do DOM.');
+    console.warn('[social.js] preencherDadosAssistido: formStateManager.formData.personal não encontrado. Tentando obter dos elementos do DOM da página anterior (personal).');
     const nomePaginaAnterior = document.getElementById('nome');
     const cpfPaginaAnterior = document.getElementById('cpf');
     const idadePaginaAnterior = document.getElementById('idade');
 
-    if (nomePaginaAnterior) nomeValue = nomePaginaAnterior.value || nomeValue;
-    if (cpfPaginaAnterior) cpfValue = cpfPaginaAnterior.value || cpfValue;
-    if (idadePaginaAnterior) idadeValue = idadePaginaAnterior.value || idadeValue;
+    if (nomePaginaAnterior) {
+      nomeValue = nomePaginaAnterior.value || nomeValue;
+      console.log('[social.js] preencherDadosAssistido (fallback): Nome da página anterior:', nomeValue);
+    } else {
+      console.warn('[social.js] preencherDadosAssistido (fallback): Campo #nome da página anterior não encontrado.');
+    }
+    if (cpfPaginaAnterior) {
+      cpfValue = cpfPaginaAnterior.value || cpfValue;
+      console.log('[social.js] preencherDadosAssistido (fallback): CPF da página anterior:', cpfValue);
+    } else {
+      console.warn('[social.js] preencherDadosAssistido (fallback): Campo #cpf da página anterior não encontrado.');
+    }
+    if (idadePaginaAnterior) {
+      idadeValue = idadePaginaAnterior.value || idadeValue;
+      console.log('[social.js] preencherDadosAssistido (fallback): Idade da página anterior:', idadeValue);
+    } else {
+      console.warn('[social.js] preencherDadosAssistido (fallback): Campo #idade da página anterior não encontrado.');
+    }
   }
 
   if (nomeInput) {
@@ -439,19 +471,26 @@ function preencherDadosAssistido() {
   }
 
   if (idadeInput) {
-    // Extrair apenas o número de anos (remover os meses) se a string contiver "anos"
-    if (idadeValue.includes('anos')) {
-        const anosMatch = idadeValue.match(/(\d+)\s+anos?/);
-        if (anosMatch && anosMatch[1]) {
-            idadeInput.value = anosMatch[1] + ' anos';
-        } else {
-            idadeInput.value = idadeValue; // Mantém o valor original se o regex falhar mas "anos" estiver presente
-        }
-    } else if (idadeValue.trim() !== '' && !isNaN(idadeValue)) { // Se for apenas um número, assume que são anos
-        idadeInput.value = idadeValue + ' anos';
-    } else { // Caso contrário, usa o valor como está ou string vazia se for o caso
-        idadeInput.value = idadeValue;
+    // Extrair apenas o número de anos, ignorando meses ou qualquer outra informação
+    const matchAnos = idadeValue.match(/(\d+)\s*ano(s)?/);
+    if (matchAnos && matchAnos[1]) {
+      idadeValue = matchAnos[1] + " anos";
+    } else if (idadeValue && !isNaN(parseInt(idadeValue.trim()))) {
+      // Se for apenas um número, adiciona " anos"
+      idadeValue = parseInt(idadeValue.trim()) + " anos";
+    } else {
+      // Se não conseguir extrair, deixa o campo vazio ou com a string original,
+      // dependendo do comportamento desejado para dados malformados.
+      // Aqui, opto por tentar limpar para evitar "undefined anos" etc.
+      const justDigits = idadeValue.replace(/\D/g, '');
+      if (justDigits) {
+          idadeValue = justDigits + " anos";
+      } else {
+          idadeValue = ''; // Ou mantenha o valor original se preferir: autorPrincipal.idade || '';
+      }
     }
+
+    idadeInput.value = idadeValue;
     console.log('Idade do assistido preenchida:', idadeInput.value);
   }
 }
@@ -972,16 +1011,16 @@ function closeOutroParentescoModal() {
     modal.classList.add('hidden');
     // Se o usuário cancelou ou fechou, e o valor do select ainda é "Outro" (porque não salvou um novo valor),
     // e não há uma opção customizada já adicionada, reseta para "Selecione..."
-    if (currentParentescoSelect && currentParentescoSelect.value === 'Outro') {
+    if (window.currentParentescoSelectGlobal && window.currentParentescoSelectGlobal.value === 'Outro') {
         // Verifica se não existe uma opção com o valor que seria o input (evita resetar se já tinha um "Outro" customizado)
-        const options = Array.from(currentParentescoSelect.options);
+        const options = Array.from(window.currentParentescoSelectGlobal.options);
         const customOptionExists = options.some(opt => opt.value !== "" && opt.value !== "Outro" && !isDefaultParentescoOption(opt.value));
 
         if (!customOptionExists) {
-             currentParentescoSelect.value = ""; // Reseta para "Selecione..."
+             window.currentParentescoSelectGlobal.value = ""; // Reseta para "Selecione..."
         }
     }
-    currentParentescoSelect = null; // Limpa a referência
+    window.currentParentescoSelectGlobal = null; // Limpa a referência
   }
 }
 
@@ -996,11 +1035,11 @@ function saveOutroParentesco() {
   const input = document.getElementById('outroParentescoInput');
   const novoParentesco = input.value.trim();
 
-  if (novoParentesco && currentParentescoSelect) {
+  if (novoParentesco && window.currentParentescoSelectGlobal) {
     // Verificar se a opção já existe (para não duplicar)
     let optionExists = false;
-    for (let i = 0; i < currentParentescoSelect.options.length; i++) {
-      if (currentParentescoSelect.options[i].value === novoParentesco) {
+    for (let i = 0; i < window.currentParentescoSelectGlobal.options.length; i++) {
+      if (window.currentParentescoSelectGlobal.options[i].value === novoParentesco) {
         optionExists = true;
         break;
       }
@@ -1010,21 +1049,21 @@ function saveOutroParentesco() {
     if (!optionExists) {
       const newOption = new Option(novoParentesco, novoParentesco, true, true);
       // Insere a nova opção antes da opção "Outro"
-      const outroOption = Array.from(currentParentescoSelect.options).find(opt => opt.value === 'Outro');
+      const outroOption = Array.from(window.currentParentescoSelectGlobal.options).find(opt => opt.value === 'Outro');
       if (outroOption) {
-        currentParentescoSelect.insertBefore(newOption, outroOption);
+        window.currentParentescoSelectGlobal.insertBefore(newOption, outroOption);
       } else {
         // Fallback caso a opção "Outro" não seja encontrada (improvável)
-        currentParentescoSelect.appendChild(newOption);
+        window.currentParentescoSelectGlobal.appendChild(newOption);
       }
     }
 
-    currentParentescoSelect.value = novoParentesco; // Define o valor do select para o novo parentesco
+    window.currentParentescoSelectGlobal.value = novoParentesco; // Define o valor do select para o novo parentesco
     closeOutroParentescoModal();
 
     // Disparar evento de change manualmente para que o formStateManager capture a alteração
     const event = new Event('change', { bubbles: true });
-    currentParentescoSelect.dispatchEvent(event);
+    window.currentParentescoSelectGlobal.dispatchEvent(event);
 
   } else if (!novoParentesco) {
     // Poderia adicionar um feedback para o usuário aqui se desejado
