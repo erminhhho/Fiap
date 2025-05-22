@@ -291,23 +291,30 @@ function addAuthor() {
 }
 
 // Função para ativar/desativar a etiqueta de relacionamento
-function toggleRelationshipTag(element) {
-  // Obter o tipo de relacionamento atual
-  const currentRelationship = element.getAttribute('data-selected');
-  const relationshipValue = element.getAttribute('data-value') || element.querySelector('select').value;
-
-  // Garantir que sempre tenhamos o data-value para aplicar a cor correta
-  if (!element.hasAttribute('data-value')) {
-    element.setAttribute('data-value', relationshipValue);
+function toggleRelationshipTag(clickedDivElement) {
+  const selectControl = clickedDivElement.querySelector('select');
+  if (!selectControl) {
+    console.warn('[Personal] toggleRelationshipTag: select não encontrado dentro de:', clickedDivElement);
+    return;
   }
 
-  // Se já tem um relacionamento selecionado, vamos deixá-lo no formato padrão
-  if (currentRelationship) {
-    element.removeAttribute('data-selected');
-  } else {
-    // Caso contrário, vamos usar o valor do data-value como o tipo de relacionamento selecionado
-    element.setAttribute('data-selected', relationshipValue);
+  const tagValueToSelect = clickedDivElement.dataset.value;
+
+  if (typeof tagValueToSelect === 'undefined') {
+    console.warn('[Personal] toggleRelationshipTag: data-value não definido em:', clickedDivElement);
+    return;
   }
+
+  if (selectControl.value === tagValueToSelect) {
+    console.log(`[Personal] toggleRelationshipTag: Select já está com o valor '${tagValueToSelect}'. Sem ação.`);
+    return;
+  }
+
+  selectControl.value = tagValueToSelect;
+  console.log(`[Personal] toggleRelationshipTag: Select '${selectControl.name}' value set to '${tagValueToSelect}'`);
+
+  selectControl.dispatchEvent(new Event('change', { bubbles: true }));
+  console.log(`[Personal] toggleRelationshipTag: Evento 'change' disparado para select '${selectControl.name}'`);
 }
 
 // Função para remover um autor específico pelo seu ID

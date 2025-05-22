@@ -742,10 +742,12 @@ class FormStateManager {
                     else element.value = val;
                 console.log(`[FormStateManager] Restaurando array campo ${element.name}[${index}] com valor: ${val}`);
 
-                // Adicionar dispatch de evento 'change' para selects de tag de atividade
-                if (element.name === 'atividade_tag_status[]' || element.classList.contains('activity-tag')) {
+                // Adicionar dispatch de evento 'change' para selects de tag de atividade e relacionamento
+                if (element.tagName === 'SELECT' &&
+                    (element.name === 'atividade_tag_status[]' || element.classList.contains('activity-tag') ||
+                     element.name === 'autor_relationship[]' || element.id.startsWith('relationship_')) ) {
                   element.dispatchEvent(new Event('change', { bubbles: true }));
-                  console.log(`[FormStateManager] Evento 'change' disparado para ${element.name}[${index}] após restauração.`);
+                  console.log(`[FormStateManager] Evento 'change' disparado para ${element.name}[${index}] id: ${element.id} após restauração.`);
                 }
 
                     if (element.name === 'autor_apelido[]' || element.name === 'autor_telefone[]' || element.name === 'autor_senha_meuinss[]') {
