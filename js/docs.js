@@ -620,8 +620,12 @@ async function gerarRelatorioPDF() {
         continue;
       }
       const sectionData = todasAsPaginas[sectionKey];
+      // Barra de título principal da sessão
       htmlContent += `<div class="section ${sectionKey}-section">`;
-      htmlContent += `<div class="section-title">${sectionDisplayTitles[sectionKey]}</div>`;      if (sectionKey === 'personal') {
+      // Título principal: azul
+      htmlContent += `<div class="section-title" style="background-color:#2563eb; color:#fff; border-radius:3px; border-bottom:2px solid #1e3a8a;">${sectionDisplayTitles[sectionKey]}</div>`;
+      // Cards para cada bloco de dados
+      if (sectionKey === 'personal') {
         // Card do assistido padronizado, sem detalhe azul no topo
         const relacaoPrincipal = sectionData.autor_relationship?.[0] || 'Requerente';
         htmlContent += `<div class="item-block author-block">`;
@@ -643,25 +647,36 @@ async function gerarRelatorioPDF() {
         if (sectionData.segurado_especial !== undefined) {
           htmlContent += createFieldItem('Segurado Especial', sectionData.segurado_especial ? 'Sim' : 'Não');
         }
-        // Endereço integrado ao card principal, em duas linhas de três colunas
-        htmlContent += createFieldItem('CEP', sectionData.cep);
-        htmlContent += createFieldItem('Endereço', sectionData.endereco);
-        htmlContent += createFieldItem('Número', sectionData.numero);
-        htmlContent += createFieldItem('Complemento', sectionData.complemento);
-        htmlContent += createFieldItem('Bairro', sectionData.bairro);
-        htmlContent += createFieldItem('Cidade', sectionData.cidade);
         htmlContent += `</div>`;
         htmlContent += `</div>`;
-        // Exibir outros autores normalmente
+        // Endereço em card dedicado antes das observações
+        if (
+          sectionData.cep || sectionData.endereco || sectionData.numero ||
+          (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') ||
+          sectionData.bairro || sectionData.cidade
+        ) {
+          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;">`;
+          htmlContent += `<strong style="color:#1e3a8a;">Endereço:</strong> `;
+          htmlContent += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm; margin-top:4px;">`;
+          htmlContent += createFieldItem('CEP', sectionData.cep);
+          htmlContent += createFieldItem('Endereço', sectionData.endereco);
+          htmlContent += createFieldItem('Número', sectionData.numero);
+          if (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') {
+            htmlContent += createFieldItem('Complemento', sectionData.complemento);
+          }
+          htmlContent += createFieldItem('Bairro', sectionData.bairro);
+          htmlContent += createFieldItem('Cidade', sectionData.cidade);
+          htmlContent += `</div></div>`;
+        }
         if (sectionData.autor_nome && Array.isArray(sectionData.autor_nome) && sectionData.autor_nome.length > 1) {
           sectionData.autor_nome.forEach((nome, index) => {
             if (index === 0) return;
-            htmlContent += `<div class="item-block author-block">`;
+            htmlContent += `<div class="item-block author-block" style="padding: 8px 10px; margin-bottom: 8px;">`;
             const relation = sectionData.autor_relationship?.[index] || '';
             let authorTitle = `Dependente/Envolvido ${index}`;
             if (relation) authorTitle = `${relation}`;
-            htmlContent += `<div class="subsection-title">${authorTitle}</div>`;
-            htmlContent += `<div class="field-group">`;
+            htmlContent += `<div class="subsection-title" style="margin-bottom:4px; font-size:10pt; padding-bottom:2px; border-bottom:0;">${authorTitle}</div>`;
+            htmlContent += `<div class="field-group" style="grid-template-columns: repeat(4, 1fr); gap: 2mm 3mm; margin-bottom:0;">`;
             htmlContent += createFieldItem('Nome Completo', nome);
             htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[index]);
             htmlContent += createFieldItem('Data de Nascimento', sectionData.autor_nascimento?.[index]);
@@ -669,108 +684,107 @@ async function gerarRelatorioPDF() {
             htmlContent += `</div></div>`;
           });
         }
-
+        if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
+          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações pessoais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+        }
       } else if (sectionKey === 'social') {
-        htmlContent += `<div class="field-group">`;
+        htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
+        htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Composição Social e Renda</div>`;
+        htmlContent += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm; padding: 0 16px 8px 16px;">`;
         htmlContent += createFieldItem('Renda Total Familiar (Declarada)', sectionData.renda_total_familiar, { isHtml: true });
         htmlContent += createFieldItem('Renda Per Capita Familiar (Declarada)', sectionData.renda_per_capita, { isHtml: true });
         htmlContent += `</div>`;
-
         if (sectionData.familiar_nome && Array.isArray(sectionData.familiar_nome) && sectionData.familiar_nome.length > 0) {
-          htmlContent += `<div class="subsection-title">Composição Familiar e Renda Detalhada</div>`;
-          htmlContent += '<table><thead><tr><th>Nome</th><th>Parentesco</th><th>CPF</th><th>Idade</th><th>Estado Civil</th><th>Renda (R$)</th><th>CadÚnico?</th></tr></thead><tbody>';
+          htmlContent += `<div class="subsection-title" style="margin-top:8px; font-size:10pt; color:#374151; border-bottom:1px solid #d1d5db; padding:8px 16px 8px 16px; background:#f9fafb;">Composição Familiar e Renda Detalhada</div>`;
+          htmlContent += '<table style="width:100%; margin:0; border:none; box-shadow:none;">';
+          htmlContent += '<thead><tr>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Nome</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Parentesco</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">CPF</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Idade</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Estado Civil</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Renda (R$)</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">CadÚnico?</th>';
+          htmlContent += '</tr></thead><tbody>';
           sectionData.familiar_nome.forEach((nome, index) => {
             htmlContent += '<tr>';
-            htmlContent += `<td>${formatValue(nome)}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.familiar_parentesco?.[index])}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.familiar_cpf?.[index])}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.familiar_idade?.[index])}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.familiar_estado_civil?.[index])}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.familiar_renda?.[index])}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.familiar_cadunico?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(nome)}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_parentesco?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_cpf?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_idade?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_estado_civil?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_renda?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_cadunico?.[index])}</td>`;
             htmlContent += '</tr>';
           });
           htmlContent += '</tbody></table>';
-        }        if(sectionData.observacoes){
-            htmlContent += `<div class="subsection-title">Observações sociais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
-
-      } else if (sectionKey === 'incapacity') {        // Subseção: Situação Laboral e Condições de Saúde - completamente reorganizada
-        htmlContent += `<div class="subsection-title">Situação Laboral e Condições de Saúde</div>`;
-
-        // Grid de 2x2 para melhor organização visual
-        htmlContent += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 5mm; margin-bottom: 3mm;">`;
-
-        // Formatação especial para valores como "menos_1_mes" -> "Menos de 1 mês"
-        const formatarPeriodo = (valor) => {
-          if (!valor) return formatValue(valor);
-          if (valor === 'menos_1_mes') return 'Menos de 1 mês';
-          if (valor === 'menos_6_meses') return 'Menos de 6 meses';
-          if (valor === 'menos_1_ano') return 'Menos de 1 ano';
-          if (valor === 'mais_1_ano') return 'Mais de 1 ano';
-          return formatValue(valor);
-        };
-
-        // Trabalhando atualmente
-        htmlContent += `<div style="padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
-          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Trabalha Atualmente?</strong>
-          <span style="font-size: 10pt;">${formatValue(sectionData.trabalhaAtualmente)}</span>
-        </div>`;
-
-        // Último trabalho
-        htmlContent += `<div style="padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
-          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Último Trabalho (Período)</strong>
-          <span style="font-size: 10pt;">${formatarPeriodo(sectionData.ultimoTrabalho)}</span>
-        </div>`;
-
-        // Limitações diárias
-        htmlContent += `<div style="padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
-          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Limitações Diárias</strong>
-          <span style="font-size: 10pt;">${formatValue(sectionData.limitacoesDiarias)}</span>
-        </div>`;
-
-        // Tratamentos e medicamentos
-        htmlContent += `<div style="padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
-          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Tratamentos Realizados</strong>
-          <span style="font-size: 10pt;">${formatValue(sectionData.tratamentosRealizados)}</span>
-        </div>`;
-
-        // Medicamentos em linha inteira
-        htmlContent += `<div style="grid-column: 1 / -1; padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
-          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Medicamentos Atuais</strong>
-          <span style="font-size: 10pt;">${formatValue(sectionData.medicamentosAtuais)}</span>
-        </div>`;
-
         htmlContent += `</div>`;
-
-        // Subseção: Documentos e Detalhes da Incapacidade (Tabela)
-        if (sectionData.tipoDocumentos && Array.isArray(sectionData.tipoDocumentos) && sectionData.tipoDocumentos.length > 0 && sectionData.tipoDocumentos.some(doc => doc && doc.trim() !== '')) {
-          htmlContent += `<div class="subsection-title">Documentos Comprobatórios e Detalhes da Incapacidade</div>`;
-          htmlContent += '<table><thead><tr><th>Tipo Documento</th><th>Doença/Condição (Conforme Documento)</th><th>CID</th><th>Data do Documento</th></tr></thead><tbody>';
-          sectionData.tipoDocumentos.forEach((tipoDoc, index) => {
-            if (tipoDoc && tipoDoc.trim() !== '') { // Garante que só adiciona linhas com tipo de documento preenchido
-              htmlContent += '<tr>';
-              htmlContent += `<td>${formatValue(tipoDoc)}</td>`;
-              htmlContent += `<td>${formatValue(sectionData.doencas?.[index])}</td>`;
-              htmlContent += `<td>${formatValue(sectionData.cids?.[index])}</td>`;
-              htmlContent += `<td>${formatValue(sectionData.dataDocumentos?.[index])}</td>`;
-              htmlContent += '</tr>';
-            }
-          });
-          htmlContent += '</tbody></table>';
-        }        // Subseção: Observações Adicionais
-        if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
-            htmlContent += `<div class="subsection-title">Observações de saúde: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+        if(sectionData.observacoes && sectionData.observacoes.trim() !== ''){
+          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações sociais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
-
+      } else if (sectionKey === 'incapacity') {
+        htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
+        htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Situação Laboral e Saúde</div>`;
+        htmlContent += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 5mm; margin-bottom: 3mm; padding: 0 16px 0 16px;">`;
+        htmlContent += `<div>${createFieldItem('Trabalha Atualmente?', sectionData.trabalhaAtualmente)}</div>`;
+        htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', sectionData.ultimoTrabalho)}</div>`;
+        htmlContent += `<div>${createFieldItem('Limitações Diárias', sectionData.limitacoesDiarias)}</div>`;
+        htmlContent += `<div>${createFieldItem('Tratamentos Realizados', sectionData.tratamentosRealizados)}</div>`;
+        htmlContent += `<div style="grid-column: 1 / -1;">${createFieldItem('Medicamentos Atuais', sectionData.medicamentosAtuais)}</div>`;
+        htmlContent += `</div>`;
+        if (sectionData.tipoDocumentos || sectionData.doencas || sectionData.cids || sectionData.dataDocumentos) {
+          const maxRows = Math.max(
+            sectionData.tipoDocumentos?.length || 0,
+            sectionData.doencas?.length || 0,
+            sectionData.cids?.length || 0,
+            sectionData.dataDocumentos?.length || 0
+          );
+          if (maxRows > 0) {
+            htmlContent += `<div class="subsection-title" style="margin-top:8px; font-size:10pt; color:#374151; border-bottom:1px solid #d1d5db; padding:8px 16px 8px 16px; background:#f9fafb;">Documentos Comprobatórios e Detalhes da Incapacidade</div>`;
+            htmlContent += '<table style="width:100%; margin:0; border:none; box-shadow:none;">';
+            htmlContent += '<thead><tr>';
+            htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Tipo Documento</th>';
+            htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Doença/Condição (Conforme Documento)</th>';
+            htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">CID</th>';
+            htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Data do Documento</th>';
+            htmlContent += '</tr></thead><tbody>';
+            for (let index = 0; index < maxRows; index++) {
+              const tipoDoc = sectionData.tipoDocumentos?.[index] || '';
+              const doenca = sectionData.doencas?.[index] || '';
+              const cid = sectionData.cids?.[index] || '';
+              const dataDoc = sectionData.dataDocumentos?.[index] || '';
+              if (tipoDoc.trim() !== '' || doenca.trim() !== '' || cid.trim() !== '' || dataDoc.trim() !== '') {
+                htmlContent += '<tr>';
+                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-right:1px solid #e5e7eb; border-left:none;">${formatValue(tipoDoc)}</td>`;
+                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-right:1px solid #e5e7eb; border-left:none;">${formatValue(doenca)}</td>`;
+                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-right:1px solid #e5e7eb; border-left:none;">${formatValue(cid)}</td>`;
+                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-right:none; border-left:none;">${formatValue(dataDoc)}</td>`;
+                htmlContent += '</tr>';
+              }
+            }
+            htmlContent += '</tbody></table>';
+          }
+        }
+        htmlContent += `</div>`;
+        if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
+          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações de saúde:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+        }
       } else if (sectionKey === 'professional') {
+        htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
+        htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Histórico Profissional</div>`;
         if (sectionData.atividade_tipo && Array.isArray(sectionData.atividade_tipo) && sectionData.atividade_tipo.length > 0) {
-          htmlContent += `<div class="subsection-title">Histórico de Atividades/Vínculos</div>`;
-          htmlContent += '<table><thead><tr><th>Tipo de Atividade</th><th>Status Contrib.</th><th>Início</th><th>Fim</th><th>Detalhes/Local</th></tr></thead><tbody>';
+          htmlContent += '<table style="width:calc(100% - 0px); margin:0; border:none; box-shadow:none;">';
+          htmlContent += '<thead><tr>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Tipo de Atividade</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Status Contrib.</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Início</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Fim</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Detalhes/Local</th>';
+          htmlContent += '</tr></thead><tbody>';
           sectionData.atividade_tipo.forEach((tipoAtividade, index) => {
             htmlContent += '<tr>';
-            htmlContent += `<td>${formatValue(tipoAtividade)}</td>`;
-
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(tipoAtividade)}</td>`;
             const statusValProf = sectionData.atividade_tag_status?.[index];
             let cellContentProf;
             if (statusValProf === null || statusValProf === undefined || String(statusValProf).trim() === '') {
@@ -778,26 +792,32 @@ async function gerarRelatorioPDF() {
             } else {
               cellContentProf = `<span class="data-tag">${formatValue(statusValProf)}</span>`;
             }
-            htmlContent += `<td>${cellContentProf}</td>`;
-
-            htmlContent += `<td>${formatValue(sectionData.atividade_periodo_inicio?.[index])}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.atividade_periodo_fim?.[index])}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.atividade_detalhes?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${cellContentProf}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.atividade_periodo_inicio?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.atividade_periodo_fim?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.atividade_detalhes?.[index])}</td>`;
             htmlContent += '</tr>';
           });
           htmlContent += '</tbody></table>';
-        }        if(sectionData.observacoes){
-            htmlContent += `<div class="subsection-title">Observações profissionais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
-
+        htmlContent += `</div>`;
+        if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
+          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações profissionais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+        }
       } else if (sectionKey === 'documents') {
+        htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
+        htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Documentos</div>`;
         if (sectionData.documentos && Array.isArray(sectionData.documentos) && sectionData.documentos.length > 0) {
-          htmlContent += `<div class="subsection-title">Documentos Apresentados/Solicitados</div>`;
-          htmlContent += '<table><thead><tr><th>Documento</th><th>Status</th><th>Ano</th><th>Obs. Documento</th></tr></thead><tbody>';
+          htmlContent += '<table style="width:calc(100% - 0px); margin:0; border:none; box-shadow:none;">';
+          htmlContent += '<thead><tr>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Documento</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Status</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Ano</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Obs. Documento</th>';
+          htmlContent += '</tr></thead><tbody>';
           sectionData.documentos.forEach(doc => {
             htmlContent += '<tr>';
-            htmlContent += `<td>${formatValue(doc.nome)}</td>`;
-
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(doc.nome)}</td>`;
             const statusValDoc = doc.status;
             let cellContentDoc;
             if (statusValDoc === null || statusValDoc === undefined || String(statusValDoc).trim() === '') {
@@ -805,15 +825,16 @@ async function gerarRelatorioPDF() {
             } else {
               cellContentDoc = `<span class="data-tag">${formatValue(statusValDoc)}</span>`;
             }
-            htmlContent += `<td>${cellContentDoc}</td>`;
-
-            htmlContent += `<td>${formatValue(doc.ano)}</td>`;
-            htmlContent += `<td>${formatValue(doc.detalhes, true)}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${cellContentDoc}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(doc.ano)}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(doc.detalhes, true)}</td>`;
             htmlContent += '</tr>';
           });
           htmlContent += '</tbody></table>';
-        }        if(sectionData.observacoes){
-            htmlContent += `<div class="subsection-title">Observações finais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+        }
+        htmlContent += `</div>`;
+        if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
+          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações finais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
       }
       htmlContent += '</div>';
