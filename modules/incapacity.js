@@ -310,6 +310,8 @@ window.initModule = function() {
     setTimeout(() => {
         console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
         window.formStateManager.ensureFormAndRestore(currentStepKey);
+        // Após restaurar, fechar dropdowns de autocomplete se já estiverem preenchidos
+        setTimeout(closeAutocompleteDropdownsIfFilled, 300);
     }, 700); // Delay um pouco maior devido às inicializações de CID
   } else {
     console.error("[incapacity.js] initModule: formStateManager não encontrado. A restauração não ocorrerá.");
@@ -665,6 +667,28 @@ function cleanupSelectedItems() {
       item.remove();
     }
   });
+}
+
+// Função utilitária para fechar dropdowns de autocomplete se o campo já estiver preenchido
+function closeAutocompleteDropdownsIfFilled() {
+  // Profissão
+  const profInput = document.getElementById('profissao');
+  const profDropdown = document.getElementById('profissaoDropdown');
+  if (profInput && profDropdown && profInput.value.trim() !== '') {
+    profDropdown.classList.add('hidden');
+  }
+  // Cidade
+  const cidadeInput = document.getElementById('cidade');
+  const cidadeDropdown = document.getElementById('cidadeDropdown');
+  if (cidadeInput && cidadeDropdown && cidadeInput.value.trim() !== '') {
+    cidadeDropdown.classList.add('hidden');
+  }
+  // Colaborador
+  const colaboradorInput = document.getElementById('colaborador');
+  const colaboradorDropdown = document.getElementById('colaboradorDropdown');
+  if (colaboradorInput && colaboradorDropdown && colaboradorInput.value.trim() !== '') {
+    colaboradorDropdown.classList.add('hidden');
+  }
 }
 
 // Configurar fechamento automático dos dropdowns ao selecionar um item ou clicar fora
