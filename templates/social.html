@@ -119,12 +119,19 @@
 
             <!-- Parentesco - 4 colunas -->
             <div class="relative md:col-span-4">
-              <select name="familiar_parentesco[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+              <select name="familiar_parentesco[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200 parentesco-select">
                 <option value="" selected disabled>Selecione...</option>
                 <option value="Cônjuge">Cônjuge</option>
-                <option value="Filho(a)">Filho(a)</option>
-                <option value="Pai/Mãe">Pai/Mãe</option>
-                <option value="Irmão/Irmã">Irmão/Irmã</option>
+                <option value="Filho">Filho</option>
+                <option value="Filha">Filha</option>
+                <option value="Pai">Pai</option>
+                <option value="Mãe">Mãe</option>
+                <option value="Irmão">Irmão</option>
+                <option value="Irmã">Irmã</option>
+                <option value="Enteado">Enteado</option>
+                <option value="Enteada">Enteada</option>
+                <option value="Sobrinho">Sobrinho</option>
+                <option value="Sobrinha">Sobrinha</option>
                 <option value="Outro">Outro</option>
               </select>
               <label class="input-label">
@@ -246,4 +253,29 @@
     </button>
   </div>
 </form>
+
+<!-- Modal para Outro Parentesco -->
+<div id="outroParentescoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] hidden">
+  <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-700">Informar Parentesco</h2>
+      <button id="closeOutroParentescoModal" class="text-gray-500 hover:text-gray-700">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <p class="text-gray-600 mb-4">Digite o parentesco desejado:</p>
+    <div class="mb-4">
+      <input type="text" id="outroParentescoInput" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Vizinho">
+    </div>
+    <div class="flex justify-end space-x-2">
+      <button id="cancelOutroParentesco" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700">
+        Cancelar
+      </button>
+      <button id="saveOutroParentesco" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white">
+        <i class="fas fa-save mr-1"></i> Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Nota: js/social.js não é mais necessário, pois o módulo é carregado automaticamente pelo router -->

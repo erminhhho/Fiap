@@ -87,6 +87,9 @@ function resetSocialUI() {
 }
 window.resetSocialUI = resetSocialUI;
 
+// Variável global para armazenar o select de parentesco que disparou o modal
+let currentParentescoSelect = null;
+
 // Função para configurar eventos do módulo
 function setupEvents() {
   // Destacar campos preenchidos
@@ -239,6 +242,43 @@ function setupEvents() {
 
   // Configurar cálculo de renda familiar
   setupRendaFamiliar();
+
+  // Event listener para os selects de parentesco
+  document.getElementById('membros-familia-list').addEventListener('change', function(event) {
+    if (event.target.classList.contains('parentesco-select') && event.target.value === 'Outro') {
+      currentParentescoSelect = event.target;
+      openOutroParentescoModal();
+    }
+  });
+
+  // Event listeners para o modal de "Outro Parentesco"
+  const outroParentescoModal = document.getElementById('outroParentescoModal');
+  if (outroParentescoModal) {
+    document.getElementById('closeOutroParentescoModal').addEventListener('click', closeOutroParentescoModal);
+    document.getElementById('cancelOutroParentesco').addEventListener('click', closeOutroParentescoModal);
+    document.getElementById('saveOutroParentesco').addEventListener('click', saveOutroParentesco);
+
+    const outroParentescoInput = document.getElementById('outroParentescoInput');
+    if (outroParentescoInput) {
+        // Aplicar a máscara Mask.properName no evento blur
+        outroParentescoInput.addEventListener('blur', function() {
+            if (typeof formatarNomeProprio === 'function') {
+                formatarNomeProprio(this);
+            }
+        });
+        outroParentescoInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+              document.getElementById('saveOutroParentesco').click();
+            }
+        });
+    }
+
+    window.addEventListener('click', function(event) {
+      if (event.target === outroParentescoModal) {
+        closeOutroParentescoModal();
+      }
+    });
+  }
 }
 
 // Inicializar dados do assistido
@@ -914,3 +954,82 @@ function updateCadUnicoButtonVisual(hiddenInput) {
   }
 }
 window.updateCadUnicoButtonVisual = updateCadUnicoButtonVisual;
+
+// Função para abrir o modal de "Outro Parentesco"
+function openOutroParentescoModal() {
+  const modal = document.getElementById('outroParentescoModal');
+  if (modal) {
+    document.getElementById('outroParentescoInput').value = ''; // Limpa o input
+    modal.classList.remove('hidden');
+    document.getElementById('outroParentescoInput').focus();
+  }
+}
+
+// Função para fechar o modal de "Outro Parentesco"
+function closeOutroParentescoModal() {
+  const modal = document.getElementById('outroParentescoModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    // Se o usuário cancelou ou fechou, e o valor do select ainda é "Outro" (porque não salvou um novo valor),
+    // e não há uma opção customizada já adicionada, reseta para "Selecione..."
+    if (currentParentescoSelect && currentParentescoSelect.value === 'Outro') {
+        // Verifica se não existe uma opção com o valor que seria o input (evita resetar se já tinha um "Outro" customizado)
+        const options = Array.from(currentParentescoSelect.options);
+        const customOptionExists = options.some(opt => opt.value !== "" && opt.value !== "Outro" && !isDefaultParentescoOption(opt.value));
+
+        if (!customOptionExists) {
+             currentParentescoSelect.value = ""; // Reseta para "Selecione..."
+        }
+    }
+    currentParentescoSelect = null; // Limpa a referência
+  }
+}
+
+// Função auxiliar para verificar se uma opção de parentesco é uma das padrões
+function isDefaultParentescoOption(value) {
+    const defaultOptions = ["Cônjuge", "Filho", "Filha", "Pai", "Mãe", "Irmão", "Irmã", "Enteado", "Enteada", "Sobrinho", "Sobrinha", "Outro"];
+    return defaultOptions.includes(value);
+}
+
+// Função para salvar o valor do "Outro Parentesco"
+function saveOutroParentesco() {
+  const input = document.getElementById('outroParentescoInput');
+  const novoParentesco = input.value.trim();
+
+  if (novoParentesco && currentParentescoSelect) {
+    // Verificar se a opção já existe (para não duplicar)
+    let optionExists = false;
+    for (let i = 0; i < currentParentescoSelect.options.length; i++) {
+      if (currentParentescoSelect.options[i].value === novoParentesco) {
+        optionExists = true;
+        break;
+      }
+    }
+
+    // Adicionar nova opção se não existir
+    if (!optionExists) {
+      const newOption = new Option(novoParentesco, novoParentesco, true, true);
+      // Insere a nova opção antes da opção "Outro"
+      const outroOption = Array.from(currentParentescoSelect.options).find(opt => opt.value === 'Outro');
+      if (outroOption) {
+        currentParentescoSelect.insertBefore(newOption, outroOption);
+      } else {
+        // Fallback caso a opção "Outro" não seja encontrada (improvável)
+        currentParentescoSelect.appendChild(newOption);
+      }
+    }
+
+    currentParentescoSelect.value = novoParentesco; // Define o valor do select para o novo parentesco
+    closeOutroParentescoModal();
+
+    // Disparar evento de change manualmente para que o formStateManager capture a alteração
+    const event = new Event('change', { bubbles: true });
+    currentParentescoSelect.dispatchEvent(event);
+
+  } else if (!novoParentesco) {
+    // Poderia adicionar um feedback para o usuário aqui se desejado
+    console.warn("Nome do parentesco não pode ser vazio.");
+    input.focus();
+  }
+  // Não precisa limpar currentParentescoSelect aqui, pois closeOutroParentescoModal já faz
+}
