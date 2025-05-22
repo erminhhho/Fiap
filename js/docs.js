@@ -737,7 +737,28 @@ async function gerarRelatorioPDF() {
         htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Situação Laboral e Saúde</div>`;
         htmlContent += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 5mm; margin-bottom: 3mm; padding: 0 16px 0 16px;">`;
         htmlContent += `<div>${createFieldItem('Trabalha Atualmente?', sectionData.trabalhaAtualmente)}</div>`;
-        htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', sectionData.ultimoTrabalho)}</div>`;
+        // Formatação especial para valores como 'menos_1_mes', '1_2_anos', etc.
+function formatPeriodoTrabalho(valor) {
+  if (!valor || typeof valor !== 'string') return formatValue(valor);
+  if (valor.startsWith('menos_')) {
+    const meses = valor.replace('menos_', '').replace('_mes', '').replace('_meses', '');
+    return `Menos de ${meses} mês${meses === '1' ? '' : 'es'}`;
+  }
+  if (valor.match(/^\d+_mes(es)?$/)) {
+    const meses = valor.replace('_mes', '').replace('_meses', '');
+    return `${meses} mês${meses === '1' ? '' : 'es'}`;
+  }
+  if (valor.match(/^\d+_\d+_anos$/)) {
+    const [de, ate] = valor.replace('_anos', '').split('_');
+    return `${de} a ${ate} anos`;
+  }
+  if (valor.match(/^\d+_anos$/)) {
+    const anos = valor.replace('_anos', '');
+    return `${anos} ano${anos === '1' ? '' : 's'}`;
+  }
+  return formatValue(valor);
+}
+htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', formatPeriodoTrabalho(sectionData.ultimoTrabalho))}</div>`;
         htmlContent += `<div>${createFieldItem('Limitações Diárias', sectionData.limitacoesDiarias)}</div>`;
         htmlContent += `<div>${createFieldItem('Tratamentos Realizados', sectionData.tratamentosRealizados)}</div>`;
         htmlContent += `<div style="grid-column: 1 / -1;">${createFieldItem('Medicamentos Atuais', sectionData.medicamentosAtuais)}</div>`;
@@ -835,7 +856,7 @@ async function gerarRelatorioPDF() {
               cellContentDoc = `<span class="relationship-select" data-value="${statusValDoc}">${formatValue(statusValDoc)}</span>`;
             }
             htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb; vertical-align:middle; text-align:center;">${cellContentDoc}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(doc.ano)}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb; vertical-align:middle; text-align:center;">${formatValue(doc.ano)}</td>`;
             htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(doc.detalhes, true)}</td>`;
             htmlContent += '</tr>';
           });
