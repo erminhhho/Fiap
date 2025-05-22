@@ -874,7 +874,48 @@ htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', formatPeri
                       <div>Relatório Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>`;
 
-    htmlContent += '</div></body></html>'; // Fecha a .page e body/html
+    htmlContent += '</div>'; // Fecha a .page
+
+    // Botão flutuante para gerar PDF (visível apenas na tela, não na impressão)
+    htmlContent += `
+      <button id="btn-gerar-pdf-relatorio" style="position:fixed;bottom:32px;right:32px;z-index:9999;padding:14px 28px;font-size:15px;font-weight:600;background:#2563eb;color:#fff;border:none;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.13);cursor:pointer;transition:background 0.2s;display:inline-block;"
+        onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#2563eb'">
+        Gerar PDF deste relatório
+      </button>
+      <style>@media print { #btn-gerar-pdf-relatorio { display:none !important; } }</style>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      <script>
+        window.onload = function() {
+          var btn = document.getElementById('btn-gerar-pdf-relatorio');
+          if (btn) {
+            btn.onclick = function() {
+              btn.style.display = 'none'; // Esconde o botão antes de gerar o PDF
+              var page = document.querySelector('.page');
+              if (window.html2pdf) {
+                html2pdf().set({
+                  margin: 0,
+                  filename: 'relatorio-fiap.pdf',
+                  image: { type: 'jpeg', quality: 1 },
+                  html2canvas: { scale: 5, useCORS: true, backgroundColor: '#fff', logging: false },
+                  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                  pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                }).from(page).save().then(function() {
+                  btn.style.display = 'inline-block';
+                }).catch(function() {
+                  btn.style.display = 'inline-block';
+                  alert('Erro ao gerar PDF.');
+                });
+              } else {
+                alert('A biblioteca html2pdf.js não está carregada.');
+                btn.style.display = 'inline-block';
+              }
+            };
+          }
+        };
+      <\/script>
+    `;
+
+    htmlContent += '</body></html>'; // Fecha body/html
 
     const newWindow = window.open('', '_blank');
     if (newWindow) {
