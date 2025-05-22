@@ -439,17 +439,18 @@ async function gerarRelatorioPDF() {
           }
           table th,
           table td {
-            border: 1px solid #93c5fd; /* Borda azul clara para células internas */
+            border: 1px solid #e5e7eb !important; /* Borda cinza clara para TODAS as células internas */
             padding: 1.5mm 2mm;
             text-align: left;
             vertical-align: top;
             word-wrap: break-word;
           }
           table th {
-            background-color: #2563eb; /* Fundo azul escuro para cabeçalhos (mantido) */
+            background-color: #f3f4f6; /* Fundo cinza claro para cabeçalhos */
             font-weight: 600;
-            color: #ffffff; /* Texto branco */
+            color: #1e3a8a; /* Azul escuro no texto do cabeçalho */
             font-size: 8.5pt;
+            border: 1px solid #e5e7eb !important; /* Garante cinza nas bordas do cabeçalho */
           }
           table tr:nth-child(even) td {
             background-color: #f3f4f6; /* Cinza claro para zebrado */
@@ -633,7 +634,7 @@ async function gerarRelatorioPDF() {
         htmlContent += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm;">`;
         let nomePrincipal = formatValue(sectionData.autor_nome?.[0]);
         if (relacaoPrincipal && String(relacaoPrincipal).trim() !== '' && relacaoPrincipal !== 'Requerente') {
-          nomePrincipal += ` <span class="data-tag">${formatValue(relacaoPrincipal)}</span>`;
+          nomePrincipal += ` <span class="relationship-select" data-value="${relacaoPrincipal}">${formatValue(relacaoPrincipal)}</span>`;
         }
         htmlContent += createFieldItem('Nome Completo', nomePrincipal, { isHtml: true });
         htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[0]);
@@ -649,25 +650,7 @@ async function gerarRelatorioPDF() {
         }
         htmlContent += `</div>`;
         htmlContent += `</div>`;
-        // Endereço em card dedicado antes das observações
-        if (
-          sectionData.cep || sectionData.endereco || sectionData.numero ||
-          (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') ||
-          sectionData.bairro || sectionData.cidade
-        ) {
-          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;">`;
-          htmlContent += `<strong style="color:#1e3a8a;">Endereço:</strong> `;
-          htmlContent += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm; margin-top:4px;">`;
-          htmlContent += createFieldItem('CEP', sectionData.cep);
-          htmlContent += createFieldItem('Endereço', sectionData.endereco);
-          htmlContent += createFieldItem('Número', sectionData.numero);
-          if (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') {
-            htmlContent += createFieldItem('Complemento', sectionData.complemento);
-          }
-          htmlContent += createFieldItem('Bairro', sectionData.bairro);
-          htmlContent += createFieldItem('Cidade', sectionData.cidade);
-          htmlContent += `</div></div>`;
-        }
+        // Dependentes
         if (sectionData.autor_nome && Array.isArray(sectionData.autor_nome) && sectionData.autor_nome.length > 1) {
           sectionData.autor_nome.forEach((nome, index) => {
             if (index === 0) return;
@@ -675,7 +658,7 @@ async function gerarRelatorioPDF() {
             const relation = sectionData.autor_relationship?.[index] || '';
             let authorTitle = `Dependente/Envolvido ${index}`;
             if (relation) authorTitle = `${relation}`;
-            htmlContent += `<div class="subsection-title" style="margin-bottom:4px; font-size:10pt; padding-bottom:2px; border-bottom:0;">${authorTitle}</div>`;
+            htmlContent += `<div class="subsection-title" style="margin-bottom:4px; font-size:10pt; padding-bottom:2px; border-bottom:0;">${authorTitle}${relation?` <span class='relationship-select' data-value='${relation}'>${authorTitle}</span>`:''}</div>`;
             htmlContent += `<div class="field-group" style="grid-template-columns: repeat(4, 1fr); gap: 2mm 3mm; margin-bottom:0;">`;
             htmlContent += createFieldItem('Nome Completo', nome);
             htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[index]);
@@ -684,9 +667,34 @@ async function gerarRelatorioPDF() {
             htmlContent += `</div></div>`;
           });
         }
-        if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
-          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações pessoais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+        // Endereço: movido para antes das observações
+        let enderecoCard = '';
+        if (
+          sectionData.cep || sectionData.endereco || sectionData.numero ||
+          (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') ||
+          sectionData.bairro || sectionData.cidade
+        ) {
+          enderecoCard += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;">`;
+          enderecoCard += `<strong style="color:#1e3a8a;">Endereço:</strong> `;
+          enderecoCard += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm; margin-top:4px;">`;
+          enderecoCard += createFieldItem('CEP', sectionData.cep);
+          enderecoCard += createFieldItem('Endereço', sectionData.endereco);
+          enderecoCard += createFieldItem('Número', sectionData.numero);
+          if (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') {
+            enderecoCard += createFieldItem('Complemento', sectionData.complemento);
+          }
+          enderecoCard += createFieldItem('Bairro', sectionData.bairro);
+          enderecoCard += createFieldItem('Cidade', sectionData.cidade);
+          enderecoCard += `</div></div>`;
         }
+        // Observações
+        let obsCard = '';
+        if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
+          obsCard += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações pessoais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+        }
+        // Ordem: cards principais, dependentes, endereço, observações
+        htmlContent += enderecoCard;
+        htmlContent += obsCard;
       } else if (sectionKey === 'social') {
         htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
         htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Composição Social e Renda</div>`;
@@ -707,14 +715,15 @@ async function gerarRelatorioPDF() {
           htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">CadÚnico?</th>';
           htmlContent += '</tr></thead><tbody>';
           sectionData.familiar_nome.forEach((nome, index) => {
+            // Substituir todas as bordas das células das tabelas para cinza (#e5e7eb)
             htmlContent += '<tr>';
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(nome)}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_parentesco?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_cpf?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_idade?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_estado_civil?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_renda?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.familiar_cadunico?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(nome)}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_parentesco?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_cpf?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_idade?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_estado_civil?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_renda?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_cadunico?.[index])}</td>`;
             htmlContent += '</tr>';
           });
           htmlContent += '</tbody></table>';
@@ -756,10 +765,10 @@ async function gerarRelatorioPDF() {
               const dataDoc = sectionData.dataDocumentos?.[index] || '';
               if (tipoDoc.trim() !== '' || doenca.trim() !== '' || cid.trim() !== '' || dataDoc.trim() !== '') {
                 htmlContent += '<tr>';
-                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-right:1px solid #e5e7eb; border-left:none;">${formatValue(tipoDoc)}</td>`;
-                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-right:1px solid #e5e7eb; border-left:none;">${formatValue(doenca)}</td>`;
-                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-right:1px solid #e5e7eb; border-left:none;">${formatValue(cid)}</td>`;
-                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-right:none; border-left:none;">${formatValue(dataDoc)}</td>`;
+                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(tipoDoc)}</td>`;
+                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(doenca)}</td>`;
+                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(cid)}</td>`;
+                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(dataDoc)}</td>`;
                 htmlContent += '</tr>';
               }
             }
@@ -784,7 +793,7 @@ async function gerarRelatorioPDF() {
           htmlContent += '</tr></thead><tbody>';
           sectionData.atividade_tipo.forEach((tipoAtividade, index) => {
             htmlContent += '<tr>';
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(tipoAtividade)}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(tipoAtividade)}</td>`;
             const statusValProf = sectionData.atividade_tag_status?.[index];
             let cellContentProf;
             if (statusValProf === null || statusValProf === undefined || String(statusValProf).trim() === '') {
@@ -792,10 +801,10 @@ async function gerarRelatorioPDF() {
             } else {
               cellContentProf = `<span class="data-tag">${formatValue(statusValProf)}</span>`;
             }
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${cellContentProf}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.atividade_periodo_inicio?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.atividade_periodo_fim?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(sectionData.atividade_detalhes?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${cellContentProf}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_periodo_inicio?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_periodo_fim?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_detalhes?.[index])}</td>`;
             htmlContent += '</tr>';
           });
           htmlContent += '</tbody></table>';
@@ -817,17 +826,17 @@ async function gerarRelatorioPDF() {
           htmlContent += '</tr></thead><tbody>';
           sectionData.documentos.forEach(doc => {
             htmlContent += '<tr>';
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(doc.nome)}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(doc.nome)}</td>`;
             const statusValDoc = doc.status;
             let cellContentDoc;
             if (statusValDoc === null || statusValDoc === undefined || String(statusValDoc).trim() === '') {
               cellContentDoc = formatValue(statusValDoc);
             } else {
-              cellContentDoc = `<span class="data-tag">${formatValue(statusValDoc)}</span>`;
+              cellContentDoc = `<span class="relationship-select" data-value="${statusValDoc}">${formatValue(statusValDoc)}</span>`;
             }
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${cellContentDoc}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(doc.ano)}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none;">${formatValue(doc.detalhes, true)}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb; vertical-align:middle; text-align:center;">${cellContentDoc}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(doc.ano)}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(doc.detalhes, true)}</td>`;
             htmlContent += '</tr>';
           });
           htmlContent += '</tbody></table>';
