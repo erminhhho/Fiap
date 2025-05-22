@@ -1142,14 +1142,12 @@ function addDoencaField() {
       <div class="relative md:col-span-5">
         <div class="relative">
           <input type="text" class="cid-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="cid${nextIndex}" placeholder="CID" name="cids[]" data-index="${nextIndex}" autocomplete="off">
+          <label for="cid${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none input-label">CID</label>
           <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
             <i class="fas fa-search"></i>
           </div>
+          <div class="cid-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown${nextIndex}"></div>
         </div>
-        <label for="cid${nextIndex}" class="input-label">
-          CID
-        </label>
-        <div class="cid-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown${nextIndex}"></div>
       </div>
 
       <!-- Doença (terceiro campo - aumentado e readonly) -->
