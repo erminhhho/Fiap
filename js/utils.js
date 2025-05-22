@@ -1417,3 +1417,40 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 });
+
+// ==================================================================================
+// Funções de Feedback Visual (Alertas, Loading etc.)
+// ==================================================================================
+
+/**
+ * Mostra um indicador de carregamento global.
+ * @param {string} message - A mensagem a ser exibida no indicador.
+ */
+function showLoadingIndicator(message = 'Carregando...') {
+  let loadingOverlay = document.getElementById('loading-overlay');
+  if (!loadingOverlay) {
+    loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+      <div class="loading-spinner"></div>
+      <p class="loading-message"></p>
+    `;
+    document.body.appendChild(loadingOverlay);
+  }
+  loadingOverlay.querySelector('.loading-message').textContent = message;
+  loadingOverlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden'; // Prevenir scroll da página por baixo
+}
+window.showLoadingIndicator = showLoadingIndicator;
+
+/**
+ * Esconde o indicador de carregamento global.
+ */
+function hideLoadingIndicator() {
+  const loadingOverlay = document.getElementById('loading-overlay');
+  if (loadingOverlay) {
+    loadingOverlay.style.display = 'none';
+  }
+  document.body.style.overflow = ''; // Restaurar scroll da página
+}
+window.hideLoadingIndicator = hideLoadingIndicator;

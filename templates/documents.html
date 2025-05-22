@@ -44,9 +44,15 @@
       <i class="fas fa-arrow-left"></i> Anterior
     </button>
 
-    <button type="button" id="btn-print" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" onclick="printForm()">
-      <i class="fas fa-print"></i> Imprimir
-    </button>
+    <div class="flex-grow"></div>
+    <div id="document-actions" class="flex items-center space-x-3">
+        <button id="imprimir-btn"
+            onclick="gerarRelatorioPDF()"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out flex items-center space-x-2 print-hidden">
+            <!-- Ícone de PDF SVG removido -->
+            <span>Relatório</span>
+        </button>
+    </div>
   </div>
 </form>
 
@@ -97,7 +103,7 @@
 </template>
 
 <!-- Modal de informações do documento -->
-<div id="documento-info-popup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+<div id="documento-info-popup" class="fixed inset-0 bg-gray-800 bg-opacity-60 flex items-center justify-center p-4 hidden z-50 print-hidden">
   <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-xl font-semibold text-gray-700 documento-info-popup-titulo"></h3>
