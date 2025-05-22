@@ -289,6 +289,7 @@ async function gerarRelatorioPDF() {
   }
 
   try {
+    // Inicializa htmlContent com o cabeçalho principal e a primeira página
     let htmlContent = `
       <!DOCTYPE html>
       <html lang="pt-br">
@@ -302,25 +303,27 @@ async function gerarRelatorioPDF() {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #fff;
-            color: #1f2937; /* Cinza escuro para texto principal */
+            background-color: #f0f3f5; /* Fundo geral cinza muito claro */
+            color: #1e293b; /* Azul acinzentado escuro para texto principal */
             font-size: 8.5pt;
-            line-height: 1.45;
+            line-height: 1.5;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
           }
           .page {
             width: 210mm;
-            min-height: 290mm; /* Levemente reduzido para dar espaço ao rodapé dentro do A4 */
-            padding: 10mm; /* Margem mais convencional */
-            margin: 0 auto 10mm auto; /* Margem inferior para separação entre páginas simuladas ou antes do rodapé final */
+            min-height: 290mm;
+            padding: 10mm;
+            margin: 0 auto 10mm auto;
             box-sizing: border-box;
             page-break-after: always;
-            position: relative; /* Para posicionar o rodapé da página */
+            position: relative;
+            background-color: #fff; /* Página branca */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Sombra sutil na página */
           }
           .page:last-of-type {
             page-break-after: avoid;
-            margin-bottom: 0; /* Sem margem inferior na última página */
+            margin-bottom: 0;
           }
 
           /* Cabeçalho do Relatório */
@@ -329,178 +332,192 @@ async function gerarRelatorioPDF() {
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 6mm;
-            padding-bottom: 3mm;
-            border-bottom: 1px solid #e5e7eb; /* Linha sutil */
+            padding-bottom: 4mm;
+            border-bottom: 2px solid #60a5fa; /* Azul para linha do cabeçalho */
           }
           .report-header-left .logo-text {
-            font-size: 16pt; /* Reduzido para não ser tão dominante */
+            font-size: 18pt;
             font-weight: 700;
-            color: #111827; /* Preto/Cinza muito escuro */
+            color: #1d4ed8; /* Azul escuro */
             margin: 0 0 0.5mm 0;
           }
           .report-header-left .logo-subtext {
-            font-size: 8pt;
-            color: #6b7280; /* Cinza médio */
+            font-size: 8.5pt;
+            color: #374151; /* Cinza escuro */
             margin: 0;
           }
           .report-header-right .generation-date {
-            font-size: 7.5pt;
-            color: #9ca3af; /* Cinza claro */
+            font-size: 8pt;
+            color: #4b5563; /* Cinza */
             text-align: right;
           }
 
           /* Título Principal do Relatório */
           .report-main-title {
-            font-size: 13pt;
+            font-size: 14pt;
             font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 6mm;
+            color: #1e3a8a; /* Azul mais escuro */
+            margin-bottom: 8mm;
             text-align: left;
           }
 
           /* Dados Pessoais do Assistido - Bloco Destacado */
           .assistido-info-block {
-            background-color: #f9fafb; /* Fundo muito leve */
-            padding: 3mm;
-            border-radius: 3px;
-            margin-bottom: 5mm;
-            border: 1px solid #e5e7eb;
+            background-color: #f3f7ff; /* Fundo azul muito claro */
+            padding: 3.5mm;
+            border-radius: 4px;
+            margin-bottom: 6mm;
+            border: 1px solid #bfdbfe; /* Borda azul clara */
+            border-top: 3px solid #2563eb; /* Borda superior azul mais forte */
           }
           .assistido-info-block .subsection-title {
-            margin-top: 0; /* Remover margem de cima do subtitulo dentro do bloco */
-            margin-bottom: 2mm; /* Ajustar margem inferior */
-            font-size: 10pt; /* Tamanho do subtitulo no bloco */
-            color: #374151; /* Cor do subtitulo no bloco */
-            padding-bottom: 1mm;
-            border-bottom: 1px solid #d1d5db;
+            margin-top: 0;
+            margin-bottom: 2.5mm;
+            font-size: 10.5pt;
+            color: #1e3a8a; /* Azul escuro para subtitulo */
+            padding-bottom: 1.5mm;
+            border-bottom: 1px solid #93c5fd; /* Linha azul clara */
           }
 
           /* Estilos de Seção */
           .section {
-            margin-bottom: 5mm;
-            padding-top: 3mm;
+            margin-bottom: 6mm;
+            padding-top: 0; /* Removido padding-top, section-title já tem margem */
           }
           .section-title {
-            font-size: 11.5pt; /* Levemente ajustado */
+            font-size: 12pt;
             font-weight: 600;
-            color: #2c3e50; /* Azul acinzentado escuro */
-            margin-bottom: 3mm;
-            padding-bottom: 1.5mm;
-            border-bottom: 1.5px solid #3b4b5a; /* Borda mais escura e um pouco mais grossa */
+            color: #ffffff; /* Texto branco */
+            background-color: #2563eb; /* Fundo azul */
+            padding: 2mm 3mm;
+            margin-bottom: 3.5mm;
+            border-radius: 3px 3px 0 0; /* Cantos arredondados no topo */
+            /* Sem borda inferior aqui, o fundo já faz a separação */
           }
 
           /* Grupos de Campos e Campos Individuais */
           .field-group {
-            margin-bottom: 2mm;
+            margin-bottom: 2.5mm;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); /* Ajuste minmax */
-            gap: 2mm 3mm;
+            grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+            gap: 2.5mm 3.5mm;
             page-break-inside: avoid;
           }
           .field-item {
             padding: 1mm 0;
             word-wrap: break-word;
-            line-height: 1.35;
+            line-height: 1.4;
           }
-          .field-item strong { /* Rótulo do Campo */
+          .field-item strong {
             display: block;
-            font-weight: 500; /* Medium */
-            color: #4b5563; /* Cinza escuro */
-            font-size: 7.5pt;
-            margin-bottom: 0.3mm;
-            text-transform: none;
+            font-weight: 500;
+            color: #374151; /* Cinza escuro */
+            font-size: 8pt;
+            margin-bottom: 0.5mm;
           }
-          .field-item span, .field-item div { /* Valor do Campo */
-            color: #1f2937;
-            font-size: 8.5pt;
+          .field-item span, .field-item div {
+            color: #1e293b;
+            font-size: 9pt;
           }
           .field-item.full-width {
             grid-column: 1 / -1;
           }
           .empty-value {
-            color: #6b7280; /* Cinza médio */
+            color: #6b7280;
             font-style: italic;
           }
 
           /* Subtítulos dentro de seções (fora de blocos especiais) */
           .subsection-title {
-            font-size: 9.5pt;
-            font-weight: 500;
-            color: #374151; /* Cinza mais escuro */
+            font-size: 10pt;
+            font-weight: 600;
+            color: #1e3a8a; /* Azul escuro */
             margin-top: 4mm;
-            margin-bottom: 2mm;
-            padding-bottom: 1mm;
-            border-bottom: 1px dotted #d1d5db; /* Linha pontilhada sutil */
+            margin-bottom: 2.5mm;
+            padding-bottom: 1.5mm;
+            border-bottom: 1px solid #93c5fd; /* Linha azul clara */
           }
 
           /* Tabelas */
           table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 3mm;
-            font-size: 8pt;
+            margin-bottom: 3.5mm;
+            font-size: 8.5pt;
             page-break-inside: auto;
+            border: 1px solid #60a5fa; /* Borda azul principal da tabela */
           }
           table th,
           table td {
-            border: 1px solid #e5e7eb; /* Borda cinza clara */
-            padding: 1.2mm 1.8mm;
+            border: 1px solid #93c5fd; /* Borda azul clara para células internas */
+            padding: 1.5mm 2mm;
             text-align: left;
             vertical-align: top;
             word-wrap: break-word;
           }
           table th {
-            background-color: #f3f4f6; /* Cinza bem claro para cabeçalhos */
-            font-weight: 600; /* Semibold */
-            color: #1f2937; /* Texto escuro */
-            font-size: 7.8pt;
+            background-color: #2563eb; /* Fundo azul escuro para cabeçalhos */
+            font-weight: 600;
+            color: #ffffff; /* Texto branco */
+            font-size: 8.5pt;
           }
           table tr:nth-child(even) td {
-            background-color: #f9fafb; /* Zebrado muito sutil */
+            background-color: #e0e7ff; /* Zebrado azul muito claro */
+          }
+          table tr:nth-child(odd) td {
+            background-color: #eff6ff; /* Zebrado azul ainda mais claro, quase branco */
           }
 
           /* Estilo para Tags */
           .data-tag {
             display: inline-block;
-            padding: 0.2em 0.55em;
-            font-size: 0.8em;
+            padding: 0.25em 0.6em;
+            font-size: 0.85em;
             font-weight: 500;
-            line-height: 1.15;
-            color: #374151; /* Texto da tag cinza escuro */
-            background-color: #e5e7eb; /* Fundo da tag cinza claro */
-            border-radius: 3px;
+            line-height: 1.2;
+            color: #ffffff; /* Texto branco */
+            background-color: #60a5fa; /* Fundo azul médio */
+            border-radius: 4px;
             text-transform: uppercase;
           }
 
           /* Blocos de Itens (Autores adicionais, etc.) */
           .item-block {
-            border: 1px solid #e5e7eb;
-            border-radius: 3px;
-            padding: 2.5mm;
-            margin-bottom: 3mm;
-            background-color: #fff;
+            border: 1px solid #bfdbfe; /* Borda azul clara */
+            border-radius: 4px;
+            padding: 3mm;
+            margin-bottom: 3.5mm;
+            background-color: #f3f7ff; /* Fundo azul muito claro */
             page-break-inside: avoid;
           }
           .item-block .subsection-title {
             margin-top: 0;
-            padding-bottom: 1mm;
-            border-bottom: 1px solid #e5e7eb; /* Linha sutil dentro do bloco */
-            font-size: 9pt; /* Ajuste para subtitulo em item-block */
+            padding-bottom: 1.5mm;
+            border-bottom: 1px solid #93c5fd; /* Linha azul clara */
+            font-size: 10pt;
+            color: #1e3a8a; /* Azul escuro */
           }
 
-          /* Rodapé da Página HTML (simulado) */
+          /* Rodapé da Página HTML */
           .page-footer {
-            position: absolute; /* Para fixar no final da .page se ela tiver altura definida */
-            bottom: 3mm; /* Distância da base da .page */
+            position: absolute;
+            bottom: 3mm;
             left: 10mm;
             right: 10mm;
-            width: calc(100% - 20mm); /* Subtrai os paddings laterais da .page */
-            font-size: 7pt;
-            color: #6b7280;
+            width: calc(100% - 20mm);
+            font-size: 7.5pt;
+            color: #4b5563; /* Cinza */
             display: flex;
             justify-content: space-between;
-            border-top: 1px solid #e5e7eb;
-            padding-top: 1.5mm;
+            border-top: 1px solid #bfdbfe; /* Linha azul clara */
+            padding-top: 2mm;
+          }
+          .page-footer a {
+            color: #2563eb; /* Link azul */
+            text-decoration: none;
+          }
+          .page-footer a:hover {
+            text-decoration: underline;
           }
 
           /* Utilitários de impressão */
@@ -511,42 +528,53 @@ async function gerarRelatorioPDF() {
               color: #000 !important;
             }
             .page {
-              padding: 10mm; /* Manter margens */
-              margin-bottom: 0; /* Remover margem entre paginas na impressão */
-              border: none;
-              min-height: initial; /* Deixar o navegador controlar a altura da página */
+              padding: 10mm;
+              margin-bottom: 0;
+              border: none !important; /* Remover bordas da página */
+              box-shadow: none !important; /* Remover sombra da página */
+              min-height: initial;
             }
-            .report-header .logo-text,
+            .report-header,
             .report-header-left .logo-text,
             .report-main-title,
-            .section-title,
+            .assistido-info-block .subsection-title,
+            .item-block .subsection-title,
             .subsection-title,
             .field-item strong,
-            table th {
+            table th,
+            .page-footer,
+            .page-footer a {
               color: #000 !important;
+            }
+            .section-title {
+                background-color: #ccc !important; /* Cinza para fundo de título de seção */
+                color: #000 !important;
+                border-radius: 0 !important; /* Sem bordas arredondadas na impressão */
+            }
+            .assistido-info-block, .item-block {
+              border: 1px solid #bbb !important;
+              background-color: #f0f0f0 !important;
+              border-top: 2px solid #888 !important;
+            }
+            table,
+            table th,
+            table td {
+              border: 1px solid #aaa !important;
+            }
+            table th {
+              background-color: #ddd !important;
+            }
+            table tr:nth-child(even) td,
+            table tr:nth-child(odd) td {
+              background-color: #f8f8f8 !important;
             }
             .data-tag {
-              background-color: #f0f0f0 !important;
+              background-color: #ddd !important;
               color: #000 !important;
-              border: 1px solid #ccc !important;
-            }
-            .assistido-info-block,
-            .item-block {
-              border: 1px solid #ccc !important;
-              background-color: #f9f9f9 !important;
-            }
-            table th {
-              background-color: #f0f0f0 !important;
-            }
-            table tr:nth-child(even) td {
-              background-color: #f8f8f8 !important; /* Zebrado mais claro para impressão */
+              border: 1px solid #bbb !important;
             }
             .page-footer {
-              color: #333 !important;
-              border-top: 1px solid #ccc !important;
-              /* O posicionamento absoluto pode não funcionar bem em todas as impressões;
-                 o navegador geralmente adiciona seus próprios cabeçalhos/rodapés.
-                 Este rodapé HTML é mais para a visualização em tela. */
+              border-top: 1px solid #aaa !important;
             }
           }
         </style>
@@ -563,7 +591,7 @@ async function gerarRelatorioPDF() {
             </div>
           </div>
           <div class="report-main-title">Relatório Consolidado de Atendimento</div>
-    `;
+    `; // Fim da inicialização de htmlContent com cabeçalho
 
     const formatValue = (value, isHtml = false) => {
       if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')) {
@@ -600,8 +628,6 @@ async function gerarRelatorioPDF() {
     console.log("[Relatório PDF] Dados da seção Professional:", JSON.stringify(todasAsPaginas.professional, null, 2));
     console.log("[Relatório PDF] Dados da seção Documents:", JSON.stringify(todasAsPaginas.documents, null, 2));
 
-    let headerAdded = false;
-
     for (const sectionKey of sectionOrder) {
       if (!todasAsPaginas[sectionKey]) {
         console.warn(`[Relatório PDF] Seção ${sectionKey} não encontrada nos dados do formulário.`);
@@ -612,13 +638,6 @@ async function gerarRelatorioPDF() {
       htmlContent += `<div class="section-title">${sectionDisplayTitles[sectionKey]}</div>`;
 
       if (sectionKey === 'personal') {
-        if (!headerAdded) {
-          const headerHtml = `
-<div class="report-header"> <div class="report-header-left"> <div class="logo-text">FIAP</div> <div class="logo-subtext">Ficha Inteligente de Atendimento Previdenciário</div> </div> <div class="report-header-right"> <div class="generation-date">Relatório Gerado em: ${new Date().toLocaleString('pt-BR')}</div> </div> </div> <div class="report-main-title">Relatório Consolidado de Atendimento</div>`;
-          htmlContent = htmlContent.replace('<div class="page">', `<div class="page">${headerHtml}`);
-          headerAdded = true;
-        }
-
         htmlContent += `<div class="assistido-info-block">`;
         htmlContent += `<div class="subsection-title">Informações do Assistido Principal</div>`;
         htmlContent += `<div class="field-group">`;
@@ -793,9 +812,13 @@ async function gerarRelatorioPDF() {
       htmlContent += '</div>';
     }
 
-    htmlContent += `<div class="page-footer"> <div>Relatório gerado por FIAP &copy; ${new Date().getFullYear()}</div> <div>Página <span class="page-number"></span></div> </div>`;
+    // Adiciona o rodapé ao final do conteúdo da .page
+    htmlContent += `<div class="page-footer">
+                      <div>FIAP é um serviço de <a href="https://orbitas.com.br" target="_blank">orbitas.com.br</a> &copy; ${new Date().getFullYear()}</div>
+                      <div>Página <span class="page-number">1</span></div>
+                    </div>`;
 
-    htmlContent += '</div></body></html>';
+    htmlContent += '</div></body></html>'; // Fecha a .page e body/html
 
     const newWindow = window.open('', '_blank');
     if (newWindow) {
