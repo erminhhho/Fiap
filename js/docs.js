@@ -394,16 +394,16 @@ async function gerarRelatorioPDF() {
             padding: 1mm 0;
             word-wrap: break-word;
             line-height: 1.4;
-          }
-          .field-item strong {
-            display: inline; /* Alterado para inline em vez de block */
-            font-weight: 600; /* Aumentado para mais destaque */
+          }          .field-item strong {
+            display: block; /* Alterado para block para quebrar linha */
+            font-weight: 500; /* Reduzido o peso para diminuir o negrito */
             color: #1e3a8a; /* Azul escuro para os títulos */
             font-size: 8.5pt;
-            margin-right: 0.5mm;
+            margin-bottom: 0.5mm;
             line-height: 1.3;
           }
           .field-item span, .field-item div {
+            display: block; /* Forçando quebra de linha após label */
             color: #4b5563; /* Cinza médio para os valores */
             font-size: 9pt;
             line-height: 1.4;
@@ -621,11 +621,12 @@ async function gerarRelatorioPDF() {
       }
       const sectionData = todasAsPaginas[sectionKey];
       htmlContent += `<div class="section ${sectionKey}-section">`;
-      htmlContent += `<div class="section-title">${sectionDisplayTitles[sectionKey]}</div>`;
-
-      if (sectionKey === 'personal') {
+      htmlContent += `<div class="section-title">${sectionDisplayTitles[sectionKey]}</div>`;      if (sectionKey === 'personal') {
         htmlContent += `<div class="assistido-info-block">`;
-        htmlContent += `<div class="subsection-title">Informações do Assistido Principal</div>`;
+          // Usa a tag referente como título, caso contrário, usa "Requerente" como padrão
+        const tituloAssistido = sectionData.autor_relationship?.[0] || 'Requerente';
+        htmlContent += `<div class="subsection-title">${formatValue(tituloAssistido)}</div>`;
+
         htmlContent += `<div class="field-group">`;
 
         let nomePrincipal = formatValue(sectionData.autor_nome?.[0]);
@@ -661,19 +662,31 @@ async function gerarRelatorioPDF() {
             htmlContent += createFieldItem('Idade', sectionData.autor_idade?.[index]);
             htmlContent += `</div></div>`;
           });
-        }
-        htmlContent += `<div class="subsection-title">Endereço do Assistido</div>`;
-        htmlContent += `<div class="field-group">`;
+        }        htmlContent += `<div class="subsection-title">Endereço do Assistido</div>`;
+
+        // Organização em duas colunas para o endereço para melhor visualização
+        htmlContent += `<div class="field-group" style="grid-template-columns: 1fr 1fr; gap: 3mm 5mm;">`;
+
+        // Primeira coluna de endereço
+        htmlContent += `<div style="display: flex; flex-direction: column; gap: 2mm;">`;
         htmlContent += createFieldItem('CEP', sectionData.cep);
-        htmlContent += createFieldItem('Endereço', sectionData.endereco, { fullWidth: true });
+        htmlContent += createFieldItem('Endereço', sectionData.endereco);
         htmlContent += createFieldItem('Número', sectionData.numero);
         htmlContent += createFieldItem('Complemento', sectionData.complemento);
+        htmlContent += `</div>`;
+
+        // Segunda coluna de endereço
+        htmlContent += `<div style="display: flex; flex-direction: column; gap: 2mm;">`;
         htmlContent += createFieldItem('Bairro', sectionData.bairro);
         htmlContent += createFieldItem('Cidade', sectionData.cidade);
         htmlContent += createFieldItem('UF', sectionData.uf);
         htmlContent += createFieldItem('País', sectionData.pais || 'Brasil');
+        htmlContent += `</div>`;
+
+        // Ponto de referência em linha inteira abaixo
         htmlContent += createFieldItem('Ponto de Referência', sectionData.referencia, { fullWidth: true });
-        htmlContent += `</div>`;        if(sectionData.observacoes && sectionKey === 'personal'){
+
+        htmlContent += `</div>`;if(sectionData.observacoes && sectionKey === 'personal'){
             htmlContent += `<div class="subsection-title">Observações pessoais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
 
@@ -702,15 +715,52 @@ async function gerarRelatorioPDF() {
             htmlContent += `<div class="subsection-title">Observações sociais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
 
-      } else if (sectionKey === 'incapacity') {
-        // Subseção: Situação Laboral e Condições de Saúde
+      } else if (sectionKey === 'incapacity') {        // Subseção: Situação Laboral e Condições de Saúde - completamente reorganizada
         htmlContent += `<div class="subsection-title">Situação Laboral e Condições de Saúde</div>`;
-        htmlContent += `<div class="field-group">`;
-        htmlContent += createFieldItem('Trabalha Atualmente?', sectionData.trabalhaAtualmente);
-        htmlContent += createFieldItem('Último Trabalho (Período)', sectionData.ultimoTrabalho);
-        htmlContent += createFieldItem('Limitações Diárias', sectionData.limitacoesDiarias);
-        htmlContent += createFieldItem('Tratamentos Realizados', sectionData.tratamentosRealizados);
-        htmlContent += createFieldItem('Medicamentos Atuais', sectionData.medicamentosAtuais);
+
+        // Grid de 2x2 para melhor organização visual
+        htmlContent += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 5mm; margin-bottom: 3mm;">`;
+
+        // Formatação especial para valores como "menos_1_mes" -> "Menos de 1 mês"
+        const formatarPeriodo = (valor) => {
+          if (!valor) return formatValue(valor);
+          if (valor === 'menos_1_mes') return 'Menos de 1 mês';
+          if (valor === 'menos_6_meses') return 'Menos de 6 meses';
+          if (valor === 'menos_1_ano') return 'Menos de 1 ano';
+          if (valor === 'mais_1_ano') return 'Mais de 1 ano';
+          return formatValue(valor);
+        };
+
+        // Trabalhando atualmente
+        htmlContent += `<div style="padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
+          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Trabalha Atualmente?</strong>
+          <span style="font-size: 10pt;">${formatValue(sectionData.trabalhaAtualmente)}</span>
+        </div>`;
+
+        // Último trabalho
+        htmlContent += `<div style="padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
+          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Último Trabalho (Período)</strong>
+          <span style="font-size: 10pt;">${formatarPeriodo(sectionData.ultimoTrabalho)}</span>
+        </div>`;
+
+        // Limitações diárias
+        htmlContent += `<div style="padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
+          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Limitações Diárias</strong>
+          <span style="font-size: 10pt;">${formatValue(sectionData.limitacoesDiarias)}</span>
+        </div>`;
+
+        // Tratamentos e medicamentos
+        htmlContent += `<div style="padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
+          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Tratamentos Realizados</strong>
+          <span style="font-size: 10pt;">${formatValue(sectionData.tratamentosRealizados)}</span>
+        </div>`;
+
+        // Medicamentos em linha inteira
+        htmlContent += `<div style="grid-column: 1 / -1; padding: 2mm; background-color: #f8fafc; border-radius: 3px; border: 1px solid #e2e8f0;">
+          <strong style="color: #1e3a8a; font-size: 9pt; display: block; margin-bottom: 1mm;">Medicamentos Atuais</strong>
+          <span style="font-size: 10pt;">${formatValue(sectionData.medicamentosAtuais)}</span>
+        </div>`;
+
         htmlContent += `</div>`;
 
         // Subseção: Documentos e Detalhes da Incapacidade (Tabela)
@@ -728,14 +778,9 @@ async function gerarRelatorioPDF() {
             }
           });
           htmlContent += '</tbody></table>';
-        }
-
-        // Subseção: Observações Adicionais
+        }        // Subseção: Observações Adicionais
         if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
-            htmlContent += `<div class="subsection-title">Observações Adicionais sobre Incapacidade e Saúde</div>`;
-            htmlContent += `<div class="field-group">`;
-            htmlContent += createFieldItem('Observações', sectionData.observacoes, { fullWidth: true, isHtml: true });
-            htmlContent += `</div>`;
+            htmlContent += `<div class="subsection-title">Observações de saúde: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
 
       } else if (sectionKey === 'professional') {
@@ -761,12 +806,8 @@ async function gerarRelatorioPDF() {
             htmlContent += '</tr>';
           });
           htmlContent += '</tbody></table>';
-        }
-        if(sectionData.observacoes){
-            htmlContent += `<div class="subsection-title">Outras Observações Profissionais</div>`;
-            htmlContent += `<div class="field-group">`;
-            htmlContent += createFieldItem('', sectionData.observacoes, { fullWidth: true });
-            htmlContent += `</div>`;
+        }        if(sectionData.observacoes){
+            htmlContent += `<div class="subsection-title">Observações profissionais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
 
       } else if (sectionKey === 'documents') {
@@ -791,12 +832,8 @@ async function gerarRelatorioPDF() {
             htmlContent += '</tr>';
           });
           htmlContent += '</tbody></table>';
-        }
-        if(sectionData.observacoes){
-            htmlContent += `<div class="subsection-title">Observações Finais da Ficha</div>`;
-            htmlContent += `<div class="field-group">`;
-            htmlContent += createFieldItem('', sectionData.observacoes, { fullWidth: true });
-            htmlContent += `</div>`;
+        }        if(sectionData.observacoes){
+            htmlContent += `<div class="subsection-title">Observações finais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
       }
       htmlContent += '</div>';
