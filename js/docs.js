@@ -626,9 +626,8 @@ async function gerarRelatorioPDF() {
         const relacaoPrincipal = sectionData.autor_relationship?.[0] || 'Requerente';
         htmlContent += `<div class="item-block author-block">`;
         htmlContent += `<div class="subsection-title">${formatValue(relacaoPrincipal)}</div>`;
-        htmlContent += `<div class="field-group">`;
+        htmlContent += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm;">`;
         let nomePrincipal = formatValue(sectionData.autor_nome?.[0]);
-        // Remover redundância "Requerente" no nome completo
         if (relacaoPrincipal && String(relacaoPrincipal).trim() !== '' && relacaoPrincipal !== 'Requerente') {
           nomePrincipal += ` <span class="data-tag">${formatValue(relacaoPrincipal)}</span>`;
         }
@@ -644,22 +643,33 @@ async function gerarRelatorioPDF() {
         if (sectionData.segurado_especial !== undefined) {
           htmlContent += createFieldItem('Segurado Especial', sectionData.segurado_especial ? 'Sim' : 'Não');
         }
-        htmlContent += `</div>`;
-        // Endereço em duas linhas e três colunas, removendo UF, País (Brasil) e Ponto de Referência (Não informado)
-        htmlContent += `<div class="item-block" style="margin-top: 8px;">`;
-        htmlContent += `<div class="subsection-title">Endereço do Assistido</div>`;
-        htmlContent += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm;">`;
-        // Primeira linha
+        // Endereço integrado ao card principal, em duas linhas de três colunas
         htmlContent += createFieldItem('CEP', sectionData.cep);
         htmlContent += createFieldItem('Endereço', sectionData.endereco);
         htmlContent += createFieldItem('Número', sectionData.numero);
-        // Segunda linha
         htmlContent += createFieldItem('Complemento', sectionData.complemento);
         htmlContent += createFieldItem('Bairro', sectionData.bairro);
         htmlContent += createFieldItem('Cidade', sectionData.cidade);
-        // Não exibe UF, País (Brasil) e Ponto de Referência (Não informado)
-        htmlContent += `</div></div>`;
         htmlContent += `</div>`;
+        htmlContent += `</div>`;
+        // Exibir outros autores normalmente
+        if (sectionData.autor_nome && Array.isArray(sectionData.autor_nome) && sectionData.autor_nome.length > 1) {
+          sectionData.autor_nome.forEach((nome, index) => {
+            if (index === 0) return;
+            htmlContent += `<div class="item-block author-block">`;
+            const relation = sectionData.autor_relationship?.[index] || '';
+            let authorTitle = `Dependente/Envolvido ${index}`;
+            if (relation) authorTitle = `${relation}`;
+            htmlContent += `<div class="subsection-title">${authorTitle}</div>`;
+            htmlContent += `<div class="field-group">`;
+            htmlContent += createFieldItem('Nome Completo', nome);
+            htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[index]);
+            htmlContent += createFieldItem('Data de Nascimento', sectionData.autor_nascimento?.[index]);
+            htmlContent += createFieldItem('Idade', sectionData.autor_idade?.[index]);
+            htmlContent += `</div></div>`;
+          });
+        }
+
       } else if (sectionKey === 'social') {
         htmlContent += `<div class="field-group">`;
         htmlContent += createFieldItem('Renda Total Familiar (Declarada)', sectionData.renda_total_familiar, { isHtml: true });
