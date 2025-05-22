@@ -82,7 +82,19 @@
         <i class="fas fa-eraser cursor-pointer text-gray-400 hover:text-red-500 transition" title="Limpar seção" onclick="showClearConfirmation(event, 'duracao')"></i>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-24 gap-4 mb-6">
-        <div class="relative md:col-span-12">
+        <!-- Profissão (primeiro campo, com autocomplete e lupa) -->
+        <div class="relative md:col-span-8">
+          <div class="relative">
+            <input type="text" id="profissao" name="profissao" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Digite sua profissão" autocomplete="off">
+            <label for="profissao" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none input-label">Profissão</label>
+            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+              <i class="fas fa-search"></i>
+            </div>
+            <div id="profissaoDropdown" class="hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto"></div>
+          </div>
+        </div>
+        <!-- Trabalha Atualmente -->
+        <div class="relative md:col-span-8">
           <select id="trabalhaAtualmente" name="trabalhaAtualmente" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
             <option value="" selected disabled>Selecione...</option>
             <option value="sim">Sim, trabalho normalmente</option>
@@ -90,12 +102,10 @@
             <option value="afastado">Estou afastado</option>
             <option value="nao">Não consigo trabalhar</option>
           </select>
-          <label for="trabalhaAtualmente" class="input-label">
-            Consegue trabalhar atualmente?
-          </label>
+          <label for="trabalhaAtualmente" class="input-label">Consegue trabalhar atualmente?</label>
         </div>
-
-        <div class="relative md:col-span-12">
+        <!-- Último Trabalho -->
+        <div class="relative md:col-span-8">
           <select id="ultimoTrabalho" name="ultimoTrabalho" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
             <option value="" selected disabled>Selecione...</option>
             <option value="menos_1_mes">Menos de 1 mês</option>
@@ -109,9 +119,7 @@
             <option value="mais_5_anos">Mais de 5 anos</option>
             <option value="nunca">Nunca trabalhou</option>
           </select>
-          <label for="ultimoTrabalho" class="input-label">
-            Quando trabalhou pela última vez?
-          </label>
+          <label for="ultimoTrabalho" class="input-label">Quando trabalhou pela última vez?</label>
         </div>
       </div>
     </div>

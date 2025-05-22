@@ -81,6 +81,168 @@ if (typeof window.doencasSemCarencia === 'undefined') {
   ];
 }
 
+// Lista de profissões mais comuns para autocomplete
+window.profissoesComuns = [
+  "Agricultor(a)",
+  "Pedreiro(a)",
+  "Professor(a)",
+  "Motorista",
+  "Açougueiro(a)",
+  "Cozinheiro(a)",
+  "Vendedor(a)",
+  "Auxiliar Administrativo",
+  "Enfermeiro(a)",
+  "Médico(a)",
+  "Advogado(a)",
+  "Carpinteiro(a)",
+  "Eletricista",
+  "Garçom/Garçonete",
+  "Pintor(a)",
+  "Mecânico(a)",
+  "Diarista",
+  "Babá",
+  "Porteiro(a)",
+  "Zelador(a)",
+  "Costureira",
+  "Frentista",
+  "Gari",
+  "Jardineiro(a)",
+  "Padeiro(a)",
+  "Recepcionista",
+  "Secretária",
+  "Técnico(a) de Enfermagem",
+  "Vigilante"
+];
+
+// Função de busca de profissões (pode ser adaptada para API futuramente)
+window.buscarProfissoes = function(query) {
+  return new Promise(resolve => {
+    const resultados = window.profissoesComuns.filter(p => p.toLowerCase().includes(query.toLowerCase()));
+    resolve(resultados);
+  });
+};
+
+// Função para renderizar itens do dropdown de profissão
+window.renderProfissoesDropdown = function(resultados) {
+  return resultados.map(prof =>
+    `<div class="dropdown-item px-4 py-2 hover:bg-blue-50 cursor-pointer">${prof}</div>`
+  ).join('');
+};
+
+// Função para configurar autocomplete de profissão usando Search.js
+window.setupProfissaoAutocomplete = function() {
+  const input = document.getElementById('profissao');
+  const dropdown = document.getElementById('profissaoDropdown');
+  if (!input || !dropdown || !window.Search) return;
+
+  const searchInstance = new window.Search();
+  searchInstance.setupAutocomplete(
+    input,
+    dropdown,
+    window.buscarProfissoes,
+    window.renderProfissoesDropdown,
+    function(item) {
+      input.value = item.textContent;
+      dropdown.classList.add('hidden');
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  );
+
+  // Corrige exibição do dropdown (Tailwind)
+  input.addEventListener('input', function() {
+    if (dropdown.innerHTML && dropdown.innerHTML.trim() !== '') {
+      dropdown.classList.remove('hidden');
+    } else {
+      dropdown.classList.add('hidden');
+    }
+  });
+};
+
+// --- AUTOCOMPLETE PROFISSÃO (PADRÃO DOCUMENTOS) ---
+(function setupProfissaoAutocompletePadraoDocumentos() {
+  const input = document.getElementById('profissao');
+  const dropdown = document.getElementById('profissaoDropdown');
+  if (!input || !dropdown) return;
+
+  let debounceTimer;
+
+  // Função para buscar profissões
+  function buscarProfissoes(query) {
+    return window.profissoesComuns.filter(p => p.toLowerCase().includes(query.toLowerCase()));
+  }
+
+  // Função para renderizar resultados
+  function renderizarProfissoes(resultados, query) {
+    dropdown.innerHTML = '';
+    if (!resultados.length) {
+      dropdown.innerHTML = `<div class="p-3 text-gray-500">Nenhuma profissão encontrada para "${query}"</div>`;
+      dropdown.classList.remove('hidden');
+      return;
+    }
+    resultados.forEach(prof => {
+      const item = document.createElement('div');
+      item.className = 'dropdown-item px-4 py-2 hover:bg-blue-50 cursor-pointer';
+      item.textContent = prof;
+      item.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        input.value = prof;
+        dropdown.classList.add('hidden');
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      dropdown.appendChild(item);
+    });
+    dropdown.classList.remove('hidden');
+  }
+
+  // Evento de input com debounce
+  input.addEventListener('input', function() {
+    const query = this.value.trim();
+    clearTimeout(debounceTimer);
+    if (!query || query.length < 2) {
+      dropdown.classList.add('hidden');
+      return;
+    }
+    debounceTimer = setTimeout(() => {
+      const resultados = buscarProfissoes(query);
+      renderizarProfissoes(resultados, query);
+    }, 250);
+  });
+
+  // Permitir selecionar com Enter
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !dropdown.classList.contains('hidden')) {
+      e.preventDefault();
+      const firstItem = dropdown.querySelector('.dropdown-item');
+      if (firstItem) firstItem.dispatchEvent(new MouseEvent('mousedown'));
+    }
+  });
+
+  // Fechar dropdown ao clicar fora
+  document.addEventListener('mousedown', function(event) {
+    if (!dropdown.contains(event.target) && event.target !== input) {
+      dropdown.classList.add('hidden');
+    }
+  });
+})();
+
+// Garante que o label do campo profissão sempre aparece
+// (o label já está no HTML, mas se for necessário, pode-se forçar aqui)
+document.addEventListener('DOMContentLoaded', function() {
+  // Espera Search.js estar disponível
+  function tryInitProfissaoAutocomplete() {
+    if (window.Search) {
+      window.setupProfissaoAutocomplete();
+    } else {
+      setTimeout(tryInitProfissaoAutocomplete, 100);
+    }
+  }
+  tryInitProfissaoAutocomplete();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  window.setupProfissaoAutocomplete();
+});
+
 // Variável para evitar inicialização múltipla
 if (typeof window.isDropdownHandlersInitialized === 'undefined') {
   window.isDropdownHandlersInitialized = false;
@@ -524,7 +686,7 @@ function setupDropdownHandlers() {
       if (!dropdown.contains(e.target) && (!associatedInput || !associatedInput.contains(e.target))) {
         // Fechar dropdown ou remover o item selecionado
         if (dropdown.classList.contains('dropdown-item-selected')) {
-          dropdown.remove(); // Remove completamente o item selecionado
+          dropdown.remove(); // Removes completamente o item selecionado
         } else {
           dropdown.classList.add('hidden');
         }
