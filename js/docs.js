@@ -643,7 +643,14 @@ async function gerarRelatorioPDF() {
         htmlContent += `<div class="assistido-info-block">`;
         htmlContent += `<div class="subsection-title">Informações do Assistido Principal</div>`;
         htmlContent += `<div class="field-group">`;
-        htmlContent += createFieldItem('Nome Completo', sectionData.autor_nome?.[0]);
+
+        let nomePrincipal = formatValue(sectionData.autor_nome?.[0]);
+        const relacaoPrincipal = sectionData.autor_relationship?.[0];
+        if (relacaoPrincipal && String(relacaoPrincipal).trim() !== '') {
+          nomePrincipal += ` <span class="data-tag">${formatValue(relacaoPrincipal)}</span>`;
+        }
+        htmlContent += createFieldItem('Nome Completo', nomePrincipal, { isHtml: true });
+
         htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[0]);
         htmlContent += createFieldItem('Data de Nascimento', sectionData.autor_nascimento?.[0]);
         htmlContent += createFieldItem('Idade', sectionData.autor_idade?.[0]);
@@ -652,8 +659,6 @@ async function gerarRelatorioPDF() {
         htmlContent += createFieldItem('Detalhes Telefone', sectionData.telefone_detalhes);
         htmlContent += createFieldItem('Senha MeuINSS', sectionData.autor_senha_meuinss?.[0]);
         htmlContent += createFieldItem('Atendimento Por', sectionData.colaborador);
-        const dataPreenchimento = sectionData._formTimestamp ? new Date(sectionData._formTimestamp).toLocaleString('pt-BR') : (sectionData._timestamp ? new Date(sectionData._timestamp).toLocaleString('pt-BR') : 'N/A');
-        htmlContent += createFieldItem('Data do Atendimento', dataPreenchimento);
         htmlContent += `</div></div>`;
 
         if (sectionData.autor_nome && Array.isArray(sectionData.autor_nome) && sectionData.autor_nome.length > 1) {
@@ -722,17 +727,14 @@ async function gerarRelatorioPDF() {
         }
 
       } else if (sectionKey === 'incapacity') {
-        // Subseção: Situação Laboral e Limitações Gerais
-        htmlContent += `<div class="subsection-title">Situação Laboral e Limitações</div>`;
+        // Subseção: Situação Laboral e Condições de Saúde
+        htmlContent += `<div class="subsection-title">Situação Laboral e Condições de Saúde</div>`;
         htmlContent += `<div class="field-group">`;
         htmlContent += createFieldItem('Trabalha Atualmente?', sectionData.trabalhaAtualmente);
         htmlContent += createFieldItem('Último Trabalho (Período)', sectionData.ultimoTrabalho);
-        htmlContent += `</div>`; // Fecha field-group para itens lado a lado
-
-        htmlContent += `<div class="field-group">`; // Novo field-group para itens full-width abaixo
-        htmlContent += createFieldItem('Limitações Diárias (Descrição)', sectionData.limitacoesDiarias, { fullWidth: true });
-        htmlContent += createFieldItem('Tratamentos Realizados', sectionData.tratamentosRealizados, { fullWidth: true });
-        htmlContent += createFieldItem('Medicamentos Atuais', sectionData.medicamentosAtuais, { fullWidth: true });
+        htmlContent += createFieldItem('Limitações Diárias', sectionData.limitacoesDiarias);
+        htmlContent += createFieldItem('Tratamentos Realizados', sectionData.tratamentosRealizados);
+        htmlContent += createFieldItem('Medicamentos Atuais', sectionData.medicamentosAtuais);
         htmlContent += `</div>`;
 
         // Subseção: Documentos e Detalhes da Incapacidade (Tabela)
