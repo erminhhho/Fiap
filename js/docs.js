@@ -622,20 +622,17 @@ async function gerarRelatorioPDF() {
       const sectionData = todasAsPaginas[sectionKey];
       htmlContent += `<div class="section ${sectionKey}-section">`;
       htmlContent += `<div class="section-title">${sectionDisplayTitles[sectionKey]}</div>`;      if (sectionKey === 'personal') {
-        htmlContent += `<div class="assistido-info-block">`;
-          // Usa a tag referente como título, caso contrário, usa "Requerente" como padrão
-        const tituloAssistido = sectionData.autor_relationship?.[0] || 'Requerente';
-        htmlContent += `<div class="subsection-title">${formatValue(tituloAssistido)}</div>`;
-
+        // Card do assistido padronizado, sem detalhe azul no topo
+        const relacaoPrincipal = sectionData.autor_relationship?.[0] || 'Requerente';
+        htmlContent += `<div class="item-block author-block">`;
+        htmlContent += `<div class="subsection-title">${formatValue(relacaoPrincipal)}</div>`;
         htmlContent += `<div class="field-group">`;
-
         let nomePrincipal = formatValue(sectionData.autor_nome?.[0]);
-        const relacaoPrincipal = sectionData.autor_relationship?.[0];
-        if (relacaoPrincipal && String(relacaoPrincipal).trim() !== '') {
+        // Remover redundância "Requerente" no nome completo
+        if (relacaoPrincipal && String(relacaoPrincipal).trim() !== '' && relacaoPrincipal !== 'Requerente') {
           nomePrincipal += ` <span class="data-tag">${formatValue(relacaoPrincipal)}</span>`;
         }
         htmlContent += createFieldItem('Nome Completo', nomePrincipal, { isHtml: true });
-
         htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[0]);
         htmlContent += createFieldItem('Data de Nascimento', sectionData.autor_nascimento?.[0]);
         htmlContent += createFieldItem('Idade', sectionData.autor_idade?.[0]);
@@ -643,53 +640,26 @@ async function gerarRelatorioPDF() {
         htmlContent += createFieldItem('Telefone Principal', sectionData.autor_telefone?.[0]);
         htmlContent += createFieldItem('Detalhes Telefone', sectionData.telefone_detalhes);
         htmlContent += createFieldItem('Senha MeuINSS', sectionData.autor_senha_meuinss?.[0]);
-        htmlContent += createFieldItem('Atendimento Por', sectionData.colaborador);
-        htmlContent += `</div></div>`;
-
-        if (sectionData.autor_nome && Array.isArray(sectionData.autor_nome) && sectionData.autor_nome.length > 1) {
-          sectionData.autor_nome.forEach((nome, index) => {
-            if (index === 0) return;
-            htmlContent += `<div class="item-block author-block">`;
-            const relation = sectionData.autor_relationship?.[index] || '';
-            let authorTitle = `Dependente/Envolvido ${index}`;
-            if (relation) authorTitle = `${relation}`;
-
-            htmlContent += `<div class="subsection-title">${authorTitle}</div>`;
-            htmlContent += `<div class="field-group">`;
-            htmlContent += createFieldItem('Nome Completo', nome);
-            htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[index]);
-            htmlContent += createFieldItem('Data de Nascimento', sectionData.autor_nascimento?.[index]);
-            htmlContent += createFieldItem('Idade', sectionData.autor_idade?.[index]);
-            htmlContent += `</div></div>`;
-          });
-        }        htmlContent += `<div class="subsection-title">Endereço do Assistido</div>`;
-
-        // Organização em duas colunas para o endereço para melhor visualização
-        htmlContent += `<div class="field-group" style="grid-template-columns: 1fr 1fr; gap: 3mm 5mm;">`;
-
-        // Primeira coluna de endereço
-        htmlContent += `<div style="display: flex; flex-direction: column; gap: 2mm;">`;
+        htmlContent += createFieldItem('Colaborador', sectionData.colaborador);
+        if (sectionData.segurado_especial !== undefined) {
+          htmlContent += createFieldItem('Segurado Especial', sectionData.segurado_especial ? 'Sim' : 'Não');
+        }
+        htmlContent += `</div>`;
+        // Endereço em duas linhas e três colunas, removendo UF, País (Brasil) e Ponto de Referência (Não informado)
+        htmlContent += `<div class="item-block" style="margin-top: 8px;">`;
+        htmlContent += `<div class="subsection-title">Endereço do Assistido</div>`;
+        htmlContent += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm;">`;
+        // Primeira linha
         htmlContent += createFieldItem('CEP', sectionData.cep);
         htmlContent += createFieldItem('Endereço', sectionData.endereco);
         htmlContent += createFieldItem('Número', sectionData.numero);
+        // Segunda linha
         htmlContent += createFieldItem('Complemento', sectionData.complemento);
-        htmlContent += `</div>`;
-
-        // Segunda coluna de endereço
-        htmlContent += `<div style="display: flex; flex-direction: column; gap: 2mm;">`;
         htmlContent += createFieldItem('Bairro', sectionData.bairro);
         htmlContent += createFieldItem('Cidade', sectionData.cidade);
-        htmlContent += createFieldItem('UF', sectionData.uf);
-        htmlContent += createFieldItem('País', sectionData.pais || 'Brasil');
+        // Não exibe UF, País (Brasil) e Ponto de Referência (Não informado)
+        htmlContent += `</div></div>`;
         htmlContent += `</div>`;
-
-        // Ponto de referência em linha inteira abaixo
-        htmlContent += createFieldItem('Ponto de Referência', sectionData.referencia, { fullWidth: true });
-
-        htmlContent += `</div>`;if(sectionData.observacoes && sectionKey === 'personal'){
-            htmlContent += `<div class="subsection-title">Observações pessoais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
-        }
-
       } else if (sectionKey === 'social') {
         htmlContent += `<div class="field-group">`;
         htmlContent += createFieldItem('Renda Total Familiar (Declarada)', sectionData.renda_total_familiar, { isHtml: true });
