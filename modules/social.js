@@ -471,27 +471,46 @@ function preencherDadosAssistido() {
   }
 
   if (idadeInput) {
+    console.log('[social.js] preencherDadosAssistido: Valor de idadeValue ANTES da formatação:', idadeValue);
+
+    let idadeFormatada = '';
     // Extrair apenas o número de anos, ignorando meses ou qualquer outra informação
     const matchAnos = idadeValue.match(/(\d+)\s*ano(s)?/);
     if (matchAnos && matchAnos[1]) {
-      idadeValue = matchAnos[1] + " anos";
+      idadeFormatada = matchAnos[1] + " anos";
     } else if (idadeValue && !isNaN(parseInt(idadeValue.trim()))) {
       // Se for apenas um número, adiciona " anos"
-      idadeValue = parseInt(idadeValue.trim()) + " anos";
+      idadeFormatada = parseInt(idadeValue.trim()) + " anos";
     } else {
-      // Se não conseguir extrair, deixa o campo vazio ou com a string original,
-      // dependendo do comportamento desejado para dados malformados.
-      // Aqui, opto por tentar limpar para evitar "undefined anos" etc.
       const justDigits = idadeValue.replace(/\D/g, '');
       if (justDigits) {
-          idadeValue = justDigits + " anos";
+          const firstDigitSequence = justDigits.match(/\d+/);
+          if (firstDigitSequence) {
+            idadeFormatada = firstDigitSequence[0] + " anos";
+          } else {
+            idadeFormatada = '';
+          }
       } else {
-          idadeValue = ''; // Ou mantenha o valor original se preferir: autorPrincipal.idade || '';
+          idadeFormatada = '';
       }
     }
 
-    idadeInput.value = idadeValue;
-    console.log('Idade do assistido preenchida:', idadeInput.value);
+    idadeInput.value = idadeFormatada;
+    console.log('[social.js] preencherDadosAssistido: Idade do assistido preenchida no DOM com:', idadeFormatada);
+
+    // Atualizar também o formStateManager para que a restauração subsequente use o valor formatado
+    if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.social) {
+      if (window.formStateManager.formData.social.familiar_idade && window.formStateManager.formData.social.familiar_idade.length > 0) {
+        window.formStateManager.formData.social.familiar_idade[0] = idadeFormatada;
+        console.log('[social.js] preencherDadosAssistido: formStateManager.formData.social.familiar_idade[0] atualizado para:', idadeFormatada);
+      } else {
+        // Se familiar_idade não existir ou estiver vazio, inicialize-o
+        window.formStateManager.formData.social.familiar_idade = [idadeFormatada];
+        console.log('[social.js] preencherDadosAssistido: formStateManager.formData.social.familiar_idade inicializado e [0] atualizado para:', idadeFormatada);
+      }
+    } else {
+      console.warn('[social.js] preencherDadosAssistido: Não foi possível atualizar formStateManager.formData.social.familiar_idade[0] - estado não encontrado.');
+    }
   }
 }
 
