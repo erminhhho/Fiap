@@ -324,13 +324,11 @@ async function gerarRelatorioPDF() {
           .page:last-of-type {
             page-break-after: avoid;
             margin-bottom: 0;
-          }
-
-          /* Cabeçalho do Relatório */
+          }          /* Cabeçalho do Relatório */
           .report-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 6mm;
             padding-bottom: 4mm;
             border-bottom: 2px solid #60a5fa; /* Azul para linha do cabeçalho */
@@ -346,19 +344,25 @@ async function gerarRelatorioPDF() {
             color: #374151; /* Cinza escuro */
             margin: 0;
           }
-          .report-header-right .generation-date {
-            font-size: 8pt;
-            color: #4b5563; /* Cinza */
-            text-align: right;
-          }
-
-          /* Título Principal do Relatório */
-          .report-main-title {
+          .report-header-right .report-main-title {
             font-size: 14pt;
             font-weight: 600;
             color: #1e3a8a; /* Azul mais escuro */
-            margin-bottom: 7mm; /* Ajustado */
-            text-align: left;
+            text-align: right;
+          }          /* Estilos de Seção */
+          .section {
+            margin-bottom: 6mm;
+            padding-top: 0;
+          }
+          .section-title {
+            font-size: 12pt;
+            font-weight: 600;
+            color: #ffffff; /* Texto branco */
+            background-color: #2563eb; /* Fundo azul */
+            padding: 2mm 3mm;
+            margin-top: 0;
+            margin-bottom: 3.5mm;
+            border-radius: 3px; /* Arredondamento geral */
           }
 
           /* Dados Pessoais do Assistido - Bloco Destacado */
@@ -368,38 +372,21 @@ async function gerarRelatorioPDF() {
             border-radius: 4px;
             margin-bottom: 6mm;
             border: 1px solid #e5e7eb; /* Borda cinza clara */
-            border-top: 3px solid #2563eb; /* Borda superior azul mais forte (mantido) */
+            border-top: 3px solid #2563eb; /* Borda superior azul mais forte */
           }
           .assistido-info-block .subsection-title {
             margin-top: 0;
             margin-bottom: 2.5mm;
             font-size: 10.5pt;
-            color: #1e3a8a; /* Azul escuro para subtitulo (mantido) */
+            color: #1e3a8a; /* Azul escuro para subtitulo */
             padding-bottom: 1.5mm;
             border-bottom: 1px solid #d1d5db; /* Linha cinza média */
           }
 
-          /* Estilos de Seção */
-          .section {
-            margin-bottom: 6mm;
-            padding-top: 0; /* Removido padding-top, section-title já tem margem */
-          }
-          .section-title {
-            font-size: 12pt;
-            font-weight: 600;
-            color: #ffffff; /* Texto branco */
-            background-color: #2563eb; /* Fundo azul (mantido para destaque) */
-            padding: 2mm 3mm;
-            margin-top: 0; /* Adicionado para consistência */
-            margin-bottom: 3.5mm;
-            border-radius: 3px; /* Arredondamento geral */
-          }
-
-          /* Grupos de Campos e Campos Individuais */
-          .field-group {
+          /* Grupos de Campos e Campos Individuais */          .field-group {
             margin-bottom: 2.5mm;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+            grid-template-columns: repeat(4, 1fr); /* Alterado para 4 colunas */
             gap: 2.5mm 3.5mm;
             page-break-inside: avoid;
           }
@@ -409,17 +396,18 @@ async function gerarRelatorioPDF() {
             line-height: 1.4;
           }
           .field-item strong {
-            display: block;
-            font-weight: 500;
-            color: #374151; /* Cinza escuro */
-            font-size: 8pt; /* Levemente menor para mais contraste com valor */
-            margin-bottom: 0.5mm;
+            display: inline; /* Alterado para inline em vez de block */
+            font-weight: 600; /* Aumentado para mais destaque */
+            color: #1e3a8a; /* Azul escuro para os títulos */
+            font-size: 8.5pt;
+            margin-right: 0.5mm;
             line-height: 1.3;
           }
           .field-item span, .field-item div {
-            color: #1e293b;
-            font-size: 9pt; /* Mantido */
+            color: #4b5563; /* Cinza médio para os valores */
+            font-size: 9pt;
             line-height: 1.4;
+            font-weight: normal;
           }
           .field-item.full-width {
             grid-column: 1 / -1;
@@ -468,17 +456,15 @@ async function gerarRelatorioPDF() {
           }
           table tr:nth-child(odd) td {
             background-color: #f9fafb; /* Cinza mais claro para zebrado */
-          }
-
-          /* Estilo para Tags */
+          }          /* Estilo para Tags - Usando as cores dinâmicas do sistema */
           .data-tag {
             display: inline-block;
             padding: 0.25em 0.6em;
             font-size: 0.85em;
             font-weight: 500;
             line-height: 1.2;
-            color: #ffffff; /* Texto branco */
-            background-color: #60a5fa; /* Fundo azul médio */
+            color: var(--tag-text-color, #ffffff); /* Usa a variável definida no projeto */
+            background-color: var(--tag-bg-color, #60a5fa); /* Usa a variável definida no projeto */
             border-radius: 4px;
             text-transform: uppercase;
           }
@@ -581,16 +567,16 @@ async function gerarRelatorioPDF() {
           }
         </style>
       </head>
-      <body>
-        <div class="page">
+      <body>        <div class="page">
           <div class="report-header">
             <div class="report-header-left">
               <div class="logo-text">FIAP</div>
               <div class="logo-subtext">Ficha Inteligente de Atendimento Previdenciário</div>
-            </div>            <div class="report-header-right">
+            </div>
+            <div class="report-header-right">
+              <div class="report-main-title">Relatório Consolidado de Atendimento</div>
             </div>
           </div>
-          <div class="report-main-title">Relatório Consolidado de Atendimento</div>
     `; // Fim da inicialização de htmlContent com cabeçalho
 
     const formatValue = (value, isHtml = false) => {
@@ -687,12 +673,8 @@ async function gerarRelatorioPDF() {
         htmlContent += createFieldItem('UF', sectionData.uf);
         htmlContent += createFieldItem('País', sectionData.pais || 'Brasil');
         htmlContent += createFieldItem('Ponto de Referência', sectionData.referencia, { fullWidth: true });
-        htmlContent += `</div>`;
-        if(sectionData.observacoes && sectionKey === 'personal'){
-            htmlContent += `<div class="subsection-title">Observações Pessoais</div>`;
-            htmlContent += `<div class="field-group">`;
-            htmlContent += createFieldItem('', sectionData.observacoes, { fullWidth: true });
-            htmlContent += `</div>`;
+        htmlContent += `</div>`;        if(sectionData.observacoes && sectionKey === 'personal'){
+            htmlContent += `<div class="subsection-title">Observações pessoais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
 
       } else if (sectionKey === 'social') {
@@ -716,12 +698,8 @@ async function gerarRelatorioPDF() {
             htmlContent += '</tr>';
           });
           htmlContent += '</tbody></table>';
-        }
-        if(sectionData.observacoes){
-            htmlContent += `<div class="subsection-title">Observações do Perfil Social</div>`;
-            htmlContent += `<div class="field-group">`;
-            htmlContent += createFieldItem('', sectionData.observacoes, { fullWidth: true });
-            htmlContent += `</div>`;
+        }        if(sectionData.observacoes){
+            htmlContent += `<div class="subsection-title">Observações sociais: ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
         }
 
       } else if (sectionKey === 'incapacity') {
