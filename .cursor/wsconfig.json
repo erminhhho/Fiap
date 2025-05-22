@@ -1,7 +1,0 @@
-{
-  "enabled": true,
-  "reconnectDelay": 1000,
-  "reconnectTries": 5,
-  "fallbackToPolling": true,
-  "pollingInterval": 5000
-}
