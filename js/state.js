@@ -99,16 +99,19 @@ class FormStateManager {
   }
 
   ensureFormAndRestore(step, retries = 5) {
-    const form = document.querySelector('form');
+    const formId = `${step}-form`; // Constrói o ID do formulário esperado (ex: personal-form)
+    const form = document.getElementById(formId); // Tenta encontrar o formulário pelo ID
+
     if (form) {
+      console.log(`[FormStateManager] Formulário com ID '${formId}' encontrado para a etapa ${step}.`);
       this.restoreFormData(step);
       this.initialRestorePending = false;
     } else if (retries > 0) {
-      console.log(`[FormStateManager] Formulário para ${step} ainda não disponível, tentando novamente... (${retries} tentativas restantes)`);
+      console.log(`[FormStateManager] Formulário com ID '${formId}' para ${step} ainda não disponível, tentando novamente... (${retries} tentativas restantes)`);
       setTimeout(() => this.ensureFormAndRestore(step, retries - 1), 200); // Tentar novamente após 200ms
     } else {
-      console.error(`[FormStateManager] Formulário não encontrado para ${step} após várias tentativas. A restauração pode não ocorrer até a navegação/interação.`);
-      this.initialRestorePending = false;
+      console.error(`[FormStateManager] Formulário com ID '${formId}' não encontrado para ${step} após várias tentativas. A restauração pode não ocorrer até a navegação/interação.`);
+      this.initialRestorePending = false; // Garante que isso seja definido como false mesmo em caso de falha total
     }
   }
 
@@ -738,6 +741,13 @@ class FormStateManager {
                     else if (element.type === 'radio' && element.value === String(val)) element.checked = true;
                     else element.value = val;
                 console.log(`[FormStateManager] Restaurando array campo ${element.name}[${index}] com valor: ${val}`);
+
+                // Adicionar dispatch de evento 'change' para selects de tag de atividade
+                if (element.name === 'atividade_tag_status[]' || element.classList.contains('activity-tag')) {
+                  element.dispatchEvent(new Event('change', { bubbles: true }));
+                  console.log(`[FormStateManager] Evento 'change' disparado para ${element.name}[${index}] após restauração.`);
+                }
+
                     if (element.name === 'autor_apelido[]' || element.name === 'autor_telefone[]' || element.name === 'autor_senha_meuinss[]') {
                       console.log(`[FormStateManager] RESTORE ARRAY - Campo de autor problemático: ${element.name}[${index}], Valor Restaurado: ${val}, Elemento Visível/Habilitado: ${!element.hidden && !element.disabled}`);
                 }

@@ -52,39 +52,14 @@ function newForm() {
       console.log("[forms.js] newForm: Estado limpo pelo formStateManager.");
     }
 
-    // 3. Chamar funções de reset da UI para cada módulo para limpar itens dinâmicos
-    console.log("[forms.js] newForm: Chamando funções de reset da UI das seções...");
-    if (typeof window.resetPersonalUI === 'function') {
-        window.resetPersonalUI();
-        console.log("[forms.js] newForm: resetPersonalUI chamada.");
-    } else {
-        console.warn("[forms.js] newForm: window.resetPersonalUI não definida.");
-    }
-    if (typeof window.resetSocialUI === 'function') {
-        window.resetSocialUI();
-        console.log("[forms.js] newForm: resetSocialUI chamada.");
-    } else {
-        console.warn("[forms.js] newForm: window.resetSocialUI não definida.");
-    }
-    if (typeof window.resetIncapacityUI === 'function') {
-        window.resetIncapacityUI();
-        console.log("[forms.js] newForm: resetIncapacityUI chamada.");
-    } else {
-        console.warn("[forms.js] newForm: window.resetIncapacityUI não definida.");
-    }
-    if (typeof window.resetProfessionalUI === 'function') {
-        window.resetProfessionalUI();
-        console.log("[forms.js] newForm: resetProfessionalUI chamada.");
-    } else {
-        console.warn("[forms.js] newForm: window.resetProfessionalUI não definida.");
-    }
-    if (typeof window.resetDocumentsUI === 'function') {
-        window.resetDocumentsUI();
-        console.log("[forms.js] newForm: resetDocumentsUI chamada.");
-    } else {
-        console.warn("[forms.js] newForm: window.resetDocumentsUI não definida.");
-    }
-    console.log("[forms.js] newForm: UIs das seções dinâmicas foram resetadas (ou tentativas foram feitas).");
+    // 3. Disparar um evento para que os módulos possam resetar suas UIs
+    console.log("[forms.js] newForm: Disparando evento 'formCleared' para reset de UIs dos módulos.");
+    document.dispatchEvent(new CustomEvent('formCleared'));
+
+    // Remover as chamadas diretas às funções de reset da UI
+    // if (typeof window.resetPersonalUI === 'function') { ... } // REMOVIDO
+    // ... remover outras chamadas de reset ...
+    console.log("[forms.js] newForm: Evento 'formCleared' disparado. Os módulos devem lidar com o reset de suas UIs.");
 
     // 4. Navegar para a primeira página
     if (window.navigateTo) {

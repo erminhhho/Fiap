@@ -49,6 +49,15 @@ window.initModule = function() {
     console.log(`[personal.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
     window.formStateManager.ensureFormAndRestore(currentStepKey);
   }
+
+  // Adicionar listener para o evento formCleared
+  document.addEventListener('formCleared', function handleFormCleared() {
+    console.log('[personal.js] Evento formCleared recebido. Chamando resetPersonalUI.');
+    if (typeof resetPersonalUI === 'function') {
+        resetPersonalUI();
+    }
+  });
+
   console.log('[personal.js] Módulo totalmente inicializado e restauração solicitada.');
 };
 

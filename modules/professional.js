@@ -313,24 +313,55 @@ function updateActivityTag(select) {
   // Usamos o mesmo valor para ambos já que os valores já estão formatados no HTML
   container.setAttribute('data-selected', value);
   container.setAttribute('data-value', value);
+  console.log(`[Professional] updateActivityTag: div data-selected/data-value set to '${value}' para select '${select.name}'`);
 }
 
 // Função para ativar/desativar a tag de atividade
-function toggleActivityTag(element) {
-  // Obter o tipo de relacionamento atual
-  const currentRelationship = element.getAttribute('data-selected');
-  const relationshipValue = element.getAttribute('data-value') || element.querySelector('select').value;
-
-  // Garantir que sempre tenhamos o data-value para aplicar a cor correta
-  if (!element.hasAttribute('data-value')) {
-    element.setAttribute('data-value', relationshipValue);
+function toggleActivityTag(clickedDivElement) {
+  const selectControl = clickedDivElement.querySelector('select.activity-tag');
+  if (!selectControl) {
+    console.warn('[Professional] toggleActivityTag: select.activity-tag não encontrado dentro de:', clickedDivElement);
+    return;
   }
 
-  // Se já tem um relacionamento selecionado, vamos deixá-lo no formato padrão
-  if (currentRelationship) {
-    element.removeAttribute('data-selected');
-  } else {
-    // Caso contrário, usar o valor diretamente
-    element.setAttribute('data-selected', relationshipValue);
+  const currentTagValue = clickedDivElement.dataset.value;
+  if (typeof currentTagValue === 'undefined') {
+    console.warn('[Professional] toggleActivityTag: data-value não definido em:', clickedDivElement);
+    return;
   }
+
+  // Se a div clicada já está "ativa" E o select já reflete esse valor, não faz nada.
+  if (clickedDivElement.hasAttribute('data-selected') && selectControl.value === currentTagValue) {
+    console.log(`[Professional] toggleActivityTag: Tag '${currentTagValue}' já está selecionada e select sincronizado. Sem ação.`);
+    return;
+  }
+
+  // Encontrar todos os containers de tag dentro do mesmo item de atividade
+  const atividadeItem = clickedDivElement.closest('.atividade-item');
+  if (!atividadeItem) {
+    console.warn('[Professional] toggleActivityTag: .atividade-item pai não encontrado para:', clickedDivElement);
+    return;
+  }
+  const allTagContainersInItem = atividadeItem.querySelectorAll('.relationship-select');
+
+  // Desmarcar todas as outras divs de tag no mesmo item de atividade
+  allTagContainersInItem.forEach(container => {
+    if (container !== clickedDivElement) {
+      container.removeAttribute('data-selected');
+      // O select filho da outra div não precisa ser alterado aqui,
+      // pois apenas um select (o da div clicada) deve ter o valor ativo.
+    }
+  });
+
+  // Marcar a div clicada (atualizar seu visual)
+  clickedDivElement.setAttribute('data-selected', currentTagValue);
+
+  // Sincronizar o select interno com o valor da tag clicada
+  selectControl.value = currentTagValue;
+  console.log(`[Professional] toggleActivityTag: Select '${selectControl.name}' value set to '${currentTagValue}'`);
+
+  // Disparar o evento onchange no select para que updateActivityTag seja chamada
+  // e para que o FormStateManager possa pegar a mudança.
+  selectControl.dispatchEvent(new Event('change', { bubbles: true }));
+  console.log(`[Professional] toggleActivityTag: Evento 'change' disparado para select '${selectControl.name}'`);
 }
