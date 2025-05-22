@@ -303,7 +303,7 @@ async function gerarRelatorioPDF() {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f3f5; /* Fundo geral cinza muito claro */
+            background-color: #f0f3f5; /* Fundo geral cinza muito claro (mantido) */
             color: #1e293b; /* Azul acinzentado escuro para texto principal */
             font-size: 8.5pt;
             line-height: 1.5;
@@ -313,13 +313,13 @@ async function gerarRelatorioPDF() {
           .page {
             width: 210mm;
             min-height: 290mm;
-            padding: 10mm;
-            margin: 0 auto 10mm auto;
+            padding: 10mm; /* Margem mínima */
+            margin: 0 auto 5mm auto; /* Reduzida margem inferior entre páginas */
             box-sizing: border-box;
             page-break-after: always;
             position: relative;
             background-color: #fff; /* Página branca */
-            box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Sombra sutil na página */
+            box-shadow: 0 0 8px rgba(0,0,0,0.08); /* Sombra mais sutil */
           }
           .page:last-of-type {
             page-break-after: avoid;
@@ -357,26 +357,26 @@ async function gerarRelatorioPDF() {
             font-size: 14pt;
             font-weight: 600;
             color: #1e3a8a; /* Azul mais escuro */
-            margin-bottom: 8mm;
+            margin-bottom: 7mm; /* Ajustado */
             text-align: left;
           }
 
           /* Dados Pessoais do Assistido - Bloco Destacado */
           .assistido-info-block {
-            background-color: #f3f7ff; /* Fundo azul muito claro */
+            background-color: #fdfdfe; /* Cinza muito sutil, quase branco */
             padding: 3.5mm;
             border-radius: 4px;
             margin-bottom: 6mm;
-            border: 1px solid #bfdbfe; /* Borda azul clara */
-            border-top: 3px solid #2563eb; /* Borda superior azul mais forte */
+            border: 1px solid #e5e7eb; /* Borda cinza clara */
+            border-top: 3px solid #2563eb; /* Borda superior azul mais forte (mantido) */
           }
           .assistido-info-block .subsection-title {
             margin-top: 0;
             margin-bottom: 2.5mm;
             font-size: 10.5pt;
-            color: #1e3a8a; /* Azul escuro para subtitulo */
+            color: #1e3a8a; /* Azul escuro para subtitulo (mantido) */
             padding-bottom: 1.5mm;
-            border-bottom: 1px solid #93c5fd; /* Linha azul clara */
+            border-bottom: 1px solid #d1d5db; /* Linha cinza média */
           }
 
           /* Estilos de Seção */
@@ -388,11 +388,11 @@ async function gerarRelatorioPDF() {
             font-size: 12pt;
             font-weight: 600;
             color: #ffffff; /* Texto branco */
-            background-color: #2563eb; /* Fundo azul */
+            background-color: #2563eb; /* Fundo azul (mantido para destaque) */
             padding: 2mm 3mm;
+            margin-top: 0; /* Adicionado para consistência */
             margin-bottom: 3.5mm;
-            border-radius: 3px 3px 0 0; /* Cantos arredondados no topo */
-            /* Sem borda inferior aqui, o fundo já faz a separação */
+            border-radius: 3px; /* Arredondamento geral */
           }
 
           /* Grupos de Campos e Campos Individuais */
@@ -412,12 +412,14 @@ async function gerarRelatorioPDF() {
             display: block;
             font-weight: 500;
             color: #374151; /* Cinza escuro */
-            font-size: 8pt;
+            font-size: 8pt; /* Levemente menor para mais contraste com valor */
             margin-bottom: 0.5mm;
+            line-height: 1.3;
           }
           .field-item span, .field-item div {
             color: #1e293b;
-            font-size: 9pt;
+            font-size: 9pt; /* Mantido */
+            line-height: 1.4;
           }
           .field-item.full-width {
             grid-column: 1 / -1;
@@ -431,11 +433,11 @@ async function gerarRelatorioPDF() {
           .subsection-title {
             font-size: 10pt;
             font-weight: 600;
-            color: #1e3a8a; /* Azul escuro */
+            color: #1e3a8a; /* Azul escuro (mantido) */
             margin-top: 4mm;
             margin-bottom: 2.5mm;
             padding-bottom: 1.5mm;
-            border-bottom: 1px solid #93c5fd; /* Linha azul clara */
+            border-bottom: 1px solid #93c5fd; /* Linha azul clara (mantida por enquanto) */
           }
 
           /* Tabelas */
@@ -456,16 +458,16 @@ async function gerarRelatorioPDF() {
             word-wrap: break-word;
           }
           table th {
-            background-color: #2563eb; /* Fundo azul escuro para cabeçalhos */
+            background-color: #2563eb; /* Fundo azul escuro para cabeçalhos (mantido) */
             font-weight: 600;
             color: #ffffff; /* Texto branco */
             font-size: 8.5pt;
           }
           table tr:nth-child(even) td {
-            background-color: #e0e7ff; /* Zebrado azul muito claro */
+            background-color: #f3f4f6; /* Cinza claro para zebrado */
           }
           table tr:nth-child(odd) td {
-            background-color: #eff6ff; /* Zebrado azul ainda mais claro, quase branco */
+            background-color: #f9fafb; /* Cinza mais claro para zebrado */
           }
 
           /* Estilo para Tags */
@@ -483,19 +485,19 @@ async function gerarRelatorioPDF() {
 
           /* Blocos de Itens (Autores adicionais, etc.) */
           .item-block {
-            border: 1px solid #bfdbfe; /* Borda azul clara */
+            border: 1px solid #e5e7eb; /* Borda cinza clara */
             border-radius: 4px;
             padding: 3mm;
             margin-bottom: 3.5mm;
-            background-color: #f3f7ff; /* Fundo azul muito claro */
+            background-color: #fdfdfe; /* Cinza muito sutil, quase branco */
             page-break-inside: avoid;
           }
           .item-block .subsection-title {
             margin-top: 0;
             padding-bottom: 1.5mm;
-            border-bottom: 1px solid #93c5fd; /* Linha azul clara */
+            border-bottom: 1px solid #d1d5db; /* Linha cinza média */
             font-size: 10pt;
-            color: #1e3a8a; /* Azul escuro */
+            color: #1e3a8a; /* Azul escuro (mantido) */
           }
 
           /* Rodapé da Página HTML */
@@ -720,31 +722,41 @@ async function gerarRelatorioPDF() {
         }
 
       } else if (sectionKey === 'incapacity') {
+        // Subseção: Situação Laboral e Limitações Gerais
+        htmlContent += `<div class="subsection-title">Situação Laboral e Limitações</div>`;
         htmlContent += `<div class="field-group">`;
         htmlContent += createFieldItem('Trabalha Atualmente?', sectionData.trabalhaAtualmente);
         htmlContent += createFieldItem('Último Trabalho (Período)', sectionData.ultimoTrabalho);
+        htmlContent += `</div>`; // Fecha field-group para itens lado a lado
+
+        htmlContent += `<div class="field-group">`; // Novo field-group para itens full-width abaixo
         htmlContent += createFieldItem('Limitações Diárias (Descrição)', sectionData.limitacoesDiarias, { fullWidth: true });
         htmlContent += createFieldItem('Tratamentos Realizados', sectionData.tratamentosRealizados, { fullWidth: true });
         htmlContent += createFieldItem('Medicamentos Atuais', sectionData.medicamentosAtuais, { fullWidth: true });
         htmlContent += `</div>`;
 
-        if (sectionData.tipoDocumentos && Array.isArray(sectionData.tipoDocumentos) && sectionData.tipoDocumentos.length > 0) {
-          htmlContent += `<div class="subsection-title">Documentos e Detalhes da Incapacidade</div>`;
-          htmlContent += '<table><thead><tr><th>Tipo Documento</th><th>Doença/Condição</th><th>CID</th><th>Data Documento</th></tr></thead><tbody>';
+        // Subseção: Documentos e Detalhes da Incapacidade (Tabela)
+        if (sectionData.tipoDocumentos && Array.isArray(sectionData.tipoDocumentos) && sectionData.tipoDocumentos.length > 0 && sectionData.tipoDocumentos.some(doc => doc && doc.trim() !== '')) {
+          htmlContent += `<div class="subsection-title">Documentos Comprobatórios e Detalhes da Incapacidade</div>`;
+          htmlContent += '<table><thead><tr><th>Tipo Documento</th><th>Doença/Condição (Conforme Documento)</th><th>CID</th><th>Data do Documento</th></tr></thead><tbody>';
           sectionData.tipoDocumentos.forEach((tipoDoc, index) => {
-            htmlContent += '<tr>';
-            htmlContent += `<td>${formatValue(tipoDoc)}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.doencas?.[index])}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.cids?.[index])}</td>`;
-            htmlContent += `<td>${formatValue(sectionData.dataDocumentos?.[index])}</td>`;
-            htmlContent += '</tr>';
+            if (tipoDoc && tipoDoc.trim() !== '') { // Garante que só adiciona linhas com tipo de documento preenchido
+              htmlContent += '<tr>';
+              htmlContent += `<td>${formatValue(tipoDoc)}</td>`;
+              htmlContent += `<td>${formatValue(sectionData.doencas?.[index])}</td>`;
+              htmlContent += `<td>${formatValue(sectionData.cids?.[index])}</td>`;
+              htmlContent += `<td>${formatValue(sectionData.dataDocumentos?.[index])}</td>`;
+              htmlContent += '</tr>';
+            }
           });
           htmlContent += '</tbody></table>';
         }
-        if(sectionData.observacoes){
-            htmlContent += `<div class="subsection-title">Observações Adicionais sobre Incapacidade</div>`;
+
+        // Subseção: Observações Adicionais
+        if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
+            htmlContent += `<div class="subsection-title">Observações Adicionais sobre Incapacidade e Saúde</div>`;
             htmlContent += `<div class="field-group">`;
-            htmlContent += createFieldItem('', sectionData.observacoes, { fullWidth: true });
+            htmlContent += createFieldItem('Observações', sectionData.observacoes, { fullWidth: true, isHtml: true });
             htmlContent += `</div>`;
         }
 

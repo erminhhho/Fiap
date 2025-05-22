@@ -472,24 +472,6 @@ function injectFixStyles() {
       background-color: #F9FAFB !important;
       cursor: default !important;
     }
-
-    /* Destaque para tags de isenção de carência */
-    .isento-carencia-tag:not(.hidden) {
-      display: inline-flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      font-size: 10px !important;
-      padding: 2px 6px !important;
-      border-radius: 9999px !important;
-      background-color: #f97316 !important;
-      color: white !important;
-      position: absolute !important;
-      top: 0 !important;
-      right: 0.5rem !important;
-      transform: translateY(-50%) !important;
-      z-index: 10 !important;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
-    }
   `;
 
   // Adicionar o estilo ao cabeçalho do documento
@@ -729,8 +711,19 @@ function verificarIsencaoCarencia(input) {
 
   if (isento && (input.value.trim() !== '' || (cidInput && cidInput.value.trim() !== ''))) {
     tagIsencao.classList.remove('hidden');
+
+    // Adicionar tooltip (title) para explicar a isenção
+    tagIsencao.setAttribute('title', 'Esta condição/CID dispensa o cumprimento de carência para benefícios previdenciários');
+
+    // Garantir que o campo tenha uma anotação visual também
+    input.classList.add('isento-carencia-field');
+    if (cidInput) cidInput.classList.add('isento-carencia-field');
   } else {
     tagIsencao.classList.add('hidden');
+
+    // Remover a anotação visual se existir
+    input.classList.remove('isento-carencia-field');
+    if (cidInput) cidInput.classList.remove('isento-carencia-field');
   }
 }
 
@@ -1004,7 +997,7 @@ function addDoencaField() {
           Doença
         </label>
         <div class="doenca-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="doencaDropdown${nextIndex}"></div>
-        <div class="isento-carencia-tag hidden absolute top-0 right-2 font-bold text-xs px-2 py-0.5 rounded-full bg-orange-600 text-white transform -translate-y-1/2 z-20 shadow-sm text-[9px]">Isenção de carência</div>
+        <div class="isento-carencia-tag hidden">Isenção de carência</div>
       </div>
 
       <!-- Data (quarto campo) -->
