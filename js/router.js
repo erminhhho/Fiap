@@ -79,6 +79,15 @@ function routerLog(message, error) {
   }
 }
 
+// Funções para barra de progresso e fade
+function showProgressBar() {
+  if (window.startProgressBar) window.startProgressBar();
+}
+
+function completeProgressBar() {
+  if (window.finishProgressBar) window.finishProgressBar();
+}
+
 // Função para navegar para uma rota
 function navigateTo(routeName) {
   // Evitar navegações múltiplas para a mesma rota ou durante uma navegação em andamento
@@ -201,36 +210,11 @@ function navigateTo(routeName) {
 
 // Funções para barra de progresso e fade
 function showProgressBar() {
-  let bar = document.getElementById('progress-bar');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'progress-bar';
-    document.body.appendChild(bar);
-  }
-  // Reset
-  clearInterval(bar._intervalId);
-  bar.style.opacity = '1';
-  bar.style.width = '0%';
-  // Primeira animação até 20%
-  setTimeout(() => { bar.style.width = '20%'; }, 10);
-  // Trickle até 90% a cada 500ms
-  bar._intervalId = setInterval(() => {
-    let w = parseFloat(bar.style.width);
-    if (w < 90) bar.style.width = (w + 2) + '%';
-    else clearInterval(bar._intervalId);
-  }, 500);
+  if (window.startProgressBar) window.startProgressBar();
 }
 
 function completeProgressBar() {
-  const bar = document.getElementById('progress-bar');
-  if (bar) {
-    clearInterval(bar._intervalId);
-    bar.style.width = '100%';
-    setTimeout(() => {
-      bar.style.opacity = '0';
-      setTimeout(() => bar.remove(), 300);
-    }, 300);
-  }
+  if (window.finishProgressBar) window.finishProgressBar();
 }
 
 async function loadModuleWithTemplate(route) {
