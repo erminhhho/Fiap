@@ -959,12 +959,10 @@ function setupAutoCapitalize() {
       campo.addEventListener('input', function() {
         if (!this.value) return;
 
-        // Capitalizar primeira letra de palavras para nomes
+        // Capitalizar primeira letra de palavras para nomes, suportando acentos
         if (this.id === 'nome' || this.name === 'nome' ||
             this.id.includes('name') || this.name.includes('name')) {
-          this.value = this.value.replace(/\b\w/g, function(c) {
-            return c.toUpperCase();
-          });
+          this.value = this.value.replace(/(^|\s)(\S)/g, (m, g1, g2) => g1 + g2.toUpperCase());
         }
       });
     }
