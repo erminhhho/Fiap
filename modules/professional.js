@@ -267,6 +267,12 @@ function addAtividade() {
     });
   }
 
+  // Aplicar máscara de nome próprio ao campo de profissão
+  const profissaoInput = atividadeDiv.querySelector('#profissao');
+  if (profissaoInput) {
+    profissaoInput.onblur = function() { formatarNomeProprio(this); };
+  }
+
   // Adicionar ao DOM - coloque sempre no final da lista
   atividadesList.appendChild(atividadeDiv);
 

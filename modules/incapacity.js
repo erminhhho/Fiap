@@ -175,8 +175,7 @@ window.setupProfissaoAutocomplete = function() {
   function renderizarProfissoes(resultados, query) {
     dropdown.innerHTML = '';
     if (!resultados.length) {
-      dropdown.innerHTML = `<div class="p-3 text-gray-500">Nenhuma profissão encontrada para "${query}"</div>`;
-      dropdown.classList.remove('hidden');
+      dropdown.classList.add('hidden');
       return;
     }
     resultados.forEach(prof => {
@@ -1234,6 +1233,12 @@ function addDoencaField() {
   if (cidInput) {
     configurarCampoCID(cidInput);
     cidInput.focus();
+  }
+
+  // Após adicionar o campo de profissão (input#profissao) ou ao criar dinamicamente:
+  const profissaoInput = document.getElementById('profissao') || newDoencaField.querySelector('#profissao');
+  if (profissaoInput) {
+    profissaoInput.onblur = function() { formatarNomeProprio(this); };
   }
 }
 
