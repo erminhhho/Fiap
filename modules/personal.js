@@ -538,6 +538,9 @@ function setupColaboradorSearch() {
 
   if (!inputColaborador || !dropdownColaborador) return;
 
+  // Sempre esconder o dropdown se o campo já estiver preenchido ao restaurar
+  dropdownColaborador.classList.add('hidden');
+
   // Configurar evento de digitação para pesquisa
   inputColaborador.addEventListener('input', function() {
     const query = this.value.trim();
@@ -550,6 +553,12 @@ function setupColaboradorSearch() {
 
     // Buscar resultados
     const resultados = pesquisarColaboradores(query);
+
+    // Se só existe um resultado e ele é igual ao valor do campo, não mostrar dropdown
+    if (resultados.length === 1 && resultados[0].nome === this.value) {
+      dropdownColaborador.classList.add('hidden');
+      return;
+    }
 
     // Renderizar resultados
     renderizarResultadosColaborador(resultados, query);
@@ -579,10 +588,14 @@ function setupColaboradorSearch() {
 
   // Fechar dropdown ao clicar fora
   document.addEventListener('click', function(event) {
-    if (!dropdownColaborador.contains(event.target) &&
-        event.target !== inputColaborador) {
+    if (!dropdownColaborador.contains(event.target) && event.target !== inputColaborador) {
       dropdownColaborador.classList.add('hidden');
     }
+  });
+
+  // Sempre esconder o dropdown ao restaurar a página
+  window.addEventListener('pageshow', function() {
+    dropdownColaborador.classList.add('hidden');
   });
 }
 
@@ -791,5 +804,208 @@ function handleAddAuthorClick() {
       window._addingAuthorFromButtonClick = false;
       console.log('[personal.js] handleAddAuthorClick: Lock do botão Adicionar Autor liberado.');
     }, 300); // Lock para cliques do usuário
+  }
+}
+
+// Função para configurar o campo de busca de cidades
+function setupCidadeSearch() {
+  const inputCidade = document.getElementById('cidade');
+  const dropdownCidade = document.getElementById('cidadeDropdown');
+  if (!inputCidade || !dropdownCidade) return;
+
+  // Sempre esconder o dropdown se o campo já estiver preenchido ao restaurar
+  dropdownCidade.classList.add('hidden');
+
+  inputCidade.addEventListener('input', function() {
+    const query = this.value.trim();
+    if (query.length < 2) {
+      dropdownCidade.classList.add('hidden');
+      return;
+    }
+    // Buscar cidades (usa buscarCidades do address.js)
+    if (typeof buscarCidades === 'function') {
+      buscarCidades(inputCidade);
+    }
+  });
+
+  // Sempre esconder o dropdown ao restaurar a página
+  window.addEventListener('pageshow', function() {
+    dropdownCidade.classList.add('hidden');
+  });
+}
+
+// Chamar setupCidadeSearch no setupEvents
+function setupEvents() {
+  // Inicializar estilos para os selects de relacionamento
+  applyRelationshipStyles();
+
+  // Lista de campos para salvar individualmente na aba Pessoal
+  const fieldsToUpdatePersonal = [
+    // Campos do autor principal foram movidos para persistência de array (autor_nome[], autor_cpf[], etc.)
+    // 'nome', 'cpf', 'nascimento', 'apelido', 'telefone', 'telefone_detalhes', 'relationship_1',
+    'colaborador', // Campo único de colaborador
+    'cep', 'endereco', 'numero', 'bairro', 'cidade', 'uf', // Endereço
+    'observacoes', // Observações gerais da página
+    'telefone_whatsapp_ativo' // Checkbox único do telefone principal
+    // Adicionar outros IDs de campos estáticos da aba pessoal aqui, se necessário
+  ];
+
+  fieldsToUpdatePersonal.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      const eventType = (field.type === 'checkbox' || field.type === 'radio' || field.tagName === 'SELECT') ? 'change' : 'blur';
+      field.addEventListener(eventType, function() {
+        let valueToSave = this.type === 'checkbox' ? this.checked : this.value;
+        if (window.formStateManager && typeof window.formStateManager.updateSpecificField === 'function') {
+          const currentKnownValue = window.formStateManager.formData.personal[this.id];
+          if (currentKnownValue !== valueToSave && !this.readOnly) {
+              console.log(`[personal.js] Evento '${eventType}' no campo '${this.id}'. Valor DOM: '${valueToSave}', Valor no State: '${currentKnownValue}'. ATUALIZANDO.`);
+              window.formStateManager.updateSpecificField('personal', this.id, valueToSave);
+          } else if (this.readOnly) {
+              console.log(`[personal.js] Evento '${eventType}' no campo '${this.id}'. Campo é readOnly. NÃO atualizando state.`);
+          } else {
+              console.log(`[personal.js] Evento '${eventType}' no campo '${this.id}'. Valor DOM: '${valueToSave}', Valor no State: '${currentKnownValue}'. SEM MUDANÇA. NÃO atualizando state.`);
+          }
+        }
+      });
+    }
+  });
+
+  // Restaurar estado do Checkbox de WhatsApp para o telefone principal
+  try {
+    const whatsAppCheckbox = document.getElementById('telefone_whatsapp_ativo');
+
+    if (whatsAppCheckbox && window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.personal) {
+      // O FormStateManager salva 'true'/'false' como strings
+      const temWhatsApp = window.formStateManager.formData.personal.telefone_whatsapp_ativo === 'true';
+      whatsAppCheckbox.checked = temWhatsApp;
+    } else {
+      if (!whatsAppCheckbox) console.warn('Checkbox de WhatsApp (telefone_whatsapp_ativo) não encontrado para restauração.');
+    }
+  } catch (e) {
+    console.error('Erro ao restaurar estado do checkbox de WhatsApp:', e);
+  }
+
+  // Botão de remover autor (o primeiro, que não é dinâmico)
+  const removeAuthorButton = document.querySelector('.remove-author-button');
+  if (removeAuthorButton) {
+    // Este botão só deve remover o autor se houver mais de um.
+    // A lógica de remover autor específico já cuida disso.
+    // A remoção do primeiro autor deve ser tratada com cuidado ou desabilitada.
+  }
+
+  // Configurar validação para campos de data e CPF
+  const dataNascimentoField = document.getElementById('nascimento');
+  if (dataNascimentoField) {
+    dataNascimentoField.addEventListener('blur', function() {
+      FIAP.validation.dateOfBirthRealTime(this);
+      if (this.dataset.targetAge) {
+        FIAP.calculation.age(this.value, this.dataset.targetAge);
+      }
+    });
+  }
+
+  const cpfField = document.getElementById('cpf');
+  if (cpfField) {
+    cpfField.addEventListener('input', function() { FIAP.masks.cpf(this); });
+    cpfField.addEventListener('blur', function() { FIAP.validation.cpfRealTime(this); });
+  }
+
+  // Configurar máscara de telefone
+  const telefoneField = document.getElementById('telefone');
+  if (telefoneField) {
+    telefoneField.addEventListener('input', function() { FIAP.masks.phone(this); });
+  }
+
+  // Adicionar evento de clique aos botões de navegação (próximo/anterior)
+  const btnNext = document.getElementById('btn-next');
+  const btnBack = document.getElementById('btn-back');
+
+  if (btnNext) {
+    // Remover eventuais listeners antigos para evitar duplicação
+    const newBtnNext = btnNext.cloneNode(true);
+    btnNext.parentNode.replaceChild(newBtnNext, btnNext);
+
+    let isNavigating = false;
+    newBtnNext.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (isNavigating) return;
+      isNavigating = true;
+
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
+      this.disabled = true;
+      this.classList.add('opacity-75');
+
+      try {
+        // <<< INÍCIO DA MODIFICAÇÃO: Adicionar Logs ANTES da captura >>>
+        if (window.formStateManager) {
+          const bairroField = document.getElementById('bairro');
+          const enderecoField = document.getElementById('endereco');
+          console.log(`[PersonalJS - btnNext] ANTES da captura. Bairro DOM: '${bairroField ? bairroField.value : 'N/A'}', Endereco DOM: '${enderecoField ? enderecoField.value : 'N/A'}'`);
+          if (window.formStateManager.formData && window.formStateManager.formData.personal) {
+            console.log(`[PersonalJS - btnNext] ANTES da captura. Bairro State: '${window.formStateManager.formData.personal.bairro}', Endereco State: '${window.formStateManager.formData.personal.endereco}'`);
+          } else {
+            console.log("[PersonalJS - btnNext] ANTES da captura. formData.personal não disponível no state.");
+          }
+        }
+        // <<< FIM DA MODIFICAÇÃO >>>
+
+        if (window.formStateManager && typeof window.formStateManager.captureCurrentFormData === 'function') {
+          console.log('Capturando dados do formulário pessoal...');
+          window.formStateManager.captureCurrentFormData();
+        } else {
+          console.warn('formStateManager ou captureCurrentFormData não está disponível.');
+        }
+
+        // Pequeno atraso para garantir que a captura de dados (se houver) seja processada
+        setTimeout(() => {
+          if (typeof navigateTo === 'function') {
+            console.log('Navegando para a próxima etapa: social');
+            navigateTo('social'); // Assumindo que 'social' é a próxima etapa
+          } else {
+            console.error('Função navigateTo não encontrada.');
+            this.innerHTML = originalText; // Restaura o botão em caso de erro
+            this.disabled = false;
+            this.classList.remove('opacity-75');
+            isNavigating = false;
+          }
+
+          // O botão será re-habilitado pela mudança de página ou se a navegação falhar no catch
+        }, 100);
+
+      } catch (error) {
+        console.error('Erro ao tentar navegar ou capturar dados:', error);
+        this.innerHTML = originalText;
+        this.disabled = false;
+        this.classList.remove('opacity-75');
+        isNavigating = false;
+      }
+    });
+  }
+
+  if (btnBack) {
+    // Remover eventuais listeners antigos para evitar duplicação
+    const newBtnBack = btnBack.cloneNode(true);
+    btnBack.parentNode.replaceChild(newBtnBack, btnBack);
+
+    newBtnBack.addEventListener('click', function() {
+      if (typeof navigateTo === 'function') {
+        navigateTo('home'); // Ou a etapa anterior correta, ex: 'welcome' ou a identificada pelo router
+      } else {
+        console.error('Função navigateTo não encontrada para voltar.');
+      }
+    });
+  }
+
+  // Configurar a busca de colaboradores
+  setupColaboradorSearch();
+  setupCidadeSearch();
+
+  // Configurar a capitalização automática
+  if (typeof setupAutoCapitalize === 'function') {
+    setupAutoCapitalize();
   }
 }
