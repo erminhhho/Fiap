@@ -904,7 +904,7 @@ FIAP.ui = {
     const config = this.statusConfig[type] || this.statusConfig.info;
 
     // Usar ícone específico ou o padrão para o tipo
-    const iconClass = icon || config.icon;
+    // const iconClass = icon || config.icon; // Ícone não é mais usado
 
     // Usar timeout específico ou o padrão para o tipo
     const finalTimeout = timeout !== null ? timeout : config.defaultTimeout;
@@ -915,7 +915,7 @@ FIAP.ui = {
     // Criar elemento da etiqueta
     const statusTag = document.createElement('span');
     statusTag.className = `status-tag ${type}`;
-    statusTag.innerHTML = `<i class="fas fa-${iconClass}"></i> ${message}`;
+    statusTag.innerHTML = `${message}`; // Modificado para remover o ícone
 
     // Adicionar etiqueta ao container
     if (container) {

@@ -15,6 +15,11 @@
 
 /* Estilos gerais globais */
 
+/* Oculta ícones de validação dentro dos campos de formulário */
+.validation-field-icon {
+  display: none !important;
+}
+
 /* WhatsApp toggle switch */
 .whatsapp-toggle {
   position: relative;

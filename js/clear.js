@@ -173,7 +173,6 @@ window.executeClearSection = function(section) {
   notification.className = 'fixed bottom-4 right-4 bg-green-100 bg-opacity-90 backdrop-blur-sm border-l-4 border-green-500 text-green-700 p-3 rounded shadow-md z-50 animate-fade-in';
   notification.innerHTML = `
     <div class="flex items-center">
-      <i class="fas fa-check-circle text-green-500 mr-2"></i>
       <span class="text-sm">Campos limpos com sucesso!</span>
     </div>
   `;
