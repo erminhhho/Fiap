@@ -428,7 +428,7 @@ function continueAttendance(id) {
   // Exibir indicador de carregamento
   const appContent = document.getElementById('app-content');
   appContent.innerHTML = `
-    <div class="flex items-center justify-center h-64">
+    <div class="flex items-start justify-center h-64 pt-8">
       <div class="text-center">
         <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-4"></i>
         <p class="text-gray-600">Carregando atendimento...</p>
@@ -519,7 +519,13 @@ function showLoading(message = 'Carregando...') {
   // Implementação alternativa
   const overlay = document.createElement('div');
   overlay.id = 'loading-overlay';
-  overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]';
+  // Posicionar abaixo do navbar e alinhar ao topo
+  overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-[100]';
+  // Ajuste fino de deslocamento para ficar abaixo do header
+  overlay.style.top = '4rem';
+  overlay.style.bottom = '0';
+  overlay.style.paddingTop = '1.5rem';
+
   overlay.innerHTML = `
     <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
       <div class="flex flex-col items-center">

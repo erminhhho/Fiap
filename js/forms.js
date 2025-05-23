@@ -903,26 +903,33 @@ function showSuccess(message, parentElement = null, options = {}) {
 
 // Função para mostrar loading
 function showLoading(message = 'Carregando...', parentElement = null) {
-  // Verificar se já existe um overlay para evitar duplicação
-  const existingOverlay = document.getElementById('loading-overlay');
-  if (existingOverlay) return;
+  // Prevenção contra recursão infinita
+  if (document.getElementById('loading-overlay')) return;
 
-  // Criar o overlay
+  // Implementação alternativa
   const overlay = document.createElement('div');
   overlay.id = 'loading-overlay';
-  overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]';
-
-  // Conteúdo do loading
+  // Posicionar overlay logo abaixo do header, usando estilos diretos para garantir efeito
+  Object.assign(overlay.style, {
+    position: 'fixed',
+    top: '4rem',       // ajustar conforme altura do navbar
+    right: '0',
+    bottom: '0',
+    left: '0',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    paddingTop: '1.5rem',
+    zIndex: '1000'
+  });
   overlay.innerHTML = `
     <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
-      <div class="flex flex-col items-center">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
-        <p class="text-gray-700">${message}</p>
+      <div class="loader-dots">
+        <span></span><span></span><span></span>
       </div>
     </div>
   `;
-
-  // Adicionar ao DOM
   (parentElement || document.body).appendChild(overlay);
 }
 

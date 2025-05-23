@@ -199,7 +199,30 @@ function navigateTo(routeName) {
   }
 }
 
-// Função para carregar um módulo via template HTML e script
+// Funções para barra de progresso e fade
+function showProgressBar() {
+  let bar = document.getElementById('progress-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'progress-bar';
+    document.body.appendChild(bar);
+  }
+  bar.style.opacity = '1';
+  bar.style.width = '0';
+  setTimeout(() => { bar.style.width = '80%'; }, 10);
+}
+
+function completeProgressBar() {
+  const bar = document.getElementById('progress-bar');
+  if (bar) {
+    bar.style.width = '100%';
+    setTimeout(() => {
+      bar.style.opacity = '0';
+      setTimeout(() => bar.remove(), 300);
+    }, 200);
+  }
+}
+
 async function loadModuleWithTemplate(route) {
   routerLog(`Iniciando carregamento do módulo: ${route.scriptUrl}`);
   const appContent = document.getElementById('app-content');
@@ -209,15 +232,10 @@ async function loadModuleWithTemplate(route) {
     return;
   }
 
-  // Mostrar indicador de carregamento
-  appContent.innerHTML = `
-    <div class="flex items-center justify-center h-64">
-      <div class="text-center">
-        <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-4"></i>
-        <p class="text-gray-600">Carregando...</p>
-      </div>
-    </div>
-  `;
+  // Iniciar barra de progresso e aplicar fade-out
+  showProgressBar();
+  appContent.classList.remove('fade-in');
+  appContent.classList.add('fade-out');
 
   try {
     // Carregar o template HTML
@@ -233,6 +251,11 @@ async function loadModuleWithTemplate(route) {
     routerLog(`Carregando script do módulo: ${route.scriptUrl}`);
     await loadScript(route.scriptUrl);
     routerLog('Script do módulo carregado com sucesso');
+
+    // Finalizar barra de progresso e remover fade-out
+    completeProgressBar();
+    appContent.classList.remove('fade-out');
+    appContent.classList.add('fade-in');
 
     // Inicializar o módulo se a função estiver definida
     if (typeof window.initModule === 'function') {
