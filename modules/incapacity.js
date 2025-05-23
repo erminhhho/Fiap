@@ -305,13 +305,21 @@ window.initModule = function() {
   // Restaurar dados para esta etapa
   if (window.formStateManager) {
     const currentStepKey = 'incapacity';
-    // Adicionar um pequeno delay para garantir que os sistemas de CID e dropdowns estejam prontos
     setTimeout(() => {
-        console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
-        window.formStateManager.ensureFormAndRestore(currentStepKey);
-        // Após restaurar, fechar dropdowns de autocomplete se já estiverem preenchidos
-        setTimeout(closeAutocompleteDropdownsIfFilled, 300);
-    }, 700); // Delay um pouco maior devido às inicializações de CID
+      console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
+      window.formStateManager.ensureFormAndRestore(currentStepKey);
+      // Após restaurar, disparar validações
+      setTimeout(function() {
+        document.querySelectorAll('.doenca-input').forEach(input => {
+          if (typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(input);
+        });
+        document.querySelectorAll('.cid-input').forEach(input => {
+          const index = input.getAttribute('data-index');
+          const doencaInput = document.getElementById('doenca' + index);
+          if (doencaInput && typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(doencaInput);
+        });
+      }, 350);
+    }, 700);
   } else {
     console.error("[incapacity.js] initModule: formStateManager não encontrado. A restauração não ocorrerá.");
   }
@@ -1244,3 +1252,18 @@ function addDoencaField() {
 
 // Expor a função para ser chamada externamente (ex: pelo FormStateManager)
 window.addDoencaField = addDoencaField;
+
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    // Validar isenção de carência
+    document.querySelectorAll('.doenca-input').forEach(input => {
+      if (typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(input);
+    });
+    // Validar CID
+    document.querySelectorAll('.cid-input').forEach(input => {
+      const index = input.getAttribute('data-index');
+      const doencaInput = document.getElementById('doenca' + index);
+      if (doencaInput && typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(doencaInput);
+    });
+  }, 300);
+});

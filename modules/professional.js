@@ -48,11 +48,30 @@ window.initModule = function() {
   if (window.formStateManager) {
     const currentStepKey = 'professional';
     console.log(`[professional.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
-    // Adicionar um pequeno delay para garantir que o DOM esteja pronto
     setTimeout(() => {
-        if (window.formStateManager && typeof window.formStateManager.ensureFormAndRestore === 'function') {
-            window.formStateManager.ensureFormAndRestore(currentStepKey);
-        }
+      if (window.formStateManager && typeof window.formStateManager.ensureFormAndRestore === 'function') {
+        window.formStateManager.ensureFormAndRestore(currentStepKey);
+        // Após restaurar, disparar validações
+        setTimeout(function() {
+          document.querySelectorAll('.atividade-item').forEach(atividade => {
+            const inicioInput = atividade.querySelector('.periodo-inicio');
+            const fimInput = atividade.querySelector('.periodo-fim');
+            const prazoInput = atividade.querySelector('.periodo-prazo');
+            if (inicioInput && fimInput && prazoInput) {
+              if (inicioInput.value && fimInput.value) {
+                let prazo = parseInt(fimInput.value, 10) - parseInt(inicioInput.value, 10) + 1;
+                prazoInput.value = prazo > 0 ? prazo + ' anos' : '';
+              } else if (inicioInput.value && prazoInput.value) {
+                fimInput.value = parseInt(inicioInput.value, 10) + parseInt(prazoInput.value) - 1;
+              } else if (fimInput.value && prazoInput.value) {
+                inicioInput.value = parseInt(fimInput.value, 10) - parseInt(prazoInput.value) + 1;
+              }
+            }
+            const profissaoInput = atividade.querySelector('#profissao');
+            if (profissaoInput && typeof formatarNomeProprio === 'function') formatarNomeProprio(profissaoInput);
+          });
+        }, 350);
+      }
     }, 50);
   }
 
@@ -498,3 +517,28 @@ function toggleActivityTag(clickedDivElement) {
   selectControl.dispatchEvent(new Event('change', { bubbles: true }));
   console.log(`[Professional] toggleActivityTag: Evento 'change' disparado para select '${selectControl.name}'`);
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    // Sincronizar campos de período/prazo
+    document.querySelectorAll('.atividade-item').forEach(atividade => {
+      const inicioInput = atividade.querySelector('.periodo-inicio');
+      const fimInput = atividade.querySelector('.periodo-fim');
+      const prazoInput = atividade.querySelector('.periodo-prazo');
+      if (inicioInput && fimInput && prazoInput) {
+        // Forçar sincronização
+        if (inicioInput.value && fimInput.value) {
+          let prazo = parseInt(fimInput.value, 10) - parseInt(inicioInput.value, 10) + 1;
+          prazoInput.value = prazo > 0 ? prazo + ' anos' : '';
+        } else if (inicioInput.value && prazoInput.value) {
+          fimInput.value = parseInt(inicioInput.value, 10) + parseInt(prazoInput.value) - 1;
+        } else if (fimInput.value && prazoInput.value) {
+          inicioInput.value = parseInt(fimInput.value, 10) - parseInt(prazoInput.value) + 1;
+        }
+      }
+      // Nome próprio
+      const profissaoInput = atividade.querySelector('#profissao');
+      if (profissaoInput && typeof formatarNomeProprio === 'function') formatarNomeProprio(profissaoInput);
+    });
+  }, 300);
+});

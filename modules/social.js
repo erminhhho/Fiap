@@ -53,12 +53,22 @@ window.initModule = function() {
   // Restaurar dados para esta etapa APÓS a inicialização do assistido e configuração de addFamilyMember
   if (window.formStateManager) {
     const currentStepKey = 'social';
-    // Pequeno delay para dar tempo ao tryInitializeAssistido de popular a linha do assistido,
-    // para que a restauração encontre os campos do assistido já no DOM.
     setTimeout(() => {
         console.log(`[social.js] initModule: Solicitando restauração para a etapa: ${currentStepKey} após inicialização do assistido.`);
         window.formStateManager.ensureFormAndRestore(currentStepKey);
-    }, 600); // Aumentar um pouco o delay para garantir que o assistido foi inicializado (era 500ms na retentativa do container)
+        // Após restaurar, disparar validações
+        setTimeout(function() {
+          document.querySelectorAll('input[name="familiar_nome[]"]').forEach(input => {
+            if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
+          });
+          document.querySelectorAll('input[name="familiar_cpf[]"]').forEach(input => {
+            if (typeof maskCPF === 'function') maskCPF(input);
+          });
+          document.querySelectorAll('input[name="familiar_idade[]"]').forEach(input => {
+            if (typeof formatAgeWithSuffix === 'function') formatAgeWithSuffix(input);
+          });
+        }, 350);
+    }, 600);
   } else {
     console.error("[social.js] initModule: formStateManager não encontrado. A restauração de dados não ocorrerá.");
   }
@@ -1091,3 +1101,22 @@ function saveOutroParentesco() {
   }
   // Não precisa limpar currentParentescoSelect aqui, pois closeOutroParentescoModal já faz
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    // Nome próprio
+    document.querySelectorAll('input[name="familiar_nome[]"]').forEach(input => {
+      if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
+    });
+    // CPF
+    document.querySelectorAll('input[name="familiar_cpf[]"]').forEach(input => {
+      if (typeof maskCPF === 'function') maskCPF(input);
+    });
+    // Idade
+    document.querySelectorAll('input[name="familiar_idade[]"]').forEach(input => {
+      if (typeof formatAgeWithSuffix === 'function') formatAgeWithSuffix(input);
+    });
+    // Parentesco (se houver lógica automática)
+    // ...
+  }, 300);
+});

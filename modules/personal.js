@@ -48,6 +48,18 @@ window.initModule = function() {
     const currentStepKey = 'personal';
     console.log(`[personal.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
     window.formStateManager.ensureFormAndRestore(currentStepKey);
+    // Após restaurar, disparar validações
+    setTimeout(function() {
+      document.querySelectorAll('input[name="autor_cpf[]"]').forEach(input => {
+        if (typeof validateCPF === 'function') validateCPF(input);
+      });
+      document.querySelectorAll('input[name="autor_nascimento[]"]').forEach(input => {
+        if (typeof validateDateOfBirth === 'function') validateDateOfBirth(input);
+      });
+      document.querySelectorAll('input[name="autor_nome[]"], input[name="autor_apelido[]"]').forEach(input => {
+        if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
+      });
+    }, 350);
   }
 
   // Adicionar listener para o evento formCleared
@@ -59,6 +71,24 @@ window.initModule = function() {
   });
 
   console.log('[personal.js] Módulo totalmente inicializado e restauração solicitada.');
+
+  // Após restaurar os dados do formulário (ex: dentro de window.initModule ou após ensureFormAndRestore):
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      // Validar CPF
+      document.querySelectorAll('input[name="autor_cpf[]"]').forEach(input => {
+        if (typeof validateCPF === 'function') validateCPF(input);
+      });
+      // Calcular idade
+      document.querySelectorAll('input[name="autor_nascimento[]"]').forEach(input => {
+        if (typeof validateDateOfBirth === 'function') validateDateOfBirth(input);
+      });
+      // Nome próprio e apelido
+      document.querySelectorAll('input[name="autor_nome[]"], input[name="autor_apelido[]"]').forEach(input => {
+        if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
+      });
+    }, 300);
+  });
 };
 
 // Função para resetar a UI da seção de dados pessoais (autores)
