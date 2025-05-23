@@ -434,21 +434,78 @@ FIAP.validation = {
   dateOfBirthRealTime: function(input) {
     const dateValue = input.value;
     input.classList.remove('date-valid', 'date-invalid', 'date-validating');
-    if (!dateValue || dateValue.length < 10) { input.classList.add('date-invalid'); return; }
+
+    if (dateValue.trim() === '') {
+      // Se o campo estiver vazio, não aplicar classes de erro.
+      // Apenas remover as classes de validação existentes.
+      // Se houver uma mensagem de erro específica para campo vazio (ex: obrigatório),
+      // isso seria tratado por outra lógica (ex: no blur de um campo required).
+      // Para o caso de "borda vermelha quando vazio", esta é a correção.
+      return;
+    }
+
+    input.classList.add('date-validating'); // Adiciona classe enquanto valida
+
+    if (dateValue.length < 10) { // DD/MM/AAAA
+      input.classList.remove('date-validating');
+      input.classList.add('date-invalid');
+      return;
+    }
+
     const parts = dateValue.split('/');
-    if (parts.length !== 3) { input.classList.add('date-invalid'); return; }
+    if (parts.length !== 3) {
+      input.classList.remove('date-validating');
+      input.classList.add('date-invalid');
+      return;
+    }
+
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
     const year = parseInt(parts[2], 10);
-    const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) daysInMonth[2] = 29;
-    if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month]) { input.classList.add('date-invalid'); return; }
+
+    if (isNaN(day) || isNaN(month) || isNaN(year) ||
+        year < 1900 || year > new Date().getFullYear() + 1 || // Permitir ano atual + 1 para flexibilidade
+        month < 1 || month > 12 ||
+        day < 1 || day > 31) {
+      input.classList.remove('date-validating');
+      input.classList.add('date-invalid');
+      return;
+    }
+
+    // Validação de dias no mês (simplificada, pode ser melhorada)
+    const daysInMonth = [31, (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    if (day > daysInMonth[month - 1]) {
+      input.classList.remove('date-validating');
+      input.classList.add('date-invalid');
+      return;
+    }
+
     const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); // Zerar horas para comparar apenas datas
     const inputDate = new Date(year, month - 1, day);
-    if (inputDate > currentDate) { input.classList.add('date-invalid'); return; }
+
+    if (isNaN(inputDate.getTime())) { // Checagem final se a data é realmente válida
+        input.classList.remove('date-validating');
+        input.classList.add('date-invalid');
+        return;
+    }
+
+    if (inputDate > currentDate) { // Data no futuro
+        input.classList.remove('date-validating');
+        input.classList.add('date-invalid');
+        return;
+    }
+
     const minDate = new Date();
-    minDate.setFullYear(currentDate.getFullYear() - 150);
-    if (inputDate < minDate) { input.classList.add('date-invalid'); return; }
+    minDate.setFullYear(currentDate.getFullYear() - 150); // Limite de 150 anos no passado
+    minDate.setHours(0,0,0,0);
+    if (inputDate < minDate) { // Data muito antiga
+        input.classList.remove('date-validating');
+        input.classList.add('date-invalid');
+        return;
+    }
+
+    input.classList.remove('date-validating', 'date-invalid');
     input.classList.add('date-valid');
   },
 
