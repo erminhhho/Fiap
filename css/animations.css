@@ -40,22 +40,24 @@
 
 #progress-bar {
   position: fixed;
-  top: 4rem; /* abaixo da navbar fixa */
+  top: calc(4rem - 1px); /* colado na base do header fixo */
   left: 0;
   width: 0;
   height: 2px;
-  background: #3b82f6; /* azul base */
-  transition: width .3s ease, opacity .3s ease;
+  background: rgba(59, 130, 246, 0.8); /* azul base com transparência */
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
+  border-radius: 1px;
+  transition: width .5s ease, opacity .5s ease;
   z-index: 9999;
   pointer-events: none;
 }
 
 .fade-out {
   opacity: 0;
-  transition: opacity .3s ease;
+  transition: opacity .5s ease;
 }
 
 .fade-in {
   opacity: 1;
-  transition: opacity .3s ease;
+  transition: opacity .5s ease;
 }

@@ -53,3 +53,8 @@
   width: 40px; /* Largura padrão do slider */
   transform: translateX(-50%);
 }
+
+#main-navbar {
+  /* Sombra mais pronunciada abaixo do cabeçalho */
+  box-shadow: 0 3px 4px rgba(0,0,0,0.15), 0 6px 9px rgba(0,0,0,0.11) !important;
+}
