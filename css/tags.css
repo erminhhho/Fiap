@@ -113,6 +113,22 @@
   color: white !important;
 }
 
+/* Novas cores escuras para status de documento */
+.relationship-select[data-value="Obter"] {
+  background-color: #9a3412 !important; /* Laranja Queimado */
+  color: white !important;
+}
+
+.relationship-select[data-value="Solicitado"] {
+  background-color: #1e3a8a !important; /* Azul Escuro */
+  color: white !important;
+}
+
+.relationship-select[data-value="Recebido"] {
+  background-color: #047857 !important; /* Verde Esmeralda Escuro */
+  color: white !important;
+}
+
 /* Reforçando estilos das etiquetas de relacionamento */
 .relationship-select {
   position: absolute !important;

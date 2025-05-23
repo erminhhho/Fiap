@@ -3,6 +3,96 @@
  * Combina as funcionalidades de fix-documents.js e document-functions.js
  */
 
+// Funções movidas de documents.html para garantir disponibilidade global
+window.toggleDocumentStatus = function(button) {
+  if (!button) return;
+  const documentoElement = button.closest('.documento-item');
+  if (!documentoElement) return;
+  const status = button.dataset.status;
+  const allTags = documentoElement.querySelectorAll('.documento-tag');
+  allTags.forEach(tag => {
+    tag.classList.remove('success', 'info', 'warning', 'active');
+  });
+  documentoElement.dataset.status = status;
+  if (status === 'recebido') {
+    button.classList.add('success', 'active');
+  } else if (status === 'solicitado') {
+    button.classList.add('info', 'active');
+  } else if (status === 'obter') {
+    button.classList.add('warning', 'active');
+  }
+  documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+  documentoElement.classList.add('status-' + status);
+  if (typeof saveFormState === 'function') {
+    saveFormState();
+  }
+};
+
+window.toggleDocumentStatusTag = function(element) {
+  const currentStatus = element.getAttribute('data-selected');
+  const statusValue = element.getAttribute('data-value') || element.querySelector('select').value;
+  if (!element.hasAttribute('data-value')) {
+    element.setAttribute('data-value', statusValue);
+  }
+  if (currentStatus) {
+    element.removeAttribute('data-selected');
+  } else {
+    element.setAttribute('data-selected', statusValue);
+  }
+  const documentoElement = element.closest('.documento-item');
+  if (documentoElement) {
+    let mappedStatus = statusValue.toLowerCase();
+    if (mappedStatus === 'recebido') mappedStatus = 'recebido';
+    else if (mappedStatus === 'solicitado') mappedStatus = 'solicitado';
+    else if (mappedStatus === 'obter') mappedStatus = 'obter';
+    documentoElement.dataset.status = mappedStatus;
+    documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+    documentoElement.classList.add('status-' + mappedStatus);
+  }
+  if (typeof saveFormState === 'function') {
+    saveFormState();
+  }
+};
+
+window.updateDocumentStatusTag = function(select) {
+  const container = select.closest('.relationship-select');
+  const value = select.value;
+  container.setAttribute('data-selected', value);
+  container.setAttribute('data-value', value);
+  const documentoElement = container.closest('.documento-item');
+  if (documentoElement) {
+    let mappedStatus = value.toLowerCase();
+    if (mappedStatus === 'recebido') mappedStatus = 'recebido';
+    else if (mappedStatus === 'solicitado') mappedStatus = 'solicitado';
+    else if (mappedStatus === 'obter') mappedStatus = 'obter';
+    documentoElement.dataset.status = mappedStatus;
+    documentoElement.classList.remove('status-recebido', 'status-solicitado', 'status-obter');
+    documentoElement.classList.add('status-' + mappedStatus);
+  }
+  if (typeof saveFormState === 'function') {
+    saveFormState();
+  }
+};
+
+window.toggleDocumentFields = function(button) {
+  if (!button) return;
+  const documentoElement = button.closest('.documento-item');
+  if (!documentoElement) return;
+  const detalhesArea = documentoElement.querySelector('.detalhes-documento-container');
+  const icon = button.querySelector('i');
+  if (detalhesArea) {
+    if (detalhesArea.classList.contains('hidden')) {
+      detalhesArea.classList.remove('hidden');
+      icon.classList.remove('fa-chevron-down');
+      icon.classList.add('fa-chevron-up');
+    } else {
+      detalhesArea.classList.add('hidden');
+      icon.classList.remove('fa-chevron-up');
+      icon.classList.add('fa-chevron-down');
+    }
+  }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
   // Função para adicionar novo documento
   if (typeof window.adicionarNovoDocumento !== 'function') {
