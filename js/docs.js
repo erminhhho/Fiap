@@ -810,6 +810,7 @@ htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', formatPeri
           htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Status Contrib.</th>';
           htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Início</th>';
           htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Fim</th>';
+          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Prazo</th>';
           htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Detalhes/Local</th>';
           htmlContent += '</tr></thead><tbody>';
           sectionData.atividade_tipo.forEach((tipoAtividade, index) => {
@@ -825,6 +826,7 @@ htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', formatPeri
             htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${cellContentProf}</td>`;
             htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_periodo_inicio?.[index])}</td>`;
             htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_periodo_fim?.[index])}</td>`;
+            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_prazo?.[index])}</td>`;
             htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_detalhes?.[index])}</td>`;
             htmlContent += '</tr>';
           });
