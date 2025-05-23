@@ -169,7 +169,7 @@ const Mask = {
       background: '#f5f5f5',
       color: '#888',
       fontSize: '14px',
-      zIndex: '100',
+      zIndex: '1', // Reduzido para não sobrepor a navbar
       transition: 'all 0.2s ease',
       boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
       border: '1px solid #ddd'
