@@ -36,6 +36,8 @@ window.initModule = function() {
 
   setupEvents();
   setupDynamicFieldEvents();
+  // Reaplicar estilos das tags de relacionamento para garantir estado padrão
+  if (typeof applyRelationshipStyles === 'function') applyRelationshipStyles();
 
   document.addEventListener('stepChanged', function handleStepChange() {
     window._personalInitialized = false;
@@ -59,6 +61,8 @@ window.initModule = function() {
       document.querySelectorAll('input[name="autor_nome[]"], input[name="autor_apelido[]"]').forEach(input => {
         if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
       });
+      // Reaplicar estilos das tags de relacionamento após restauração de estado
+      if (typeof applyRelationshipStyles === 'function') applyRelationshipStyles();
     }, 350);
   }
 
@@ -380,20 +384,19 @@ function removeLastAuthor() {
 
 // Função para atualizar a etiqueta de relacionamento
 function updateRelationshipLabel(selectElement, authorId) {
-  const selectedValue = selectElement.value;
-  // const nameField = document.getElementById(`nome_${authorId}`); // Não é mais necessário para a label
-
-  // A label do nome deve permanecer "Nome". O tipo de relacionamento é indicado pelo estilo do select.
-  // const nameLabel = document.querySelector(`label[for="nome_${authorId > 1 ? '_' + authorId : ''}"]`);
-  // if (nameLabel) {
-  //   nameLabel.textContent = selectedValue; // REMOVER OU COMENTAR ESTA LINHA
-  // }
+  let selectedValue = selectElement.value;
+  const container = selectElement.closest('.relationship-select');
+  // Se não houver valor selecionado, usar valor padrão do HTML ou da primeira opção
+  if (!selectedValue && container) {
+    const defaultValueFromHTML = container.dataset.value || (selectElement.options[0] && selectElement.options[0].value);
+    selectedValue = defaultValueFromHTML;
+    selectElement.value = selectedValue;
+  }
 
   // Atualizar a cor/estilo do seletor baseada na opção selecionada
-  const relationshipSelect = selectElement.closest('.relationship-select');
-  if (relationshipSelect) {
-    relationshipSelect.setAttribute('data-selected', selectedValue);
-    relationshipSelect.setAttribute('data-value', selectedValue); // Atualizar o data-value para exibir o texto correto
+  if (container) {
+    container.setAttribute('data-selected', selectedValue);
+    container.setAttribute('data-value', selectedValue);
   }
 }
 
