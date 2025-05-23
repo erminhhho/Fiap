@@ -459,12 +459,20 @@ function getFormattedText(value) {
 // Função para atualizar a tag selecionada
 function updateActivityTag(select) {
   const container = select.closest('.relationship-select');
-  const value = select.value;
+  let value = select.value;
+
+  // Se o valor restaurado/atual for vazio, usar o valor padrão do HTML (data-value original da div)
+  // ou um padrão fixo se o data-value original não estiver disponível.
+  if (!value) {
+    const defaultValueFromHTML = container.dataset.value; // O valor original definido no HTML
+    value = defaultValueFromHTML || 'Contribuiu'; // Fallback para 'Contribuiu'
+    select.value = value; // Atualizar o próprio select para refletir o padrão
+    console.log(`[Professional] updateActivityTag: Valor do select estava vazio. Definido para o padrão: '${value}'`);
+  }
 
   // Atualiza os atributos data-selected e data-value
-  // Usamos o mesmo valor para ambos já que os valores já estão formatados no HTML
   container.setAttribute('data-selected', value);
-  container.setAttribute('data-value', value);
+  container.setAttribute('data-value', value); // Mantido para consistência, CSS pode usar isso
   console.log(`[Professional] updateActivityTag: div data-selected/data-value set to '${value}' para select '${select.name}'`);
 }
 

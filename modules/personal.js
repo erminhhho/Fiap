@@ -407,44 +407,49 @@ function applyRelationshipStyles() {
     if (!container) return;
 
     let valueToApply = select.value;
+    const originalHtmlDataValue = container.dataset.value; // Valor original do data-value no HTML
 
-    // Proteção especial para o primeiro autor (#relationship_1)
-    // Se o select.value estiver vazio, mas já tínhamos um data-selected (estilo aplicado),
-    // não resetar o estilo para "vazio". Tentar usar o data-selected anterior.
-    if (select.id === 'relationship_1' && !select.value) {
+    // Se o select.value estiver vazio
+    if (!select.value) {
       const previousDataSelected = container.getAttribute('data-selected');
-      if (previousDataSelected && previousDataSelected.trim() !== '') { // Checar se previousDataSelected não é nulo ou só espaços
-        console.log(`[DEBUG] applyRelationshipStyles: Para #relationship_1, select.value é VAZIO, mas data-selected ('${previousDataSelected}') existe. Usando data-selected para valueToApply.`);
+      if (previousDataSelected && previousDataSelected.trim() !== '') {
+        console.log(`[DEBUG] applyRelationshipStyles: Para select '${select.id || select.name}', select.value é VAZIO, mas data-selected ('${previousDataSelected}') existe. Usando data-selected.`);
         valueToApply = previousDataSelected;
-        // Não vamos tentar setar select.value aqui para evitar disparar eventos 'change' inesperadamente.
-        // A restauração normal de state.js cuidará de setar o select.value corretamente.
-        // E então uma chamada subsequente a applyRelationshipStyles (ex: no setupEvents) pegará o select.value correto.
+      } else {
+        // Se data-selected também não ajudar, usar o valor original do HTML ou um fallback.
+        // Para o primeiro autor, o padrão é 'Requerente'. Para os demais, pode ser o primeiro da lista ou um padrão específico.
+        if (select.id === 'relationship_1' || (select.name === 'autor_relationship[]' && select.closest('#author-1'))) {
+          valueToApply = originalHtmlDataValue || 'Requerente';
+        } else if (select.options.length > 0) {
+          // Para outros autores, usar o valor da primeira opção como padrão se o valor original do HTML não estiver definido
+          valueToApply = originalHtmlDataValue || select.options[0].value;
+        } else {
+          valueToApply = 'Dependente'; // Um fallback genérico se não houver opções
+        }
+        console.log(`[DEBUG] applyRelationshipStyles: Para select '${select.id || select.name}', select.value e data-selected estavam vazios. Usando como padrão: '${valueToApply}'.`);
       }
+      // Importante: Atualizar o valor do select para que o estado salvo reflita o padrão aplicado.
+      select.value = valueToApply;
     }
 
     // Aplicar a classe inicialmente com base na opção selecionada ou no valor deduzido
     container.setAttribute('data-selected', valueToApply);
-    container.setAttribute('data-value', valueToApply); // data-value é usado para o texto da tag via CSS ::after
+    // data-value é usado para o texto da tag via CSS ::after, então deve refletir o valor selecionado.
+    container.setAttribute('data-value', valueToApply);
 
     // Remover estilos inline que possam estar causando conflitos
     container.removeAttribute('style');
     select.removeAttribute('style');
 
-    // Garantir que o texto da etiqueta está sempre atualizado
-    // Não precisamos mais adicionar o texto manualmente porque estamos usando ::after no CSS
-
     // Adicionar evento change se ainda não tiver
     if (!select.dataset.styleInitialized) {
       select.dataset.styleInitialized = true;
-
-      // Adicionar um evento onchange para atualizar o data-value quando a seleção mudar
       select.addEventListener('change', function() {
         const newValue = this.value;
-        const container = this.closest('.relationship-select');
-        if (container) {
-          // Atualizar tanto data-selected quanto data-value para manter a consistência visual
-          container.setAttribute('data-selected', newValue);
-          container.setAttribute('data-value', newValue);
+        const currentContainer = this.closest('.relationship-select');
+        if (currentContainer) {
+          currentContainer.setAttribute('data-selected', newValue);
+          currentContainer.setAttribute('data-value', newValue);
         }
       });
     }
@@ -453,9 +458,8 @@ function applyRelationshipStyles() {
   // Adicionar também um evento que reaplicará os estilos ao voltar de outra página
   if (!window.relationshipStylesEventSet) {
     window.addEventListener('pageshow', function(event) {
-      // Se a página foi carregada do cache (ao navegar com o botão voltar)
       if (event.persisted) {
-        setTimeout(applyRelationshipStyles, 100); // Aplicar estilos com um pequeno delay
+        setTimeout(applyRelationshipStyles, 100);
       }
     });
     window.relationshipStylesEventSet = true;
@@ -793,6 +797,7 @@ function setupEvents() {
 
   // Configurar a busca de colaboradores
   setupColaboradorSearch();
+  setupCidadeSearch();
 
   // Configurar a capitalização automática
   if (typeof setupAutoCapitalize === 'function') {
