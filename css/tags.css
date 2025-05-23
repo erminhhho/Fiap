@@ -330,7 +330,7 @@
   transform: translateY(-50%);
   border: none;
   color: white;
-  background-color: #075985; /* Azul Petróleo Escuro (NOVA COR) */
+  background: #059669 !important; /* Verde forte e meio escuro */
 }
 
 /* Estilo para destacar campos com isenção de carência */

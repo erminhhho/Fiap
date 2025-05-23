@@ -1029,15 +1029,15 @@ function showClearConfirmation(event, section) {
 
   // Conteúdo do popup
   confirmation.innerHTML = `
-    <p class="text-sm text-gray-700 mb-2">Tem certeza que deseja limpar esta seção?</p>
-    <div class="flex justify-end space-x-2">
-      <button class="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded-md text-gray-700" onclick="document.getElementById('clear-confirmation').remove()">
-        Cancelar
-      </button>
-      <button class="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 rounded-md text-white" onclick="executeClearSection('${section}')">
-        Limpar
-      </button>
-    </div>
+    <p class="text-sm text-gray-700 mb-4">Limpar esta seção?</p>
+    <div class="flex gap-2 w-full mt-2">
+  <button class="flex-1 px-3 py-2 text-xs bg-gray-200 hover:bg-gray-300 rounded-md text-gray-700 font-semibold transition" onclick="document.getElementById('clear-confirmation').remove()">
+    Cancelar
+  </button>
+  <button class="flex-1 px-3 py-2 text-xs bg-red-500 hover:bg-red-600 rounded-md text-white font-semibold transition" onclick="executeClearSection('${section}')">
+    Limpar
+  </button>
+</div>
   `;
 
   // Adicionar ao documento

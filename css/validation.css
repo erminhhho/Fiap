@@ -150,6 +150,12 @@ textarea {
   padding-right: 0.85rem !important;
 }
 
+.isento-carencia-field {
+  border-color: #059669 !important; /* Verde forte e meio escuro */
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 @media (max-width: 600px) {
   .validation-icon {
     right: 0.7rem;
