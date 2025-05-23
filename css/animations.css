@@ -40,7 +40,7 @@
 
 #progress-bar {
   position: fixed;
-  top: calc(4rem - 1px); /* colado na base do header fixo */
+  top: 4rem; /* agora exatamente fora do cabeçalho */
   left: 0;
   width: 0;
   height: 1.75px; /* barra mais fina */
