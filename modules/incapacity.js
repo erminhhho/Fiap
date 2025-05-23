@@ -1142,7 +1142,7 @@ function addDoencaField() {
 
   // Criar o elemento HTML para o novo campo
   const newDoencaField = document.createElement('div');
-  newDoencaField.className = 'mb-4 border-b border-gray-200 pb-4';
+  newDoencaField.className = 'mb-4';
   newDoencaField.innerHTML = `
     <!-- Layout otimizado: todos os campos na mesma linha -->
     <div class="grid grid-cols-1 md:grid-cols-24 gap-4">

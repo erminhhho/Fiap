@@ -10,7 +10,7 @@
         </div>
         <i class="fas fa-eraser cursor-pointer text-gray-400 hover:text-red-500 transition" title="Limpar seção" onclick="showClearConfirmation(event, 'personal')"></i>
       </div>
-      <div id="authors-container">
+      <div id="authors-container" class="space-y-5">
         <!-- Primeiro autor (principal) -->
         <div class="author-row mb-4" id="author-1">
           <!-- Primeira linha: Nome, CPF, Nascimento e Idade -->
@@ -138,9 +138,14 @@
             </div>
           </div>
         </div>
+        <!-- Linha de separação entre autor principal e outros autores -->
+        <hr class="my-6 border-gray-300" id="hr-entre-autores-principal" />
+        <!-- Outros autores serão inseridos dinamicamente aqui, sem linha de separação entre eles -->
       </div>
     </div>
 
+    <!-- Linha de separação antes do endereço -->
+    <hr class="my-8 border-gray-300" id="hr-antes-endereco" />
     <!-- Endereço -->
     <div>
       <div class="flex items-center justify-between gap-2 mb-6">

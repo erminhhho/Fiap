@@ -277,12 +277,8 @@ function addAuthor() {
     }
 
     // Adicionar separador e o novo autor ao container
-    const separator = document.createElement('div');
-    separator.className = 'author-separator border-t border-gray-200 my-4';
-
     const authorsContainer = document.getElementById('authors-container');
     if (authorsContainer) {
-      authorsContainer.appendChild(separator);
       authorsContainer.appendChild(newAuthor);
       console.log(`[personal.js] addAuthor: Novo autor author-${window.authorCount} (elemento ID: ${newAuthor.id}) adicionado ao DOM.`);
     }
