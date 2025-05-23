@@ -270,6 +270,71 @@ function addAtividade() {
   // Adicionar ao DOM - coloque sempre no final da lista
   atividadesList.appendChild(atividadeDiv);
 
+  // Lógica de sincronização dos campos de ano/prazo
+  const inicioInput = atividadeDiv.querySelector('.periodo-inicio');
+  const fimInput = atividadeDiv.querySelector('.periodo-fim');
+  const prazoInput = atividadeDiv.querySelector('.periodo-prazo');
+
+  function syncPrazo() {
+    const inicio = parseInt(inicioInput.value, 10);
+    const fim = parseInt(fimInput.value, 10);
+    if (!isNaN(inicio) && !isNaN(fim)) {
+      let prazo = fim - inicio + 1;
+      if (prazo < 0) prazo = 0;
+      prazoInput.value = prazo > 0 ? prazo + ' anos' : '';
+    }
+  }
+
+  function syncFim() {
+    const inicio = parseInt(inicioInput.value, 10);
+    const prazo = parseInt(prazoInput.value);
+    if (!isNaN(inicio) && !isNaN(prazo)) {
+      fimInput.value = inicio + prazo - 1;
+    }
+  }
+
+  function syncInicio() {
+    const fim = parseInt(fimInput.value, 10);
+    const prazo = parseInt(prazoInput.value);
+    if (!isNaN(fim) && !isNaN(prazo)) {
+      inicioInput.value = fim - prazo + 1;
+    }
+  }
+
+  // Máscara para o campo prazo
+  prazoInput.addEventListener('input', function(e) {
+    let val = this.value.replace(/\D/g, '');
+    if (val) this.value = val + ' anos';
+    else this.value = '';
+  });
+
+  // Sincronização automática
+  inicioInput.addEventListener('input', function() {
+    if (fimInput.value) syncPrazo();
+    else if (prazoInput.value) syncFim();
+  });
+  fimInput.addEventListener('input', function() {
+    if (inicioInput.value) syncPrazo();
+    else if (prazoInput.value) syncInicio();
+  });
+  prazoInput.addEventListener('input', function() {
+    if (inicioInput.value) syncFim();
+    else if (fimInput.value) syncInicio();
+  });
+
+  // Validação: início não pode ser maior que fim
+  function validatePeriodo() {
+    const inicio = parseInt(inicioInput.value, 10);
+    const fim = parseInt(fimInput.value, 10);
+    if (!isNaN(inicio) && !isNaN(fim) && inicio > fim) {
+      inicioInput.setCustomValidity('O ano de início não pode ser maior que o ano de fim.');
+    } else {
+      inicioInput.setCustomValidity('');
+    }
+  }
+  inicioInput.addEventListener('input', validatePeriodo);
+  fimInput.addEventListener('input', validatePeriodo);
+
   // Destacar campos preenchidos
   if (typeof destacarCamposPreenchidos === 'function') {
     destacarCamposPreenchidos();

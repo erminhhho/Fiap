@@ -442,6 +442,7 @@ class FormStateManager {
         'atividade_tag_status': window.addAtividade,
         'atividade_periodo_inicio': window.addAtividade,
         'atividade_periodo_fim': window.addAtividade,
+        'atividade_prazo': window.addAtividade, // NOVO CAMPO PRAZO
         'atividade_detalhes': window.addAtividade
       },
       personal: { // ADICIONADO PARA AUTORES
@@ -589,7 +590,7 @@ class FormStateManager {
             // Se numberOfDataRows é 2, a primeira linha estática + 1 linha adicionada devem ter dados.
             // Portanto, queremos manter 'numberOfDataRows' no total.
             for (let i = rows.length - 1; i >= numberOfDataRows; i--) {
-                 // A condição i > 0 foi removida daqui porque a primeira linha (index 0)
+                 // A condição i > 0 foi removida daqui porque a primeira linha (índice 0)
                  // também é uma 'atividade-item'. Se numberOfDataRows é 0, queremos limpar todas as linhas
                  // exceto a primeira que é parte do layout base (ou recriá-la se foi removida por engano).
                  // No entanto, addAtividade appenda. A primeira linha estática não é 'adicionada'.
