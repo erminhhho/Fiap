@@ -271,6 +271,8 @@ const cacheAPI = {
  * @param {HTMLInputElement} input - Campo de entrada da cidade
  */
 async function buscarCidades(input) {
+  // Só exibe o dropdown se o campo estiver em foco (usuário interagindo)
+  if (document.activeElement !== input) return;
   const texto = input.value.trim().toLowerCase();
 
   // Remover dropdowns anteriores
