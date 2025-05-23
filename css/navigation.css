@@ -34,13 +34,18 @@
 
 .step-link.active {
   color: #2563eb; /* blue-600 */
-  border-bottom: 2px solid #2563eb;
 }
 
 /* Slider entre ícones - movido para o elemento .nav-slider */
 
 .nav-slider {
-  display: none !important;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background-color: #2563eb; /* blue-600 */
+  transition: all 0.3s ease;
+  z-index: 1;
 }
 
 #main-navbar {
