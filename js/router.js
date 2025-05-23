@@ -293,24 +293,45 @@ async function loadModuleWithTemplate(route) {
 function updateNavSlider() {
   const activeStep = document.querySelector('.step-link.active');
   const slider = document.querySelector('.nav-slider');
+  const mainNav = document.querySelector('.main-nav');
 
-  if (activeStep && slider) {
-    const stepRect = activeStep.getBoundingClientRect();
-    const containerRect = document.querySelector('.main-nav').getBoundingClientRect();
+  if (!slider || !mainNav) {
+    console.warn('[Router] Slider ou mainNav não encontrado para updateNavSlider.');
+    return;
+  }
 
-    // Posicionar o slider abaixo do ícone ativo
-    const centerX = stepRect.left + (stepRect.width / 2) - containerRect.left;
-    slider.style.left = `${centerX}px`;
-    slider.style.width = `${stepRect.width / 2}px`; // Metade da largura do ícone
-
-    // Adicionar efeito de elevação no ícone
-    document.querySelectorAll('.step-link').forEach(link => {
-      if (link.classList.contains('active')) {
-        link.style.transform = 'translateY(-2px)';
-      } else {
-        link.style.transform = 'none';
+  if (activeStep) {
+    const containerRect = mainNav.getBoundingClientRect();
+    // Calcula o offset em relação ao container .main-nav
+    const sliderOffset = activeStep.offsetLeft + (activeStep.offsetWidth / 2) - (slider.offsetWidth / 2);
+    slider.style.transform = `translateX(${sliderOffset}px)`;
+    slider.style.opacity = '1'; // Garante que o slider esteja visível
+  } else if (currentRoute === 'home') {
+    // Caso especial para a rota 'home' na carga inicial ou se 'active' não estiver definido
+    const homeLink = document.querySelector('.step-link[href="#home"]');
+    if (homeLink) {
+      // Adiciona a classe active programaticamente se não estiver lá
+      // Isso pode ser redundante se navigateTo já fez, mas garante o estado.
+      if (!homeLink.classList.contains('active')) {
+        // Remove 'active' de outros links para garantir que apenas 'home' esteja ativo
+        document.querySelectorAll('.step-link.active').forEach(link => link.classList.remove('active'));
+        homeLink.classList.add('active');
       }
-    });
+      
+      const containerRect = mainNav.getBoundingClientRect();
+      const sliderOffset = homeLink.offsetLeft + (homeLink.offsetWidth / 2) - (slider.offsetWidth / 2);
+      slider.style.transform = `translateX(${sliderOffset}px)`;
+      slider.style.opacity = '1';
+    } else {
+      // Se o link home não for encontrado, esconde o slider
+      slider.style.opacity = '0';
+      slider.style.transform = 'translateX(-100%)';
+    }
+  } else {
+    // Se nenhuma aba estiver ativa e não for a home, esconde o slider
+    // Isso pode acontecer se a rota for inválida ou não mapeada para um link visível
+    slider.style.opacity = '0';
+    slider.style.transform = 'translateX(-100%)'; // Ou outra forma de esconder/resetar
   }
 }
 
