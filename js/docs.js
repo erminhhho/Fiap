@@ -972,7 +972,7 @@ htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', formatPeri
     htmlContent += `
       <button id="btn-gerar-pdf-relatorio" style="position:fixed;bottom:32px;right:32px;z-index:9999;padding:14px 28px;font-size:15px;font-weight:600;background:#2563eb;color:#fff;border:none;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.13);cursor:pointer;transition:background 0.2s;display:inline-block;"
         onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#2563eb'">
-        Gerar PDF deste relatório
+        Gerar PDF
       </button>
       <style>@media print { #btn-gerar-pdf-relatorio { display:none !important; } }</style>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
