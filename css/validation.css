@@ -74,12 +74,13 @@
 /* Ícone dentro do campo alinhado à direita */
 .validation-icon {
   position: absolute;
-  right: 12px;
+  right: 1rem; /* Sempre 1rem, responsivo */
   top: 50%;
   transform: translateY(-50%);
   z-index: 5;
   font-size: 1rem;
   pointer-events: none;
+  margin: 0;
 }
 
 .validation-icon.error {
@@ -108,47 +109,22 @@
 .cpf-valid,
 .cep-valid {
   border-color: #10b981 !important;
-  padding-right: 2.5rem !important; /* Espaço para o ícone */
+  padding-right: 3.5rem !important; /* Mais espaço para o ícone, nunca sobrepõe texto */
 }
 
 .field-invalid,
 .cpf-invalid,
 .cep-invalid {
   border-color: #ef4444 !important;
-  padding-right: 2.5rem !important; /* Espaço para o ícone */
+  padding-right: 3.5rem !important;
 }
 
-/* Remover o padding-right específico da classe .with-validation */
-.with-validation {
-  padding-right: inherit !important;
-}
-
-/* Estilos para campos válidos e inválidos */
-.field-valid {
-  border-color: #28a745;
-}
-
-.field-invalid {
-  border-color: #dc3545;
-}
-
-/* Estilo para destacar campo CEP após seleção de cidade */
-.cep-highlight {
-  animation: cep-pulse 1.5s ease;
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-}
-
-/* Estilos para posicionamento fixo das etiquetas de status no canto superior direito dos campos */
-.field-status-tag {
-  position: absolute;
-  z-index: 10;
-}
-
-.top-right-position {
-  top: -10px;
-  right: 0;
-  transform: translateY(-50%);
+/* Garantir padding mínimo mesmo sem validação */
+input:not([type=checkbox]):not([type=radio]),
+select,
+textarea {
+  padding-left: 0.85rem !important;
+  padding-right: 1rem !important;
 }
 
 /* Remove o negrito das labels e campos */
@@ -164,4 +140,33 @@ input:focus, select:focus, textarea:focus {
   outline: none;
   background-color: var(--color-bg) !important; /* Branco quando em foco */
   box-shadow: none !important; /* Removendo a sombra */
+}
+
+/* Ajuste global: padding confortável e ícone equilibrado */
+input:not([type=checkbox]):not([type=radio]),
+select,
+textarea {
+  padding-left: 0.85rem !important; /* 13-14px */
+  padding-right: 0.85rem !important;
+}
+
+@media (max-width: 600px) {
+  .validation-icon {
+    right: 0.7rem;
+    font-size: 0.95rem;
+  }
+  .field-valid,
+  .cpf-valid,
+  .cep-valid,
+  .field-invalid,
+  .cpf-invalid,
+  .cep-invalid {
+    padding-right: 2.5rem !important;
+  }
+  input:not([type=checkbox]):not([type=radio]),
+  select,
+  textarea {
+    padding-left: 0.6rem !important;
+    padding-right: 0.7rem !important;
+  }
 }
