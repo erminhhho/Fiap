@@ -164,6 +164,13 @@ window.setupProfissaoAutocomplete = function() {
   const dropdown = document.getElementById('profissaoDropdown');
   if (!input || !dropdown) return;
 
+  // Sempre esconder o dropdown de profissão se o campo já estiver preenchido ao restaurar
+  dropdown.classList.add('hidden');
+  // Também ao restaurar a página (navegação SPA ou F5)
+  window.addEventListener('pageshow', function() {
+    dropdown.classList.add('hidden');
+  });
+
   let debounceTimer;
 
   // Função para buscar profissões
@@ -203,6 +210,11 @@ window.setupProfissaoAutocomplete = function() {
     }
     debounceTimer = setTimeout(() => {
       const resultados = buscarProfissoes(query);
+      // Se só existe um resultado e ele é igual ao valor do campo, não mostrar dropdown
+      if (resultados.length === 1 && resultados[0] === this.value) {
+        dropdown.classList.add('hidden');
+        return;
+      }
       renderizarProfissoes(resultados, query);
     }, 250);
   });
@@ -305,6 +317,12 @@ window.initModule = function() {
   // Restaurar dados para esta etapa
   if (window.formStateManager) {
     const currentStepKey = 'incapacity';
+    // Ocultar imediatamente o dropdown de profissão antes de restaurar
+    const profInput = document.getElementById('profissao');
+    const profDropdown = document.getElementById('profissaoDropdown');
+    if (profInput && profDropdown) {
+      profDropdown.classList.add('hidden');
+    }
     setTimeout(() => {
       console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
       window.formStateManager.ensureFormAndRestore(currentStepKey);
@@ -317,6 +335,14 @@ window.initModule = function() {
           const index = input.getAttribute('data-index');
           const doencaInput = document.getElementById('doenca' + index);
           if (doencaInput && typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(doencaInput);
+        });
+        // Ocultar dropdown de profissão se já estiver preenchido (reforço com requestAnimationFrame)
+        requestAnimationFrame(() => {
+          const profInput = document.getElementById('profissao');
+          const profDropdown = document.getElementById('profissaoDropdown');
+          if (profInput && profDropdown) {
+            profDropdown.classList.add('hidden');
+          }
         });
       }, 350);
     }, 700);
@@ -367,7 +393,7 @@ function resetIncapacityUI() {
   // Resetar a verificação de isenção de carência visualmente
   const carenciaInfo = document.getElementById('carencia-info');
   if (carenciaInfo) {
-    carenciaInfo.innerHTML = '<p class="text-sm text-gray-500">Preencha os campos de CID ou Doença para verificar a isenção de carência.</p>';
+    carenciaInfo.innerHTML = '';
     carenciaInfo.className = 'mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md'; // Resetar classes
   }
 }
@@ -432,11 +458,7 @@ function configurarCampoCID(input) {
       dropdown.classList.remove('hidden');
 
       // Mostrar indicador de carregamento
-      dropdown.innerHTML = `
-        <div class="p-4 text-center text-gray-500">
-          <i class="fas fa-spinner fa-spin mr-2"></i> Pesquisando...
-        </div>
-      `;
+      dropdown.innerHTML = '';
 
       // Buscar resultados
       let resultados = [];
@@ -453,11 +475,7 @@ function configurarCampoCID(input) {
       renderizarResultadosCID(dropdown, resultados, input, doencaInput, query);
     } catch (error) {
       console.error('Erro ao pesquisar CID:', error);
-      dropdown.innerHTML = `
-        <div class="p-4 text-center text-red-500">
-          Erro ao pesquisar. Tente novamente.
-        </div>
-      `;
+      dropdown.innerHTML = '';
     }
   });
 
@@ -488,11 +506,7 @@ function renderizarResultadosCID(dropdown, resultados, cidInput, doencaInput, qu
 
   // Se não houver resultados
   if (!resultados || resultados.length === 0) {
-    dropdown.innerHTML = `
-      <div class="p-4 text-center text-gray-500">
-        Nenhum CID encontrado para "${query}"
-      </div>
-    `;
+    dropdown.innerHTML = '';
     // Não adicionar mais nada, apenas mostrar a mensagem.
     // A div e o listener para 'Criar novo registro com este código' foram removidos daqui.
     return;

@@ -306,8 +306,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: help;
-  transition: all 0.2s ease;
+  cursor: not-allowed;
+  transition: none;
   z-index: 20;
   white-space: nowrap;
   transform: translateY(-50%);
@@ -321,10 +321,11 @@
   border-color: #f97316 !important; /* Borda laranja sutil */
 }
 
-/* Melhorar o efeito de hover na tag de isenção */
 .isento-carencia-tag:hover {
-  transform: translateY(-55%) scale(1.05);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  cursor: not-allowed;
+  background-color: #f97316;
+  box-shadow: none;
+  transform: translateY(-50%);
 }
 
 /* Estilos para as tags de classificação etária judicial */
@@ -332,15 +333,16 @@
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
+  box-shadow: none;
+  text-shadow: none;
+  transition: none;
+  cursor: not-allowed;
 }
 
 .age-classification-tag:hover {
-  transform: translate(0, -54%) scale(1.05);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-  cursor: help;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 /* Quando o input do nome está em foco, garantir que a tag fique visível */
