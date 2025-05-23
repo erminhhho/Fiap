@@ -42,7 +42,6 @@ function clearForm(showConfirmation = true) {
 
 // Função para criar um novo formulário
 function newForm() {
-  if (confirm('Deseja iniciar um novo formulário? Os dados não salvos serão perdidos.')) {
     // 1. Limpar os valores dos campos estáticos do formulário atual
     clearForm(false);
 
@@ -70,7 +69,6 @@ function newForm() {
     }
 
     showSuccess('Novo formulário iniciado!', null, { duration: 3000 });
-  }
 }
 
 // Função para salvar o formulário com Firebase
@@ -255,7 +253,7 @@ function addFamilyMember() {
   const membrosList = document.getElementById('membros-familia-list');
   if (!membrosList) return;
 
-  // Clone do template ou crie um novo se não existir
+  // Clone do template ou crie um novo se não existir um explícito
   let template = document.getElementById('membro-familia-template');
 
   if (!template) {
