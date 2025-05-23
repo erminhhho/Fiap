@@ -49,6 +49,6 @@
 }
 
 #main-navbar {
-  /* Sombra mais pronunciada abaixo do cabeçalho */
-  box-shadow: 0 3px 4px rgba(0,0,0,0.15), 0 6px 9px rgba(0,0,0,0.11) !important;
+  /* Sombra mais pronunciada abaixo do cabeçalho - reduzida em 25% */
+  box-shadow: 0 2.25px 3px rgba(0,0,0,0.1125), 0 4.5px 6.75px rgba(0,0,0,0.0825) !important;
 }
