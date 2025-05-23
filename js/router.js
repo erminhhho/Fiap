@@ -335,36 +335,37 @@ function updateNavSlider() {
 
   if (activeStep) {
     const containerRect = mainNav.getBoundingClientRect();
-    // Calcula o offset em relação ao container .main-nav
-    const sliderOffset = activeStep.offsetLeft + (activeStep.offsetWidth / 2) - (slider.offsetWidth / 2);
-    slider.style.transform = `translateX(${sliderOffset}px)`;
-    slider.style.opacity = '1'; // Garante que o slider esteja visível
+    const activeRect = activeStep.getBoundingClientRect();
+    // Calcula o offset relativo ao container
+    const offsetLeft = activeRect.left - containerRect.left;
+    const width = activeRect.width;
+    // Aplica transform e largura para animar o slider
+    slider.style.transform = `translateX(${offsetLeft}px)`;
+    slider.style.width = `${width}px`;
+    slider.style.opacity = '1';
   } else if (currentRoute === 'home') {
-    // Caso especial para a rota 'home' na carga inicial ou se 'active' não estiver definido
     const homeLink = document.querySelector('.step-link[href="#home"]');
     if (homeLink) {
-      // Adiciona a classe active programaticamente se não estiver lá
-      // Isso pode ser redundante se navigateTo já fez, mas garante o estado.
       if (!homeLink.classList.contains('active')) {
-        // Remove 'active' de outros links para garantir que apenas 'home' esteja ativo
         document.querySelectorAll('.step-link.active').forEach(link => link.classList.remove('active'));
         homeLink.classList.add('active');
       }
-
       const containerRect = mainNav.getBoundingClientRect();
-      const sliderOffset = homeLink.offsetLeft + (homeLink.offsetWidth / 2) - (slider.offsetWidth / 2);
-      slider.style.transform = `translateX(${sliderOffset}px)`;
+      const homeRect = homeLink.getBoundingClientRect();
+      const offsetLeft = homeRect.left - containerRect.left;
+      const width = homeRect.width;
+      slider.style.transform = `translateX(${offsetLeft}px)`;
+      slider.style.width = `${width}px`;
       slider.style.opacity = '1';
     } else {
-      // Se o link home não for encontrado, esconde o slider
       slider.style.opacity = '0';
       slider.style.transform = 'translateX(-100%)';
+      slider.style.width = '0px';
     }
   } else {
-    // Se nenhuma aba estiver ativa e não for a home, esconde o slider
-    // Isso pode acontecer se a rota for inválida ou não mapeada para um link visível
     slider.style.opacity = '0';
-    slider.style.transform = 'translateX(-100%)'; // Ou outra forma de esconder/resetar
+    slider.style.transform = 'translateX(-100%)';
+    slider.style.width = '0px';
   }
 }
 
