@@ -168,10 +168,11 @@
   align-items: center;
   gap: 4px;
   font-size: 0.75rem; /* Fonte menor */
-  font-weight: normal !important;
+  font-weight: 600; /* Alterado de normal !important */
   border-radius: 12px;
-  padding: 0.05rem 0.6rem; /* Padding vertical uniforme e reduzido */
-  height: 1.4rem;
+  padding: 2px 10px; /* Alterado de 0.05rem 0.6rem */
+  /* height: 1.4rem; Removido para altura automática */
+  height: auto;
   transition: all 0.2s ease;
   box-shadow: none; /* Removido o efeito de sombra */
   margin-right: 0.5rem;
@@ -330,36 +331,14 @@
 
 /* Estilos para as tags de classificação etária judicial */
 .age-classification-tag {
-  font-size: 0.65rem;
+  font-size: 0.75rem; /* Alterado de 0.65rem */
   font-weight: 600;
-  letter-spacing: 0.5px;
-  box-shadow: none;
-  text-shadow: none;
-  transition: none;
-  cursor: not-allowed;
-}
-
-.age-classification-tag:hover {
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
-}
-
-/* Quando o input do nome está em foco, garantir que a tag fique visível */
-input:focus ~ .age-classification-tag {
-  z-index: 30;
-}
-
-/* Estilos das tags de classificação etária - usando o mesmo padrão das tags de relacionamento */
-.age-classification-tag {
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2px 10px; /* Alterado de 2px 8px */
+  border-radius: 12px; /* Alterado de 9999px */
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); Removido */
   white-space: nowrap;
-  user-select: none;
-  letter-spacing: 0.5px;
+  /* user-select: none; Removido */
+  /* letter-spacing: 0.5px; Removido */
   transition: all 0.2s ease;
   color: white;
 }
