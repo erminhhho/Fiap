@@ -56,6 +56,68 @@ window.initModule = function() {
     }, 50);
   }
 
+  // Após setupEvents();
+  // Aplicar lógica de sincronização e máscara do campo prazo para a primeira linha
+  const primeiraAtividade = document.querySelector('.atividade-item');
+  if (primeiraAtividade) {
+    const inicioInput = primeiraAtividade.querySelector('.periodo-inicio');
+    const fimInput = primeiraAtividade.querySelector('.periodo-fim');
+    const prazoInput = primeiraAtividade.querySelector('.periodo-prazo');
+    if (inicioInput && fimInput && prazoInput) {
+      function syncPrazo() {
+        const inicio = parseInt(inicioInput.value, 10);
+        const fim = parseInt(fimInput.value, 10);
+        if (!isNaN(inicio) && !isNaN(fim)) {
+          let prazo = fim - inicio + 1;
+          if (prazo < 0) prazo = 0;
+          prazoInput.value = prazo > 0 ? prazo + ' anos' : '';
+        }
+      }
+      function syncFim() {
+        const inicio = parseInt(inicioInput.value, 10);
+        const prazo = parseInt(prazoInput.value);
+        if (!isNaN(inicio) && !isNaN(prazo)) {
+          fimInput.value = inicio + prazo - 1;
+        }
+      }
+      function syncInicio() {
+        const fim = parseInt(fimInput.value, 10);
+        const prazo = parseInt(prazoInput.value);
+        if (!isNaN(fim) && !isNaN(prazo)) {
+          inicioInput.value = fim - prazo + 1;
+        }
+      }
+      prazoInput.addEventListener('input', function(e) {
+        let val = this.value.replace(/\D/g, '');
+        if (val) this.value = val + ' anos';
+        else this.value = '';
+      });
+      inicioInput.addEventListener('input', function() {
+        if (fimInput.value) syncPrazo();
+        else if (prazoInput.value) syncFim();
+      });
+      fimInput.addEventListener('input', function() {
+        if (inicioInput.value) syncPrazo();
+        else if (prazoInput.value) syncInicio();
+      });
+      prazoInput.addEventListener('input', function() {
+        if (inicioInput.value) syncFim();
+        else if (fimInput.value) syncInicio();
+      });
+      function validatePeriodo() {
+        const inicio = parseInt(inicioInput.value, 10);
+        const fim = parseInt(fimInput.value, 10);
+        if (!isNaN(inicio) && !isNaN(fim) && inicio > fim) {
+          inicioInput.setCustomValidity('O ano de início não pode ser maior que o ano de fim.');
+        } else {
+          inicioInput.setCustomValidity('');
+        }
+      }
+      inicioInput.addEventListener('input', validatePeriodo);
+      fimInput.addEventListener('input', validatePeriodo);
+    }
+  }
+
   console.log('[professional.js] Módulo totalmente inicializado e restauração solicitada.');
 };
 
