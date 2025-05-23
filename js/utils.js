@@ -408,79 +408,22 @@ FIAP.validation = {
    */
   cpfRealTime: function(input) {
     const cpf = input.value.replace(/\D/g, '');
-    const parentDiv = input.parentElement;
-
-    // Remover ícones e status anteriores
-    this.removeValidationIcon(input);
-
-    // Validação progressiva
-    if (cpf.length === 0) {
-      // Campo vazio - remover qualquer indicação
-      input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
-
-      // Remover qualquer estilo de validação do parent que possa estar afetando a label
-      parentDiv.classList.remove('invalid-parent', 'valid-parent');
-
-      // Garantir que a label mantenha sua cor original
-      const label = parentDiv.querySelector('label');
-      if (label) {
-        label.classList.remove('text-red-500', 'text-white');
-        label.classList.add('text-gray-700'); // Cor padrão para labels
-      }
-
-      this.removeValidationMessage(parentDiv);
-      return;
-    } else if (cpf.length < 11) {
-      // CPF incompleto - sempre remove status de erro/sucesso quando volta a ser incompleto
-      input.classList.remove('cpf-valid', 'cpf-invalid');
-      input.classList.add('cpf-validating');
-
-      // Usar ícone de digitação (keyboard) com cor azul para indicar digitação em andamento
-      this.addValidationIcon(input, 'keyboard', 'text-blue-500');
-      this.showValidationMessage(parentDiv, `Digite os ${11-cpf.length} dígitos restantes`, 'info');
-      return;
-    }
-
-    // Verificar se todos os dígitos são iguais
-    if (/^(\d)\1{10}$/.test(cpf)) {
-      input.classList.remove('cpf-validating', 'cpf-valid');
-      input.classList.add('cpf-invalid');
-      this.addValidationIcon(input, 'times-circle', 'text-red-500');
-      this.showValidationMessage(parentDiv, 'CPF inválido', 'error');
-      return;
-    }
-
-    // Validação do primeiro dígito verificador
+    input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
+    if (cpf.length === 0) return;
+    if (cpf.length < 11) { input.classList.add('cpf-invalid'); return; }
+    if (/^(\d)\1{10}$/.test(cpf)) { input.classList.add('cpf-invalid'); return; }
     let sum = 0;
-    for (let i = 0; i < 9; i++) {
-      sum += parseInt(cpf.charAt(i)) * (10 - i);
-    }
+    for (let i = 0; i < 9; i++) sum += parseInt(cpf.charAt(i)) * (10 - i);
     let remainder = sum % 11;
     let digit1 = remainder < 2 ? 0 : 11 - remainder;
-
-    // Validação do segundo dígito verificador
     sum = 0;
-    for (let i = 0; i < 10; i++) {
-      sum += parseInt(cpf.charAt(i)) * (11 - i);
-    }
+    for (let i = 0; i < 10; i++) sum += parseInt(cpf.charAt(i)) * (11 - i);
     remainder = sum % 11;
     let digit2 = remainder < 2 ? 0 : 11 - remainder;
-
-    // Verificar se os dígitos calculados são iguais aos dígitos informados
-    const isValid = (parseInt(cpf.charAt(9)) === digit1 && parseInt(cpf.charAt(10)) === digit2);
-
-    if (isValid) {
-      // CPF válido
-      input.classList.remove('cpf-validating', 'cpf-invalid');
+    if (parseInt(cpf.charAt(9)) === digit1 && parseInt(cpf.charAt(10)) === digit2) {
       input.classList.add('cpf-valid');
-      this.addValidationIcon(input, 'check-circle', 'text-green-500');
-      this.showValidationMessage(parentDiv, 'CPF válido', 'success');
     } else {
-      // CPF inválido
-      input.classList.remove('cpf-validating', 'cpf-valid');
       input.classList.add('cpf-invalid');
-      this.addValidationIcon(input, 'times-circle', 'text-red-500');
-      this.showValidationMessage(parentDiv, 'Dígitos verificadores incorretos', 'error');
     }
   },
 
@@ -490,115 +433,23 @@ FIAP.validation = {
    */
   dateOfBirthRealTime: function(input) {
     const dateValue = input.value;
-    const parentDiv = input.parentElement;
-
-    // Remover ícones e status anteriores
-    this.removeValidationIcon(input);
-
-    // Verificar se está vazio
-    if (!dateValue || dateValue.length === 0) {
-      input.classList.remove('date-valid', 'date-invalid', 'date-validating');
-      this.removeValidationMessage(parentDiv);
-      return;
-    }
-
-    // Se ainda não está no formato completo (DD/MM/AAAA)
-    if (dateValue.length < 10) {
-      input.classList.remove('date-valid', 'date-invalid');
-      input.classList.add('date-validating');
-      this.addValidationIcon(input, 'keyboard', 'text-blue-500');
-      this.showValidationMessage(parentDiv, `Continue digitando...`, 'info');
-      return;
-    }
-
-    // Fazer o parse da data
+    input.classList.remove('date-valid', 'date-invalid', 'date-validating');
+    if (!dateValue || dateValue.length < 10) { input.classList.add('date-invalid'); return; }
     const parts = dateValue.split('/');
-    if (parts.length !== 3) {
-      input.classList.remove('date-validating', 'date-valid');
-      input.classList.add('date-invalid');
-      this.addValidationIcon(input, 'times-circle', 'text-red-500');
-      this.showValidationMessage(parentDiv, 'Data em formato inválido', 'error');
-      return;
-    }
-
+    if (parts.length !== 3) { input.classList.add('date-invalid'); return; }
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
     const year = parseInt(parts[2], 10);
-
-    // Verificar valores básicos
-    if (month < 1 || month > 12) {
-      input.classList.remove('date-validating', 'date-valid');
-      input.classList.add('date-invalid');
-      this.addValidationIcon(input, 'times-circle', 'text-red-500');
-      this.showValidationMessage(parentDiv, 'Mês inválido', 'error');
-      return;
-    }
-
-    // Verificar dias por mês
     const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-    // Ajuste para ano bissexto
-    if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) {
-      daysInMonth[2] = 29;
-    }
-
-    if (day < 1 || day > daysInMonth[month]) {
-      input.classList.remove('date-validating', 'date-valid');
-      input.classList.add('date-invalid');
-      this.addValidationIcon(input, 'times-circle', 'text-red-500');
-      this.showValidationMessage(parentDiv, 'Dia inválido para este mês', 'error');
-      return;
-    }
-
-    // Verificar se é uma data no futuro
+    if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) daysInMonth[2] = 29;
+    if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month]) { input.classList.add('date-invalid'); return; }
     const currentDate = new Date();
     const inputDate = new Date(year, month - 1, day);
-
-    if (inputDate > currentDate) {
-      input.classList.remove('date-validating', 'date-valid');
-      input.classList.add('date-invalid');
-      this.addValidationIcon(input, 'times-circle', 'text-red-500');
-      this.showValidationMessage(parentDiv, 'Data não pode ser no futuro', 'error');
-      return;
-    }
-
-    // Verificar se não é uma data muito antiga (150 anos atrás)
+    if (inputDate > currentDate) { input.classList.add('date-invalid'); return; }
     const minDate = new Date();
     minDate.setFullYear(currentDate.getFullYear() - 150);
-
-    if (inputDate < minDate) {
-      input.classList.remove('date-validating', 'date-valid');
-      input.classList.add('date-invalid');
-      this.addValidationIcon(input, 'times-circle', 'text-red-500');
-      this.showValidationMessage(parentDiv, 'Data muito antiga', 'error');
-      return;
-    }
-
-    // Validar se a pessoa é maior de idade (opcional, comentado)
-    /*
-    const adultDate = new Date();
-    adultDate.setFullYear(currentDate.getFullYear() - 18);
-
-    if (inputDate > adultDate) {
-      input.classList.remove('date-validating');
-      input.classList.remove('date-invalid');
-      input.classList.add('date-valid');
-      this.addValidationIcon(input, 'exclamation-triangle', 'text-amber-500');
-      this.showValidationMessage(parentDiv, 'Pessoa menor de idade', 'warning');
-      return;
-    }
-    */
-
-    // Tudo ok
-    input.classList.remove('date-validating', 'date-invalid');
+    if (inputDate < minDate) { input.classList.add('date-invalid'); return; }
     input.classList.add('date-valid');
-    this.addValidationIcon(input, 'check-circle', 'text-green-500');
-    this.showValidationMessage(parentDiv, 'Data válida', 'success');
-
-    // Calcular idade se necessário
-    if (input.dataset.targetAge) {
-      FIAP.calculation.age(input.value, input.dataset.targetAge);
-    }
   },
 
   /**
@@ -615,28 +466,6 @@ FIAP.validation = {
   },
 
   /**
-   * Adiciona um ícone de validação dentro do campo
-   * @param {HTMLInputElement} input - Campo de entrada
-   * @param {string} icon - Nome do ícone FontAwesome sem o prefixo 'fa-'
-   * @param {string} colorClass - Classe de cor para o ícone
-   */
-  addValidationIcon: function(input, icon, colorClass) {
-    this.removeValidationIcon(input);
-
-    // Criar span para o ícone
-    const iconSpan = document.createElement('span');
-    iconSpan.className = `validation-field-icon absolute right-3 top-1/2 transform -translate-y-1/2 ${colorClass}`;
-    iconSpan.innerHTML = `<i class="fas fa-${icon}"></i>`;
-    iconSpan.style.zIndex = "20"; // Garantir que o ícone esteja acima de outros elementos
-
-    // Adicionar o ícone após o input (mas dentro do container)
-    input.parentElement.appendChild(iconSpan);
-
-    // Adicionar padding extra à direita para evitar sobreposição
-    input.style.paddingRight = '2.5rem';
-  },
-
-  /**
    * Remove ícone de validação do campo
    * @param {HTMLInputElement} input - Campo de entrada
    */
@@ -650,46 +479,6 @@ FIAP.validation = {
 
     // Restaurar padding original
     input.style.paddingRight = '';
-  },
-
-  /**
-   * Exibe mensagem de validação abaixo do campo
-   * @param {HTMLElement} parentDiv - Elemento pai onde a mensagem será exibida
-   * @param {string} message - Mensagem a ser exibida
-   * @param {string} type - Tipo de mensagem: 'error', 'success', 'info', 'warning'
-   */
-  showValidationMessage: function(parentDiv, message, type = 'info') {
-    this.removeValidationMessage(parentDiv);
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `validation-message text-xs ${type === 'error' ? 'text-red-500' :
-                                                      type === 'success' ? 'text-green-500' :
-                                                      type === 'warning' ? 'text-amber-500' : 'text-blue-500'}`;
-    messageDiv.innerHTML = message;
-
-    // Estilo minimalista para a mensagem
-    messageDiv.style.marginTop = "1px";
-    messageDiv.style.paddingLeft = "2px";
-    messageDiv.style.background = "transparent";
-    messageDiv.style.position = "absolute";
-    messageDiv.style.left = "0";
-    messageDiv.style.bottom = "-16px"; // Ajuste fino para ficar próximo ao campo
-    messageDiv.style.fontWeight = "normal"; // Garantir que não seja em negrito
-
-    // Adicionar a mensagem após o campo de entrada
-    parentDiv.appendChild(messageDiv);
-  },
-
-  /**
-   * Remove mensagem de validação
-   * @param {HTMLElement} parentDiv - Elemento pai que contém a mensagem
-   */
-  removeValidationMessage: function(parentDiv) {
-    const existingMessage = parentDiv.querySelector('.validation-message');
-
-    if (existingMessage) {
-      existingMessage.remove();
-    }
   },
 
   /**
@@ -946,70 +735,32 @@ FIAP.api = {
     if (cep.length !== 8) return;
 
     const cepInput = document.getElementById('cep');
-    const parentDiv = cepInput.parentElement;
+    if (!cepInput) return;
 
-    // Remover classes de validação e ícones anteriores
+    // Limpar classes de validação anteriores
     cepInput.classList.remove('cep-valid', 'cep-invalid');
-    FIAP.validation.removeValidationIcon(cepInput);
-
-    // Feedback visual de carregamento com ícone de spinner
-    FIAP.validation.addValidationIcon(cepInput, 'spinner', 'text-blue-500 fa-spin');
-
-    // Remover mensagem de validação anterior
-    const prevMessage = parentDiv.querySelector('.validation-message');
-    if (prevMessage) prevMessage.remove();
 
     fetch(`https://viacep.com.br/ws/${cep}/json/`)
       .then(response => {
-        // Verificar se a resposta foi bem-sucedida
-        if (!response.ok) {
-          throw new Error('Erro ao consultar o CEP. Verifique sua conexão com a internet.');
-        }
+        if (!response.ok) throw new Error('Erro ao consultar o CEP.');
         return response.json();
       })
       .then(data => {
-        // Remover ícone de carregamento
-        FIAP.validation.removeValidationIcon(cepInput);
-
         if (data.erro) {
-          // CEP inválido ou não encontrado
           cepInput.classList.add('cep-invalid');
-          FIAP.validation.addValidationIcon(cepInput, 'times-circle', 'text-red-500');
-          FIAP.validation.showValidationMessage(parentDiv, 'CEP não encontrado. Verifique o número.', 'error');
           return;
         }
-
-        // CEP válido - feedback visual verde
         cepInput.classList.add('cep-valid');
-        FIAP.validation.addValidationIcon(cepInput, 'check-circle', 'text-green-500');
-        FIAP.validation.showValidationMessage(parentDiv, 'CEP encontrado com sucesso!', 'success');
-
-        // Preencher campos de endereço
         document.getElementById('bairro').value = data.bairro || '';
         document.getElementById('cidade').value = data.localidade || '';
         document.getElementById('uf').value = data.uf || '';
         document.getElementById('endereco').value = data.logradouro || '';
-
-        // Focar campo de número após preenchimento
         if (data.logradouro) {
           document.getElementById('numero').focus();
         }
-
-        // Remover feedback visual depois de 5 segundos (aumentado para melhor visibilidade)
-        setTimeout(() => {
-          FIAP.validation.removeValidationMessage(parentDiv);
-          FIAP.validation.removeValidationIcon(cepInput);
-          // Manter a classe de validação para referência visual
-        }, 5000);
       })
-      .catch(error => {
-        // Remover ícone de carregamento
-        FIAP.validation.removeValidationIcon(cepInput);
-
-        // Erro na consulta
+      .catch(() => {
         cepInput.classList.add('cep-invalid');
-        FIAP.validation.addValidationIcon(cepInput, 'exclamation-triangle', 'text-amber-500');
-        FIAP.validation.showValidationMessage(parentDiv, 'Erro ao consultar CEP. ' + error.message, 'error');
       });
   }
 };

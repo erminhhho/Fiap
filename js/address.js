@@ -29,7 +29,6 @@ function consultarCEP(cep) {
 
   // Adicionar indicador de carregamento
   adicionarIconeValidacao(cepInput, 'spinner', 'text-blue-500 fa-spin');
-  mostrarMensagemValidacao(parentDiv, 'Consultando CEP...', 'info');
 
   // Usar a API do ViaCEP, que já está funcionando sem CORS
   fetch(`https://viacep.com.br/ws/${cep}/json/`)
@@ -49,14 +48,12 @@ function consultarCEP(cep) {
         console.log("CEP não encontrado");
         cepInput.classList.add('cep-invalid');
         adicionarIconeValidacao(cepInput, 'times-circle', 'text-red-500');
-        mostrarMensagemValidacao(parentDiv, 'CEP não encontrado. Verifique os números digitados.', 'error');
         return;
       }
 
       // CEP válido - feedback visual verde
       cepInput.classList.add('cep-valid');
       adicionarIconeValidacao(cepInput, 'check-circle', 'text-green-500');
-      mostrarMensagemValidacao(parentDiv, 'CEP encontrado com sucesso!', 'success');
 
       // Preencher os campos com os dados retornados
       const cidadeParaPreencher = data.localidade || '';
@@ -126,12 +123,6 @@ function consultarCEP(cep) {
 
       // Focar no campo número após preenchimento
       document.getElementById('numero')?.focus();
-
-      // Remover feedback visual de sucesso após 3 segundos
-      setTimeout(() => {
-        removerMensagemValidacao(parentDiv);
-        // Manter a classe de validação para referência visual
-      }, 3000);
     })
     .catch(error => {
       console.error('Erro ao consultar CEP:', error);
@@ -142,11 +133,6 @@ function consultarCEP(cep) {
       // Mostrar erro
       cepInput.classList.add('cep-invalid');
       adicionarIconeValidacao(cepInput, 'exclamation-triangle', 'text-amber-500');
-      mostrarMensagemValidacao(
-        parentDiv,
-        'Erro na consulta do CEP. Verifique os números digitados ou tente novamente mais tarde.',
-        'error'
-      );
     });
 
   return true;
