@@ -39,78 +39,78 @@
 
 /* Cores para as etiquetas de relacionamento - design minimalista corporativo */
 .relationship-select[data-value="Contribuiu"] {
-  background-color: #059669 !important; /* Verde mais escuro */
+  background-color: #047857 !important; /* Verde Esmeralda Escuro */
   color: white !important;
 }
 
 .relationship-select[data-value="Subsistência"] {
-  background-color: #ea580c !important; /* Laranja mais escuro */
+  background-color: #78350f !important; /* Marrom Escuro */
   color: white !important;
 }
 
 .relationship-select[data-value="Pagou Guia"] {
-  background-color: #7c3aed !important; /* Roxo mais escuro */
+  background-color: #5b21b6 !important; /* Roxo Escuro */
   color: white !important;
 }
 
 .relationship-select[data-value="Sem Contribuição"] {
-  background-color: #dc2626 !important; /* Vermelho mais escuro */
+  background-color: #b91c1c !important; /* Vermelho Escuro (Manter) */
   color: white !important;
 }
 
 .relationship-select[data-value="Requerente"] {
-  background-color: #059669; /* Verde mais escuro */
-  color: white;
+  background-color: #047857 !important; /* Verde Esmeralda Escuro */
+  color: white !important;
 }
 
 .relationship-select[data-value="Instituidor"] {
-  background-color: #7c3aed; /* Roxo mais escuro */
-  color: white;
+  background-color: #3730a3 !important; /* Azul Índigo Escuro */
+  color: white !important;
 }
 
 .relationship-select[data-value="Dependente"] {
-  background-color: #ea580c; /* Laranja mais escuro */
-  color: white;
+  background-color: #c2410c !important; /* Laranja Escuro */
+  color: white !important;
 }
 
 .relationship-select[data-value="Representante"] {
-  background-color: #ca8a04; /* Amarelo mais escuro */
-  color: white;
+  background-color: #b45309 !important; /* Amarelo Queimado */
+  color: white !important;
 }
 
 .relationship-select[data-value="Requerente Rep."] {
-  background-color: #0284c7; /* Azul ciano mais escuro */
-  color: white;
+  background-color: #0e7490 !important; /* Azul Ciano Escuro */
+  color: white !important;
 }
 
 .relationship-select[data-value="Litsconsorte"] {
-  background-color: #1d4ed8; /* Azul mais escuro */
-  color: white;
+  background-color: #1e3a8a !important; /* Azul Escuro */
+  color: white !important;
 }
 
 .relationship-select[data-value="Titular"] {
-  background-color: #1d4ed8; /* Azul mais escuro */
-  color: white;
+  background-color: #1e3a8a !important; /* Azul Escuro (Igual Litsconsorte) */
+  color: white !important;
 }
 
 .relationship-select[data-value="Responsável"] {
-  background-color: #b91c1c; /* Vermelho mais escuro */
-  color: white;
+  background-color: #881337 !important; /* Vinho Escuro */
+  color: white !important;
 }
 
 .relationship-select[data-value="Procurador"] {
-  background-color: #0369a1; /* Azul turquesa mais escuro */
-  color: white;
+  background-color: #0d9488 !important; /* Turquesa Escuro */
+  color: white !important;
 }
 
 .relationship-select[data-value="Representante Legal"] {
-  background-color: #ca8a04; /* Amarelo mais escuro */
-  color: white;
+  background-color: #a16207 !important; /* Dourado Escuro */
+  color: white !important;
 }
 
 .relationship-select[data-value="Beneficiário"] {
-  background-color: #be185d; /* Rosa mais escuro */
-  color: white;
+  background-color: #9d174d !important; /* Magenta Escuro */
+  color: white !important;
 }
 
 /* Reforçando estilos das etiquetas de relacionamento */
@@ -314,7 +314,7 @@
   transform: translateY(-50%);
   border: none;
   color: white;
-  background-color: #f97316; /* Laranja (orange-500) */
+  background-color: #075985; /* Azul Petróleo Escuro (NOVA COR) */
 }
 
 /* Estilo para destacar campos com isenção de carência */
@@ -322,12 +322,12 @@
   border-color: #f97316 !important; /* Borda laranja sutil */
 }
 
-.isento-carencia-tag:hover {
+/* .isento-carencia-tag:hover {
   cursor: not-allowed;
   background-color: #f97316;
   box-shadow: none;
   transform: translateY(-50%);
-}
+} */
 
 /* Estilos para as tags de classificação etária judicial */
 .age-classification-tag {
@@ -345,29 +345,29 @@
 
 /* Cores específicas para cada tipo de classificação etária */
 .age-classification-tag[data-selected="nascituro"] {
-  background-color: #6d28d9; /* bg-purple-700 */
+  background-color: #4c1d95; /* Roxo Bem Escuro */
 }
 
 .age-classification-tag[data-selected="infante"] {
-  background-color: #ec4899; /* bg-pink-500 */
+  background-color: #9d174d; /* Rosa Escuro Queimado */
 }
 
 .age-classification-tag[data-selected="impubere"] {
-  background-color: #f97316; /* bg-orange-500 */
+  background-color: #9a3412; /* Laranja Queimado */
 }
 
 .age-classification-tag[data-selected="pubere"] {
-  background-color: #eab308; /* bg-yellow-500 */
+  background-color: #854d0e; /* Amarelo Mostarda Escuro */
 }
 
 .age-classification-tag[data-selected="rel-incapaz"] {
-  background-color: #22c55e; /* bg-green-500 */
+  background-color: #14532d; /* Verde Musgo Escuro */
 }
 
 .age-classification-tag[data-selected="idoso"] {
-  background-color: #a855f7; /* bg-purple-500 */
+  background-color: #334155; /* Azul Ardósia */
 }
 
 .age-classification-tag[data-selected="capaz"] {
-  background-color: #2563eb; /* bg-blue-600 */
+  background-color: #075985; /* Azul Petróleo Escuro */
 }
