@@ -672,10 +672,10 @@ async function gerarRelatorioPDF() {
 
     const formatValue = (value, isHtml = false) => {
       if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')) {
-        return '<span class="empty-value">Não informado</span>';
+        return isHtml ? 'Não informado' : '<span class="empty-value">Não informado</span>';
       }
       if (typeof value === 'boolean') { return value ? 'Sim' : 'Não'; }
-      if (Array.isArray(value)) { return value.length > 0 ? value.map(v => formatValue(v)).join(', ') : '<span class="empty-value">Nenhum</span>';}
+      if (Array.isArray(value)) { return value.length > 0 ? value.map(v => formatValue(v)).join(', ') : (isHtml ? 'Nenhum' : '<span class="empty-value">Nenhum</span>');}
       if (!isHtml && typeof value === 'string') {
         const tempDiv = document.createElement('div');
         tempDiv.textContent = value;
@@ -686,7 +686,19 @@ async function gerarRelatorioPDF() {
 
     const createFieldItem = (label, value, options = {}) => {
       const className = options.fullWidth ? 'field-item full-width' : 'field-item';
-      return `<div class="${className}"><strong>${label}:</strong> <span>${formatValue(value, options.isHtml)}</span></div>`;
+      // Para perguntas booleanas ou de seleção direta, mostrar 'Não informado' puro se vazio
+      const perguntasDiretas = [
+        'Trabalha Atualmente?',
+        'Último Trabalho (Período)',
+        'Limitações Diárias',
+        'Tratamentos Realizados',
+        'Medicamentos Atuais'
+      ];
+      let displayValue = value;
+      if (perguntasDiretas.includes(label) && (value === undefined || value === null || value === '' || value === '<span class="empty-value">Não informado</span>')) {
+        displayValue = 'Não informado';
+      }
+      return `<div class="${className}"><strong>${label}:</strong> <span>${displayValue}</span></div>`;
     };
 
     const sectionOrder = ['personal', 'social', 'incapacity', 'professional', 'documents'];
@@ -826,7 +838,7 @@ async function gerarRelatorioPDF() {
         htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
         htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Situação Laboral e Saúde</div>`;
         htmlContent += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 5mm; margin-bottom: 3mm; padding: 0 16px 0 16px;">`;
-        htmlContent += `<div>${createFieldItem('Trabalha Atualmente?', sectionData.trabalhaAtualmente)}</div>`;
+        htmlContent += `<div>${createFieldItem('Trabalha Atualmente?', formatValue(sectionData.trabalhaAtualmente))}</div>`;
         // Formatação especial para valores como 'menos_1_mes', '1_2_anos', etc.
 function formatPeriodoTrabalho(valor) {
   if (!valor || typeof valor !== 'string') return formatValue(valor);
@@ -849,9 +861,9 @@ function formatPeriodoTrabalho(valor) {
   return formatValue(valor);
 }
 htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', formatPeriodoTrabalho(sectionData.ultimoTrabalho))}</div>`;
-        htmlContent += `<div>${createFieldItem('Limitações Diárias', sectionData.limitacoesDiarias)}</div>`;
-        htmlContent += `<div>${createFieldItem('Tratamentos Realizados', sectionData.tratamentosRealizados)}</div>`;
-        htmlContent += `<div style="grid-column: 1 / -1;">${createFieldItem('Medicamentos Atuais', sectionData.medicamentosAtuais)}</div>`;
+        htmlContent += `<div>${createFieldItem('Limitações Diárias', formatValue(sectionData.limitacoesDiarias))}</div>`;
+        htmlContent += `<div>${createFieldItem('Tratamentos Realizados', formatValue(sectionData.tratamentosRealizados))}</div>`;
+        htmlContent += `<div style="grid-column: 1 / -1;">${createFieldItem('Medicamentos Atuais', formatValue(sectionData.medicamentosAtuais))}</div>`;
         htmlContent += `</div>`;
         if (sectionData.tipoDocumentos || sectionData.doencas || sectionData.cids || sectionData.dataDocumentos) {
           const maxRows = Math.max(
