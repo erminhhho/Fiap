@@ -317,7 +317,7 @@ function updateNavSlider() {
         document.querySelectorAll('.step-link.active').forEach(link => link.classList.remove('active'));
         homeLink.classList.add('active');
       }
-      
+
       const containerRect = mainNav.getBoundingClientRect();
       const sliderOffset = homeLink.offsetLeft + (homeLink.offsetWidth / 2) - (slider.offsetWidth / 2);
       slider.style.transform = `translateX(${sliderOffset}px)`;
