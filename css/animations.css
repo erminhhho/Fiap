@@ -40,16 +40,15 @@
 
 #progress-bar {
   position: fixed;
-  top: 4rem; /* exatamente na base do header, sobre a sombra */
+  top: calc(4rem - 1px); /* colado na base do header fixo */
   left: 0;
   width: 0;
-  height: 2px; /* altura padrão restaurada */
+  height: 1.75px; /* barra mais fina */
   background: rgba(59, 130, 246, 0.8); /* azul base com transparência */
   border-radius: 1px;
   transition: width .5s ease, opacity .5s ease;
   z-index: 9999;
   pointer-events: none;
-  /* Removido box-shadow e qualquer efeito visual extra */
 }
 
 .fade-out {
