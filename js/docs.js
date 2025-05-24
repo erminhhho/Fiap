@@ -744,7 +744,7 @@ async function gerarRelatorioPDF() {
         htmlContent += createFieldItem('Idade', sectionData.autor_idade?.[0]);
         htmlContent += createFieldItem('Apelido', sectionData.autor_apelido?.[0]);
         htmlContent += createFieldItem('Telefone Principal', sectionData.autor_telefone?.[0]);
-        htmlContent += createFieldItem('Detalhes Telefone', sectionData.telefone_detalhes);
+        // REMOVIDO: htmlContent += createFieldItem('Detalhes Telefone', sectionData.telefone_detalhes);
         htmlContent += createFieldItem('Senha MeuINSS', sectionData.autor_senha_meuinss?.[0]);
         htmlContent += createFieldItem('Colaborador', sectionData.colaborador);
         if (sectionData.segurado_especial !== undefined) {
@@ -758,9 +758,8 @@ async function gerarRelatorioPDF() {
             if (index === 0) return;
             htmlContent += `<div class="item-block author-block" style="padding: 8px 10px; margin-bottom: 8px;">`;
             const relation = sectionData.autor_relationship?.[index] || '';
-            let authorTitle = `Dependente/Envolvido ${index}`;
-            if (relation) authorTitle = `${relation}`;
-            htmlContent += `<div class="subsection-title" style="margin-bottom:4px; font-size:10pt; padding-bottom:2px; border-bottom:0;">${authorTitle}${relation?` <span class='relationship-select' data-value='${relation}'>${authorTitle}</span>`:''}</div>`;
+            let authorTitle = relation || `Dependente/Envolvido ${index}`;
+            htmlContent += `<div class="subsection-title" style="margin-bottom:4px; font-size:10pt; padding-bottom:2px; border-bottom:0;">${authorTitle}</div>`;
             htmlContent += `<div class="field-group" style="grid-template-columns: repeat(4, 1fr); gap: 2mm 3mm; margin-bottom:0;">`;
             htmlContent += createFieldItem('Nome Completo', nome);
             htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[index]);
