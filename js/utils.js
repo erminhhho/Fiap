@@ -410,8 +410,15 @@ FIAP.validation = {
     const cpf = input.value.replace(/\D/g, '');
     input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
     if (cpf.length === 0) return;
-    if (cpf.length < 11) { input.classList.add('cpf-invalid'); return; }
-    if (/^(\d)\1{10}$/.test(cpf)) { input.classList.add('cpf-invalid'); return; }
+    if (cpf.length < 11) {
+      // Ao apagar, neutraliza o campo (sem erro visual)
+      input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
+      return;
+    }
+    if (/^(\d)\1{10}$/.test(cpf)) {
+      input.classList.add('cpf-invalid');
+      return;
+    }
     let sum = 0;
     for (let i = 0; i < 9; i++) sum += parseInt(cpf.charAt(i)) * (10 - i);
     let remainder = sum % 11;
@@ -435,22 +442,35 @@ FIAP.validation = {
     const dateValue = input.value;
     input.classList.remove('date-valid', 'date-invalid', 'date-validating');
 
+    // Limpar campo de idade e tag de classificação se data estiver vazia ou incompleta
+    if ((dateValue.trim() === '' || dateValue.length < 10) && input.dataset.targetAge) {
+      const idadeInput = document.getElementById(input.dataset.targetAge);
+      if (idadeInput) {
+        idadeInput.value = '';
+        idadeInput.classList.remove('field-valid', 'field-invalid');
+        // Remover tag de classificação etária
+        const parentElement = idadeInput.parentElement;
+        if (parentElement) {
+          const existingTag = parentElement.querySelector('.age-classification-tag');
+          if (existingTag) existingTag.remove();
+        }
+      }
+      // Apenas remover classes de validação existentes do campo data
+      return;
+    }
+
     if (dateValue.trim() === '') {
       // Se o campo estiver vazio, não aplicar classes de erro.
       // Apenas remover as classes de validação existentes.
-      // Se houver uma mensagem de erro específica para campo vazio (ex: obrigatório),
-      // isso seria tratado por outra lógica (ex: no blur de um campo required).
-      // Para o caso de "borda vermelha quando vazio", esta é a correção.
+      return;
+    }
+
+    if (dateValue.length < 10) { // DD/MM/AAAA incompleto
+      // Ao apagar, remover qualquer erro e deixar neutro
       return;
     }
 
     input.classList.add('date-validating'); // Adiciona classe enquanto valida
-
-    if (dateValue.length < 10) { // DD/MM/AAAA
-      input.classList.remove('date-validating');
-      input.classList.add('date-invalid');
-      return;
-    }
 
     const parts = dateValue.split('/');
     if (parts.length !== 3) {
@@ -464,7 +484,7 @@ FIAP.validation = {
     const year = parseInt(parts[2], 10);
 
     if (isNaN(day) || isNaN(month) || isNaN(year) ||
-        year < 1900 || year > new Date().getFullYear() + 1 || // Permitir ano atual + 1 para flexibilidade
+        year < 1900 || year > new Date().getFullYear() + 1 ||
         month < 1 || month > 12 ||
         day < 1 || day > 31) {
       input.classList.remove('date-validating');
@@ -518,7 +538,7 @@ FIAP.validation = {
     // Executar a validação em tempo real para garantir feedback consistente
     this.dateOfBirthRealTime(input);
 
-    // Verificar se o campo está marcado como válido
+    // Não recalcula idade nem exibe erro de data futura no blur, apenas retorna o estado de validade
     return input.classList.contains('date-valid');
   },
 
@@ -544,36 +564,29 @@ FIAP.validation = {
    * @returns {boolean} - Indica se o CPF é válido
    */
   cpf: function(input) {
-    // Se o campo estiver vazio, limpar todos os estados de validação
-    if (input.value.trim() === '' || input.value.replace(/\D/g, '') === '') {
+    // Se o campo estiver vazio ou incompleto, limpar todos os estados de validação
+    const cpf = input.value.replace(/\D/g, '');
+    if (cpf.length === 0 || cpf.length < 11) {
       input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
-
       // Garantir que a label volte à cor padrão
       const label = input.parentElement.querySelector('label');
       if (label) {
         label.classList.remove('text-red-500', 'text-white');
         label.classList.add('text-gray-700');
       }
-
       // Remover ícone de validação
       this.removeValidationIcon(input);
-
       // Remover qualquer mensagem de validação
       this.removeValidationMessage(input.parentElement);
-
       // Remover qualquer estilo de borda no input
       input.style.borderColor = '';
-
       // Garantir que o campo não tenha borda vermelha
       input.classList.remove('field-invalid');
       input.classList.remove('cpf-invalid');
-
-      return true; // Campo vazio não é considerado erro
+      return true; // Campo vazio ou incompleto não é considerado erro
     }
-
-    // Se não estiver vazio, executar a validação normal
-    this.cpfRealTime(input);
-    return input.classList.contains('cpf-valid');
+    // Se não estiver vazio e tem 11 dígitos, executar a validação normal
+    return this.cpfRealTime(input), input.classList.contains('cpf-valid');
   }
 };
 
@@ -592,18 +605,39 @@ FIAP.calculation = {
 
     const partes = dataNascimento.split('/');
     if (partes.length === 3) {
-      const dataNasc = new Date(partes[2], partes[1] - 1, partes[0]);
-      const hoje = new Date();
-
-      // Validar se a data é válida antes de calcular
-      if (isNaN(dataNasc.getTime())) {
-        idadeInput.value = "Data inválida";
-        idadeInput.classList.add('field-invalid');
+      const day = parseInt(partes[0], 10);
+      const month = parseInt(partes[1], 10);
+      const year = parseInt(partes[2], 10);
+      // Validação básica de data
+      if (
+        isNaN(day) || isNaN(month) || isNaN(year) ||
+        year < 1900 || year > new Date().getFullYear() + 1 ||
+        month < 1 || month > 12 ||
+        day < 1 || day > 31
+      ) {
+        idadeInput.value = '';
+        idadeInput.classList.remove('field-valid', 'field-invalid');
+        // Remover tag existente
+        const parentElement = idadeInput.parentElement;
+        const existingTag = parentElement.querySelector('.age-classification-tag');
+        if (existingTag) existingTag.remove();
+        return;
+      }
+      // Validação de dias no mês
+      const daysInMonth = [31, (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      if (day > daysInMonth[month - 1]) {
+        idadeInput.value = '';
+        idadeInput.classList.remove('field-valid', 'field-invalid');
+        const parentElement = idadeInput.parentElement;
+        const existingTag = parentElement.querySelector('.age-classification-tag');
+        if (existingTag) existingTag.remove();
         return;
       }
 
       // Verificar se a data não é futura
-      if (dataNasc > hoje) {
+      const hoje = new Date();
+      const dataNascimentoFormatada = new Date(year, month - 1, day);
+      if (dataNascimentoFormatada > hoje) {
         idadeInput.value = "Data no futuro";
         idadeInput.classList.add('field-invalid');
         // Remover tag existente
@@ -616,7 +650,7 @@ FIAP.calculation = {
       // Verificar se a data não é muito antiga (limite de 120 anos)
       const limiteIdade = new Date();
       limiteIdade.setFullYear(hoje.getFullYear() - 120);
-      if (dataNasc < limiteIdade) {
+      if (dataNascimentoFormatada < limiteIdade) {
         idadeInput.value = "Mais de 120 anos";
         idadeInput.classList.add('field-invalid');
 
@@ -646,13 +680,13 @@ FIAP.calculation = {
       }
 
       // Calcular diferença em anos
-      let idadeAnos = hoje.getFullYear() - dataNasc.getFullYear();
+      let idadeAnos = hoje.getFullYear() - dataNascimentoFormatada.getFullYear();
 
       // Calcular diferença em meses
-      let idadeMeses = hoje.getMonth() - dataNasc.getMonth();
+      let idadeMeses = hoje.getMonth() - dataNascimentoFormatada.getMonth();
 
       // Ajustar se ainda não chegou no dia do mês do aniversário
-      if (hoje.getDate() < dataNasc.getDate()) {
+      if (hoje.getDate() < dataNascimentoFormatada.getDate()) {
         idadeMeses--;
       }
 

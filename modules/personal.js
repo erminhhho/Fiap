@@ -239,7 +239,11 @@ function addAuthor() {
             // Adicionar máscara, validação e cálculo de idade para campos de nascimento clonados
             if (window.FIAP && FIAP.masks && FIAP.validation && FIAP.calculation) {
               console.log('[personal.js] addAuthor: FIAP.calculation.age está disponível. Configurando listeners para campo de nascimento clonado:', field.id);
-              field.addEventListener('input', function() { FIAP.masks.date(this); });
+              field.addEventListener('input', function() {
+                FIAP.masks.date(this);
+                // Validação em tempo real de data de nascimento (exibe erro de data futura imediatamente)
+                FIAP.validation.dateOfBirthRealTime(this);
+              });
               field.addEventListener('blur', function() {
                 console.log(`[personal.js] addAuthor: Evento blur no campo nascimento ${this.id}. Valor: ${this.value}`);
                 FIAP.validation.dateOfBirthRealTime(this);

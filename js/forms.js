@@ -437,34 +437,22 @@ function setupFieldValidation(field, msgElement) {
 
 // Função para validar CPF
 function validateCPF(field, msgElement) {
-  // Verificar se o campo está vazio
-  if (field.value.trim() === '') {
-    // Campo vazio não é considerado erro
+  // Verificar se o campo está vazio ou incompleto
+  let cpf = field.value.replace(/\D/g, '');
+  if (cpf.length === 0 || cpf.length < 11) {
+    // Campo vazio ou incompleto não é considerado erro, fica neutro
     field.classList.remove('cpf-valid', 'cpf-invalid', 'field-invalid');
-
-    // Se houver mensagem de validação, limpar
     if (msgElement) {
       msgElement.textContent = '';
       msgElement.classList.remove('validation-error', 'validation-success');
     }
-
     // Garantir que a label volte à cor padrão
     const label = field.parentElement.querySelector('label');
     if (label) {
       label.classList.remove('text-red-500', 'text-white');
       label.classList.add('text-gray-700');
     }
-
     return true;
-  }
-
-  let cpf = field.value.replace(/\D/g, '');
-
-  if (cpf.length !== 11) {
-    field.classList.remove('cpf-valid');
-    field.classList.add('cpf-invalid');
-    if (msgElement) showValidationMessage(msgElement, 'CPF incompleto', true);
-    return false;
   }
 
   // Verificar se todos os dígitos são iguais
@@ -779,30 +767,24 @@ function validateField(field) {
     // Validação baseada no tipo
     switch (validationType) {
         case 'cpf':
-            isValid = validateCPF(value);
-            message = isValid ? 'CPF válido' : 'CPF inválido';
-            break;
-
+            // Usar a função completa para CPF, que já trata visual e mensagem
+            return validateCPF(field, messageElement);
         case 'cep':
             isValid = value.replace(/\D/g, '').length === 8;
             message = isValid ? 'CEP válido' : 'CEP inválido';
             break;
-
         case 'email':
             isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
             message = isValid ? 'Email válido' : 'Email inválido';
             break;
-
         case 'phone':
             isValid = value.replace(/\D/g, '').length >= 10;
             message = isValid ? 'Telefone válido' : 'Telefone inválido';
             break;
-
         case 'name':
             isValid = validateName(value);
             message = isValid ? 'Nome válido' : 'Nome deve conter apenas letras e espaços';
             break;
-
         case 'numeric':
             isValid = validateNumeric(value);
             message = isValid ? 'Valor válido' : 'Digite apenas números';
