@@ -52,6 +52,22 @@ const Mask = {
       input.setSelectionRange(newPos, newPos);
     }
 
+    // Remover classes de validação e ícones ao editar o CEP
+    if (value.length < 8) {
+      input.classList.remove('cep-valid', 'cep-invalid');
+
+      // Remover ícone de validação se a função existir
+      if (typeof window.removerIconeValidacao === 'function') {
+        window.removerIconeValidacao(input);
+      }
+
+      // Remover mensagem de validação se a função existir
+      if (typeof window.removerMensagemValidacao === 'function') {
+        const parentDiv = input.parentElement;
+        window.removerMensagemValidacao(parentDiv);
+      }
+    }
+
     // Consultar CEP quando completo
     if (value.replace(/\D/g, '').length === 8 && typeof window.consultarCEP === 'function') {
       window.consultarCEP(value);

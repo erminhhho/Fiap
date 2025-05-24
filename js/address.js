@@ -529,40 +529,11 @@ function removerAcentos(texto) {
   return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-/**
- * Aplica máscara ao CEP
- * @param {HTMLInputElement} input - Campo de entrada do CEP
- */
-function maskCEP(input) {
-  let value = input.value.replace(/\D/g, '');
-  if (value.length > 8) value = value.substring(0, 8);
-
-  if (value.length > 5) {
-    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
-  }
-
-  input.value = value;
-
-  // Remover classes de validação e ícones ao editar o CEP
-  if (value.length < 8) {
-    input.classList.remove('cep-valid', 'cep-invalid');
-    removerIconeValidacao(input);
-
-    // Remover mensagem de validação
-    const parentDiv = input.parentElement;
-    removerMensagemValidacao(parentDiv);
-  }
-
-  // Se digitar todos os 8 dígitos, consultar CEP automaticamente
-  if (value.replace(/\D/g, '').length === 8) {
-    consultarCEP(value);
-  }
-}
-
 // Exportar funções para uso global
 window.consultarCEP = consultarCEP;
 window.buscarCidades = buscarCidades;
-window.maskCEP = maskCEP;
+window.removerIconeValidacao = removerIconeValidacao;
+window.removerMensagemValidacao = removerMensagemValidacao;
 
 /**
  * Módulo de endereço e CEP

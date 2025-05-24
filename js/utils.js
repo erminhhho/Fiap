@@ -8,6 +8,7 @@ const FIAP = {};
 
 /**
  * Módulo de mascaramento e validação de dados
+ * Utiliza o objeto Mask centralizado
  */
 FIAP.masks = {
   /**
@@ -15,19 +16,11 @@ FIAP.masks = {
    * @param {HTMLInputElement} input - Campo de entrada do CPF
    */
   cpf: function(input) {
-    let value = input.value.replace(/\D/g, '');
-    if (value.length > 11) value = value.substring(0, 11);
-
-    value = value.replace(/^(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
-    value = value.replace(/\.(\d{3})(\d)/, '.$1-$2');
-
-    input.value = value;
-
-    // Realizar validação em tempo real após 3 dígitos ou se estiver completo
-    if (value.length >= 3 || (value.length > 0 && input.dataset.validated === 'true')) {
-      input.dataset.validated = 'true';
-      FIAP.validation.cpfRealTime(input);
+    // Utiliza a função centralizada
+    if (window.Mask && typeof window.Mask.cpf === 'function') {
+      window.Mask.cpf(input);
+    } else {
+      console.warn('FIAP.masks.cpf: Mask.cpf não está disponível');
     }
   },
 
@@ -36,44 +29,11 @@ FIAP.masks = {
    * @param {HTMLInputElement} input - Campo de entrada do CEP
    */
   cep: function(input) {
-    // Guardar posição do cursor antes da formatação
-    const cursorPos = input.selectionStart;
-    const oldValue = input.value;
-
-    let value = input.value.replace(/\D/g, '');
-    if (value.length > 8) value = value.substring(0, 8);
-
-    // Aplicar formatação
-    if (value.length > 5) {
-      value = value.replace(/^(\d{5})(\d)/, '$1-$2');
-    }
-
-    // Atualizar valor
-    input.value = value;
-
-    // Restaurar posição do cursor considerando a adição do hífen
-    if (cursorPos < oldValue.length) {
-      const newPos = cursorPos + (value.length - oldValue.length);
-      input.setSelectionRange(newPos, newPos);
-    }
-
-    // Remover classes de validação existentes
-    input.classList.remove('cep-valid', 'cep-invalid');
-
-    // Remover mensagem de validação anterior
-    const parentDiv = input.parentElement;
-    const prevMessage = parentDiv.querySelector('.validation-message');
-    if (prevMessage) prevMessage.remove();
-
-    // Se não estiver completo, remover ícones de validação existentes
-    if (value.length < 8) {
-      FIAP.validation.removeValidationIcon(input);
-    }
-
-    // PONTO CHAVE: Se atingiu exatamente 8 dígitos, consultar CEP imediatamente
-    if (value.replace(/\D/g, '').length === 8) {
-      // Consultar imediatamente, sem timeout
-      FIAP.api.consultarCEP(value);
+    // Utiliza a função centralizada
+    if (window.Mask && typeof window.Mask.cep === 'function') {
+      window.Mask.cep(input);
+    } else {
+      console.warn('FIAP.masks.cep: Mask.cep não está disponível');
     }
   },
 
@@ -82,24 +42,11 @@ FIAP.masks = {
    * @param {HTMLInputElement} input - Campo de entrada da data
    */
   date: function(input) {
-    let value = input.value.replace(/\D/g, '');
-
-    if (value.length > 8) value = value.substring(0, 8);
-
-    value = value.replace(/^(\d{2})(\d)/, '$1/$2');
-    value = value.replace(/^(\d{2})\/(\d{2})(\d)/, '$1/$2/$3');
-
-    input.value = value;
-
-    // Realizar validação em tempo real após ter pelo menos dia e mês completos
-    if (value.length >= 5) {
-      input.dataset.validated = 'true';
-      FIAP.validation.dateOfBirthRealTime(input);
-    }
-
-    // Se tiver campo de idade associado, calcular apenas se a data for válida
-    if (value.length === 10 && input.dataset.targetAge && input.classList.contains('date-valid')) {
-      FIAP.calculation.age(input.value, input.dataset.targetAge);
+    // Utiliza a função centralizada
+    if (window.Mask && typeof window.Mask.date === 'function') {
+      window.Mask.date(input);
+    } else {
+      console.warn('FIAP.masks.date: Mask.date não está disponível');
     }
   },
 
@@ -108,21 +55,11 @@ FIAP.masks = {
    * @param {HTMLInputElement} input - Campo de entrada do telefone
    */
   phone: function(input) {
-    let value = input.value.replace(/\D/g, '');
-    if (value.length > 11) value = value.substring(0, 11);
-
-    if (value.length > 2) {
-      value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
-    }
-    if (value.length > 9) {
-      value = value.replace(/(\d)(\d{4})$/, '$1-$2');
-    }
-
-    input.value = value;
-
-    // Garantir que o ícone de WhatsApp seja adicionado
-    if (typeof this.addWhatsAppIcon === 'function') {
-      this.addWhatsAppIcon(input);
+    // Utiliza a função centralizada
+    if (window.Mask && typeof window.Mask.phone === 'function') {
+      window.Mask.phone(input);
+    } else {
+      console.warn('FIAP.masks.phone: Mask.phone não está disponível');
     }
   },
 
@@ -131,142 +68,12 @@ FIAP.masks = {
    * @param {HTMLInputElement} input - Campo de entrada do telefone
    */
   addWhatsAppIcon: function(input) {
-    if (!input || !input.parentElement) return;
-
-    // Verificação mais rigorosa - evitar campos que são detalhes ou descrições de telefone
-    const isExcluded = (
-      (input.id && (input.id.includes('_detalhes') || input.id.includes('_descricao'))) ||
-      (input.name && (input.name.includes('_detalhes') || input.name.includes('_descricao'))) ||
-      (input.placeholder && (input.placeholder.includes('detalhe') || input.placeholder.includes('descrição')))
-    );
-
-    if (isExcluded) return;
-
-    // Verificar se é realmente um campo principal de telefone
-    const isPhoneField =
-      (input.id && (input.id === 'telefone' || input.id.includes('phone') || input.id.match(/telefone[0-9]*/))) ||
-      (input.name && (input.name === 'telefone' || input.name.includes('phone') || input.name.match(/telefone[0-9]*/))) ||
-      input.type === 'tel' ||
-      (input.placeholder && (
-        input.placeholder.includes('(') &&
-        input.placeholder.includes(')') &&
-        input.placeholder.includes('-')
-      ));
-
-    // Se não for campo de telefone ou for excluído, não adicionar ícone
-    if (!isPhoneField) return;
-
-    // Remover antigas tags de WhatsApp (compatibilidade com sistemas antigos)
-    const oldWhatsAppTags = input.parentElement.querySelectorAll('.whatsapp-tag');
-    oldWhatsAppTags.forEach(tag => tag.remove());
-
-    // Forçar posicionamento relativo do container
-    input.parentElement.style.position = 'relative';
-
-    // Verificar se já existe um ícone e remover para evitar duplicação
-    const existingIcon = input.parentElement.querySelector('.whatsapp-icon-toggle');
-    if (existingIcon) existingIcon.remove();
-
-    // Criar o ícone de WhatsApp
-    const whatsappIcon = document.createElement('div');
-    whatsappIcon.className = 'whatsapp-icon-toggle';
-    whatsappIcon.innerHTML = '<i class="fab fa-whatsapp"></i>';
-
-    // CSS direto para design equilibrado - inspirado em botões de ação
-    Object.assign(whatsappIcon.style, {
-      position: 'absolute',
-      right: '10px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      cursor: 'pointer',
-      width: '24px',
-      height: '24px',
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#f5f5f5',
-      color: '#888',
-      fontSize: '14px',
-      zIndex: '1', // Reduzido para não sobrepor a navbar
-      transition: 'all 0.2s ease',
-      boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-      border: '1px solid #ddd'
-    });
-
-    // Efeito de hover
-    whatsappIcon.addEventListener('mouseenter', function() {
-      if (input.dataset.whatsapp !== 'true') {
-        this.style.background = '#e9e9e9';
-        this.style.boxShadow = '0 2px 3px rgba(0,0,0,0.15)';
-      }
-    });
-
-    whatsappIcon.addEventListener('mouseleave', function() {
-      if (input.dataset.whatsapp !== 'true') {
-        this.style.background = '#f5f5f5';
-        this.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
-      }
-    });
-
-    // Configurar estado inicial e data attribute
-    input.dataset.whatsapp = 'false';
-
-    // Adicionar o ícone ao container
-    input.parentElement.appendChild(whatsappIcon);
-
-    // Configurar padding para não sobrepor o texto
-    input.style.paddingRight = '40px';
-
-    // Adicionar evento de clique com handler robusto
-    whatsappIcon.addEventListener('click', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-
-      // Alternar estado de WhatsApp
-      const currentState = input.dataset.whatsapp === 'true';
-      const newState = !currentState;
-
-      // Atualizar data attribute
-      input.dataset.whatsapp = newState ? 'true' : 'false';
-
-      // Atualização visual - equilibrada mas identificável
-      if (newState) {
-        // Estado ativo: estilo mais evidente sem ser exagerado
-        Object.assign(whatsappIcon.style, {
-          backgroundColor: '#25D366', // Verde WhatsApp reconhecível
-          color: 'white',
-          transform: 'translateY(-50%)',
-          boxShadow: '0 2px 4px rgba(37, 211, 102, 0.3)',
-          border: '1px solid #20b559'
-        });
-
-        // Usar apenas o ícone limpo com um check pequeno integrado
-        whatsappIcon.innerHTML = '<i class="fab fa-whatsapp"></i>';
-
-        // Adicionar um sutil indicador visual - uma borda brilhante em vez da bolinha
-        whatsappIcon.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.7), 0 2px 4px rgba(37, 211, 102, 0.3)';
-      } else {
-        // Estado inativo
-        Object.assign(whatsappIcon.style, {
-          backgroundColor: '#f5f5f5',
-          color: '#888',
-          transform: 'translateY(-50%)',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-          border: '1px solid #ddd'
-        });
-
-        // Remover badge
-        whatsappIcon.innerHTML = '<i class="fab fa-whatsapp"></i>';
-      }
-
-      whatsappIcon.title = newState ? 'Este é um número de WhatsApp (clique para desmarcar)' : 'Marcar como WhatsApp';
-    });
-
-    // Tooltip inicial
-    whatsappIcon.title = 'Marcar como WhatsApp';
-
-    return whatsappIcon;
+    // Utiliza a função centralizada
+    if (window.Mask && typeof window.Mask.addWhatsAppIcon === 'function') {
+      window.Mask.addWhatsAppIcon(input);
+    } else {
+      console.warn('FIAP.masks.addWhatsAppIcon: Mask.addWhatsAppIcon não está disponível');
+    }
   },
 
   /**
@@ -274,20 +81,38 @@ FIAP.masks = {
    * @param {HTMLInputElement} input - Campo de entrada
    */
   onlyNumbers: function(input) {
-    input.value = input.value.replace(/\D/g, '');
+    // Utiliza a função centralizada
+    if (window.Mask && typeof window.Mask.onlyNumbers === 'function') {
+      window.Mask.onlyNumbers(input);
+    } else {
+      console.warn('FIAP.masks.onlyNumbers: Mask.onlyNumbers não está disponível');
+    }
   },
 
   /**
    * Formata valor monetário no formato R$ 0,00
    * @param {HTMLInputElement} input - Campo de entrada do valor monetário
    */
-  currency: function(input) {
-    let value = input.value.replace(/\D/g, '');
-    value = (parseInt(value) / 100).toFixed(2) + '';
-    value = value.replace(".", ",");
-    value = value.replace(/(\d)(\d{3})(\,)/g, "$1.$2$3");
-    value = value.replace(/(\d)(\d{3})(\.\d{3})/g, "$1.$2$3");
-    input.value = 'R$ ' + value;
+  money: function(input) {
+    // Utiliza a função centralizada
+    if (window.Mask && typeof window.Mask.money === 'function') {
+      window.Mask.money(input);
+    } else {
+      console.warn('FIAP.masks.money: Mask.money não está disponível');
+    }
+  },
+
+  /**
+   * Formata UF (sigla de estado) em maiúsculas
+   * @param {HTMLInputElement} input - Campo de entrada da UF
+   */
+  uf: function(input) {
+    // Utiliza a função centralizada
+    if (window.Mask && typeof window.Mask.uf === 'function') {
+      window.Mask.uf(input);
+    } else {
+      console.warn('FIAP.masks.uf: Mask.uf não está disponível');
+    }
   },
 
   /**
@@ -295,106 +120,20 @@ FIAP.masks = {
    * @param {HTMLInputElement} input - Campo de entrada do nome
    */
   properName: function(input) {
-    // Lista de palavras que devem permanecer em minúsculo
-    const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'por', 'com'];
-
-    // Obter o texto e dividir em palavras
-    let texto = input.value.toLowerCase().trim();
-    if (!texto) return;
-
-    // Dividir o texto em palavras
-    let palavras = texto.split(' ');
-
-    // Processar cada palavra
-    for (let i = 0; i < palavras.length; i++) {
-      const palavra = palavras[i];
-
-      // Pular palavras vazias
-      if (!palavra) continue;
-
-      // Sempre colocar a primeira palavra com inicial maiúscula
-      // ou palavras que não estão na lista de exceções
-      if (i === 0 || !excecoes.includes(palavra)) {
-        palavras[i] = palavra.charAt(0).toUpperCase() + palavra.slice(1);
-      }
-    }
-
-    // Juntar as palavras novamente
-    input.value = palavras.join(' ');
-  },
-
-  /**
-   * Formata UF para aceitar apenas letras e converter para maiúsculo
-   * @param {HTMLInputElement} input - Campo de entrada da UF
-   */
-  uf: function(input) {
-    // Remove qualquer caractere que não seja letra
-    let value = input.value.replace(/[^A-Za-z]/g, '');
-
-    // Converte para maiúsculo (reforçando, mesmo que o campo já tenha a classe uppercase)
-    value = value.toUpperCase();
-
-    // Limitar a 2 caracteres (redundante com maxlength, mas para garantir)
-    if (value.length > 2) value = value.substring(0, 2);
-
-    input.value = value;
-  },
-
-  /**
-   * Formata um valor monetário no padrão brasileiro (R$)
-   * @param {HTMLInputElement} input - Campo de entrada do valor
-   */
-  money: function(input) {
-    if (!input) return;
-
-    // Verificar se o elemento pode receber seleção
-    const canSetSelection = input.type !== 'hidden' &&
-                          !input.hasAttribute('data-no-mask') &&
-                          typeof input.setSelectionRange === 'function' &&
-                          document.activeElement === input;
-
-    // Salvar a posição do cursor apenas se puder definir seleção
-    const start = canSetSelection ? input.selectionStart : 0;
-    const end = canSetSelection ? input.selectionEnd : 0;
-    const oldLength = input.value.length;
-
-    // Remove tudo que não for número
-    let value = input.value.replace(/\D/g, '');
-
-    // Converter para número e formatar
-    if (value) {
-      // Converte para reais (somente valor inteiro)
-      value = parseInt(value);
-
-      // Formata para moeda brasileira sem casas decimais
-      value = value.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      });
+    // Utiliza a função centralizada
+    if (window.Mask && typeof window.Mask.properName === 'function') {
+      window.Mask.properName(input);
     } else {
-      value = '';
+      console.warn('FIAP.masks.properName: Mask.properName não está disponível');
     }
+  },
 
-    // Atualiza o campo
-    input.value = value;
-
-    // Restaurar a posição do cursor apenas se puder definir seleção
-    if (canSetSelection) {
-      try {
-        // Recalcula e restaura a posição do cursor
-        if (oldLength < input.value.length) {
-          const diff = input.value.length - oldLength;
-          input.setSelectionRange(start + diff, end + diff);
-        } else {
-          input.setSelectionRange(start, end);
-        }
-      } catch (e) {
-        // Ignora erros de seleção (pode ocorrer em certos navegadores ou inputs especiais)
-        console.debug('Não foi possível ajustar a seleção no campo monetário:', e.message);
-      }
-    }
+  /**
+   * Compatibilidade para funções adicionais
+   */
+  currency: function(input) {
+    // Redireciona para money
+    this.money(input);
   }
 };
 
@@ -1088,18 +827,19 @@ FIAP.ui = {
 
 // Aliases para compatibilidade com código legado
 // Estes aliases mantêm a retrocompatibilidade enquanto promovem o novo padrão
-window.maskCPF = FIAP.masks.cpf;
+// Funções de máscara são fornecidas pelo objeto Mask em mask.js
+// window.maskCPF = FIAP.masks.cpf;
 window.validateCPF = FIAP.validation.cpf.bind(FIAP.validation);
 window.validateCPFRealTime = FIAP.validation.cpfRealTime.bind(FIAP.validation);
-window.maskCEP = FIAP.masks.cep;
+// window.maskCEP = FIAP.masks.cep;
 window.consultarCEP = FIAP.api.consultarCEP;
-window.maskDate = FIAP.masks.date;
+// window.maskDate = FIAP.masks.date;
 window.validateDateOfBirth = FIAP.validation.dateOfBirth.bind(FIAP.validation);
 window.validateDateOfBirthRealTime = FIAP.validation.dateOfBirthRealTime.bind(FIAP.validation);
 window.calcularIdade = FIAP.calculation.age;
-window.maskPhone = FIAP.masks.phone;
-window.maskOnlyNumbers = FIAP.masks.onlyNumbers;
-window.maskCurrency = FIAP.masks.currency;
+// window.maskPhone = FIAP.masks.phone;
+// window.maskOnlyNumbers = FIAP.masks.onlyNumbers;
+// window.maskCurrency = FIAP.masks.currency;
 window.destacarCamposPreenchidos = FIAP.ui.highlightFields.bind(FIAP.ui);
 window.setupFieldHighlighting = FIAP.ui.setupFieldHighlighting.bind(FIAP.ui);
 window.FIAP = FIAP;
@@ -1116,9 +856,9 @@ window.showError = FIAP.ui.showError.bind(FIAP.ui);
 window.showSuccess = FIAP.ui.showSuccess.bind(FIAP.ui);
 window.removeStatusTags = FIAP.ui.removeStatusTags.bind(FIAP.ui);
 window.createStatusTag = FIAP.ui.createStatusTag.bind(FIAP.ui);
-window.maskUF = FIAP.masks.uf;
-window.formatarNomeProprio = FIAP.masks.properName;
-window.maskMoney = FIAP.masks.money;
+// window.maskUF = FIAP.masks.uf;
+// window.formatarNomeProprio = FIAP.masks.properName;
+// window.maskMoney = FIAP.masks.money;
 
 // Função auxiliar para formatar moeda sem precisar de input
 FIAP.utils = FIAP.utils || {};
@@ -1177,7 +917,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Inicializar ícones de WhatsApp em todos os campos de telefone existentes
   document.querySelectorAll('input[id*="telefone"], input[id*="phone"], input[name*="telefone"], input[name*="phone"]').forEach(input => {
-    setTimeout(() => FIAP.masks.phone(input), 100);
+    setTimeout(() => {
+      if (window.Mask && typeof window.Mask.phone === 'function') {
+        window.Mask.phone(input);
+      } else {
+        console.warn('Função window.Mask.phone não disponível para inicialização de telefone');
+      }
+    }, 100);
   });
 
   // INICIALIZAÇÃO APENAS DOS CAMPOS DE TELEFONE PRINCIPAIS
@@ -1215,7 +961,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Aplicar o ícone apenas aos campos específicos de telefone principal
     phoneFields.forEach(phone => {
-      FIAP.masks.addWhatsAppIcon(phone);
+      if (window.Mask && typeof window.Mask.addWhatsAppIcon === 'function') {
+        window.Mask.addWhatsAppIcon(phone);
+      } else {
+        console.warn('Função window.Mask.addWhatsAppIcon não disponível para inicialização de telefone');
+      }
     });
   }
 
