@@ -262,11 +262,6 @@ async function loadModuleWithTemplate(route) {
     await loadScript(route.scriptUrl);
     routerLog('Script do módulo carregado com sucesso');
 
-    // Finalizar barra de progresso e remover fade-out
-    completeProgressBar();
-    appContent.classList.remove('fade-out');
-    appContent.classList.add('fade-in');
-
     // Inicializar o módulo se a função estiver definida
     if (typeof window.initModule === 'function') {
       routerLog('Inicializando módulo via window.initModule()');
@@ -288,10 +283,6 @@ async function loadModuleWithTemplate(route) {
       }, 500);
     }
 
-    // Restaurar o estado do formulário para o módulo carregado
-    // REMOVIDO O BLOCO CONDICIONAL E O SETTIMEOUT QUE CHAMAVA restoreFormData
-    // A restauração será agora responsabilidade de cada initModule.
-
     // Configurar botões contextuais (Limpar em cada página e Imprimir na última)
     if (typeof window.setupContextualButtons === 'function') {
       routerLog('Configurando botões contextuais');
@@ -299,7 +290,37 @@ async function loadModuleWithTemplate(route) {
       window.setupContextualButtons(currentModule);
     }
 
-    routerLog('Módulo carregado e inicializado com sucesso');
+    // --- AGUARDAR RESTAURAÇÃO DOS DADOS ANTES DE FINALIZAR A BARRA DE PROGRESSO ---
+    if (route.scriptUrl.includes('home.js')) {
+      // Home não tem evento de restauração, finalize imediatamente
+      completeProgressBar();
+      appContent.classList.remove('fade-out');
+      appContent.classList.add('fade-in');
+    } else {
+      await new Promise(resolve => {
+        const onRestored = (e) => {
+          if (e && e.detail && e.detail.step === route.scriptUrl.split('/').pop().replace('.js', '')) {
+            document.removeEventListener('formRestored', onRestored);
+            resolve();
+          }
+        };
+        const timeout = setTimeout(() => {
+          document.removeEventListener('formRestored', onRestored);
+          resolve();
+        }, 5000);
+        document.addEventListener('formRestored', onRestored);
+      });
+      completeProgressBar();
+      appContent.classList.remove('fade-out');
+      appContent.classList.add('fade-in');
+    }
+
+    // Reaplicar listeners de navegação após o template ser carregado
+    if (window.formStateManager && typeof window.formStateManager.setupEventListeners === 'function') {
+      window.formStateManager.setupEventListeners();
+    }
+
+    routerLog('Módulo carregado e inicializado com sucesso (após restauração dos dados)');
   } catch (error) {
     routerLog('ERRO ao carregar módulo', error);
     appContent.innerHTML = `
@@ -315,8 +336,6 @@ async function loadModuleWithTemplate(route) {
         </div>
       </div>
     `;
-
-    // Desbloquear navegação em caso de erro
     navigationInProgress = false;
     return false;
   }

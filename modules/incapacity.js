@@ -317,34 +317,36 @@ window.initModule = function() {
   // Restaurar dados para esta etapa
   if (window.formStateManager) {
     const currentStepKey = 'incapacity';
-    // Ocultar imediatamente o dropdown de profissão antes de restaurar
     const profInput = document.getElementById('profissao');
     const profDropdown = document.getElementById('profissaoDropdown');
     if (profInput && profDropdown) {
       profDropdown.classList.add('hidden');
     }
     setTimeout(() => {
-      console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
-      window.formStateManager.ensureFormAndRestore(currentStepKey);
-      // Após restaurar, disparar validações
-      setTimeout(function() {
-        document.querySelectorAll('.doenca-input').forEach(input => {
-          if (typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(input);
-        });
-        document.querySelectorAll('.cid-input').forEach(input => {
-          const index = input.getAttribute('data-index');
-          const doencaInput = document.getElementById('doenca' + index);
-          if (doencaInput && typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(doencaInput);
-        });
-        // Ocultar dropdown de profissão se já estiver preenchido (reforço com requestAnimationFrame)
-        requestAnimationFrame(() => {
-          const profInput = document.getElementById('profissao');
-          const profDropdown = document.getElementById('profissaoDropdown');
-          if (profInput && profDropdown) {
-            profDropdown.classList.add('hidden');
-          }
-        });
-      }, 350);
+      try {
+        window.formStateManager.ensureFormAndRestore(currentStepKey);
+        setTimeout(function() {
+          document.querySelectorAll('.doenca-input').forEach(input => {
+            if (typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(input);
+          });
+          document.querySelectorAll('.cid-input').forEach(input => {
+            const index = input.getAttribute('data-index');
+            const doencaInput = document.getElementById('doenca' + index);
+            if (doencaInput && typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(doencaInput);
+          });
+          requestAnimationFrame(() => {
+            const profInput = document.getElementById('profissao');
+            const profDropdown = document.getElementById('profissaoDropdown');
+            if (profInput && profDropdown) {
+              profDropdown.classList.add('hidden');
+            }
+          });
+          document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey } }));
+        }, 350);
+      } catch (e) {
+        document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey, error: true } }));
+        console.error('[incapacity.js] Erro na restauração:', e);
+      }
     }, 700);
   } else {
     console.error("[incapacity.js] initModule: formStateManager não encontrado. A restauração não ocorrerá.");

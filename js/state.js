@@ -110,7 +110,9 @@ class FormStateManager {
       console.log(`[FormStateManager] Formulário com ID '${formId}' para ${step} ainda não disponível, tentando novamente... (${retries} tentativas restantes)`);
       setTimeout(() => this.ensureFormAndRestore(step, retries - 1), 200); // Tentar novamente após 200ms
     } else {
-      console.error(`[FormStateManager] Formulário com ID '${formId}' não encontrado para ${step} após várias tentativas. A restauração pode não ocorrer até a navegação/interação.`);
+      if (typeof CONFIG !== 'undefined' && CONFIG.debug && CONFIG.debug.enabled) {
+        console.error(`[FormStateManager] Formulário com ID '${formId}' não encontrado para ${step} após várias tentativas. A restauração pode não ocorrer até a navegação/interação.`);
+      }
       this.initialRestorePending = false; // Garante que isso seja definido como false mesmo em caso de falha total
     }
   }
@@ -313,31 +315,6 @@ class FormStateManager {
       console.log('[FormStateManager] Rota atual ou formulário não encontrado, pulando captura.');
       return;
     }
-
-    // --- INÍCIO: Monitoramento de perda de persistência em incapacity ---
-    if (currentRoute === 'incapacity') {
-      // Após a coleta dos dados, checar se todos os campos estão vazios
-      const data = formData;
-      const allEmpty = Object.keys(data).filter(k => k !== '_timestamp').every(k => {
-        const v = data[k];
-        if (Array.isArray(v)) return v.every(i => i === '' || i === null || typeof i === 'undefined');
-        return v === '' || v === null || typeof v === 'undefined';
-      });
-      const previousData = this.formData['incapacity'] || {};
-      const previousAllEmpty = Object.keys(previousData).filter(k => k !== '_timestamp').every(k => {
-        const v = previousData[k];
-        if (Array.isArray(v)) return v.every(i => i === '' || i === null || typeof i === 'undefined');
-        return v === '' || v === null || typeof v === 'undefined';
-      });
-      if (allEmpty && !previousAllEmpty) {
-        console.warn('[FormStateManager][PROTEÇÃO] Tentativa de sobrescrever dados válidos de incapacity por dados vazios. Operação ignorada. Dados anteriores preservados.');
-        return; // Não sobrescreve nem salva
-      }
-    }
-    // --- FIM: Monitoramento de perda de persistência em incapacity ---
-
-    console.log(`[FormStateManager] Capturando dados para a rota: ${currentRoute}`);
-
     // Usar o estado existente como base, se houver, para não perder dados customizados (ex: array de documentos)
     const existingStepData = this.formData[currentRoute] || {};
     let formData = { ...existingStepData }; // Começa com uma cópia dos dados existentes para a rota
@@ -409,7 +386,7 @@ class FormStateManager {
   /**
    * Restaura os dados do formulário para o passo atual
    */
-  restoreFormData(step) {
+  restoreFormData(step = this.currentStep) {
     console.log(`[FormStateManager] restoreFormData() chamado para a etapa: ${step}`);
     this.isRestoring = true;
     try {
@@ -674,6 +651,29 @@ class FormStateManager {
              // Se restaurarmos N autores, authorCount deve ser N para o próximo add funcionar corretamente.
              window.authorCount = numberOfDataRows > 0 ? numberOfDataRows : 1; // Se 0 autores, próximo será autor 1 (o primeiro)
         }
+    }
+
+    // --- OTIMIZAÇÃO PARA RESTAURAÇÃO DE INCAPACITY ---
+    if (step === 'incapacity' && stepData) {
+      const doencaFields = ['tipoDocumentos', 'cids', 'doencas', 'dataDocumentos'];
+      // Descobre o maior tamanho entre os arrays de campos de doença
+      const maxRows = Math.max(...doencaFields.map(f => Array.isArray(stepData[f]) ? stepData[f].length : 0));
+      // Adiciona linhas até atingir o necessário (a primeira linha já existe no HTML)
+      for (let i = 1; i < maxRows; i++) {
+        if (typeof window.addDoencaField === 'function') window.addDoencaField();
+      }
+      // Agora preenche os campos de cada linha
+      for (let i = 0; i < maxRows; i++) {
+        doencaFields.forEach(field => {
+          const value = stepData[field] && stepData[field][i];
+          if (value !== undefined) {
+            const inputs = form.querySelectorAll(`[name='${field}[]']`);
+            if (inputs[i]) inputs[i].value = value;
+          }
+        });
+      }
+      // Após otimização, não executar o bloco padrão para esses campos
+      // Prossegue normalmente para os demais campos do stepData
     }
 
     // Iterar sobre os dados salvos para a etapa

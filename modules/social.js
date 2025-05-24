@@ -54,9 +54,8 @@ window.initModule = function() {
   if (window.formStateManager) {
     const currentStepKey = 'social';
     setTimeout(() => {
-        console.log(`[social.js] initModule: Solicitando restauração para a etapa: ${currentStepKey} após inicialização do assistido.`);
+      try {
         window.formStateManager.ensureFormAndRestore(currentStepKey);
-        // Após restaurar, disparar validações
         setTimeout(function() {
           document.querySelectorAll('input[name="familiar_nome[]"]').forEach(input => {
             if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
@@ -67,7 +66,12 @@ window.initModule = function() {
           document.querySelectorAll('input[name="familiar_idade[]"]').forEach(input => {
             if (typeof formatAgeWithSuffix === 'function') formatAgeWithSuffix(input);
           });
+          document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey } }));
         }, 350);
+      } catch (e) {
+        document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey, error: true } }));
+        console.error('[social.js] Erro na restauração:', e);
+      }
     }, 600);
   } else {
     console.error("[social.js] initModule: formStateManager não encontrado. A restauração de dados não ocorrerá.");

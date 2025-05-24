@@ -275,8 +275,15 @@ window.initModule = function() {
   if (window.formStateManager) {
     const currentStepKey = 'documents';
     setTimeout(() => {
-        console.log(`[documents.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
+      try {
         window.formStateManager.ensureFormAndRestore(currentStepKey);
+        setTimeout(function() {
+          document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey } }));
+        }, 350);
+      } catch (e) {
+        document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey, error: true } }));
+        console.error('[documents.js] Erro na restauração:', e);
+      }
     }, 100);
   } else {
     console.error("[documents.js] initModule: formStateManager não encontrado. A restauração não ocorrerá.");
