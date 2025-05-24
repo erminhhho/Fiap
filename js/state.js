@@ -314,7 +314,13 @@ class FormStateManager {
     if (!currentRoute || !form) {
       console.log('[FormStateManager] Rota atual ou formulário não encontrado, pulando captura.');
       return;
-    }    // --- INÍCIO: Monitoramento de perda de persistência em incapacity ---
+    }
+
+    // Usar o estado existente como base, se houver, para não perder dados customizados (ex: array de documentos)
+    const existingStepData = this.formData[currentRoute] || {};
+    let formData = { ...existingStepData }; // Começa com uma cópia dos dados existentes para a rota
+
+    // --- INÍCIO: Monitoramento de perda de persistência em incapacity ---
     if (currentRoute === 'incapacity') {
       // Após a coleta dos dados, checar se todos os campos estão vazios
       const data = formData;
@@ -337,12 +343,6 @@ class FormStateManager {
     // --- FIM: Monitoramento de perda de persistência em incapacity ---
 
     console.log(`[FormStateManager] Capturando dados para a rota: ${currentRoute}`);
-
-    // Usar o estado existente como base, se houver, para não perder dados customizados (ex: array de documentos)
-    const existingStepData = this.formData[currentRoute] || {};
-    let formData = { ...existingStepData }; // Começa com uma cópia dos dados existentes para a rota
-
-    console.log(`[FormStateManager] Estado de this.formData[${currentRoute}] ANTES da coleta:`, JSON.parse(JSON.stringify(existingStepData)));
 
     // Mapear campos de array para rastreá-los corretamente
     const arrayFields = {};
@@ -940,6 +940,20 @@ class FormStateManager {
         }, 100); // Pequeno delay pode ser ajustado se necessário
       }
     }
+    // --- INÍCIO: REAPLICAÇÃO DAS TAGS DE IDADE PARA AUTORES ---
+    if (step === 'personal' && window.FIAP && FIAP.calculation && typeof FIAP.calculation.addAgeClassificationTag === 'function') {
+      const idadeInputs = form.querySelectorAll('input[name="autor_idade[]"]');
+      idadeInputs.forEach(input => {
+        // Espera-se valor no formato "18 anos" ou "17 anos e 2 meses"
+        const match = input.value.match(/(\d+)\s*anos?(?:\s*e\s*(\d+)\s*meses?)?/);
+        if (match) {
+          const anos = parseInt(match[1], 10);
+          const meses = match[2] ? parseInt(match[2], 10) : 0;
+          FIAP.calculation.addAgeClassificationTag(anos, meses, input);
+        }
+      });
+    }
+    // --- FIM: REAPLICAÇÃO DAS TAGS DE IDADE ---
     } finally {
       this.isRestoring = false;
       console.log(`[FormStateManager] restoreFormData para ${step} concluído. isRestoring: ${this.isRestoring}`);

@@ -223,7 +223,9 @@ function addAuthor() {
             console.log(`[personal.js] addAuthor: Campo ${newId} nomeado para autor_cpf[]`);
             // Adicionar máscara e validação de CPF para campos clonados, se FIAP.masks e FIAP.validation estiverem disponíveis
             if (window.FIAP && FIAP.masks && FIAP.validation) {
-              field.addEventListener('input', function() { FIAP.masks.cpf(this); });
+              field.addEventListener('input', function() {
+                FIAP.masks.cpf(this); // A máscara já chama a validação em tempo real
+              });
               field.addEventListener('blur', function() { FIAP.validation.cpfRealTime(this); });
             }
             break;
@@ -705,7 +707,9 @@ function setupEvents() {
 
   const cpfField = document.getElementById('cpf');
   if (cpfField) {
-    cpfField.addEventListener('input', function() { FIAP.masks.cpf(this); });
+    cpfField.addEventListener('input', function() {
+      FIAP.masks.cpf(this); // A máscara já chama a validação em tempo real
+    });
     cpfField.addEventListener('blur', function() { FIAP.validation.cpfRealTime(this); });
   }
 
@@ -941,7 +945,9 @@ function setupEvents() {
 
   const cpfField = document.getElementById('cpf');
   if (cpfField) {
-    cpfField.addEventListener('input', function() { FIAP.masks.cpf(this); });
+    cpfField.addEventListener('input', function() {
+      FIAP.masks.cpf(this); // A máscara já chama a validação em tempo real
+    });
     cpfField.addEventListener('blur', function() { FIAP.validation.cpfRealTime(this); });
   }
 
