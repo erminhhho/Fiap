@@ -314,6 +314,23 @@ class FormStateManager {
       return;
     }
 
+    // --- INÍCIO: Monitoramento de perda de persistência em incapacity ---
+    if (currentRoute === 'incapacity') {
+      // Após a coleta dos dados, checar se todos os campos estão vazios
+      setTimeout(() => {
+        const data = this.formData['incapacity'] || {};
+        const allEmpty = Object.keys(data).filter(k => k !== '_timestamp').every(k => {
+          const v = data[k];
+          if (Array.isArray(v)) return v.every(i => i === '' || i === null || typeof i === 'undefined');
+          return v === '' || v === null || typeof v === 'undefined';
+        });
+        if (allEmpty) {
+          console.error('[FormStateManager][ALERTA] Todos os campos de incapacity foram capturados vazios! Isso pode indicar perda de persistência. formData:', JSON.parse(JSON.stringify(data)));
+        }
+      }, 100); // Pequeno delay para garantir que this.formData foi atualizado
+    }
+    // --- FIM: Monitoramento de perda de persistência em incapacity ---
+
     console.log(`[FormStateManager] Capturando dados para a rota: ${currentRoute}`);
 
     // Usar o estado existente como base, se houver, para não perder dados customizados (ex: array de documentos)
