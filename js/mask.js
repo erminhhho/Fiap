@@ -19,10 +19,10 @@ const Mask = {
     input.value = value;
 
     // Realizar validação em tempo real se esta funcionalidade estiver disponível
-    if (typeof window.validateCPFRealTime === 'function' &&
+    if ((window.Check && typeof window.Check.cpfRealTime === 'function') &&
         (value.length >= 3 || (value.length > 0 && input.dataset.validated === 'true'))) {
       input.dataset.validated = 'true';
-      window.validateCPFRealTime(input);
+      window.Check.cpfRealTime(input);
     }
   },
 
@@ -89,9 +89,9 @@ const Mask = {
     input.value = value;
 
     // Realizar validação em tempo real se disponível
-    if (value.length >= 5 && typeof window.validateDateOfBirthRealTime === 'function') {
+    if (value.length >= 5 && (window.Check && typeof window.Check.dateOfBirthRealTime === 'function')) {
       input.dataset.validated = 'true';
-      window.validateDateOfBirthRealTime(input);
+      window.Check.dateOfBirthRealTime(input);
     }
 
     // Se tiver campo de idade associado, calcular apenas se a data estiver completa

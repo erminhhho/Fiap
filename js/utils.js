@@ -139,6 +139,7 @@ FIAP.masks = {
 
 /**
  * Módulo de validação de dados
+ * Redireciona para o objeto Check centralizado
  */
 FIAP.validation = {
   /**
@@ -146,30 +147,12 @@ FIAP.validation = {
    * @param {HTMLInputElement} input - Campo de entrada do CPF
    */
   cpfRealTime: function(input) {
-    const cpf = input.value.replace(/\D/g, '');
-    input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
-    if (cpf.length === 0) return;
-    if (cpf.length < 11) {
-      // Ao apagar, neutraliza o campo (sem erro visual)
-      input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
-      return;
-    }
-    if (/^(\d)\1{10}$/.test(cpf)) {
-      input.classList.add('cpf-invalid');
-      return;
-    }
-    let sum = 0;
-    for (let i = 0; i < 9; i++) sum += parseInt(cpf.charAt(i)) * (10 - i);
-    let remainder = sum % 11;
-    let digit1 = remainder < 2 ? 0 : 11 - remainder;
-    sum = 0;
-    for (let i = 0; i < 10; i++) sum += parseInt(cpf.charAt(i)) * (11 - i);
-    remainder = sum % 11;
-    let digit2 = remainder < 2 ? 0 : 11 - remainder;
-    if (parseInt(cpf.charAt(9)) === digit1 && parseInt(cpf.charAt(10)) === digit2) {
-      input.classList.add('cpf-valid');
+    // Usar função centralizada
+    if (window.Check && typeof window.Check.cpfRealTime === 'function') {
+      return window.Check.cpfRealTime(input);
     } else {
-      input.classList.add('cpf-invalid');
+      console.warn('FIAP.validation.cpfRealTime: Check.cpfRealTime não está disponível');
+      return false;
     }
   },
 
@@ -178,94 +161,13 @@ FIAP.validation = {
    * @param {HTMLInputElement} input - Campo de entrada da data
    */
   dateOfBirthRealTime: function(input) {
-    const dateValue = input.value;
-    input.classList.remove('date-valid', 'date-invalid', 'date-validating');
-
-    // Limpar campo de idade e tag de classificação se data estiver vazia ou incompleta
-    if ((dateValue.trim() === '' || dateValue.length < 10) && input.dataset.targetAge) {
-      const idadeInput = document.getElementById(input.dataset.targetAge);
-      if (idadeInput) {
-        idadeInput.value = '';
-        idadeInput.classList.remove('field-valid', 'field-invalid');
-        // Remover tag de classificação etária
-        const parentElement = idadeInput.parentElement;
-        if (parentElement) {
-          const existingTag = parentElement.querySelector('.age-classification-tag');
-          if (existingTag) existingTag.remove();
-        }
-      }
-      // Apenas remover classes de validação existentes do campo data
-      return;
+    // Usar função centralizada
+    if (window.Check && typeof window.Check.dateOfBirthRealTime === 'function') {
+      return window.Check.dateOfBirthRealTime(input);
+    } else {
+      console.warn('FIAP.validation.dateOfBirthRealTime: Check.dateOfBirthRealTime não está disponível');
+      return false;
     }
-
-    if (dateValue.trim() === '') {
-      // Se o campo estiver vazio, não aplicar classes de erro.
-      // Apenas remover as classes de validação existentes.
-      return;
-    }
-
-    if (dateValue.length < 10) { // DD/MM/AAAA incompleto
-      // Ao apagar, remover qualquer erro e deixar neutro
-      return;
-    }
-
-    input.classList.add('date-validating'); // Adiciona classe enquanto valida
-
-    const parts = dateValue.split('/');
-    if (parts.length !== 3) {
-      input.classList.remove('date-validating');
-      input.classList.add('date-invalid');
-      return;
-    }
-
-    const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10);
-    const year = parseInt(parts[2], 10);
-
-    if (isNaN(day) || isNaN(month) || isNaN(year) ||
-        year < 1900 || year > new Date().getFullYear() + 1 ||
-        month < 1 || month > 12 ||
-        day < 1 || day > 31) {
-      input.classList.remove('date-validating');
-      input.classList.add('date-invalid');
-      return;
-    }
-
-    // Validação de dias no mês (simplificada, pode ser melhorada)
-    const daysInMonth = [31, (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    if (day > daysInMonth[month - 1]) {
-      input.classList.remove('date-validating');
-      input.classList.add('date-invalid');
-      return;
-    }
-
-    const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0); // Zerar horas para comparar apenas datas
-    const inputDate = new Date(year, month - 1, day);
-
-    if (isNaN(inputDate.getTime())) { // Checagem final se a data é realmente válida
-        input.classList.remove('date-validating');
-        input.classList.add('date-invalid');
-        return;
-    }
-
-    if (inputDate > currentDate) { // Data no futuro
-        input.classList.remove('date-validating');
-        input.classList.add('date-invalid');
-        return;
-    }
-
-    const minDate = new Date();
-    minDate.setFullYear(currentDate.getFullYear() - 150); // Limite de 150 anos no passado
-    minDate.setHours(0,0,0,0);
-    if (inputDate < minDate) { // Data muito antiga
-        input.classList.remove('date-validating');
-        input.classList.add('date-invalid');
-        return;
-    }
-
-    input.classList.remove('date-validating', 'date-invalid');
-    input.classList.add('date-valid');
   },
 
   /**
@@ -274,11 +176,13 @@ FIAP.validation = {
    * @returns {boolean} - Indica se a data é válida
    */
   dateOfBirth: function(input) {
-    // Executar a validação em tempo real para garantir feedback consistente
-    this.dateOfBirthRealTime(input);
-
-    // Não recalcula idade nem exibe erro de data futura no blur, apenas retorna o estado de validade
-    return input.classList.contains('date-valid');
+    // Usar função centralizada
+    if (window.Check && typeof window.Check.dateOfBirth === 'function') {
+      return window.Check.dateOfBirth(input);
+    } else {
+      console.warn('FIAP.validation.dateOfBirth: Check.dateOfBirth não está disponível');
+      return false;
+    }
   },
 
   /**
@@ -286,15 +190,12 @@ FIAP.validation = {
    * @param {HTMLInputElement} input - Campo de entrada
    */
   removeValidationIcon: function(input) {
-    const parent = input.parentElement;
-    const existingIcon = parent.querySelector('.validation-field-icon');
-
-    if (existingIcon) {
-      existingIcon.remove();
+    // Usar função centralizada
+    if (window.Check && typeof window.Check.removeValidationIcon === 'function') {
+      window.Check.removeValidationIcon(input);
+    } else {
+      console.warn('FIAP.validation.removeValidationIcon: Check.removeValidationIcon não está disponível');
     }
-
-    // Restaurar padding original
-    input.style.paddingRight = '';
   },
 
   /**
@@ -303,29 +204,13 @@ FIAP.validation = {
    * @returns {boolean} - Indica se o CPF é válido
    */
   cpf: function(input) {
-    // Se o campo estiver vazio ou incompleto, limpar todos os estados de validação
-    const cpf = input.value.replace(/\D/g, '');
-    if (cpf.length === 0 || cpf.length < 11) {
-      input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
-      // Garantir que a label volte à cor padrão
-      const label = input.parentElement.querySelector('label');
-      if (label) {
-        label.classList.remove('text-red-500', 'text-white');
-        label.classList.add('text-gray-700');
-      }
-      // Remover ícone de validação
-      this.removeValidationIcon(input);
-      // Remover qualquer mensagem de validação
-      this.removeValidationMessage(input.parentElement);
-      // Remover qualquer estilo de borda no input
-      input.style.borderColor = '';
-      // Garantir que o campo não tenha borda vermelha
-      input.classList.remove('field-invalid');
-      input.classList.remove('cpf-invalid');
-      return true; // Campo vazio ou incompleto não é considerado erro
+    // Usar função centralizada
+    if (window.Check && typeof window.Check.cpf === 'function') {
+      return window.Check.cpf(input);
+    } else {
+      console.warn('FIAP.validation.cpf: Check.cpf não está disponível');
+      return false;
     }
-    // Se não estiver vazio e tem 11 dígitos, executar a validação normal
-    return this.cpfRealTime(input), input.classList.contains('cpf-valid');
   }
 };
 

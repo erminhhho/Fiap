@@ -1,6 +1,5 @@
 /**
  * Arquivo centralizado para funções relacionadas a documentos
- * Combina as funcionalidades de fix-documents.js e document-functions.js
  */
 
 // Funções movidas de documents.html para garantir disponibilidade global

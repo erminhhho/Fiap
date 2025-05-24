@@ -1,5 +1,6 @@
 /**
  * Configurações centralizadas da aplicação
+ * Sempre que for alterar alguma configuração, atualizar a versão e a data de atualização
  */
 
 const CONFIG = {

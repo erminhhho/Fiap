@@ -437,107 +437,46 @@ function setupFieldValidation(field, msgElement) {
 
 // Função para validar CPF
 function validateCPF(field, msgElement) {
-  // Verificar se o campo está vazio ou incompleto
-  let cpf = field.value.replace(/\D/g, '');
-  if (cpf.length === 0 || cpf.length < 11) {
-    // Campo vazio ou incompleto não é considerado erro, fica neutro
-    field.classList.remove('cpf-valid', 'cpf-invalid', 'field-invalid');
-    if (msgElement) {
-      msgElement.textContent = '';
-      msgElement.classList.remove('validation-error', 'validation-success');
-    }
-    // Garantir que a label volte à cor padrão
-    const label = field.parentElement.querySelector('label');
-    if (label) {
-      label.classList.remove('text-red-500', 'text-white');
-      label.classList.add('text-gray-700');
-    }
-    return true;
-  }
-
-  // Verificar se todos os dígitos são iguais
-  if (/^(\d)\1{10}$/.test(cpf)) {
-    field.classList.remove('cpf-valid');
-    field.classList.add('cpf-invalid');
-    if (msgElement) showValidationMessage(msgElement, 'CPF inválido', true);
-    return false;
-  }
-
-  // Algoritmo de validação do CPF
-  let soma = 0;
-  for (let i = 0; i < 9; i++) {
-    soma += parseInt(cpf.charAt(i)) * (10 - i);
-  }
-  let resto = 11 - (soma % 11);
-  let dv1 = resto >= 10 ? 0 : resto;
-
-  soma = 0;
-  for (let i = 0; i < 10; i++) {
-    soma += parseInt(cpf.charAt(i)) * (11 - i);
-  }
-  resto = 11 - (soma % 11);
-  let dv2 = resto >= 10 ? 0 : resto;
-
-  if (dv1 == cpf.charAt(9) && dv2 == cpf.charAt(10)) {
-    field.classList.remove('cpf-invalid');
-    field.classList.add('cpf-valid');
-    if (msgElement) showValidationMessage(msgElement, 'CPF válido');
-    return true;
+  // Usar a função centralizada
+  if (window.Check && typeof window.Check.cpf === 'function') {
+    return window.Check.cpf(field, msgElement);
   } else {
-    field.classList.remove('cpf-valid');
-    field.classList.add('cpf-invalid');
-    if (msgElement) showValidationMessage(msgElement, 'CPF inválido', true);
+    console.warn('validateCPF: Check.cpf não está disponível');
     return false;
   }
 }
 
 // Função para validar CEP
 function validateCEP(field, msgElement) {
-  const cep = field.value.replace(/\D/g, '');
-
-  if (cep.length !== 8) {
-    field.classList.remove('cep-valid');
-    field.classList.add('cep-invalid');
-    showValidationMessage(msgElement, 'CEP inválido', true);
-    return;
+  // Usar a função centralizada
+  if (window.Check && typeof window.Check.cep === 'function') {
+    return window.Check.cep(field, msgElement);
+  } else {
+    console.warn('validateCEP: Check.cep não está disponível');
+    return false;
   }
-
-  field.classList.remove('cep-invalid');
-  field.classList.add('cep-valid');
-  showValidationMessage(msgElement, 'CEP válido');
 }
 
 // Função para validar email
 function validateEmail(field, msgElement) {
-  const email = field.value.trim();
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  if (!emailPattern.test(email)) {
-    field.classList.remove('field-valid');
-    field.classList.add('field-invalid');
-    showValidationMessage(msgElement, 'E-mail inválido', true);
-    return;
+  // Usar a função centralizada
+  if (window.Check && typeof window.Check.email === 'function') {
+    return window.Check.email(field, msgElement);
+  } else {
+    console.warn('validateEmail: Check.email não está disponível');
+    return false;
   }
-
-  field.classList.remove('field-invalid');
-  field.classList.add('field-valid');
-  showValidationMessage(msgElement, 'E-mail válido');
 }
 
 // Função para validar telefone
 function validatePhone(field, msgElement) {
-  const phone = field.value.replace(/\D/g, '');
-
-  if (phone.length < 10 || phone.length > 11) {
-    field.classList.remove('field-valid');
-    field.classList.add('field-invalid');
-    showValidationMessage(msgElement, 'Telefone inválido', true);
-    return;
+  // Usar a função centralizada
+  if (window.Check && typeof window.Check.phone === 'function') {
+    return window.Check.phone(field, msgElement);
+  } else {
+    console.warn('validatePhone: Check.phone não está disponível');
+    return false;
   }
-
-  field.classList.remove('field-invalid');
-  field.classList.add('field-valid');
-  showValidationMessage(msgElement, 'Telefone válido');
 }
 
 // Função para exibir mensagem de validação
@@ -636,37 +575,49 @@ function setupLiveValidation() {
   });
 }
 
-// Função para verificar o preenchimento de todos os campos obrigatórios
+/**
+ * Verifica campos obrigatórios em um formulário
+ * @param {string} formId - ID do formulário ou seção a validar
+ * @returns {boolean} - Indica se todos os campos obrigatórios estão preenchidos
+ */
 function checkRequiredFields(formId) {
-  const form = document.getElementById(formId);
-  if (!form) return true;
+  // Usar função centralizada
+  if (window.Check && typeof window.Check.checkRequiredFields === 'function') {
+    return window.Check.checkRequiredFields(formId);
+  } else {
+    console.warn('checkRequiredFields: Check.checkRequiredFields não está disponível');
 
-  const requiredFields = form.querySelectorAll('[required]');
-  let allValid = true;
+    // Implementação alternativa caso a função centralizada não esteja disponível
+    const form = document.getElementById(formId);
+    if (!form) return true;
 
-  requiredFields.forEach(field => {
-    if (field.value.trim() === '') {
-      allValid = false;
+    const requiredFields = form.querySelectorAll('[required], [data-required="true"]');
+    let isValid = true;
 
-      // Destacar o campo não preenchido
-      field.classList.add('field-invalid');
+    requiredFields.forEach(field => {
+      if (field.value.trim() === '') {
+        field.classList.add('field-invalid');
+        isValid = false;
 
-      // Exibir mensagem de validação
-      const msgElement = field.closest('.form-group')?.querySelector('.validation-message');
-      if (msgElement) {
-        showValidationMessage(msgElement, 'Campo obrigatório', true);
+        // Mostrar erro visual
+        const msgElement = field.closest('.form-group')?.querySelector('.validation-message');
+        if (msgElement) {
+          showValidationMessage(msgElement, 'Campo obrigatório', true);
+        }
+      }
+    });
+
+    if (!isValid) {
+      // Rolar para o primeiro campo com erro
+      const firstInvalidField = form.querySelector('.field-invalid');
+      if (firstInvalidField) {
+        firstInvalidField.focus();
+        firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-  });
 
-  if (!allValid) {
-    showError('Por favor, preencha todos os campos obrigatórios', null, {
-      duration: 5000,
-      position: 'top-center'
-    });
+    return isValid;
   }
-
-  return allValid;
 }
 
 /**
