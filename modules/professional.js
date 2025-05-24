@@ -47,34 +47,30 @@ window.initModule = function() {
   // Restaurar dados para esta etapa
   if (window.formStateManager) {
     const currentStepKey = 'professional';
+    console.log(`[professional.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
     setTimeout(() => {
-      try {
-        if (window.formStateManager && typeof window.formStateManager.ensureFormAndRestore === 'function') {
-          window.formStateManager.ensureFormAndRestore(currentStepKey);
-          setTimeout(function() {
-            document.querySelectorAll('.atividade-item').forEach(atividade => {
-              const inicioInput = atividade.querySelector('.periodo-inicio');
-              const fimInput = atividade.querySelector('.periodo-fim');
-              const prazoInput = atividade.querySelector('.periodo-prazo');
-              if (inicioInput && fimInput && prazoInput) {
-                if (inicioInput.value && fimInput.value) {
-                  let prazo = parseInt(fimInput.value, 10) - parseInt(inicioInput.value, 10) + 1;
-                  prazoInput.value = prazo > 0 ? prazo + ' anos' : '';
-                } else if (inicioInput.value && prazoInput.value) {
-                  fimInput.value = parseInt(inicioInput.value, 10) + parseInt(prazoInput.value) - 1;
-                } else if (fimInput.value && prazoInput.value) {
-                  inicioInput.value = parseInt(fimInput.value, 10) - parseInt(prazoInput.value) + 1;
-                }
+      if (window.formStateManager && typeof window.formStateManager.ensureFormAndRestore === 'function') {
+        window.formStateManager.ensureFormAndRestore(currentStepKey);
+        // Após restaurar, disparar validações
+        setTimeout(function() {
+          document.querySelectorAll('.atividade-item').forEach(atividade => {
+            const inicioInput = atividade.querySelector('.periodo-inicio');
+            const fimInput = atividade.querySelector('.periodo-fim');
+            const prazoInput = atividade.querySelector('.periodo-prazo');
+            if (inicioInput && fimInput && prazoInput) {
+              if (inicioInput.value && fimInput.value) {
+                let prazo = parseInt(fimInput.value, 10) - parseInt(inicioInput.value, 10) + 1;
+                prazoInput.value = prazo > 0 ? prazo + ' anos' : '';
+              } else if (inicioInput.value && prazoInput.value) {
+                fimInput.value = parseInt(inicioInput.value, 10) + parseInt(prazoInput.value) - 1;
+              } else if (fimInput.value && prazoInput.value) {
+                inicioInput.value = parseInt(fimInput.value, 10) - parseInt(prazoInput.value) + 1;
               }
-              const profissaoInput = atividade.querySelector('#profissao');
-              if (profissaoInput && typeof formatarNomeProprio === 'function') formatarNomeProprio(profissaoInput);
-            });
-            document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey } }));
-          }, 350);
-        }
-      } catch (e) {
-        document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey, error: true } }));
-        console.error('[professional.js] Erro na restauração:', e);
+            }
+            const profissaoInput = atividade.querySelector('#profissao');
+            if (profissaoInput && typeof formatarNomeProprio === 'function') formatarNomeProprio(profissaoInput);
+          });
+        }, 350);
       }
     }, 50);
   }

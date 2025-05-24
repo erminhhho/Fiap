@@ -48,25 +48,22 @@ window.initModule = function() {
 
   if (window.formStateManager) {
     const currentStepKey = 'personal';
-    try {
-      window.formStateManager.ensureFormAndRestore(currentStepKey);
-      setTimeout(function() {
-        document.querySelectorAll('input[name="autor_cpf[]"]').forEach(input => {
-          if (typeof validateCPF === 'function') validateCPF(input);
-        });
-        document.querySelectorAll('input[name="autor_nascimento[]"]').forEach(input => {
-          if (typeof validateDateOfBirth === 'function') validateDateOfBirth(input);
-        });
-        document.querySelectorAll('input[name="autor_nome[]"], input[name="autor_apelido[]"]').forEach(input => {
-          if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
-        });
-        if (typeof applyRelationshipStyles === 'function') applyRelationshipStyles();
-        document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey } }));
-      }, 350);
-    } catch (e) {
-      document.dispatchEvent(new CustomEvent('formRestored', { detail: { step: currentStepKey, error: true } }));
-      console.error('[personal.js] Erro na restauração:', e);
-    }
+    console.log(`[personal.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
+    window.formStateManager.ensureFormAndRestore(currentStepKey);
+    // Após restaurar, disparar validações
+    setTimeout(function() {
+      document.querySelectorAll('input[name="autor_cpf[]"]').forEach(input => {
+        if (typeof validateCPF === 'function') validateCPF(input);
+      });
+      document.querySelectorAll('input[name="autor_nascimento[]"]').forEach(input => {
+        if (typeof validateDateOfBirth === 'function') validateDateOfBirth(input);
+      });
+      document.querySelectorAll('input[name="autor_nome[]"], input[name="autor_apelido[]"]').forEach(input => {
+        if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
+      });
+      // Reaplicar estilos das tags de relacionamento após restauração de estado
+      if (typeof applyRelationshipStyles === 'function') applyRelationshipStyles();
+    }, 350);
   }
 
   // Adicionar listener para o evento formCleared
