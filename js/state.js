@@ -833,57 +833,65 @@ class FormStateManager {
                     }
                   }
                   if (!restored) {
+                    if (typeof CONFIG !== 'undefined' && CONFIG.debug && CONFIG.debug.enabled) {
                       console.warn(`[FormStateManager] (GERAL - CAMPO ÚNICO) Campo '${key}' não foi encontrado/restaurado no DOM. Valor:`, valueToRestore);
+                    }
                   }
 
               } else { // Array.isArray(valueToRestore) é true, mas não arrayElementsByName.length > 0
-                   console.warn(`[FormStateManager] RESTORE (GERAL) - Chave '${key}' é um array nos dados, mas não foram encontrados elementos DOM '${key}[]'.`);
-                   if (valueToRestore.length === 1) {
-                      const singleValueToRestore = valueToRestore[0];
-                      console.log(`[FormStateManager] RESTORE (GERAL) - Tentando restaurar '${key}' com valor único de array:`, singleValueToRestore);
-                      let restoredSingle = false;
-                      const elementByIdSingle = form.querySelector(`#${CSS.escape(key)}`);
-                      if (elementByIdSingle) {
-                        console.log(`[FormStateManager] RESTORE CAMPO ÚNICO DE ARRAY (GERAL) - Encontrado por ID: #${key}, tipo: ${elementByIdSingle.type}`);
-                        if (elementByIdSingle.type === 'checkbox') elementByIdSingle.checked = typeof singleValueToRestore === 'boolean' ? singleValueToRestore : String(singleValueToRestore).toLowerCase() === 'true';
-                        else if (elementByIdSingle.type === 'radio' && elementByIdSingle.value === String(singleValueToRestore)) elementByIdSingle.checked = true;
-                        else if (elementByIdSingle.type === 'select-multiple' && Array.isArray(singleValueToRestore)) Array.from(elementByIdSingle.options).forEach(o => o.selected = singleValueToRestore.includes(o.value));
-                        else elementByIdSingle.value = singleValueToRestore;
-                        console.log(`[FormStateManager] Restaurado (GERAL - ÚNICO DE ARRAY por ID) campo #${key} com valor:`, singleValueToRestore);
-                        elementByIdSingle.dispatchEvent(new Event('input', { bubbles: true }));
-                        elementByIdSingle.dispatchEvent(new Event('change', { bubbles: true }));
-                        if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(elementByIdSingle);
-                        restoredSingle = true;
-                      }
-                      if (!restoredSingle) {
-                        const elementsByNameSingle = form.querySelectorAll(`[name="${CSS.escape(key)}"]`);
-                        if (elementsByNameSingle.length === 1) {
-                          const elSingle = elementsByNameSingle[0];
-                          console.log(`[FormStateManager] RESTORE CAMPO ÚNICO DE ARRAY (GERAL) - Encontrado por NAME: ${key}, tipo: ${elSingle.type}`);
-                          if (elSingle.type === 'checkbox') elSingle.checked = typeof singleValueToRestore === 'boolean' ? singleValueToRestore : String(singleValueToRestore).toLowerCase() === 'true';
-                          else if (elSingle.type === 'radio') elementsByNameSingle.forEach(r => r.checked = (r.value === String(singleValueToRestore)));
-                          else if (elSingle.type === 'select-multiple' && Array.isArray(singleValueToRestore)) Array.from(elSingle.options).forEach(o => o.selected = singleValueToRestore.includes(o.value));
-                          else elSingle.value = singleValueToRestore;
-                          console.log(`[FormStateManager] Restaurado (GERAL - ÚNICO DE ARRAY por Nome) campo name="${key}" com valor:`, singleValueToRestore);
-                          elSingle.dispatchEvent(new Event('input', { bubbles: true }));
-                          elSingle.dispatchEvent(new Event('change', { bubbles: true }));
-                          if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(elSingle);
-                          restoredSingle = true;
-                        } else if (elementsByNameSingle.length > 1 && elementsByNameSingle[0].type === 'radio'){
-                          console.log(`[FormStateManager] RESTORE CAMPO ÚNICO DE ARRAY (GERAL) - Grupo de radios por NAME: ${key}`);
-                          elementsByNameSingle.forEach(radioEl => {
-                            radioEl.checked = (radioEl.value === String(singleValueToRestore));
-                             if (radioEl.checked) console.log(`[FormStateManager] Restaurado (GERAL - ÚNICO DE ARRAY) radio name="${key}" value="${radioEl.value}"`);
-                          });
-                          restoredSingle = true;
-                        }
-                      }
-                      if (!restoredSingle) {
-                           console.warn(`[FormStateManager] (GERAL - ÚNICO DE ARRAY) Campo '${key}' não encontrado/restaurado no DOM com valor único. Valor:`, singleValueToRestore);
-                      }
-                   } else {
-                      console.warn(`[FormStateManager] RESTORE (GERAL) - Chave '${key}' é um array com múltiplos valores ou vazio (${valueToRestore.length}), e não há elementos DOM '${key}[]'. Não foi possível restaurar.`);
-                   }
+                if (typeof CONFIG !== 'undefined' && CONFIG.debug && CONFIG.debug.enabled) {
+                  console.warn(`[FormStateManager] RESTORE (GERAL) - Chave '${key}' é um array nos dados, mas não foram encontrados elementos DOM '${key}[]'.`);
+                }
+                if (valueToRestore.length === 1) {
+                  const singleValueToRestore = valueToRestore[0];
+                  console.log(`[FormStateManager] RESTORE (GERAL) - Tentando restaurar '${key}' com valor único de array:`, singleValueToRestore);
+                  let restoredSingle = false;
+                  const elementByIdSingle = form.querySelector(`#${CSS.escape(key)}`);
+                  if (elementByIdSingle) {
+                    console.log(`[FormStateManager] RESTORE CAMPO ÚNICO DE ARRAY (GERAL) - Encontrado por ID: #${key}, tipo: ${elementByIdSingle.type}`);
+                    if (elementByIdSingle.type === 'checkbox') elementByIdSingle.checked = typeof singleValueToRestore === 'boolean' ? singleValueToRestore : String(singleValueToRestore).toLowerCase() === 'true';
+                    else if (elementByIdSingle.type === 'radio' && elementByIdSingle.value === String(singleValueToRestore)) elementByIdSingle.checked = true;
+                    else if (elementByIdSingle.type === 'select-multiple' && Array.isArray(singleValueToRestore)) Array.from(elementByIdSingle.options).forEach(o => o.selected = singleValueToRestore.includes(o.value));
+                    else elementByIdSingle.value = singleValueToRestore;
+                    console.log(`[FormStateManager] Restaurado (GERAL - ÚNICO DE ARRAY por ID) campo #${key} com valor:`, singleValueToRestore);
+                    elementByIdSingle.dispatchEvent(new Event('input', { bubbles: true }));
+                    elementByIdSingle.dispatchEvent(new Event('change', { bubbles: true }));
+                    if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(elementByIdSingle);
+                    restoredSingle = true;
+                  }
+                  if (!restoredSingle) {
+                    const elementsByNameSingle = form.querySelectorAll(`[name="${CSS.escape(key)}"]`);
+                    if (elementsByNameSingle.length === 1) {
+                      const elSingle = elementsByNameSingle[0];
+                      console.log(`[FormStateManager] RESTORE CAMPO ÚNICO DE ARRAY (GERAL) - Encontrado por NAME: ${key}, tipo: ${elSingle.type}`);
+                      if (elSingle.type === 'checkbox') elSingle.checked = typeof singleValueToRestore === 'boolean' ? singleValueToRestore : String(singleValueToRestore).toLowerCase() === 'true';
+                      else if (elSingle.type === 'radio') elementsByNameSingle.forEach(r => r.checked = (r.value === String(singleValueToRestore)));
+                      else if (elSingle.type === 'select-multiple' && Array.isArray(singleValueToRestore)) Array.from(elSingle.options).forEach(o => o.selected = singleValueToRestore.includes(o.value));
+                      else elSingle.value = singleValueToRestore;
+                      console.log(`[FormStateManager] Restaurado (GERAL - ÚNICO DE ARRAY por Nome) campo name="${key}" com valor:`, singleValueToRestore);
+                      elSingle.dispatchEvent(new Event('input', { bubbles: true }));
+                      elSingle.dispatchEvent(new Event('change', { bubbles: true }));
+                      if (typeof destacarCampoPreenchido === 'function') destacarCampoPreenchido(elSingle);
+                      restoredSingle = true;
+                    } else if (elementsByNameSingle.length > 1 && elementsByNameSingle[0].type === 'radio'){
+                      console.log(`[FormStateManager] RESTORE CAMPO ÚNICO DE ARRAY (GERAL) - Grupo de radios por NAME: ${key}`);
+                      elementsByNameSingle.forEach(radioEl => {
+                        radioEl.checked = (radioEl.value === String(singleValueToRestore));
+                         if (radioEl.checked) console.log(`[FormStateManager] Restaurado (GERAL - ÚNICO DE ARRAY) radio name="${key}" value="${radioEl.value}"`);
+                      });
+                      restoredSingle = true;
+                    }
+                  }
+                  if (!restoredSingle) {
+                    if (typeof CONFIG !== 'undefined' && CONFIG.debug && CONFIG.debug.enabled) {
+                      console.warn(`[FormStateManager] (GERAL - ÚNICO DE ARRAY) Campo '${key}' não encontrado/restaurado no DOM com valor único. Valor:`, singleValueToRestore);
+                    }
+                  }
+                } else {
+                  if (typeof CONFIG !== 'undefined' && CONFIG.debug && CONFIG.debug.enabled) {
+                    console.warn(`[FormStateManager] RESTORE (GERAL) - Chave '${key}' é um array com múltiplos valores ou vazio (${valueToRestore.length}), e não há elementos DOM '${key}[]'. Não foi possível restaurar.`);
+                  }
+                }
               }
               console.log(`[FormStateManager] RESTORE - Chave '${key}' tratada (ou tentativa) por bloco geral.`);
           }
