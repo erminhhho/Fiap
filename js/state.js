@@ -317,17 +317,22 @@ class FormStateManager {
     // --- INÍCIO: Monitoramento de perda de persistência em incapacity ---
     if (currentRoute === 'incapacity') {
       // Após a coleta dos dados, checar se todos os campos estão vazios
-      setTimeout(() => {
-        const data = this.formData['incapacity'] || {};
-        const allEmpty = Object.keys(data).filter(k => k !== '_timestamp').every(k => {
-          const v = data[k];
-          if (Array.isArray(v)) return v.every(i => i === '' || i === null || typeof i === 'undefined');
-          return v === '' || v === null || typeof v === 'undefined';
-        });
-        if (allEmpty) {
-          console.error('[FormStateManager][ALERTA] Todos os campos de incapacity foram capturados vazios! Isso pode indicar perda de persistência. formData:', JSON.parse(JSON.stringify(data)));
-        }
-      }, 100); // Pequeno delay para garantir que this.formData foi atualizado
+      const data = formData;
+      const allEmpty = Object.keys(data).filter(k => k !== '_timestamp').every(k => {
+        const v = data[k];
+        if (Array.isArray(v)) return v.every(i => i === '' || i === null || typeof i === 'undefined');
+        return v === '' || v === null || typeof v === 'undefined';
+      });
+      const previousData = this.formData['incapacity'] || {};
+      const previousAllEmpty = Object.keys(previousData).filter(k => k !== '_timestamp').every(k => {
+        const v = previousData[k];
+        if (Array.isArray(v)) return v.every(i => i === '' || i === null || typeof i === 'undefined');
+        return v === '' || v === null || typeof v === 'undefined';
+      });
+      if (allEmpty && !previousAllEmpty) {
+        console.warn('[FormStateManager][PROTEÇÃO] Tentativa de sobrescrever dados válidos de incapacity por dados vazios. Operação ignorada. Dados anteriores preservados.');
+        return; // Não sobrescreve nem salva
+      }
     }
     // --- FIM: Monitoramento de perda de persistência em incapacity ---
 
@@ -462,7 +467,7 @@ class FormStateManager {
         'atividade_prazo': window.addAtividade, // NOVO CAMPO PRAZO
         'atividade_detalhes': window.addAtividade
       },
-      personal: { // ADICIONADO PARA AUTORES
+      personal: { // ADICIONADA PARA AUTORES
         // Campos que addAuthor clona e para os quais cria inputs nas novas linhas
         'autor_relationship': window.addAuthor,
         'autor_nome': window.addAuthor,
