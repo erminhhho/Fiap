@@ -4,7 +4,7 @@
  */
 
 /* Mensagens de validação - Definição consolidada */
-.validation-message {
+/* .validation-message {
   position: absolute;
   font-size: 0.75rem;
   left: 0;
@@ -23,16 +23,16 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   opacity: 0;
-}
+} */
 
 /* Novos estilos para validação em tempo real */
-.validation-field-icon {
+/* .validation-field-icon {
   z-index: 10;
   transition: all 0.2s ease;
   pointer-events: none;
   font-size: 0.875rem;
   font-weight: normal !important;
-}
+} */
 
 /* Estados dos campos durante validação */
 .cpf-validating {
@@ -57,25 +57,25 @@
 }
 
 /* Variações de estados para mensagens de validação - apenas cores diferenciadas */
-.validation-message.error,
+/* .validation-message.error,
 .validation-message.validation-error {
-  color: #EF4444; /* Vermelho para erros */
-}
+  color: #EF4444; */ /* Vermelho para erros */
+/* }
 
 .validation-message.warning {
-  color: #F59E0B; /* Amarelo para avisos */
-}
+  color: #F59E0B; */ /* Amarelo para avisos */
+/* }
 
 .validation-message.success,
 .validation-message:not(.validation-error):not(.warning) {
-  color: #10B981; /* Verde para sucesso */
-}
+  color: #10B981; */ /* Verde para sucesso */
+/* } */
 
 /* Ícone dentro do campo alinhado à direita */
-.validation-icon {
+/* .validation-icon {
   position: absolute;
-  right: 1rem; /* Sempre 1rem, responsivo */
-  top: 50%;
+  right: 1rem; */ /* Sempre 1rem, responsivo */
+  /* top: 50%;
   transform: translateY(-50%);
   z-index: 5;
   font-size: 1rem;
@@ -93,16 +93,16 @@
 
 .validation-icon.success {
   color: #10B981;
-}
+} */
 
 /* Visibilidade das mensagens de validação */
-.validation-message.validation-active,
+/* .validation-message.validation-active,
 .validated .validation-message.success,
 .invalid .validation-message.error,
 .warning .validation-message.warning {
   opacity: 1;
   display: block;
-}
+} */
 
 /* Ajuste para input com mensagem de validação */
 .field-valid,
@@ -130,7 +130,7 @@ textarea {
 /* Remove o negrito das labels e campos */
 .input-label, .cpf-valid ~ .input-label, .cep-valid ~ .input-label, .field-valid ~ .input-label,
 .cpf-invalid ~ .input-label, .cep-invalid ~ .input-label, .field-invalid ~ .input-label,
-.validation-message, .status-tag {
+/* .validation-message, */ .status-tag {
   font-weight: normal !important;
 }
 

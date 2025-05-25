@@ -54,7 +54,7 @@ const Check = {
    * @param {HTMLElement} [msgElement] - Elemento opcional para exibir mensagem
    * @returns {boolean} - Indica se o CPF é válido
    */
-  cpf: function(input, msgElement) {
+  cpf: function(input) {
     // Se o campo estiver vazio ou incompleto, limpar todos os estados de validação
     const cpf = input.value.replace(/\D/g, '');
     if (cpf.length === 0 || cpf.length < 11) {
@@ -65,17 +65,6 @@ const Check = {
       if (label) {
         label.classList.remove('text-red-500', 'text-white');
         label.classList.add('text-gray-700');
-      }
-
-      // Remover ícone de validação
-      this.removeValidationIcon(input);
-
-      // Remover qualquer mensagem de validação
-      if (msgElement) {
-        msgElement.textContent = '';
-        msgElement.classList.remove('validation-error', 'validation-success');
-      } else {
-        this.removeValidationMessage(input.parentElement);
       }
 
       // Remover qualquer estilo de borda no input
@@ -92,13 +81,6 @@ const Check = {
     if (/^(\d)\1{10}$/.test(cpf)) {
       input.classList.remove('cpf-valid');
       input.classList.add('cpf-invalid');
-
-      if (msgElement) {
-        msgElement.textContent = 'CPF inválido';
-        msgElement.classList.remove('validation-success');
-        msgElement.classList.add('validation-error');
-      }
-
       return false;
     }
 
@@ -120,24 +102,10 @@ const Check = {
     if (dv1 == cpf.charAt(9) && dv2 == cpf.charAt(10)) {
       input.classList.remove('cpf-invalid');
       input.classList.add('cpf-valid');
-
-      if (msgElement) {
-        msgElement.textContent = 'CPF válido';
-        msgElement.classList.remove('validation-error');
-        msgElement.classList.add('validation-success');
-      }
-
       return true;
     } else {
       input.classList.remove('cpf-valid');
       input.classList.add('cpf-invalid');
-
-      if (msgElement) {
-        msgElement.textContent = 'CPF inválido';
-        msgElement.classList.remove('validation-success');
-        msgElement.classList.add('validation-error');
-      }
-
       return false;
     }
   },
@@ -242,27 +210,11 @@ const Check = {
   /**
    * Valida data de nascimento quando o campo perde o foco
    * @param {HTMLInputElement} input - Campo de entrada da data
-   * @param {HTMLElement} [msgElement] - Elemento opcional para exibir mensagem
    * @returns {boolean} - Indica se a data é válida
    */
-  dateOfBirth: function(input, msgElement) {
+  dateOfBirth: function(input) {
     // Executar a validação em tempo real para garantir feedback consistente
     const isValid = this.dateOfBirthRealTime(input);
-
-    if (msgElement) {
-      if (isValid && input.value.trim() !== '') {
-        msgElement.textContent = 'Data válida';
-        msgElement.classList.remove('validation-error');
-        msgElement.classList.add('validation-success');
-      } else if (!isValid && input.value.trim() !== '' && input.value.length === 10) {
-        msgElement.textContent = 'Data inválida';
-        msgElement.classList.remove('validation-success');
-        msgElement.classList.add('validation-error');
-      } else {
-        msgElement.textContent = '';
-        msgElement.classList.remove('validation-error', 'validation-success');
-      }
-    }
 
     // Não recalcula idade nem exibe erro de data futura no blur, apenas retorna o estado de validade
     return isValid;
@@ -271,103 +223,58 @@ const Check = {
   /**
    * Valida CEP no formato 00000-000
    * @param {HTMLInputElement} input - Campo de entrada do CEP
-   * @param {HTMLElement} [msgElement] - Elemento opcional para exibir mensagem
    * @returns {boolean} - Indica se o CEP é válido
    */
-  cep: function(input, msgElement) {
+  cep: function(input) {
     const cep = input.value.replace(/\D/g, '');
 
     if (cep.length !== 8) {
       input.classList.remove('cep-valid');
       input.classList.add('cep-invalid');
-
-      if (msgElement) {
-        msgElement.textContent = 'CEP inválido';
-        msgElement.classList.remove('validation-success');
-        msgElement.classList.add('validation-error');
-      }
-
       return false;
     }
 
     input.classList.remove('cep-invalid');
     input.classList.add('cep-valid');
-
-    if (msgElement) {
-      msgElement.textContent = 'CEP válido';
-      msgElement.classList.remove('validation-error');
-      msgElement.classList.add('validation-success');
-    }
-
     return true;
   },
 
   /**
    * Valida formato de email
    * @param {HTMLInputElement} input - Campo de entrada do email
-   * @param {HTMLElement} [msgElement] - Elemento opcional para exibir mensagem
    * @returns {boolean} - Indica se o email é válido
    */
-  email: function(input, msgElement) {
+  email: function(input) {
     const email = input.value.trim();
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailPattern.test(email)) {
       input.classList.remove('field-valid');
       input.classList.add('field-invalid');
-
-      if (msgElement) {
-        msgElement.textContent = 'E-mail inválido';
-        msgElement.classList.remove('validation-success');
-        msgElement.classList.add('validation-error');
-      }
-
       return false;
     }
 
     input.classList.remove('field-invalid');
     input.classList.add('field-valid');
-
-    if (msgElement) {
-      msgElement.textContent = 'E-mail válido';
-      msgElement.classList.remove('validation-error');
-      msgElement.classList.add('validation-success');
-    }
-
     return true;
   },
 
   /**
    * Valida formato de telefone (quantidade de dígitos)
    * @param {HTMLInputElement} input - Campo de entrada do telefone
-   * @param {HTMLElement} [msgElement] - Elemento opcional para exibir mensagem
    * @returns {boolean} - Indica se o telefone é válido
    */
-  phone: function(input, msgElement) {
+  phone: function(input) {
     const phone = input.value.replace(/\D/g, '');
 
     if (phone.length < 10 || phone.length > 11) {
       input.classList.remove('field-valid');
       input.classList.add('field-invalid');
-
-      if (msgElement) {
-        msgElement.textContent = 'Telefone inválido';
-        msgElement.classList.remove('validation-success');
-        msgElement.classList.add('validation-error');
-      }
-
       return false;
     }
 
     input.classList.remove('field-invalid');
     input.classList.add('field-valid');
-
-    if (msgElement) {
-      msgElement.textContent = 'Telefone válido';
-      msgElement.classList.remove('validation-error');
-      msgElement.classList.add('validation-success');
-    }
-
     return true;
   },
 
@@ -397,34 +304,19 @@ const Check = {
   /**
    * Valida campo obrigatório
    * @param {HTMLInputElement} input - Campo de entrada
-   * @param {HTMLElement} [msgElement] - Elemento opcional para exibir mensagem
    * @returns {boolean} - Indica se o campo está preenchido
    */
-  required: function(input, msgElement) {
+  required: function(input) {
     const isEmpty = input.value.trim() === '';
 
     if (isEmpty) {
       input.classList.remove('field-valid');
       input.classList.add('field-invalid');
-
-      if (msgElement) {
-        msgElement.textContent = 'Campo obrigatório';
-        msgElement.classList.remove('validation-success');
-        msgElement.classList.add('validation-error');
-      }
-
       return false;
     }
 
     input.classList.remove('field-invalid');
     input.classList.add('field-valid');
-
-    if (msgElement) {
-      msgElement.textContent = 'Campo preenchido';
-      msgElement.classList.remove('validation-error');
-      msgElement.classList.add('validation-success');
-    }
-
     return true;
   },
 
@@ -464,77 +356,12 @@ const Check = {
   /**
    * Marca campo como inválido e exibe mensagem
    * @param {HTMLElement} field - Campo a marcar
-   * @param {string} message - Mensagem de erro
+   * @param {string} message - Mensagem de erro (REMOVIDO O USO DIRETO DA MENSAGEM)
    */
-  markFieldAsInvalid: function(field, message) {
+  markFieldAsInvalid: function(field) {
     field.classList.add('field-invalid');
-
-    // Buscar container de mensagem existente ou criar um novo
-    const msgElement = field.parentElement.querySelector('.validation-message');
-    if (msgElement) {
-      msgElement.textContent = message;
-      msgElement.classList.remove('validation-success');
-      msgElement.classList.add('validation-error', 'validation-active');
-    } else {
-      // Criar novo elemento de mensagem
-      const newMsg = document.createElement('div');
-      newMsg.className = 'validation-message validation-error validation-active';
-      newMsg.textContent = message;
-      field.parentElement.appendChild(newMsg);
-    }
-
     // Destacar visualmente o campo
     field.focus();
-  },
-
-  /**
-   * Remove ícone de validação do campo
-   * @param {HTMLInputElement} input - Campo de entrada
-   */
-  removeValidationIcon: function(input) {
-    const parent = input.parentElement;
-    const existingIcon = parent.querySelector('.validation-field-icon');
-
-    if (existingIcon) {
-      existingIcon.remove();
-    }
-
-    // Restaurar padding original
-    input.style.paddingRight = '';
-  },
-
-  /**
-   * Remove mensagem de validação
-   * @param {HTMLElement} parentDiv - Elemento pai que contém a mensagem
-   */
-  removeValidationMessage: function(parentDiv) {
-    const existingMessage = parentDiv.querySelector('.validation-message');
-
-    if (existingMessage) {
-      existingMessage.remove();
-    }
-  },
-
-  /**
-   * Adiciona um ícone de validação dentro do campo
-   * @param {HTMLInputElement} input - Campo de entrada
-   * @param {string} icon - Nome do ícone FontAwesome sem o prefixo 'fa-'
-   * @param {string} colorClass - Classe de cor para o ícone
-   */
-  addValidationIcon: function(input, icon, colorClass) {
-    this.removeValidationIcon(input);
-
-    // Criar span para o ícone
-    const iconSpan = document.createElement('span');
-    iconSpan.className = `validation-field-icon absolute right-3 top-1/2 transform -translate-y-1/2 ${colorClass}`;
-    iconSpan.innerHTML = `<i class="fas fa-${icon}"></i>`;
-    iconSpan.style.zIndex = "20"; // Garantir que o ícone esteja acima de outros elementos
-
-    // Adicionar o ícone após o input (mas dentro do container)
-    input.parentElement.appendChild(iconSpan);
-
-    // Adicionar padding extra à direita para evitar sobreposição
-    input.style.paddingRight = '2.5rem';
   },
 
   /**
@@ -547,11 +374,8 @@ const Check = {
     field.classList.remove('field-valid', 'field-invalid', 'cpf-valid', 'cpf-invalid',
                           'date-valid', 'date-invalid', 'cep-valid', 'cep-invalid');
 
-    // Remover ícone de validação
-    this.removeValidationIcon(field);
-
-    // Remover mensagem de validação
-    this.removeValidationMessage(field.parentElement);
+    // Restaurar padding original que poderia ter sido alterado por ícones
+    field.style.paddingRight = '';
   },
 
   /**

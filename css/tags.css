@@ -338,13 +338,6 @@
   border-color: #f97316 !important; /* Borda laranja sutil */
 }
 
-/* .isento-carencia-tag:hover {
-  cursor: not-allowed;
-  background-color: #f97316;
-  box-shadow: none;
-  transform: translateY(-50%);
-} */
-
 /* Estilos para as tags de classificação etária judicial */
 .age-classification-tag {
   font-size: 0.75rem; /* Alterado de 0.65rem */
