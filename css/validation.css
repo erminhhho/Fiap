@@ -161,7 +161,8 @@ input:focus, select:focus, textarea:focus {
   box-shadow: none !important;
 }
 
-/* Estilo base para inputs para garantir uma borda padrão e transições (opcional) */
+/*
+Comentando a regra abaixo para que o Tailwind CSS controle o padding/altura dos inputs.
 input[type="text"],
 input[type="email"],
 input[type="tel"],
@@ -169,15 +170,15 @@ input[type="password"],
 input[type="search"],
 input[type="url"],
 input[type="number"],
-input[type="date"], /* Adicionado para consistência */
+input[type="date"],
 textarea,
 select {
   border-width: 1px;
   border-style: solid;
-  border-color: #D1D5DB; /* Cinza claro padrão */
-  padding: 0.5rem 0.75rem; /* Exemplo de padding, ajuste conforme necessário */
-  /* transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; */ /* Transição suave opcional */
+  border-color: #D1D5DB;
+  padding: 0.5rem 0.75rem;
 }
+*/
 
 /* Remove o outline padrão do navegador no foco e usa box-shadow para feedback */
 input:focus,
