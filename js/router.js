@@ -253,26 +253,52 @@ async function loadModuleWithTemplate(route) {
     const templateHTML = await loadTemplate(route.templateUrl);
     routerLog('Template HTML carregado com sucesso');
 
+    // Carregar o script do módulo (pré-carregamento)
+    routerLog(`Pré-carregando script do módulo: ${route.scriptUrl}`);
+    const scriptLoadPromise = loadScript(route.scriptUrl);
+
+    // Esperar um tempo curto para a animação de fade-out
+    // Isso garante que a transição seja suave
+    await new Promise(resolve => setTimeout(resolve, 150));
+
     // Renderizar o template no container
     routerLog('Renderizando template no container');
     appContent.innerHTML = templateHTML;
 
-    // Carregar e executar o script do módulo
-    routerLog(`Carregando script do módulo: ${route.scriptUrl}`);
-    await loadScript(route.scriptUrl);
+    // Aguardar o carregamento completo do script
+    await scriptLoadPromise;
     routerLog('Script do módulo carregado com sucesso');
 
-    // Finalizar barra de progresso e remover fade-out
+    // Finalizar barra de progresso
     completeProgressBar();
-    appContent.classList.remove('fade-out');
-    appContent.classList.add('fade-in');
+
+    // Aplicar fade-in somente após a inicialização do módulo
+    // para o caso da página 'social', que tem inicialização complexa
+    const isSocialPage = route.scriptUrl.includes('social.js');
+
+    if (!isSocialPage) {
+      // Para outras páginas, aplicar fade-in imediatamente
+      appContent.classList.remove('fade-out');
+      appContent.classList.add('fade-in');
+    }
 
     // Inicializar o módulo se a função estiver definida
     if (typeof window.initModule === 'function') {
       routerLog('Inicializando módulo via window.initModule()');
       window.initModule();
+
+      // Para a página social, aplicar fade-in após a inicialização
+      if (isSocialPage) {
+        requestAnimationFrame(() => {
+          appContent.classList.remove('fade-out');
+          appContent.classList.add('fade-in');
+        });
+      }
     } else {
       routerLog('Função window.initModule não encontrada');
+      // Garantir que o fade-in seja aplicado mesmo sem initModule
+      appContent.classList.remove('fade-out');
+      appContent.classList.add('fade-in');
     }
 
     // Inicializar o sistema CID se estiver na página de incapacidades
