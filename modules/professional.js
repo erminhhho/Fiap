@@ -599,7 +599,7 @@ function showOutroAtividadeModal() {
           window.formatarNomeProprio(this);
         }
       });
-      
+
       // Salvar ao pressionar Enter
       input.addEventListener('keyup', function(event) {
         if (event.key === 'Enter') {

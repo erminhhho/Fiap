@@ -319,7 +319,7 @@ const Mask = {
     // Salvar posição do cursor
     const cursorPos = input.selectionStart;
     const cursorEnd = input.selectionEnd;
-    
+
     // Lista de palavras que devem permanecer em minúsculo
     const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'por', 'com'];
 
@@ -346,11 +346,11 @@ const Mask = {
 
     // Juntar as palavras novamente
     const novoTexto = palavras.join(' ');
-    
+
     // Só atualizar se realmente mudou para evitar loop infinito
     if (input.value !== novoTexto) {
       input.value = novoTexto;
-      
+
       // Restaurar posição do cursor
       if (cursorPos !== null) {
         input.setSelectionRange(cursorPos, cursorEnd);
@@ -366,7 +366,7 @@ const Mask = {
     // Salvar posição do cursor
     const cursorPos = input.selectionStart;
     const cursorEnd = input.selectionEnd;
-    
+
     // Lista de palavras que devem permanecer em minúsculo
     const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'por', 'com'];
 
@@ -393,11 +393,11 @@ const Mask = {
 
     // Juntar as palavras novamente
     const novoTexto = palavras.join(' ');
-    
+
     // Só atualizar se realmente mudou para evitar loop infinito
     if (input.value !== novoTexto) {
       input.value = novoTexto;
-      
+
       // Restaurar posição do cursor
       if (cursorPos !== null) {
         input.setSelectionRange(cursorPos, cursorEnd);
