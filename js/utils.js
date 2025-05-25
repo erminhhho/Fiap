@@ -418,7 +418,7 @@ FIAP.calculation = {
 
       // Posicionamento consistente com as tags de relacionamento
       tagElement.style.position = 'absolute';
-      tagElement.style.right = '12px';
+      tagElement.style.right = '0.5rem';
       tagElement.style.top = '0';
       tagElement.style.transform = 'translateY(-50%)';
       tagElement.style.zIndex = '10';
