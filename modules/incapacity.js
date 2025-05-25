@@ -1142,10 +1142,12 @@ function setupEvents() {
         console.error('Erro ao navegar para a próxima página:', error);
         this.innerHTML = originalText;
         this.classList.remove('opacity-75');
-        isNavigating = false;
-      }
+        isNavigating = false;      }
     });
   }
+  
+  // Configurar modal de "Outro Tipo de Documento"
+  setupDocumentoTipoSelects();
 }
 
 // Função para adicionar um novo campo de doença
@@ -1169,7 +1171,7 @@ function addDoencaField() {
     <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
       <!-- Documento (agora é o primeiro) -->
       <div class="relative md:col-span-4">
-        <select class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200" id="tipoDocumento${nextIndex}" name="tipoDocumentos[]" data-index="${nextIndex}">
+        <select class="tipo-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200" id="tipoDocumento${nextIndex}" name="tipoDocumentos[]" data-index="${nextIndex}">
           <option value="" selected disabled>Selecione</option>
           <option value="exame">Exame</option>
           <option value="atestado">Atestado</option>
@@ -1281,3 +1283,123 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }, 300);
 });
+
+// Função para configurar os event listeners nos selects de tipo de documento
+function setupDocumentoTipoSelects() {
+  document.addEventListener('change', function(event) {
+    if (event.target.classList.contains('tipo-documento')) {
+      if (event.target.value === 'outro') {
+        window.currentDocumentoSelectGlobal = event.target;
+        showOutroDocumentoModal();
+      }
+    }
+  });
+}
+
+// Função para mostrar o modal de "Outro Tipo de Documento" usando o modal genérico
+function showOutroDocumentoModal() {
+  if (typeof window.showGenericModal !== 'function') {
+    console.error('Modal genérico não disponível');
+    return;
+  }
+  
+  window.showGenericModal({
+    title: 'Informar Tipo de Documento',
+    message: 'Digite o tipo de documento desejado:',
+    content: '<input type="text" id="outroDocumentoInputGeneric" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Relatório, Comprovante">',
+    buttons: [
+      {
+        text: 'Cancelar',
+        className: 'flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center',
+        onclick: function() {
+          handleCancelOutroDocumento();
+        }
+      },
+      {
+        text: 'Salvar',
+        className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
+        onclick: function() {
+          handleSaveOutroDocumento();
+        }
+      }
+    ]
+  });
+  
+  // Configurar eventos adicionais
+  setTimeout(() => {
+    const input = document.getElementById('outroDocumentoInputGeneric');
+    if (input) {
+      // Capitalizar primeira letra quando sair do campo
+      input.addEventListener('blur', function() {
+        this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);
+      });
+      
+      // Salvar ao pressionar Enter
+      input.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+          handleSaveOutroDocumento();
+        }
+      });
+    }
+  }, 100);
+}
+
+// Função para lidar com o cancelamento
+function handleCancelOutroDocumento() {
+  // Se o usuário cancelou e o valor do select ainda é "outro", reseta para "Selecione..."
+  if (window.currentDocumentoSelectGlobal && window.currentDocumentoSelectGlobal.value === 'outro') {
+    const options = Array.from(window.currentDocumentoSelectGlobal.options);
+    const customOptionExists = options.some(opt => opt.value !== "" && opt.value !== "outro" && !isDefaultDocumentoOption(opt.value));
+    
+    if (!customOptionExists) {
+      window.currentDocumentoSelectGlobal.value = ""; // Reseta para "Selecione..."
+    }
+  }
+  window.currentDocumentoSelectGlobal = null;
+  window.closeGenericModal();
+}
+
+// Função para lidar com o salvamento
+function handleSaveOutroDocumento() {
+  const input = document.getElementById('outroDocumentoInputGeneric');
+  const novoDocumento = input ? input.value.trim() : '';
+
+  if (novoDocumento && window.currentDocumentoSelectGlobal) {
+    // Verificar se a opção já existe (para não duplicar)
+    let optionExists = false;
+    for (let i = 0; i < window.currentDocumentoSelectGlobal.options.length; i++) {
+      if (window.currentDocumentoSelectGlobal.options[i].value === novoDocumento) {
+        optionExists = true;
+        break;
+      }
+    }
+
+    // Adicionar nova opção se não existir
+    if (!optionExists) {
+      const newOption = new Option(novoDocumento, novoDocumento, true, true);
+      // Insere a nova opção antes da opção "Outro..."
+      const outroOption = Array.from(window.currentDocumentoSelectGlobal.options).find(opt => opt.value === 'outro');
+      if (outroOption) {
+        window.currentDocumentoSelectGlobal.insertBefore(newOption, outroOption);
+      } else {
+        window.currentDocumentoSelectGlobal.appendChild(newOption);
+      }
+    }
+
+    window.currentDocumentoSelectGlobal.value = novoDocumento;
+    
+    // Salvar automaticamente os dados do formulário
+    if (window.formStateManager) {
+      window.formStateManager.captureCurrentFormData();
+    }
+  }
+  
+  window.currentDocumentoSelectGlobal = null;
+  window.closeGenericModal();
+}
+
+// Função auxiliar para verificar se uma opção de documento é uma das padrões
+function isDefaultDocumentoOption(value) {
+    const defaultOptions = ["exame", "atestado", "laudo", "pericia", "receita", "outro"];
+    return defaultOptions.includes(value);
+}
