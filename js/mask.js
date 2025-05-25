@@ -9,20 +9,43 @@ const Mask = {
    * @param {HTMLInputElement} input - Campo de entrada do CPF
    */
   cpf: function(input) {
+    const cursorPos = input.selectionStart;
+    const oldValue = input.value;
     let value = input.value.replace(/\D/g, '');
     if (value.length > 11) value = value.substring(0, 11);
 
-    value = value.replace(/^(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
-    value = value.replace(/\.(\d{3})(\d)/, '.$1-$2');
+    let formattedValue = value;
+    if (value.length > 3) {
+      formattedValue = value.replace(/^(\d{3})(\d)/, '$1.$2');
+      if (value.length > 6) {
+        formattedValue = formattedValue.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+        if (value.length > 9) {
+          formattedValue = formattedValue.replace(/\.(\d{3})(\d)/, '.$1-$2');
+        }
+      }
+    }
 
-    input.value = value;
+    input.value = formattedValue;
 
-    // Realizar validação em tempo real se esta funcionalidade estiver disponível
-    if ((window.Check && typeof window.Check.cpfRealTime === 'function') &&
-        (value.length >= 3 || (value.length > 0 && input.dataset.validated === 'true'))) {
-      input.dataset.validated = 'true';
-      window.Check.cpfRealTime(input);
+    // Restaurar posição do cursor
+    if (cursorPos < oldValue.length || (oldValue.length < formattedValue.length && cursorPos === oldValue.length) ) {
+        let newPos = cursorPos + (formattedValue.length - oldValue.length);
+        // Ajuste para quando o cursor está no final e um ponto/traço é adicionado
+        if (cursorPos === oldValue.length && ( (value.length === 3 && formattedValue.length === 4) || (value.length === 6 && formattedValue.length === 8) || (value.length === 9 && formattedValue.length === 11) )) {
+            newPos = formattedValue.length;
+        }
+        input.setSelectionRange(newPos, newPos);
+    }
+
+    // Validação em tempo real
+    const numericValue = value.replace(/\D/g, '');
+    if (numericValue.length === 11) {
+      if (window.Check && typeof window.Check.cpfRealTime === 'function') {
+        window.Check.cpfRealTime(input);
+      }
+    } else {
+      // Se não estiver completo, remover classes de validação
+      input.classList.remove('cpf-valid', 'cpf-invalid', 'cpf-validating');
     }
   },
 
