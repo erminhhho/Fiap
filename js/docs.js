@@ -733,7 +733,7 @@ async function gerarRelatorioPDF() {
       social: 'Perfil Social e Familiar',
       incapacity: 'Informações sobre Incapacidade e Saúde',
       professional: 'Informações Profissionais',
-      documents: 'Documentos e Observações Finais'
+      documents: 'Documentos'  // Alterado de "Documentos e Observações Finais"
     };
 
     // Log detalhado dos dados de cada seção
@@ -802,38 +802,39 @@ async function gerarRelatorioPDF() {
           htmlContent += `</div></div>`;
         }
 
-        // Endereço e Observações numa linha só
-        let addressAndObsContent = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5mm;">';
+        // Endereço e Observações - Agora observações fica embaixo do endereço, não ao lado
+        let addressContent = '';
+        let obsContent = '';
 
         // Endereço: layout compacto
         if (sectionData.cep || sectionData.endereco || sectionData.numero ||
             (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') ||
             sectionData.bairro || sectionData.cidade) {
-          addressAndObsContent += `<div class="item-block compact-card" style="margin:0; padding:1.2mm;">`;
-          addressAndObsContent += `<div class="subsection-title" style="margin:0 0 1mm 0; padding-bottom:0.6mm; font-size:9pt;">Endereço</div>`;
-          addressAndObsContent += `<div class="field-group compact-layout" style="grid-template-columns:repeat(2, 1fr); gap:0.8mm 1.5mm; margin-bottom:0;">`;
-          addressAndObsContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">CEP:</strong> ${formatValue(sectionData.cep)}</div>`;
-          addressAndObsContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Cidade:</strong> ${formatValue(sectionData.cidade)}</div>`;
-          addressAndObsContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Bairro:</strong> ${formatValue(sectionData.bairro)}</div>`;
-          addressAndObsContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Nº:</strong> ${formatValue(sectionData.numero)}</div>`;
-          addressAndObsContent += `<div style="grid-column:1/-1; font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Endereço:</strong> ${formatValue(sectionData.endereco)}`;
+          addressContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.8mm;">`;
+          addressContent += `<div class="subsection-title" style="margin:0 0 1mm 0; padding-bottom:0.6mm; font-size:9pt;">Endereço</div>`;
+          addressContent += `<div class="field-group compact-layout" style="grid-template-columns:repeat(3, 1fr); gap:0.8mm 1.5mm; margin-bottom:0;">`;
+          addressContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">CEP:</strong> ${formatValue(sectionData.cep)}</div>`;
+          addressContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Cidade:</strong> ${formatValue(sectionData.cidade)}</div>`;
+          addressContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Bairro:</strong> ${formatValue(sectionData.bairro)}</div>`;
+          addressContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Nº:</strong> ${formatValue(sectionData.numero)}</div>`;
+          addressContent += `<div style="grid-column:1/-1; font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Endereço:</strong> ${formatValue(sectionData.endereco)}`;
           if (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') {
-            addressAndObsContent += `, ${formatValue(sectionData.complemento)}`;
+            addressContent += `, ${formatValue(sectionData.complemento)}`;
           }
-          addressAndObsContent += `</div>`;
-          addressAndObsContent += `</div></div>`;
+          addressContent += `</div>`;
+          addressContent += `</div></div>`;
         }
 
         // Observações: layout compacto
         if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
-          addressAndObsContent += `<div class="item-block compact-card" style="margin:0; padding:1.2mm;">`;
-          addressAndObsContent += `<div class="subsection-title" style="margin:0 0 1mm 0; padding-bottom:0.6mm; font-size:9pt;">Observações</div>`;
-          addressAndObsContent += `<div style="font-size:8pt;">${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
-          addressAndObsContent += `</div>`;
+          obsContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.8mm;">`;
+          obsContent += `<div class="subsection-title" style="margin:0 0 1mm 0; padding-bottom:0.6mm; font-size:9pt;">Observações</div>`;
+          obsContent += `<div style="font-size:8pt;">${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          obsContent += `</div>`;
         }
 
-        addressAndObsContent += '</div>';
-        htmlContent += addressAndObsContent;
+        htmlContent += addressContent;
+        htmlContent += obsContent;
 
       } else if (sectionKey === 'social') {
         // Layout social otimizado
@@ -1051,7 +1052,8 @@ async function gerarRelatorioPDF() {
             if (statusValDoc === null || statusValDoc === undefined || String(statusValDoc).trim() === '') {
               cellContentDoc = formatValue(statusValDoc);
             } else {
-              cellContentDoc = `<span class="relationship-select" data-value="${statusValDoc}" style="font-size:0.75em;">${formatValue(statusValDoc)}</span>`;
+              // Aumentado o tamanho da fonte do status
+              cellContentDoc = `<span class="relationship-select" data-value="${statusValDoc}" style="font-size:8.5pt; font-weight:500;">${formatValue(statusValDoc)}</span>`;
             }
 
             htmlContent += `<td style="padding:0.8mm 1mm; text-align:center;">${cellContentDoc}</td>`;
@@ -1063,10 +1065,10 @@ async function gerarRelatorioPDF() {
           htmlContent += '</tbody></table></div>';
         }
 
-        // Observações finais
+        // Observações sobre documentação (título alterado)
         if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
           htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:0;">`;
-          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Observações Finais</div>`;
+          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Observações sobre documentação</div>`;
           htmlContent += `<div style="font-size:8pt;">${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
           htmlContent += `</div>`;
         }
