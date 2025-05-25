@@ -762,11 +762,11 @@ async function gerarRelatorioPDF() {
 
       // Cards para cada bloco de dados
       if (sectionKey === 'personal') {
-        // Card do assistido padronizado, sem detalhe azul no topo
+        // Card do assistido padronizado, com mais espaço para o nome
         const relacaoPrincipal = sectionData.autor_relationship?.[0] || 'Requerente';
         htmlContent += `<div class="item-block compact-card">`;
         htmlContent += `<div class="subsection-title" style="margin-bottom:1.5mm; padding-bottom:0.8mm;">${formatValue(relacaoPrincipal)}</div>`;
-        htmlContent += `<div class="field-group compact-layout" style="grid-template-columns: 3fr 1fr 1fr; gap: 1mm 2mm;">`;
+        htmlContent += `<div class="field-group compact-layout" style="grid-template-columns: 4fr 1fr 1fr; gap: 1mm 2mm;">`;
         let nomePrincipal = formatValue(sectionData.autor_nome?.[0]);
         if (relacaoPrincipal && String(relacaoPrincipal).trim() !== '' && relacaoPrincipal !== 'Requerente') {
           nomePrincipal += ` <span class="relationship-select" data-value="${relacaoPrincipal}">${formatValue(relacaoPrincipal)}</span>`;
@@ -827,7 +827,7 @@ async function gerarRelatorioPDF() {
         let addressContent = '';
         let obsContent = '';
 
-        // Endereço: layout compacto otimizado (1-2 linhas)
+        // Endereço: layout ainda mais compacto - tudo numa única linha
         if (sectionData.cep || sectionData.endereco || sectionData.numero ||
             (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') ||
             sectionData.bairro || sectionData.cidade) {
@@ -835,26 +835,58 @@ async function gerarRelatorioPDF() {
           addressContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.8mm;">`;
           addressContent += `<div class="subsection-title" style="margin:0 0 1mm 0; padding-bottom:0.6mm; font-size:9pt;">Endereço</div>`;
           
-          // Primeira linha: cidade, bairro, CEP
-          addressContent += `<div class="field-group compact-layout" style="grid-template-columns:2fr 2fr 1fr; gap:0.8mm 1.5mm; margin-bottom:0.8mm;">`;
-          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">Cidade:</strong> ${formatValue(sectionData.cidade)}</div>`;
-          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">Bairro:</strong> ${formatValue(sectionData.bairro)}</div>`;
-          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">CEP:</strong> ${formatValue(sectionData.cep)}</div>`;
-          addressContent += `</div>`;
+          // Layout completamente unificado em uma única linha
+          addressContent += `<div style="font-size:8pt; line-height:1.3;">`;
           
-          // Segunda linha: endereço, número, complemento
-          addressContent += `<div class="field-group compact-layout" style="grid-template-columns:4fr 1fr; gap:0.8mm 1.5mm; margin-bottom:0;">`;
-          let enderecoCompleto = formatValue(sectionData.endereco);
-          if (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') {
-            enderecoCompleto += `, ${formatValue(sectionData.complemento)}`;
+          // Construir endereço completo com todas as informações em uma única linha
+          let enderecoCompleto = [];
+          
+          // Rua, número e complemento
+          let ruaNumero = '';
+          if (sectionData.endereco && sectionData.endereco.trim() !== '') {
+            ruaNumero = formatValue(sectionData.endereco);
+            
+            if (sectionData.numero && sectionData.numero.trim() !== '') {
+              ruaNumero += `, ${formatValue(sectionData.numero)}`;
+            }
+            
+            if (sectionData.complemento && sectionData.complemento.trim() !== '' && 
+                sectionData.complemento.trim().toLowerCase() !== 'não informado') {
+              ruaNumero += `, ${formatValue(sectionData.complemento)}`;
+            }
+            
+            if (ruaNumero) enderecoCompleto.push(ruaNumero);
           }
-          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">Endereço:</strong> ${enderecoCompleto}</div>`;
-          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">Nº:</strong> ${formatValue(sectionData.numero)}</div>`;
-          addressContent += `</div>`;
           
-          addressContent += `</div>`;
+          // Bairro, cidade e CEP na mesma parte
+          let localidade = [];
+          
+          if (sectionData.bairro && sectionData.bairro.trim() !== '') {
+            localidade.push(formatValue(sectionData.bairro));
+          }
+          
+          if (sectionData.cidade && sectionData.cidade.trim() !== '') {
+            localidade.push(formatValue(sectionData.cidade));
+          }
+          
+          if (sectionData.cep && sectionData.cep.trim() !== '') {
+            localidade.push(`CEP: ${formatValue(sectionData.cep)}`);
+          }
+          
+          if (localidade.length > 0) {
+            enderecoCompleto.push(localidade.join(' - '));
+          }
+          
+          // Montar a exibição final do endereço em uma única linha
+          if (enderecoCompleto.length > 0) {
+            addressContent += `<strong style="color:#1e3a8a; font-size:8pt;">Endereço:</strong> ${enderecoCompleto.join(' | ')}`;
+          } else {
+            addressContent += `<span class="empty-value">Endereço não informado</span>`;
+          }
+          
+          addressContent += `</div></div>`;
         }
-
+        
         // Observações: layout compacto
         if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
           obsContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.8mm;">`;
@@ -870,14 +902,13 @@ async function gerarRelatorioPDF() {
         // Layout social otimizado
         htmlContent += `<div style="display:grid; grid-template-columns:1fr; gap:1.5mm;">`;
 
-        // Bloco de renda familiar
+        // Bloco de renda familiar - tudo em uma única linha com título incorporado
         htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
-        htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Renda Familiar</div>`;
-        htmlContent += `<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.8mm 1.5mm;">`;
-        htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Renda Total:</strong> ${formatValue(sectionData.renda_total_familiar, { isHtml: true })}</div>`;
-        htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Renda Per Capita:</strong> ${formatValue(sectionData.renda_per_capita, { isHtml: true })}</div>`;
+        htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Informações Financeiras</div>`;
+        htmlContent += `<div style="font-size:8pt; line-height:1.3;">`;
+        htmlContent += `<strong style="color:#1e3a8a; font-size:8pt;">Renda Familiar:</strong> Renda Total: ${formatValue(sectionData.renda_total_familiar)} &nbsp;&nbsp;&nbsp; Renda Per Capita: ${formatValue(sectionData.renda_per_capita)}`;
         htmlContent += `</div></div>`;
-
+        
         // Tabela de composição familiar compacta
         if (sectionData.familiar_nome && Array.isArray(sectionData.familiar_nome) && sectionData.familiar_nome.length > 0) {
           htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
@@ -982,18 +1013,27 @@ async function gerarRelatorioPDF() {
               const cid = sectionData.cids?.[index] || '';
               const dataDoc = sectionData.dataDocumentos?.[index] || '';
               
-              // Verificar isenção de carência
-              const isencaoCarencia = sectionData.isencaoCarencia?.[index] === true;
+              // Verificar todas as propriedades possíveis para isenção de carência
+              const isencaoCarencia = 
+                sectionData.isencaoCarencia?.[index] === true || 
+                sectionData.isencao_carencia?.[index] === true ||
+                (sectionData.doencas_tags && 
+                 Array.isArray(sectionData.doencas_tags[index]) && 
+                 sectionData.doencas_tags[index].some(tag => 
+                   typeof tag === 'string' && 
+                   (tag.toLowerCase().includes('isenção') || 
+                    tag.toLowerCase().includes('isencao') || 
+                    tag.toLowerCase().includes('carencia'))));
               
               if (tipoDoc.trim() !== '' || doenca.trim() !== '' || cid.trim() !== '' || dataDoc.trim() !== '') {
                 htmlContent += '<tr>';
                 // Capitalizar primeira letra do tipo de documento
                 htmlContent += `<td style="padding:0.8mm 1mm;">${capitalizeFirst(formatValue(tipoDoc))}</td>`;
                 
-                // Adicionar tag de isenção de carência
+                // Adicionar tag de isenção de carência com fonte menor
                 let doencaCell = formatValue(doenca);
                 if (isencaoCarencia) {
-                  doencaCell = doenca + ' <span class="data-tag" style="font-size:7.5pt; padding:0.1em 0.4em; margin-left:3px; background-color:#ff6b6b; color:#fff; font-weight:500;">Isenção de Carência</span>';
+                  doencaCell = doenca + ' <span class="data-tag" style="font-size:7pt; padding:0.1em 0.4em; margin-left:3px; background-color:#ff6b6b; color:#fff; font-weight:500;">Isenção de Carência</span>';
                 }
                 
                 htmlContent += `<td style="padding:0.8mm 1mm;">${doencaCell}</td>`;
@@ -1027,24 +1067,34 @@ async function gerarRelatorioPDF() {
           htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Histórico Profissional</div>`;
           htmlContent += '<table class="compact-table" style="margin:0; font-size:7.8pt;">';
           htmlContent += '<thead><tr>';
-          htmlContent += '<th style="padding:0.8mm 1mm;">Tipo de Atividade</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Vínculo</th>'; // Alterado de "Tipo de Atividade" para "Vínculo"
           htmlContent += '<th style="padding:0.8mm 1mm;">Status</th>';
           htmlContent += '<th style="padding:0.8mm 1mm;">Início</th>';
           htmlContent += '<th style="padding:0.8mm 1mm;">Fim</th>';
           htmlContent += '<th style="padding:0.8mm 1mm;">Prazo</th>';
-          htmlContent += '<th style="padding:0.8mm 1mm;">Detalhes/Local</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Detalhes</th>'; // Alterado de "Detalhes/Local" para "Detalhes"
           htmlContent += '</tr></thead><tbody>';
 
           sectionData.atividade_tipo.forEach((tipoAtividade, index) => {
             htmlContent += '<tr>';
-            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(tipoAtividade)}</td>`;
+            
+            // Formatar o tipo de atividade: primeira letra maiúscula e remover underlines
+            let formattedTipoAtividade = tipoAtividade || '';
+            if (formattedTipoAtividade) {
+              // Substituir underlines por espaços e capitalizar primeira letra
+              formattedTipoAtividade = formattedTipoAtividade.replace(/_/g, ' ');
+              formattedTipoAtividade = capitalizeFirst(formattedTipoAtividade);
+            }
+            
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(formattedTipoAtividade)}</td>`;
 
             const statusValProf = sectionData.atividade_tag_status?.[index];
             let cellContentProf;
             if (statusValProf === null || statusValProf === undefined || String(statusValProf).trim() === '') {
               cellContentProf = formatValue(statusValProf);
             } else {
-              cellContentProf = `<span class="data-tag" style="font-size:8.5pt; font-weight:500; display:inline-block; padding:0.2em 0.5em; background-color:#60a5fa; color:#ffffff; border-radius:3px;">${formatValue(statusValProf)}</span>`;
+              // Tamanho de fonte reduzido
+              cellContentProf = `<span class="data-tag" style="font-size:7pt; font-weight:500; display:inline-block; padding:0.2em 0.5em; background-color:#60a5fa; color:#ffffff; border-radius:3px;">${formatValue(statusValProf)}</span>`;
             }
 
             htmlContent += `<td style="padding:0.8mm 1mm;">${cellContentProf}</td>`;
@@ -1088,14 +1138,14 @@ async function gerarRelatorioPDF() {
             htmlContent += '<tr>';
             htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(doc.nome)}</td>`;
 
-            // Padronização do estilo das tags de status
+            // Padronização do estilo das tags de status - igual ao histórico profissional
             const statusValDoc = doc.status;
             let cellContentDoc;
             if (statusValDoc === null || statusValDoc === undefined || String(statusValDoc).trim() === '') {
               cellContentDoc = formatValue(statusValDoc);
             } else {
-              // Estilo consistente com outras tags do relatório
-              cellContentDoc = `<span class="data-tag" style="font-size:8.5pt; font-weight:500; display:inline-block; padding:0.2em 0.5em; background-color:#60a5fa; color:#ffffff; border-radius:3px;">${formatValue(statusValDoc)}</span>`;
+              // Usando exatamente o mesmo estilo das tags do histórico profissional
+              cellContentDoc = `<span class="data-tag" style="font-size:7pt; font-weight:500; display:inline-block; padding:0.2em 0.5em; background-color:#60a5fa; color:#ffffff; border-radius:3px;">${formatValue(statusValDoc)}</span>`;
             }
 
             htmlContent += `<td style="padding:0.8mm 1mm; text-align:center;">${cellContentDoc}</td>`;
