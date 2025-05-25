@@ -52,25 +52,17 @@ const Mask = {
       input.setSelectionRange(newPos, newPos);
     }
 
-    // Remover classes de validação e ícones ao editar o CEP
+    // Remover classes de validação ao editar o CEP
     if (value.length < 8) {
-      input.classList.remove('cep-valid', 'cep-invalid');
-
-      // Remover ícone de validação se a função existir
-      if (typeof window.removerIconeValidacao === 'function') {
-        window.removerIconeValidacao(input);
-      }
-
-      // Remover mensagem de validação se a função existir
-      if (typeof window.removerMensagemValidacao === 'function') {
-        const parentDiv = input.parentElement;
-        window.removerMensagemValidacao(parentDiv);
-      }
+      input.classList.remove('cep-valid', 'cep-invalid', 'cep-loading');
+      // As funções removerIconeValidacao e removerMensagemValidacao não são mais necessárias aqui.
+      // A lógica de validação e feedback visual (bordas) será tratada por check.js e address.js.
     }
 
     // Consultar CEP quando completo
     if (value.replace(/\D/g, '').length === 8 && typeof window.consultarCEP === 'function') {
-      window.consultarCEP(value);
+      input.classList.add('cep-loading'); // Adicionar classe de loading
+      window.consultarCEP(input); // Passar o elemento input
     }
   },
 
@@ -416,12 +408,12 @@ const Mask = {
    * @param {HTMLInputElement} input - Campo de entrada do texto.
    */
   numericAge: function(input) {
-    let value = input.value.replace(/\D/g, ''); // Remove não dígitos
-    if (value.length > 3) { // Limita a 3 dígitos (ex: max 150)
+    let value = input.value.replace(/\D/g, ''); // Removes non-digits
+    if (value.length > 3) { // Limit to 3 digits (ex: max 150)
       value = value.substring(0, 3);
     }
     const numericVal = parseInt(value, 10);
-    if (!isNaN(numericVal) && numericVal > 150) { // Limite superior durante digitação
+    if (!isNaN(numericVal) && numericVal > 150) { // Upper limit while typing
         value = "150";
     }
     input.value = value;
@@ -466,10 +458,12 @@ const Mask = {
       } else if (onInputAttr.includes('maskDate')) {
         element.oninput = () => Mask.date(element);
       } else if (onInputAttr.includes('maskPhone')) {
-        element.oninput = () => Mask.phone(element);      } else if (onInputAttr.includes('maskUF')) {
-        element.oninput = () => Mask.uf(element);
+        element.oninput = () => Mask.phone(element);
+      } else if (onInputAttr.includes('maskUF')) {
+        element.oninput = () => Mask.uf(element); // Corrigido: adicionado ')'
       } else if (onInputAttr.includes('maskMoney') || onInputAttr.includes('FIAP.masks.money')) {
-        element.oninput = () => Mask.money(element);      } else if (onInputAttr.includes('maskOnlyNumbers')) {
+        element.oninput = () => Mask.money(element);
+      } else if (onInputAttr.includes('maskOnlyNumbers')) {
         element.oninput = () => Mask.onlyNumbers(element);
       } else if (onInputAttr.includes('formatarNomeProprio')) {
         element.oninput = () => Mask.properName(element);

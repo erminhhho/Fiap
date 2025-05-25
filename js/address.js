@@ -4,56 +4,38 @@
  */
 
 // Função para consultar CEP via API ViaCEP e preencher campos
-function consultarCEP(cep) {
+function consultarCEP(cepInput) { // Alterado para receber o elemento HTML
   // Limpar formatação do CEP
-  cep = cep.replace(/\D/g, '');
+  let cep = cepInput.value.replace(/\D/g, ''); // Correção: remover barras invertidas duplicadas
 
-  if (cep.length !== 8) return false;
+  if (cep.length !== 8) {
+    cepInput.classList.remove('cep-loading', 'cep-valid', 'cep-invalid');
+    return false;
+  }
 
-  // Obter elementos do DOM
-  const cepInput = document.getElementById('cep');
-  if (!cepInput) return false;
-
-  const parentDiv = cepInput.parentElement;
-
-  // Remover mensagens de validação anteriores
-  const prevMessage = parentDiv.querySelector('.validation-message');
-  if (prevMessage) prevMessage.remove();
-
-  // Remover classes de erro/sucesso anteriores
   cepInput.classList.remove('cep-valid', 'cep-invalid');
+  // A classe 'cep-loading' é adicionada em mask.js ANTES de chamar consultarCEP.
+  // Será removida aqui após a consulta.
 
-  // Remover ícones de validação anteriores
-  const existingIcon = parentDiv.querySelector('.validation-field-icon');
-  if (existingIcon) existingIcon.remove();
-
-  // Adicionar indicador de carregamento
-  adicionarIconeValidacao(cepInput, 'spinner', 'text-blue-500 fa-spin');
-
-  // Usar a API do ViaCEP, que já está funcionando sem CORS
   fetch(`https://viacep.com.br/ws/${cep}/json/`)
     .then(response => {
-      // Verificar se a resposta foi bem-sucedida
       if (!response.ok) {
         throw new Error('Erro ao consultar o CEP. Verifique sua conexão com a internet.');
       }
       return response.json();
     })
     .then(data => {
-      // Remover indicador de carregamento
-      removerIconeValidacao(cepInput);
+      cepInput.classList.remove('cep-loading'); // Remover loader
 
       if (data.erro) {
-        // CEP não encontrado ou inválido
         console.log("CEP não encontrado");
         cepInput.classList.add('cep-invalid');
-        adicionarIconeValidacao(cepInput, 'times-circle', 'text-red-500');
+        // As chamadas para adicionarIconeValidacao foram removidas.
         return;
       }
 
-      // CEP válido - feedback visual verde
       cepInput.classList.add('cep-valid');
-      adicionarIconeValidacao(cepInput, 'check-circle', 'text-green-500');
+      // As chamadas para adicionarIconeValidacao foram removidas.
 
       // Preencher os campos com os dados retornados
       const cidadeParaPreencher = data.localidade || '';
@@ -126,13 +108,9 @@ function consultarCEP(cep) {
     })
     .catch(error => {
       console.error('Erro ao consultar CEP:', error);
-
-      // Remover indicador de carregamento
-      removerIconeValidacao(cepInput);
-
-      // Mostrar erro
+      cepInput.classList.remove('cep-loading'); // Remover loader em caso de erro também
       cepInput.classList.add('cep-invalid');
-      adicionarIconeValidacao(cepInput, 'exclamation-triangle', 'text-amber-500');
+      // As chamadas para adicionarIconeValidacao foram removidas.
     });
 
   return true;
@@ -144,37 +122,36 @@ function consultarCEP(cep) {
  * @param {string} icon - Nome do ícone FontAwesome sem o prefixo 'fa-'
  * @param {string} colorClass - Classe de cor para o ícone
  */
-function adicionarIconeValidacao(input, icon, colorClass) {
-  removerIconeValidacao(input);
-
-  // Criar span para o ícone
-  const iconSpan = document.createElement('span');
-  iconSpan.className = `validation-field-icon absolute right-3 top-1/2 transform -translate-y-1/2 ${colorClass}`;
-  iconSpan.innerHTML = `<i class="fas fa-${icon}"></i>`;
-  iconSpan.style.zIndex = "20"; // Garantir que o ícone esteja acima de outros elementos
-
-  // Adicionar o ícone após o input (mas dentro do container)
-  input.parentElement.appendChild(iconSpan);
-
-  // Adicionar padding extra à direita para evitar sobreposição
-  input.style.paddingRight = '2.5rem';
-}
+// function adicionarIconeValidacao(input, icon, colorClass) { // COMENTADA - NÃO MAIS USADA DIRETAMENTE AQUI
+//   removerIconeValidacao(input);
+//
+//   // Criar span para o ícone
+//   const iconSpan = document.createElement('span');
+//   iconSpan.className = `validation-field-icon absolute right-3 top-1/2 transform -translate-y-1/2 ${colorClass}`;
+//   iconSpan.innerHTML = `<i class="fas fa-${icon}"></i>`;
+//   iconSpan.style.zIndex = "20";
+//
+//   if (input.parentElement) {
+//     input.parentElement.appendChild(iconSpan);
+//   }
+//
+//   input.style.paddingRight = '2.5rem';
+// }
 
 /**
  * Remove ícone de validação do campo
  * @param {HTMLInputElement} input - Campo de entrada
  */
-function removerIconeValidacao(input) {
-  const parent = input.parentElement;
-  const existingIcon = parent.querySelector('.validation-field-icon');
-
-  if (existingIcon) {
-    existingIcon.remove();
-  }
-
-  // Restaurar padding original
-  input.style.paddingRight = '';
-}
+// function removerIconeValidacao(input) { // COMENTADA - NÃO MAIS USADA DIRETAMENTE AQUI
+//   if (input.parentElement) {
+//     const existingIcon = input.parentElement.querySelector('.validation-field-icon');
+//
+//     if (existingIcon) {
+//       existingIcon.remove();
+//     }
+//   }
+//   input.style.paddingRight = '';
+// }
 
 /**
  * Exibe mensagem de validação abaixo do campo
@@ -182,40 +159,38 @@ function removerIconeValidacao(input) {
  * @param {string} message - Mensagem a ser exibida
  * @param {string} type - Tipo de mensagem: 'error', 'success', 'info', 'warning'
  */
-function mostrarMensagemValidacao(parentDiv, message, type = 'info') {
-  removerMensagemValidacao(parentDiv);
-
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `validation-message text-xs ${type === 'error' ? 'text-red-500' :
-                                                    type === 'success' ? 'text-green-500' :
-                                                    type === 'warning' ? 'text-amber-500' : 'text-blue-500'}`;
-  messageDiv.innerHTML = message;
-
-  // Estilo minimalista para a mensagem
-  messageDiv.style.marginTop = "1px";
-  messageDiv.style.paddingLeft = "2px";
-  messageDiv.style.background = "transparent";
-  messageDiv.style.position = "absolute";
-  messageDiv.style.left = "0";
-  messageDiv.style.bottom = "-16px"; // Ajuste fino para ficar próximo ao campo
-  messageDiv.style.fontWeight = "normal"; // Garantir que não seja em negrito
-  messageDiv.style.zIndex = "30"; // Garantir que a mensagem aparece por cima de outros elementos
-
-  // Adicionar a mensagem após o campo de entrada
-  parentDiv.appendChild(messageDiv);
-}
+// function mostrarMensagemValidacao(parentDiv, message, type = 'info') { // COMENTADA - NÃO MAIS USADA
+//   removerMensagemValidacao(parentDiv);
+//
+//   const messageDiv = document.createElement('div');
+//   messageDiv.className = `validation-message text-xs ${type === 'error' ? 'text-red-500' :
+//                                                     type === 'success' ? 'text-green-500' :
+//                                                     type === 'warning' ? 'text-amber-500' : 'text-blue-500'}`;
+//   messageDiv.innerHTML = message;
+//
+//   messageDiv.style.marginTop = "1px";
+//   messageDiv.style.paddingLeft = "2px";
+//   messageDiv.style.background = "transparent";
+//   messageDiv.style.position = "absolute";
+//   messageDiv.style.left = "0";
+//   messageDiv.style.bottom = "-16px";
+//   messageDiv.style.fontWeight = "normal";
+//   messageDiv.style.zIndex = "30";
+//
+//   parentDiv.appendChild(messageDiv);
+// }
 
 /**
  * Remove mensagem de validação
  * @param {HTMLElement} parentDiv - Elemento pai que contém a mensagem
  */
-function removerMensagemValidacao(parentDiv) {
-  const existingMessage = parentDiv.querySelector('.validation-message');
-
-  if (existingMessage) {
-    existingMessage.remove();
-  }
-}
+// function removerMensagemValidacao(parentDiv) { // COMENTADA - NÃO MAIS USADA
+//   const existingMessage = parentDiv.querySelector('.validation-message');
+//
+//   if (existingMessage) {
+//     existingMessage.remove();
+//   }
+// }
 
 // Cache para armazenar consultas de estados e cidades
 const cacheAPI = {
@@ -532,8 +507,6 @@ function removerAcentos(texto) {
 // Exportar funções para uso global
 window.consultarCEP = consultarCEP;
 window.buscarCidades = buscarCidades;
-window.removerIconeValidacao = removerIconeValidacao;
-window.removerMensagemValidacao = removerMensagemValidacao;
 
 /**
  * Módulo de endereço e CEP
