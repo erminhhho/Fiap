@@ -335,7 +335,7 @@ const Mask = {
       // Processar cada palavra
       for (let i = 0; i < palavras.length; i++) {
         const palavra = palavras[i];
-        
+
         // Pular palavras vazias ou apenas espaços
         if (!palavra || !palavra.trim()) continue;
 
@@ -344,7 +344,7 @@ const Mask = {
 
         // Determinar como a palavra deve estar formatada
         let palavraFormatada;
-        
+
         if (i === 0) {
           // Primeira palavra: sempre com inicial maiúscula
           palavraFormatada = palavraLower.charAt(0).toUpperCase() + palavraLower.slice(1);
@@ -371,7 +371,7 @@ const Mask = {
         // Restaurar posição do cursor
         if (typeof cursorPos === 'number') {
           const novaPosicao = Math.min(cursorPos, novoTexto.length);
-          
+
           // Usar requestAnimationFrame para garantir que o DOM seja atualizado
           requestAnimationFrame(() => {
             try {
@@ -514,7 +514,7 @@ window.formatarNomeProprioModal = function(input) {
   if (input._formatTimeout) {
     clearTimeout(input._formatTimeout);
   }
-  
+
   // Aguardar um pouco antes de formatar para dar tempo do usuário completar a palavra
   input._formatTimeout = setTimeout(() => {
     if (Mask && typeof Mask.properName === 'function') {

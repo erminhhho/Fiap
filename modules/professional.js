@@ -688,10 +688,10 @@ function isDefaultAtividadeOption(value) {
 // Função para formatação de nome próprio no modal com delay
 function formatarNomeProprioModal(input) {
   if (!input) return;
-  
+
   // Clear any existing timeout
   clearTimeout(input.formatTimeout);
-  
+
   // Set new timeout
   input.formatTimeout = setTimeout(() => {
     if (typeof window.formatarNomeProprio === 'function') {
