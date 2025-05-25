@@ -952,7 +952,7 @@ async function gerarRelatorioPDF() {
         const salarioMinimo = "R$ 1.412,00";
         htmlContent += `<strong style="color:#1e3a8a; font-size:8.5pt; margin-right:1mm;">Renda Familiar:</strong> Renda Total: ${formatValue(sectionData.renda_total_familiar)} &nbsp;&nbsp;&nbsp; Renda Per Capita: ${formatValue(sectionData.renda_per_capita)} &nbsp;&nbsp;&nbsp; Salário Mínimo: ${salarioMinimo}`;
         htmlContent += `</div></div>`;
-        
+
         // Tabela de composição familiar compacta
         if (sectionData.familiar_nome && Array.isArray(sectionData.familiar_nome) && sectionData.familiar_nome.length > 0) {
           htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
