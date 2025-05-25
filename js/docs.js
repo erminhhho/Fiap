@@ -392,110 +392,112 @@ async function gerarRelatorioPDF() {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f3f5; /* Fundo geral cinza muito claro (mantido) */
-            color: #1e293b; /* Azul acinzentado escuro para texto principal */
-            font-size: 8.5pt;
-            line-height: 1.5;
+            background-color: #f0f3f5;
+            color: #1e293b;
+            font-size: 8pt; /* Reduzido de 8.5pt */
+            line-height: 1.4; /* Reduzido de 1.5 */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
           }
           .page {
             width: 210mm;
             min-height: 290mm;
-            padding: 10mm; /* Margem mínima */
-            margin: 0 auto 5mm auto; /* Reduzida margem inferior entre páginas */
+            padding: 8mm; /* Reduzido de 10mm */
+            margin: 0 auto 5mm auto;
             box-sizing: border-box;
             page-break-after: always;
             position: relative;
-            background-color: #fff; /* Página branca */
-            box-shadow: 0 0 8px rgba(0,0,0,0.08); /* Sombra mais sutil */
+            background-color: #fff;
+            box-shadow: 0 0 8px rgba(0,0,0,0.08);
           }
           .page:last-of-type {
             page-break-after: avoid;
             margin-bottom: 0;
-          }          /* Cabeçalho do Relatório */
+          }
           .report-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6mm;
-            padding-bottom: 4mm;
-            border-bottom: 2px solid #60a5fa; /* Azul para linha do cabeçalho */
+            margin-bottom: 4mm; /* Reduzido de 6mm */
+            padding-bottom: 3mm; /* Reduzido de 4mm */
+            border-bottom: 2px solid #60a5fa;
           }
           .report-header-left .logo-text {
-            font-size: 18pt;
+            font-size: 16pt; /* Reduzido de 18pt */
             font-weight: 700;
-            color: #1d4ed8; /* Azul escuro */
+            color: #1d4ed8;
             margin: 0 0 0.5mm 0;
           }
           .report-header-left .logo-subtext {
-            font-size: 8.5pt;
-            color: #374151; /* Cinza escuro */
+            font-size: 8pt; /* Reduzido de 8.5pt */
+            color: #374151;
             margin: 0;
           }
           .report-header-right .report-main-title {
-            font-size: 14pt;
+            font-size: 12pt; /* Reduzido de 14pt */
             font-weight: 600;
-            color: #1e3a8a; /* Azul mais escuro */
+            color: #1e3a8a;
             text-align: right;
-          }          /* Estilos de Seção */
+          }
           .section {
-            margin-bottom: 6mm;
+            margin-bottom: 4mm; /* Reduzido de 6mm */
             padding-top: 0;
           }
           .section-title {
-            font-size: 12pt;
+            font-size: 11pt; /* Reduzido de 12pt */
             font-weight: 600;
-            color: #ffffff; /* Texto branco */
-            background-color: #2563eb; /* Fundo azul */
-            padding: 2mm 3mm;
+            color: #ffffff;
+            background-color: #2563eb;
+            padding: 1.5mm 2.5mm; /* Reduzido de 2mm 3mm */
             margin-top: 0;
-            margin-bottom: 3.5mm;
-            border-radius: 3px; /* Arredondamento geral */
+            margin-bottom: 2.5mm; /* Reduzido de 3.5mm */
+            border-radius: 3px;
           }
 
           /* Dados Pessoais do Assistido - Bloco Destacado */
           .assistido-info-block {
-            background-color: #fdfdfe; /* Cinza muito sutil, quase branco */
-            padding: 3.5mm;
+            background-color: #fdfdfe;
+            padding: 2.5mm; /* Reduzido de 3.5mm */
             border-radius: 4px;
-            margin-bottom: 6mm;
-            border: 1px solid #e5e7eb; /* Borda cinza clara */
-            border-top: 3px solid #2563eb; /* Borda superior azul mais forte */
+            margin-bottom: 4mm; /* Reduzido de 6mm */
+            border: 1px solid #e5e7eb;
+            border-top: 3px solid #2563eb;
           }
           .assistido-info-block .subsection-title {
             margin-top: 0;
-            margin-bottom: 2.5mm;
-            font-size: 10.5pt;
-            color: #1e3a8a; /* Azul escuro para subtitulo */
-            padding-bottom: 1.5mm;
-            border-bottom: 1px solid #d1d5db; /* Linha cinza média */
+            margin-bottom: 2mm; /* Reduzido de 2.5mm */
+            font-size: 10pt; /* Reduzido de 10.5pt */
+            color: #1e3a8a;
+            padding-bottom: 1mm; /* Reduzido de 1.5mm */
+            border-bottom: 1px solid #d1d5db;
           }
 
-          /* Grupos de Campos e Campos Individuais */          .field-group {
-            margin-bottom: 2.5mm;
+          /* Grupos de Campos e Campos Individuais */
+          .field-group {
+            margin-bottom: 2mm; /* Reduzido de 2.5mm */
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Alterado para 4 colunas */
-            gap: 2.5mm 3.5mm;
+            grid-template-columns: repeat(5, 1fr); /* Aumentado para 5 colunas */
+            gap: 1.5mm 2.5mm; /* Reduzido de 2.5mm 3.5mm */
             page-break-inside: avoid;
           }
           .field-item {
-            padding: 1mm 0;
+            padding: 0.5mm 0; /* Reduzido de 1mm 0 */
             word-wrap: break-word;
-            line-height: 1.4;
-          }          .field-item strong {
-            display: block; /* Alterado para block para quebrar linha */
-            font-weight: 500; /* Reduzido o peso para diminuir o negrito */
-            color: #1e3a8a; /* Azul escuro para os títulos */
-            font-size: 8.5pt;
-            margin-bottom: 0.5mm;
-            line-height: 1.3;
+            line-height: 1.3; /* Reduzido de 1.4 */
+          }
+          .field-item strong {
+            display: block;
+            font-weight: 500;
+            color: #1e3a8a;
+            font-size: 8pt; /* Reduzido de 8.5pt */
+            margin-bottom: 0.3mm; /* Reduzido de 0.5mm */
+            line-height: 1.2; /* Reduzido de 1.3 */
           }
           .field-item span, .field-item div {
-            display: block; /* Forçando quebra de linha após label */
-            color: #4b5563; /* Cinza médio para os valores */
-            font-size: 9pt;
-            line-height: 1.4;
+            display: block;
+            color: #4b5563;
+            font-size: 8.5pt; /* Reduzido de 9pt */
+            line-height: 1.3; /* Reduzido de 1.4 */
             font-weight: normal;
           }
           .field-item.full-width {
@@ -506,110 +508,135 @@ async function gerarRelatorioPDF() {
             font-style: italic;
           }
 
-          /* Subtítulos dentro de seções (fora de blocos especiais) */
+          /* Subtítulos dentro de seções */
           .subsection-title {
-            font-size: 10pt;
+            font-size: 9.5pt; /* Reduzido de 10pt */
             font-weight: 600;
-            color: #1e3a8a; /* Azul escuro (mantido) */
-            margin-top: 4mm;
-            margin-bottom: 2.5mm;
-            padding-bottom: 1.5mm;
-            border-bottom: 1px solid #93c5fd; /* Linha azul clara (mantida por enquanto) */
+            color: #1e3a8a;
+            margin-top: 3mm; /* Reduzido de 4mm */
+            margin-bottom: 2mm; /* Reduzido de 2.5mm */
+            padding-bottom: 1mm; /* Reduzido de 1.5mm */
+            border-bottom: 1px solid #93c5fd;
           }
 
           /* Tabelas */
           table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 3.5mm;
-            font-size: 8.5pt;
+            margin-bottom: 2.5mm; /* Reduzido de 3.5mm */
+            font-size: 8pt; /* Reduzido de 8.5pt */
             page-break-inside: auto;
-            border: 1px solid #60a5fa; /* Borda azul principal da tabela */
+            border: 1px solid #60a5fa;
           }
           table th,
           table td {
-            border: 1px solid #e5e7eb !important; /* Borda cinza clara para TODAS as células internas */
-            padding: 1.5mm 2mm;
+            border: 1px solid #e5e7eb !important;
+            padding: 1mm 1.5mm; /* Reduzido de 1.5mm 2mm */
             text-align: left;
             vertical-align: top;
             word-wrap: break-word;
           }
           table th {
-            background-color: #f3f4f6; /* Fundo cinza claro para cabeçalhos */
+            background-color: #f3f4f6;
             font-weight: 600;
-            color: #1e3a8a; /* Azul escuro no texto do cabeçalho */
-            font-size: 8.5pt;
-            border: 1px solid #e5e7eb !important; /* Garante cinza nas bordas do cabeçalho */
+            color: #1e3a8a;
+            font-size: 8pt; /* Reduzido de 8.5pt */
+            border: 1px solid #e5e7eb !important;
           }
           table tr:nth-child(even) td {
-            background-color: #f3f4f6; /* Cinza claro para zebrado */
+            background-color: #f3f4f6;
           }
           table tr:nth-child(odd) td {
-            background-color: #f9fafb; /* Cinza mais claro para zebrado */
-          }          /* Estilo para Tags - Usando as cores dinâmicas do sistema */
+            background-color: #f9fafb;
+          }
+
+          /* Estilo para Tags */
           .data-tag {
             display: inline-block;
-            padding: 0.25em 0.6em;
-            font-size: 0.85em;
+            padding: 0.2em 0.5em; /* Reduzido de 0.25em 0.6em */
+            font-size: 0.8em; /* Reduzido de 0.85em */
             font-weight: 500;
-            line-height: 1.2;
-            color: var(--tag-text-color, #ffffff); /* Usa a variável definida no projeto */
-            background-color: var(--tag-bg-color, #60a5fa); /* Usa a variável definida no projeto */
-            border-radius: 4px;
+            line-height: 1.1; /* Reduzido de 1.2 */
+            color: var(--tag-text-color, #ffffff);
+            background-color: var(--tag-bg-color, #60a5fa);
+            border-radius: 3px; /* Reduzido de 4px */
             text-transform: uppercase;
           }
 
-          /* Blocos de Itens (Autores adicionais, etc.) */
+          /* Blocos de Itens */
           .item-block {
-            border: 1px solid #e5e7eb; /* Borda cinza clara */
+            border: 1px solid #e5e7eb;
             border-radius: 4px;
-            padding: 3mm;
-            margin-bottom: 3.5mm;
-            background-color: #fdfdfe; /* Cinza muito sutil, quase branco */
+            padding: 2mm; /* Reduzido de 3mm */
+            margin-bottom: 2.5mm; /* Reduzido de 3.5mm */
+            background-color: #fdfdfe;
             page-break-inside: avoid;
           }
           .item-block .subsection-title {
             margin-top: 0;
-            padding-bottom: 1.5mm;
-            border-bottom: 1px solid #d1d5db; /* Linha cinza média */
-            font-size: 10pt;
-            color: #1e3a8a; /* Azul escuro (mantido) */
+            padding-bottom: 1mm; /* Reduzido de 1.5mm */
+            border-bottom: 1px solid #d1d5db;
+            font-size: 9.5pt; /* Reduzido de 10pt */
+            color: #1e3a8a;
           }
 
           /* Rodapé da Página HTML */
           .page-footer {
             position: absolute;
-            bottom: 3mm;
-            left: 10mm;
-            right: 10mm;
-            width: calc(100% - 20mm);
-            font-size: 7.5pt;
-            color: #4b5563; /* Cinza */
+            bottom: 2mm; /* Reduzido de 3mm */
+            left: 8mm; /* Reduzido de 10mm */
+            right: 8mm; /* Reduzido de 10mm */
+            width: calc(100% - 16mm); /* Ajustado de 20mm */
+            font-size: 7pt; /* Reduzido de 7.5pt */
+            color: #4b5563;
             display: flex;
             justify-content: space-between;
-            border-top: 1px solid #bfdbfe; /* Linha azul clara */
-            padding-top: 2mm;
+            border-top: 1px solid #bfdbfe;
+            padding-top: 1.5mm; /* Reduzido de 2mm */
           }
           .page-footer a {
-            color: #2563eb; /* Link azul */
+            color: #2563eb;
             text-decoration: none;
           }
           .page-footer a:hover {
             text-decoration: underline;
           }
 
+          /* Layout compacto para algumas seções específicas */
+          .compact-layout .field-group {
+            grid-template-columns: repeat(6, 1fr); /* Layout mais compacto para 6 colunas */
+            gap: 1mm 2mm; /* Espaçamento ainda mais reduzido */
+          }
+
+          .compact-table th, .compact-table td {
+            padding: 0.8mm 1.2mm; /* Células de tabela mais compactas */
+            font-size: 7.8pt; /* Fonte ainda menor para tabelas compactas */
+          }
+
+          /* Cards mais compactos */
+          .compact-card {
+            padding: 1.5mm;
+            margin-bottom: 2mm;
+          }
+
+          .compact-card .subsection-title {
+            font-size: 9pt;
+            margin-bottom: 1.5mm;
+            padding-bottom: 0.8mm;
+          }
+
           /* Utilitários de impressão */
           @media print {
             body {
-              font-size: 8pt;
+              font-size: 7.5pt; /* Reduzido para impressão */
               background-color: #fff !important;
               color: #000 !important;
             }
             .page {
-              padding: 10mm;
+              padding: 8mm; /* Mantido reduzido */
               margin-bottom: 0;
-              border: none !important; /* Remover bordas da página */
-              box-shadow: none !important; /* Remover sombra da página */
+              border: none !important;
+              box-shadow: none !important;
               min-height: initial;
             }
             .report-header,
@@ -625,9 +652,9 @@ async function gerarRelatorioPDF() {
               color: #000 !important;
             }
             .section-title {
-                background-color: #ccc !important; /* Cinza para fundo de título de seção */
+                background-color: #ccc !important;
                 color: #000 !important;
-                border-radius: 0 !important; /* Sem bordas arredondadas na impressão */
+                border-radius: 0 !important;
             }
             .assistido-info-block, .item-block {
               border: 1px solid #bbb !important;
@@ -725,14 +752,15 @@ async function gerarRelatorioPDF() {
       // Barra de título principal da sessão
       htmlContent += `<div class="section ${sectionKey}-section">`;
       // Título principal: azul
-      htmlContent += `<div class="section-title" style="background-color:#2563eb; color:#fff; border-radius:3px; border-bottom:2px solid #1e3a8a;">${sectionDisplayTitles[sectionKey]}</div>`;
+      htmlContent += `<div class="section-title" style="background-color:#2563eb; color:#fff; border-radius:3px; border-bottom:2px solid #1e3a8a; padding:1.2mm 2.2mm;">${sectionDisplayTitles[sectionKey]}</div>`;
+
       // Cards para cada bloco de dados
       if (sectionKey === 'personal') {
         // Card do assistido padronizado, sem detalhe azul no topo
         const relacaoPrincipal = sectionData.autor_relationship?.[0] || 'Requerente';
-        htmlContent += `<div class="item-block author-block">`;
-        htmlContent += `<div class="subsection-title">${formatValue(relacaoPrincipal)}</div>`;
-        htmlContent += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm;">`;
+        htmlContent += `<div class="item-block compact-card">`;
+        htmlContent += `<div class="subsection-title" style="margin-bottom:1.5mm; padding-bottom:0.8mm;">${formatValue(relacaoPrincipal)}</div>`;
+        htmlContent += `<div class="field-group compact-layout" style="grid-template-columns: repeat(5, 1fr); gap: 1mm 2mm;">`;
         let nomePrincipal = formatValue(sectionData.autor_nome?.[0]);
         if (relacaoPrincipal && String(relacaoPrincipal).trim() !== '' && relacaoPrincipal !== 'Requerente') {
           nomePrincipal += ` <span class="relationship-select" data-value="${relacaoPrincipal}">${formatValue(relacaoPrincipal)}</span>`;
@@ -743,7 +771,6 @@ async function gerarRelatorioPDF() {
         htmlContent += createFieldItem('Idade', sectionData.autor_idade?.[0]);
         htmlContent += createFieldItem('Apelido', sectionData.autor_apelido?.[0]);
         htmlContent += createFieldItem('Telefone Principal', sectionData.autor_telefone?.[0]);
-        // REMOVIDO: htmlContent += createFieldItem('Detalhes Telefone', sectionData.telefone_detalhes);
         htmlContent += createFieldItem('Senha MeuINSS', sectionData.autor_senha_meuinss?.[0]);
         htmlContent += createFieldItem('Colaborador', sectionData.colaborador);
         if (sectionData.segurado_especial !== undefined) {
@@ -751,118 +778,154 @@ async function gerarRelatorioPDF() {
         }
         htmlContent += `</div>`;
         htmlContent += `</div>`;
-        // Dependentes
+
+        // Dependentes - layout mais compacto
         if (sectionData.autor_nome && Array.isArray(sectionData.autor_nome) && sectionData.autor_nome.length > 1) {
-          sectionData.autor_nome.forEach((nome, index) => {
-            if (index === 0) return;
-            htmlContent += `<div class="item-block author-block" style="padding: 8px 10px; margin-bottom: 8px;">`;
+          htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.8mm;">`;
+          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Dependentes/Envolvidos</div>`;
+          htmlContent += `<div style="display:grid; grid-template-columns:repeat(1, 1fr); gap:1mm;">`;
+
+          for (let index = 1; index < sectionData.autor_nome.length; index++) {
             const relation = sectionData.autor_relationship?.[index] || '';
-            let authorTitle = relation || `Dependente/Envolvido ${index}`;
-            htmlContent += `<div class="subsection-title" style="margin-bottom:4px; font-size:10pt; padding-bottom:2px; border-bottom:0;">${authorTitle}</div>`;
-            htmlContent += `<div class="field-group" style="grid-template-columns: repeat(4, 1fr); gap: 2mm 3mm; margin-bottom:0;">`;
-            htmlContent += createFieldItem('Nome Completo', nome);
-            htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[index]);
-            htmlContent += createFieldItem('Data de Nascimento', sectionData.autor_nascimento?.[index]);
-            htmlContent += createFieldItem('Idade', sectionData.autor_idade?.[index]);
+            const authorTitle = relation || `Dependente ${index}`;
+
+            htmlContent += `<div style="border:1px solid #e5e7eb; border-radius:3px; padding:1mm; margin-bottom:0.8mm; background:#f9fafb;">`;
+            htmlContent += `<div style="font-weight:600; font-size:8.5pt; color:#1e3a8a; margin-bottom:1mm;">${authorTitle}</div>`;
+            htmlContent += `<div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:0.8mm 1.5mm;">`;
+            htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Nome:</strong> ${formatValue(sectionData.autor_nome[index])}</div>`;
+            htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">CPF:</strong> ${formatValue(sectionData.autor_cpf?.[index])}</div>`;
+            htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Nascimento:</strong> ${formatValue(sectionData.autor_nascimento?.[index])}</div>`;
+            htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Idade:</strong> ${formatValue(sectionData.autor_idade?.[index])}</div>`;
             htmlContent += `</div></div>`;
-          });
-        }
-        // Endereço: movido para antes das observações
-        let enderecoCard = '';
-        if (
-          sectionData.cep || sectionData.endereco || sectionData.numero ||
-          (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') ||
-          sectionData.bairro || sectionData.cidade
-        ) {
-          enderecoCard += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;">`;
-          enderecoCard += `<strong style="color:#1e3a8a;">Endereço:</strong> `;
-          enderecoCard += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm; margin-top:4px;">`;
-          enderecoCard += createFieldItem('CEP', sectionData.cep);
-          enderecoCard += createFieldItem('Endereço', sectionData.endereco);
-          enderecoCard += createFieldItem('Número', sectionData.numero);
-          if (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') {
-            enderecoCard += createFieldItem('Complemento', sectionData.complemento);
           }
-          enderecoCard += createFieldItem('Bairro', sectionData.bairro);
-          enderecoCard += createFieldItem('Cidade', sectionData.cidade);
-          enderecoCard += `</div></div>`;
+
+          htmlContent += `</div></div>`;
         }
-        // Observações
-        let obsCard = '';
+
+        // Endereço e Observações numa linha só
+        let addressAndObsContent = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5mm;">';
+
+        // Endereço: layout compacto
+        if (sectionData.cep || sectionData.endereco || sectionData.numero ||
+            (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') ||
+            sectionData.bairro || sectionData.cidade) {
+          addressAndObsContent += `<div class="item-block compact-card" style="margin:0; padding:1.2mm;">`;
+          addressAndObsContent += `<div class="subsection-title" style="margin:0 0 1mm 0; padding-bottom:0.6mm; font-size:9pt;">Endereço</div>`;
+          addressAndObsContent += `<div class="field-group compact-layout" style="grid-template-columns:repeat(2, 1fr); gap:0.8mm 1.5mm; margin-bottom:0;">`;
+          addressAndObsContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">CEP:</strong> ${formatValue(sectionData.cep)}</div>`;
+          addressAndObsContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Cidade:</strong> ${formatValue(sectionData.cidade)}</div>`;
+          addressAndObsContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Bairro:</strong> ${formatValue(sectionData.bairro)}</div>`;
+          addressAndObsContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Nº:</strong> ${formatValue(sectionData.numero)}</div>`;
+          addressAndObsContent += `<div style="grid-column:1/-1; font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Endereço:</strong> ${formatValue(sectionData.endereco)}`;
+          if (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') {
+            addressAndObsContent += `, ${formatValue(sectionData.complemento)}`;
+          }
+          addressAndObsContent += `</div>`;
+          addressAndObsContent += `</div></div>`;
+        }
+
+        // Observações: layout compacto
         if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
-          obsCard += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações pessoais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          addressAndObsContent += `<div class="item-block compact-card" style="margin:0; padding:1.2mm;">`;
+          addressAndObsContent += `<div class="subsection-title" style="margin:0 0 1mm 0; padding-bottom:0.6mm; font-size:9pt;">Observações</div>`;
+          addressAndObsContent += `<div style="font-size:8pt;">${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          addressAndObsContent += `</div>`;
         }
-        // Ordem: cards principais, dependentes, endereço, observações
-        htmlContent += enderecoCard;
-        htmlContent += obsCard;
+
+        addressAndObsContent += '</div>';
+        htmlContent += addressAndObsContent;
+
       } else if (sectionKey === 'social') {
-        htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
-        htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Composição Social e Renda</div>`;
-        htmlContent += `<div class="field-group" style="grid-template-columns: repeat(3, 1fr); gap: 3mm 5mm; padding: 0 16px 8px 16px;">`;
-        htmlContent += createFieldItem('Renda Total Familiar (Declarada)', sectionData.renda_total_familiar, { isHtml: true });
-        htmlContent += createFieldItem('Renda Per Capita Familiar (Declarada)', sectionData.renda_per_capita, { isHtml: true });
-        htmlContent += `</div>`;
+        // Layout social otimizado
+        htmlContent += `<div style="display:grid; grid-template-columns:1fr; gap:1.5mm;">`;
+
+        // Bloco de renda familiar
+        htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
+        htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Renda Familiar</div>`;
+        htmlContent += `<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.8mm 1.5mm;">`;
+        htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Renda Total:</strong> ${formatValue(sectionData.renda_total_familiar, { isHtml: true })}</div>`;
+        htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Renda Per Capita:</strong> ${formatValue(sectionData.renda_per_capita, { isHtml: true })}</div>`;
+        htmlContent += `</div></div>`;
+
+        // Tabela de composição familiar compacta
         if (sectionData.familiar_nome && Array.isArray(sectionData.familiar_nome) && sectionData.familiar_nome.length > 0) {
-          htmlContent += `<div class="subsection-title" style="margin-top:8px; font-size:10pt; color:#374151; border-bottom:1px solid #d1d5db; padding:8px 16px 8px 16px; background:#f9fafb;">Composição Familiar e Renda Detalhada</div>`;
-          htmlContent += '<table style="width:100%; margin:0; border:none; box-shadow:none;">';
+          htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
+          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Composição Familiar</div>`;
+          htmlContent += '<table class="compact-table" style="margin:0; font-size:7.8pt;">';
           htmlContent += '<thead><tr>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Nome</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Parentesco</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">CPF</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Idade</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Estado Civil</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Renda (R$)</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">CadÚnico?</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Nome</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Parentesco</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">CPF</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Idade</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Estado Civil</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Renda</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">CadÚnico</th>';
           htmlContent += '</tr></thead><tbody>';
+
           sectionData.familiar_nome.forEach((nome, index) => {
-            // Substituir todas as bordas das células das tabelas para cinza (#e5e7eb)
             htmlContent += '<tr>';
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(nome)}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_parentesco?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_cpf?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_idade?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_estado_civil?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_renda?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.familiar_cadunico?.[index])}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(nome)}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.familiar_parentesco?.[index])}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.familiar_cpf?.[index])}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.familiar_idade?.[index])}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.familiar_estado_civil?.[index])}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.familiar_renda?.[index])}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.familiar_cadunico?.[index])}</td>`;
             htmlContent += '</tr>';
           });
-          htmlContent += '</tbody></table>';
+
+          htmlContent += '</tbody></table></div>';
         }
-        htmlContent += `</div>`;
+
+        // Observações sociais
         if(sectionData.observacoes && sectionData.observacoes.trim() !== ''){
-          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações sociais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:0;">`;
+          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Observações Sociais</div>`;
+          htmlContent += `<div style="font-size:8pt;">${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          htmlContent += `</div>`;
         }
+
+        htmlContent += `</div>`; // Fecha o grid
+
       } else if (sectionKey === 'incapacity') {
-        htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
-        htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Situação Laboral e Saúde</div>`;
-        htmlContent += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 5mm; margin-bottom: 3mm; padding: 0 16px 0 16px;">`;
-        htmlContent += `<div>${createFieldItem('Trabalha Atualmente?', formatValue(sectionData.trabalhaAtualmente))}</div>`;
-        // Formatação especial para valores como 'menos_1_mes', '1_2_anos', etc.
-function formatPeriodoTrabalho(valor) {
-  if (!valor || typeof valor !== 'string') return formatValue(valor);
-  if (valor.startsWith('menos_')) {
-    const meses = valor.replace('menos_', '').replace('_mes', '').replace('_meses', '');
-    return `Menos de ${meses} mês${meses === '1' ? '' : 'es'}`;
-  }
-  if (valor.match(/^\d+_mes(es)?$/)) {
-    const meses = valor.replace('_mes', '').replace('_meses', '');
-    return `${meses} mês${meses === '1' ? '' : 'es'}`;
-  }
-  if (valor.match(/^\d+_\d+_anos$/)) {
-    const [de, ate] = valor.replace('_anos', '').split('_');
-    return `${de} a ${ate} anos`;
-  }
-  if (valor.match(/^\d+_anos$/)) {
-    const anos = valor.replace('_anos', '');
-    return `${anos} ano${anos === '1' ? '' : 's'}`;
-  }
-  return formatValue(valor);
-}
-htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', formatPeriodoTrabalho(sectionData.ultimoTrabalho))}</div>`;
-        htmlContent += `<div>${createFieldItem('Limitações Diárias', formatValue(sectionData.limitacoesDiarias))}</div>`;
-        htmlContent += `<div>${createFieldItem('Tratamentos Realizados', formatValue(sectionData.tratamentosRealizados))}</div>`;
-        htmlContent += `<div style="grid-column: 1 / -1;">${createFieldItem('Medicamentos Atuais', formatValue(sectionData.medicamentosAtuais))}</div>`;
-        htmlContent += `</div>`;
+        // Layout incapacidade otimizado
+        htmlContent += `<div style="display:grid; grid-template-columns:1fr; gap:1.5mm;">`;
+
+        // Bloco situação laboral
+        htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
+        htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Situação Laboral e Saúde</div>`;
+        htmlContent += `<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.8mm 1.5mm;">`;
+
+        // Formatação do período de trabalho
+        function formatPeriodoTrabalho(valor) {
+          if (!valor || typeof valor !== 'string') return formatValue(valor);
+          if (valor.startsWith('menos_')) {
+            const meses = valor.replace('menos_', '').replace('_mes', '').replace('_meses', '');
+            return `Menos de ${meses} mês${meses === '1' ? '' : 'es'}`;
+          }
+          if (valor.match(/^\d+_mes(es)?$/)) {
+            const meses = valor.replace('_mes', '').replace('_meses', '');
+            return `${meses} mês${meses === '1' ? '' : 'es'}`;
+          }
+          if (valor.match(/^\d+_\d+_anos$/)) {
+            const [de, ate] = valor.replace('_anos', '').split('_');
+            return `${de} a ${ate} anos`;
+          }
+          if (valor.match(/^\d+_anos$/)) {
+            const anos = valor.replace('_anos', '');
+            return `${anos} ano${anos === '1' ? '' : 's'}`;
+          }
+          return formatValue(valor);
+        }
+
+        htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Trabalha Atualmente:</strong> ${formatValue(sectionData.trabalhaAtualmente)}</div>`;
+        htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Último Trabalho:</strong> ${formatPeriodoTrabalho(sectionData.ultimoTrabalho)}</div>`;
+        htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Limitações Diárias:</strong> ${formatValue(sectionData.limitacoesDiarias)}</div>`;
+        htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Tratamentos:</strong> ${formatValue(sectionData.tratamentosRealizados)}</div>`;
+        htmlContent += `<div style="grid-column:1/-1; font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Medicamentos:</strong> ${formatValue(sectionData.medicamentosAtuais)}</div>`;
+        htmlContent += `</div></div>`;
+
+        // Tabela de documentos comprobatórios
         if (sectionData.tipoDocumentos || sectionData.doencas || sectionData.cids || sectionData.dataDocumentos) {
           const maxRows = Math.max(
             sectionData.tipoDocumentos?.length || 0,
@@ -870,107 +933,151 @@ htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', formatPeri
             sectionData.cids?.length || 0,
             sectionData.dataDocumentos?.length || 0
           );
+
           if (maxRows > 0) {
-            htmlContent += `<div class="subsection-title" style="margin-top:8px; font-size:10pt; color:#374151; border-bottom:1px solid #d1d5db; padding:8px 16px 8px 16px; background:#f9fafb;">Documentos Comprobatórios e Detalhes da Incapacidade</div>`;
-            htmlContent += '<table style="width:100%; margin:0; border:none; box-shadow:none;">';
+            htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
+            htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Documentos Comprobatórios</div>`;
+            htmlContent += '<table class="compact-table" style="margin:0; font-size:7.8pt;">';
             htmlContent += '<thead><tr>';
-            htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Tipo Documento</th>';
-            htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Doença/Condição (Conforme Documento)</th>';
-            htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">CID</th>';
-            htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Data do Documento</th>';
+            htmlContent += '<th style="padding:0.8mm 1mm;">Tipo Documento</th>';
+            htmlContent += '<th style="padding:0.8mm 1mm;">Doença/Condição</th>';
+            htmlContent += '<th style="padding:0.8mm 1mm;">CID</th>';
+            htmlContent += '<th style="padding:0.8mm 1mm;">Data</th>';
             htmlContent += '</tr></thead><tbody>';
+
             for (let index = 0; index < maxRows; index++) {
               const tipoDoc = sectionData.tipoDocumentos?.[index] || '';
               const doenca = sectionData.doencas?.[index] || '';
               const cid = sectionData.cids?.[index] || '';
               const dataDoc = sectionData.dataDocumentos?.[index] || '';
+
               if (tipoDoc.trim() !== '' || doenca.trim() !== '' || cid.trim() !== '' || dataDoc.trim() !== '') {
                 htmlContent += '<tr>';
-                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(tipoDoc)}</td>`;
-                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(doenca)}</td>`;
-                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(cid)}</td>`;
-                htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(dataDoc)}</td>`;
+                htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(tipoDoc)}</td>`;
+                htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(doenca)}</td>`;
+                htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(cid)}</td>`;
+                htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(dataDoc)}</td>`;
                 htmlContent += '</tr>';
               }
             }
-            htmlContent += '</tbody></table>';
+
+            htmlContent += '</tbody></table></div>';
           }
         }
-        htmlContent += `</div>`;
+
+        // Observações de saúde
         if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
-          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações de saúde:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:0;">`;
+          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Observações de Saúde</div>`;
+          htmlContent += `<div style="font-size:8pt;">${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          htmlContent += `</div>`;
         }
+
+        htmlContent += `</div>`; // Fecha o grid
+
       } else if (sectionKey === 'professional') {
-        htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
-        htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Histórico Profissional</div>`;
+        // Layout profissional otimizado
+        htmlContent += `<div style="display:grid; grid-template-columns:1fr; gap:1.5mm;">`;
+
+        // Tabela de histórico profissional
         if (sectionData.atividade_tipo && Array.isArray(sectionData.atividade_tipo) && sectionData.atividade_tipo.length > 0) {
-          htmlContent += '<table style="width:calc(100% - 0px); margin:0; border:none; box-shadow:none;">';
+          htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
+          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Histórico Profissional</div>`;
+          htmlContent += '<table class="compact-table" style="margin:0; font-size:7.8pt;">';
           htmlContent += '<thead><tr>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Tipo de Atividade</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Status Contrib.</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Início</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Fim</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Prazo</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Detalhes/Local</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Tipo de Atividade</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Status</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Início</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Fim</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Prazo</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm;">Detalhes/Local</th>';
           htmlContent += '</tr></thead><tbody>';
+
           sectionData.atividade_tipo.forEach((tipoAtividade, index) => {
             htmlContent += '<tr>';
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(tipoAtividade)}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(tipoAtividade)}</td>`;
+
             const statusValProf = sectionData.atividade_tag_status?.[index];
             let cellContentProf;
             if (statusValProf === null || statusValProf === undefined || String(statusValProf).trim() === '') {
               cellContentProf = formatValue(statusValProf);
             } else {
-              cellContentProf = `<span class="data-tag">${formatValue(statusValProf)}</span>`;
+              cellContentProf = `<span class="data-tag" style="padding:0.1em 0.4em; font-size:0.75em;">${formatValue(statusValProf)}</span>`;
             }
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${cellContentProf}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_periodo_inicio?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_periodo_fim?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_prazo?.[index])}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(sectionData.atividade_detalhes?.[index])}</td>`;
+
+            htmlContent += `<td style="padding:0.8mm 1mm;">${cellContentProf}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.atividade_periodo_inicio?.[index])}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.atividade_periodo_fim?.[index])}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.atividade_prazo?.[index])}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(sectionData.atividade_detalhes?.[index])}</td>`;
             htmlContent += '</tr>';
           });
-          htmlContent += '</tbody></table>';
+
+          htmlContent += '</tbody></table></div>';
         }
-        htmlContent += `</div>`;
+
+        // Observações profissionais
         if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
-          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações profissionais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:0;">`;
+          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Observações Profissionais</div>`;
+          htmlContent += `<div style="font-size:8pt;">${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          htmlContent += `</div>`;
         }
+
+        htmlContent += `</div>`; // Fecha o grid
+
       } else if (sectionKey === 'documents') {
-        htmlContent += `<div class="item-block" style="border:1px solid #d1d5db; border-radius:4px; margin-bottom:0; padding:0; overflow:hidden;">`;
-        htmlContent += `<div class="subsection-title" style="margin-bottom:8px; font-size:10.5pt; color:#374151; border-bottom:1px solid #d1d5db; padding:12px 16px 8px 16px; background:#f9fafb;">Documentos</div>`;
+        // Layout documentos otimizado
+        htmlContent += `<div style="display:grid; grid-template-columns:1fr; gap:1.5mm;">`;
+
+        // Tabela de documentos
         if (sectionData.documentos && Array.isArray(sectionData.documentos) && sectionData.documentos.length > 0) {
-          htmlContent += '<table style="width:calc(100% - 0px); margin:0; border:none; box-shadow:none;">';
+          htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
+          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Documentação</div>`;
+          htmlContent += '<table class="compact-table" style="margin:0; font-size:7.8pt;">';
           htmlContent += '<thead><tr>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Documento</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Status</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Ano</th>';
-          htmlContent += '<th style="background:#f3f4f6; color:#1e3a8a; border:none;">Obs. Documento</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm; width:40%;">Documento</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm; width:15%;">Status</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm; width:10%;">Ano</th>';
+          htmlContent += '<th style="padding:0.8mm 1mm; width:35%;">Observações</th>';
           htmlContent += '</tr></thead><tbody>';
+
           sectionData.documentos.forEach(doc => {
             htmlContent += '<tr>';
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(doc.nome)}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(doc.nome)}</td>`;
+
             const statusValDoc = doc.status;
             let cellContentDoc;
             if (statusValDoc === null || statusValDoc === undefined || String(statusValDoc).trim() === '') {
               cellContentDoc = formatValue(statusValDoc);
             } else {
-              cellContentDoc = `<span class="relationship-select" data-value="${statusValDoc}">${formatValue(statusValDoc)}</span>`;
+              cellContentDoc = `<span class="relationship-select" data-value="${statusValDoc}" style="font-size:0.75em;">${formatValue(statusValDoc)}</span>`;
             }
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb; vertical-align:middle; text-align:center;">${cellContentDoc}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb; vertical-align:middle; text-align:center;">${formatValue(doc.ano)}</td>`;
-            htmlContent += `<td style="border-top:1px solid #e5e7eb; border-bottom:none; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb;">${formatValue(doc.detalhes, true)}</td>`;
+
+            htmlContent += `<td style="padding:0.8mm 1mm; text-align:center;">${cellContentDoc}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm; text-align:center;">${formatValue(doc.ano)}</td>`;
+            htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(doc.detalhes, true)}</td>`;
             htmlContent += '</tr>';
           });
-          htmlContent += '</tbody></table>';
+
+          htmlContent += '</tbody></table></div>';
         }
-        htmlContent += `</div>`;
+
+        // Observações finais
         if (sectionData.observacoes && sectionData.observacoes.trim() !== '') {
-          htmlContent += `<div class="item-block" style="background:#f9fafb; border:1px solid #d1d5db; margin-top:8px;"><strong style="color:#1e3a8a;">Observações finais:</strong> ${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:0;">`;
+          htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Observações Finais</div>`;
+          htmlContent += `<div style="font-size:8pt;">${formatValue(sectionData.observacoes, { isHtml: true })}</div>`;
+          htmlContent += `</div>`;
         }
+
+        htmlContent += `</div>`; // Fecha o grid
       }
-      htmlContent += '</div>';
-    }    // Adiciona o rodapé ao final do conteúdo da .page
+
+      htmlContent += '</div>'; // Fecha a section
+    }
+
+    // Adiciona o rodapé ao final do conteúdo da .page
     htmlContent += `<div class="page-footer">
                       <div>FIAP é um serviço de <a href="https://orbitas.com.br" target="_blank">orbitas.com.br</a> &copy; ${new Date().getFullYear()}</div>
                       <div>Relatório Gerado em: ${new Date().toLocaleString('pt-BR')}</div>
@@ -978,7 +1085,7 @@ htmlContent += `<div>${createFieldItem('Último Trabalho (Período)', formatPeri
 
     htmlContent += '</div>'; // Fecha a .page
 
-    // Botão flutuante para gerar PDF (visível apenas na tela, não na impressão)
+    // Botão flutuante para gerar PDF
     htmlContent += `
       <button id="btn-gerar-pdf-relatorio" style="position:fixed;bottom:32px;right:32px;z-index:9999;padding:14px 28px;font-size:15px;font-weight:600;background:#2563eb;color:#fff;border:none;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.13);cursor:pointer;transition:background 0.2s;display:inline-block;"
         onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#2563eb'">
