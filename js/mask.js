@@ -311,20 +311,23 @@ const Mask = {
 
     input.value = value;
   },
-
   /**
-   * Formata nomes próprios (primeira letra maiúscula)
+   * Formata nomes próprios em tempo real (primeira letra maiúscula)
    * @param {HTMLInputElement} input - Campo de entrada do nome
    */
   properName: function(input) {
+    // Salvar posição do cursor
+    const cursorPos = input.selectionStart;
+    const cursorEnd = input.selectionEnd;
+    
     // Lista de palavras que devem permanecer em minúsculo
     const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'por', 'com'];
 
     // Obter o texto e dividir em palavras
-    let texto = input.value.toLowerCase().trim();
+    let texto = input.value.toLowerCase();
     if (!texto) return;
 
-    // Dividir o texto em palavras
+    // Dividir o texto em palavras, preservando espaços
     let palavras = texto.split(' ');
 
     // Processar cada palavra
@@ -342,7 +345,64 @@ const Mask = {
     }
 
     // Juntar as palavras novamente
-    input.value = palavras.join(' ');
+    const novoTexto = palavras.join(' ');
+    
+    // Só atualizar se realmente mudou para evitar loop infinito
+    if (input.value !== novoTexto) {
+      input.value = novoTexto;
+      
+      // Restaurar posição do cursor
+      if (cursorPos !== null) {
+        input.setSelectionRange(cursorPos, cursorEnd);
+      }
+    }
+  },
+
+  /**
+   * Formata nome próprio em tempo real (durante a digitação)
+   * @param {HTMLInputElement} input - Campo de entrada
+   */
+  properNameRealTime: function(input) {
+    // Salvar posição do cursor
+    const cursorPos = input.selectionStart;
+    const cursorEnd = input.selectionEnd;
+    
+    // Lista de palavras que devem permanecer em minúsculo
+    const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'por', 'com'];
+
+    // Obter o texto e dividir em palavras
+    let texto = input.value.toLowerCase();
+    if (!texto) return;
+
+    // Dividir o texto em palavras, preservando espaços
+    let palavras = texto.split(' ');
+
+    // Processar cada palavra
+    for (let i = 0; i < palavras.length; i++) {
+      const palavra = palavras[i];
+
+      // Pular palavras vazias
+      if (!palavra) continue;
+
+      // Sempre colocar a primeira palavra com inicial maiúscula
+      // ou se não for uma exceção
+      if (i === 0 || !excecoes.includes(palavra)) {
+        palavras[i] = palavra.charAt(0).toUpperCase() + palavra.slice(1);
+      }
+    }
+
+    // Juntar as palavras novamente
+    const novoTexto = palavras.join(' ');
+    
+    // Só atualizar se realmente mudou para evitar loop infinito
+    if (input.value !== novoTexto) {
+      input.value = novoTexto;
+      
+      // Restaurar posição do cursor
+      if (cursorPos !== null) {
+        input.setSelectionRange(cursorPos, cursorEnd);
+      }
+    }
   },
 
   /**
@@ -407,8 +467,7 @@ const Mask = {
     if (numValue < 0) numValue = 0;
     if (numValue > 150) numValue = 150; // Limite superior final
 
-    input.value = numValue + " anos";
-  },
+    input.value = numValue + " anos";  },
 
   /**
    * Inicializa as máscaras nos elementos da página
@@ -425,8 +484,7 @@ const Mask = {
       } else if (onInputAttr.includes('maskDate')) {
         element.oninput = () => Mask.date(element);
       } else if (onInputAttr.includes('maskPhone')) {
-        element.oninput = () => Mask.phone(element);
-      } else if (onInputAttr.includes('maskUF')) {
+        element.oninput = () => Mask.phone(element);      } else if (onInputAttr.includes('maskUF')) {
         element.oninput = () => Mask.uf(element);
       } else if (onInputAttr.includes('maskMoney') || onInputAttr.includes('FIAP.masks.money')) {
         element.oninput = () => Mask.money(element);
@@ -453,6 +511,7 @@ window.maskPhone = Mask.phone.bind(Mask);
 window.maskUF = Mask.uf.bind(Mask);
 window.maskOnlyNumbers = Mask.onlyNumbers.bind(Mask);
 window.maskMoney = Mask.money.bind(Mask);
+window.formatarNomeProprio = Mask.properName.bind(Mask);
 window.formatarNomeProprio = Mask.properName.bind(Mask);
 window.capitalizeFirstLetterOnly = Mask.capitalizeFirstLetterOnly.bind(Mask);
 window.maskNumericAge = Mask.numericAge.bind(Mask);

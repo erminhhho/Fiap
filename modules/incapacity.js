@@ -266,9 +266,11 @@ window.initModule = null;
 window.initModule = function() {
   // Remover a proteção que estava bloqueando a inicialização
   window._incapacityInitialized = false;
-
   // Inicializar configurações básicas
   setupEvents();
+
+  // Configurar modal de "Outro Tipo de Documento"
+  setupDocumentoTipoSelects();
 
   // Configurar fechamento automático dos dropdowns
   setupDropdownHandlers();
@@ -1323,17 +1325,16 @@ function showOutroDocumentoModal() {
         }
       }
     ]
-  });
-
-  // Configurar eventos adicionais
+  });  // Configurar eventos adicionais
   setTimeout(() => {
     const input = document.getElementById('outroDocumentoInputGeneric');
     if (input) {
-      // Capitalizar primeira letra quando sair do campo
-      input.addEventListener('blur', function() {
-        this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);
+      // Aplicar formatação de nome próprio em tempo real ao digitar
+      input.addEventListener('input', function() {        if (typeof window.formatarNomeProprio === 'function') {
+          window.formatarNomeProprio(this);
+        }
       });
-
+      
       // Salvar ao pressionar Enter
       input.addEventListener('keyup', function(event) {
         if (event.key === 'Enter') {
