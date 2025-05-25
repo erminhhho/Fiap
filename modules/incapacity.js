@@ -1145,7 +1145,7 @@ function setupEvents() {
         isNavigating = false;      }
     });
   }
-  
+
   // Configurar modal de "Outro Tipo de Documento"
   setupDocumentoTipoSelects();
 }
@@ -1302,7 +1302,7 @@ function showOutroDocumentoModal() {
     console.error('Modal genérico não disponível');
     return;
   }
-  
+
   window.showGenericModal({
     title: 'Informar Tipo de Documento',
     message: 'Digite o tipo de documento desejado:',
@@ -1324,7 +1324,7 @@ function showOutroDocumentoModal() {
       }
     ]
   });
-  
+
   // Configurar eventos adicionais
   setTimeout(() => {
     const input = document.getElementById('outroDocumentoInputGeneric');
@@ -1333,7 +1333,7 @@ function showOutroDocumentoModal() {
       input.addEventListener('blur', function() {
         this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);
       });
-      
+
       // Salvar ao pressionar Enter
       input.addEventListener('keyup', function(event) {
         if (event.key === 'Enter') {
@@ -1350,7 +1350,7 @@ function handleCancelOutroDocumento() {
   if (window.currentDocumentoSelectGlobal && window.currentDocumentoSelectGlobal.value === 'outro') {
     const options = Array.from(window.currentDocumentoSelectGlobal.options);
     const customOptionExists = options.some(opt => opt.value !== "" && opt.value !== "outro" && !isDefaultDocumentoOption(opt.value));
-    
+
     if (!customOptionExists) {
       window.currentDocumentoSelectGlobal.value = ""; // Reseta para "Selecione..."
     }
@@ -1387,13 +1387,13 @@ function handleSaveOutroDocumento() {
     }
 
     window.currentDocumentoSelectGlobal.value = novoDocumento;
-    
+
     // Salvar automaticamente os dados do formulário
     if (window.formStateManager) {
       window.formStateManager.captureCurrentFormData();
     }
   }
-  
+
   window.currentDocumentoSelectGlobal = null;
   window.closeGenericModal();
 }
