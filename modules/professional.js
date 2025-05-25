@@ -266,10 +266,11 @@ function setupEvents() {
         console.error('Erro ao navegar para a próxima página:', error);
         this.innerHTML = originalText;
         this.classList.remove('opacity-75');
-        isNavigating = false;
-      }
+        isNavigating = false;      }
     });
   }
+  // Configurar modal de "Outro Tipo de Atividade"
+  setupAtividadeTipoSelects();
 }
 
 // Função para configurar as tags de uma atividade
@@ -550,3 +551,122 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }, 300);
 });
+
+// Função para configurar os event listeners nos selects de tipo de atividade
+function setupAtividadeTipoSelects() {
+  document.addEventListener('change', function(event) {
+    if (event.target.classList.contains('tipo-atividade')) {
+      if (event.target.value === 'outro') {
+        window.currentAtividadeSelectGlobal = event.target;
+        showOutroAtividadeModal();
+      }
+    }
+  });
+}
+
+// Função para mostrar o modal de "Outro Tipo de Atividade" usando o modal genérico
+function showOutroAtividadeModal() {
+  if (typeof window.showGenericModal !== 'function') {
+    console.error('Modal genérico não disponível');
+    return;
+  }
+
+  window.showGenericModal({
+    title: 'Informar Tipo de Atividade',
+    message: 'Digite o tipo de atividade desejado:',
+    content: '<input type="text" id="outroAtividadeInputGeneric" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Professor, Vendedor">',    buttons: [
+      {
+        text: 'Cancelar',
+        className: 'flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center',
+        onclick: function() {
+          handleCancelOutroAtividade();
+        }
+      },
+      {
+        text: 'Salvar',
+        className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
+        onclick: function() {
+          handleSaveOutroAtividade();
+        }
+      }
+    ]
+  });
+
+  // Configurar eventos adicionais
+  setTimeout(() => {
+    const input = document.getElementById('outroAtividadeInputGeneric');
+    if (input) {
+      // Capitalizar primeira letra quando sair do campo
+      input.addEventListener('blur', function() {
+        this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);
+      });
+
+      // Salvar ao pressionar Enter
+      input.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+          handleSaveOutroAtividade();
+        }
+      });
+    }
+  }, 100);
+}
+
+// Função para lidar com o cancelamento
+function handleCancelOutroAtividade() {
+  // Se o usuário cancelou e o valor do select ainda é "outro", reseta para "Selecione..."
+  if (window.currentAtividadeSelectGlobal && window.currentAtividadeSelectGlobal.value === 'outro') {
+    const options = Array.from(window.currentAtividadeSelectGlobal.options);
+    const customOptionExists = options.some(opt => opt.value !== "" && opt.value !== "outro" && !isDefaultAtividadeOption(opt.value));
+
+    if (!customOptionExists) {
+      window.currentAtividadeSelectGlobal.value = ""; // Reseta para "Selecione..."
+    }
+  }
+  window.currentAtividadeSelectGlobal = null;
+  window.closeGenericModal();
+}
+
+// Função para lidar com o salvamento
+function handleSaveOutroAtividade() {
+  const input = document.getElementById('outroAtividadeInputGeneric');
+  const novaAtividade = input ? input.value.trim() : '';
+
+  if (novaAtividade && window.currentAtividadeSelectGlobal) {
+    // Verificar se a opção já existe (para não duplicar)
+    let optionExists = false;
+    for (let i = 0; i < window.currentAtividadeSelectGlobal.options.length; i++) {
+      if (window.currentAtividadeSelectGlobal.options[i].value === novaAtividade) {
+        optionExists = true;
+        break;
+      }
+    }
+
+    // Adicionar nova opção se não existir
+    if (!optionExists) {
+      const newOption = new Option(novaAtividade, novaAtividade, true, true);
+      // Insere a nova opção antes da opção "Outro..."
+      const outroOption = Array.from(window.currentAtividadeSelectGlobal.options).find(opt => opt.value === 'outro');
+      if (outroOption) {
+        window.currentAtividadeSelectGlobal.insertBefore(newOption, outroOption);
+      } else {
+        window.currentAtividadeSelectGlobal.appendChild(newOption);
+      }
+    }
+
+    window.currentAtividadeSelectGlobal.value = novaAtividade;
+
+    // Salvar automaticamente os dados do formulário
+    if (window.formStateManager) {
+      window.formStateManager.captureCurrentFormData();
+    }
+  }
+
+  window.currentAtividadeSelectGlobal = null;
+  window.closeGenericModal();
+}
+
+// Função auxiliar para verificar se uma opção de atividade é uma das padrões
+function isDefaultAtividadeOption(value) {
+    const defaultOptions = ["segurado_especial", "empregado", "autonomo", "empresario", "pescador", "domestico", "informal", "outro"];
+    return defaultOptions.includes(value);
+}

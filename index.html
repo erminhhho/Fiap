@@ -150,6 +150,24 @@
     </div>
   </div>
 
+  <!-- Modal Genérico Reutilizável -->
+  <div id="genericModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="genericModalTitle" class="text-xl font-bold text-gray-700">Título</h2>
+        <button id="closeGenericModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <p id="genericModalMessage" class="text-gray-600 mb-4">Mensagem</p>
+      <div id="genericModalContent" class="mb-4">
+        <!-- Conteúdo dinâmico será inserido aqui -->
+      </div>      <div id="genericModalButtons" class="flex items-center space-x-3">
+        <!-- Botões dinâmicos serão inseridos aqui -->
+      </div>
+    </div>
+  </div>
+
   <div>
     <!-- Scripts do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
@@ -305,6 +323,79 @@
       }
     }
 
+    // Funções para Modal Genérico
+    window.showGenericModal = function(options) {
+      const modal = document.getElementById('genericModal');
+      const title = document.getElementById('genericModalTitle');
+      const message = document.getElementById('genericModalMessage');
+      const content = document.getElementById('genericModalContent');
+      const buttons = document.getElementById('genericModalButtons');
+
+      if (!modal) return;
+
+      // Configurar título
+      if (title && options.title) {
+        title.textContent = options.title;
+      }
+
+      // Configurar mensagem
+      if (message && options.message) {
+        message.textContent = options.message;
+        message.style.display = 'block';
+      } else if (message) {
+        message.style.display = 'none';
+      }
+
+      // Configurar conteúdo personalizado
+      if (content) {
+        content.innerHTML = options.content || '';
+      }
+
+      // Configurar botões
+      if (buttons) {
+        buttons.innerHTML = '';
+        if (options.buttons && Array.isArray(options.buttons)) {
+          options.buttons.forEach(button => {
+            const btn = document.createElement('button');
+            btn.className = button.className || 'px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700';
+            btn.textContent = button.text;
+            if (button.onclick) {
+              btn.addEventListener('click', button.onclick);
+            }
+            buttons.appendChild(btn);
+          });
+        }
+      }
+
+      // Mostrar modal
+      modal.classList.remove('hidden');
+
+      // Focar no primeiro input se existir
+      const firstInput = modal.querySelector('input');
+      if (firstInput) {
+        setTimeout(() => firstInput.focus(), 100);
+      }
+
+      return modal;
+    };
+
+    window.closeGenericModal = function() {
+      const modal = document.getElementById('genericModal');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    };
+
+    // Configurar eventos do modal genérico
+    document.getElementById('closeGenericModal').addEventListener('click', window.closeGenericModal);
+
+    // Fechar modal clicando fora dele
+    document.getElementById('genericModal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        window.closeGenericModal();
+      }
+    });
+
     // Funções para manipulação do modal de busca
     function openSearchFormModal() {
       const modal = document.getElementById('searchFormModal');
@@ -327,6 +418,56 @@
       const modal = document.getElementById('newFormConfirmModal');
       modal.classList.add('hidden');
     }
+
+    // Funções para manipulação do modal genérico
+    function openGenericModal(title, message, content = '', buttons = []) {
+      const modal = document.getElementById('genericModal');
+      const modalTitle = document.getElementById('genericModalTitle');
+      const modalMessage = document.getElementById('genericModalMessage');
+      const modalContent = document.getElementById('genericModalContent');
+      const modalButtons = document.getElementById('genericModalButtons');
+
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      modalContent.innerHTML = content;
+
+      // Limpar botões existentes
+      modalButtons.innerHTML = '';
+
+      // Adicionar novos botões
+      buttons.forEach(button => {
+        const btn = document.createElement('button');
+        btn.textContent = button.text;
+        btn.className = 'px-4 py-2 rounded-lg text-white ' + (button.type === 'cancel' ? 'bg-gray-200 hover:bg-gray-300 text-gray-700' : 'bg-blue-600 hover:bg-blue-700');
+        btn.addEventListener('click', button.action);
+        modalButtons.appendChild(btn);
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeGenericModal() {
+      const modal = document.getElementById('genericModal');
+      modal.classList.add('hidden');
+    }
+
+    // Exemplo de uso do modal genérico
+    document.getElementById('btn-exemplo').addEventListener('click', function() {
+      openGenericModal('Título do Modal', 'Esta é uma mensagem de exemplo para o modal genérico.', '<p>Conteúdo adicional pode ser inserido aqui.</p>', [
+        {
+          text: 'Cancelar',
+          type: 'cancel',
+          action: closeGenericModal
+        },
+        {
+          text: 'Confirmar',
+          action: function() {
+            alert('Ação confirmada!');
+            closeGenericModal();
+          }
+        }
+      ]);
+    });
   </script>
 </body>
 </html>
