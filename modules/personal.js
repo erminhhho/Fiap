@@ -9,16 +9,6 @@ window.initModule = null;
 window.initModule = function() {
   console.log('Inicializando módulo de dados pessoais e configurando eventos...');
 
-  // Contador global de autores - usando window para evitar redeclaração
-  if (typeof window.authorCount === 'undefined') {
-    window.authorCount = 1;
-  }
-
-  // Array com etiquetas para os autores adicionais - usando window para evitar redeclaração
-  if (typeof window.authorLabels === 'undefined') {
-    window.authorLabels = ['Requerente', 'Instituidor', 'Dependente', 'Representante', 'Requerente Rep.', 'Litsconsorte'];
-  }
-
   // Forçar reinicialização do módulo ao acessar diretamente pela URL
   if (window.location.hash === '#personal') {
     window._personalInitialized = false;
@@ -31,38 +21,72 @@ window.initModule = function() {
     return;
   }
 
+  // Inicializar o conteúdo da página de forma estruturada
+  initializePageContent();
+
   window._personalInitialized = true;
   window.forceModuleReload = false;
 
-  setupEvents();
-  setupDynamicFieldEvents();
-  // Reaplicar estilos das tags de relacionamento para garantir estado padrão
-  if (typeof applyRelationshipStyles === 'function') applyRelationshipStyles();
-
+  // Limpar flag quando a página mudar
   document.addEventListener('stepChanged', function handleStepChange() {
     window._personalInitialized = false;
     document.removeEventListener('stepChanged', handleStepChange);
   }, { once: true });
 
+  console.log('[personal.js] Módulo totalmente inicializado e restauração solicitada.');
+};
+
+// Função que centraliza a inicialização do conteúdo da página
+function initializePageContent() {
+  // Contador global de autores - usando window para evitar redeclaração
+  if (typeof window.authorCount === 'undefined') {
+    window.authorCount = 1;
+  }
+
+  // Array com etiquetas para os autores adicionais - usando window para evitar redeclaração
+  if (typeof window.authorLabels === 'undefined') {
+    window.authorLabels = ['Requerente', 'Instituidor', 'Dependente', 'Representante', 'Requerente Rep.', 'Litsconsorte'];
+  }
+
+  // Configurar eventos principais
+  setupEvents();
+  setupDynamicFieldEvents();
+
+  // Reaplicar estilos das tags de relacionamento para garantir estado padrão
+  if (typeof applyRelationshipStyles === 'function') {
+    applyRelationshipStyles();
+  }
+
+  // Garantir que a função addAuthor esteja disponível globalmente
   window.addAuthor = addAuthor;
 
+  // Restaurar dados para esta etapa
   if (window.formStateManager) {
     const currentStepKey = 'personal';
     console.log(`[personal.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
     window.formStateManager.ensureFormAndRestore(currentStepKey);
+
     // Após restaurar, disparar validações
     setTimeout(function() {
+      // Validar CPF
       document.querySelectorAll('input[name="autor_cpf[]"]').forEach(input => {
         if (typeof validateCPF === 'function') validateCPF(input);
       });
+
+      // Calcular idade
       document.querySelectorAll('input[name="autor_nascimento[]"]').forEach(input => {
         if (typeof validateDateOfBirth === 'function') validateDateOfBirth(input);
       });
+
+      // Nome próprio e apelido
       document.querySelectorAll('input[name="autor_nome[]"], input[name="autor_apelido[]"]').forEach(input => {
         if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
       });
+
       // Reaplicar estilos das tags de relacionamento após restauração de estado
-      if (typeof applyRelationshipStyles === 'function') applyRelationshipStyles();
+      if (typeof applyRelationshipStyles === 'function') {
+        applyRelationshipStyles();
+      }
     }, 350);
   }
 
@@ -74,26 +98,11 @@ window.initModule = function() {
     }
   });
 
-  console.log('[personal.js] Módulo totalmente inicializado e restauração solicitada.');
-
-  // Após restaurar os dados do formulário (ex: dentro de window.initModule ou após ensureFormAndRestore):
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-      // Validar CPF
-      document.querySelectorAll('input[name="autor_cpf[]"]').forEach(input => {
-        if (typeof validateCPF === 'function') validateCPF(input);
-      });
-      // Calcular idade
-      document.querySelectorAll('input[name="autor_nascimento[]"]').forEach(input => {
-        if (typeof validateDateOfBirth === 'function') validateDateOfBirth(input);
-      });
-      // Nome próprio e apelido
-      document.querySelectorAll('input[name="autor_nome[]"], input[name="autor_apelido[]"]').forEach(input => {
-        if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
-      });
-    }, 300);
-  });
-};
+  // Configurar botões de navegação usando o sistema padronizado
+  if (window.Navigation) {
+    window.Navigation.setupNavigationButtons();
+  }
+}
 
 // Função para resetar a UI da seção de dados pessoais (autores)
 function resetPersonalUI() {

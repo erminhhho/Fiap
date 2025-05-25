@@ -34,48 +34,53 @@ window.initModule = function() {
   // Marcar como inicializado
   window._professionalInitialized = true;
 
+  // Inicializar o conteúdo da página de forma estruturada
+  initializePageContent();
+
+  // Limpar flag quando a página mudar
+  document.addEventListener('stepChanged', function handleStepChange() {
+    window._professionalInitialized = false;
+    document.removeEventListener('stepChanged', handleStepChange);
+  }, { once: true });
+};
+
+// Função unificada para inicializar o conteúdo da página
+function initializePageContent() {
   // Configurar eventos
   setupEvents();
 
-  // Limpar flag quando a página mudar
-  document.addEventListener('stepChanged', function() {
-    window._professionalInitialized = false;
-  }, { once: true });
-
+  // Garantir que addAtividade esteja disponível globalmente
   window.addAtividade = addAtividade; // Garantir que está definido ANTES da restauração
 
   // Restaurar dados para esta etapa
   if (window.formStateManager) {
     const currentStepKey = 'professional';
     console.log(`[professional.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
-    setTimeout(() => {
-      if (window.formStateManager && typeof window.formStateManager.ensureFormAndRestore === 'function') {
-        window.formStateManager.ensureFormAndRestore(currentStepKey);
-        // Após restaurar, disparar validações
-        setTimeout(function() {
-          document.querySelectorAll('.atividade-item').forEach(atividade => {
-            const inicioInput = atividade.querySelector('.periodo-inicio');
-            const fimInput = atividade.querySelector('.periodo-fim');
-            const prazoInput = atividade.querySelector('.periodo-prazo');
-            if (inicioInput && fimInput && prazoInput) {
-              if (inicioInput.value && fimInput.value) {
-                let prazo = parseInt(fimInput.value, 10) - parseInt(inicioInput.value, 10) + 1;
-                prazoInput.value = prazo > 0 ? prazo + ' anos' : '';
-              } else if (inicioInput.value && prazoInput.value) {
-                fimInput.value = parseInt(inicioInput.value, 10) + parseInt(prazoInput.value) - 1;
-              } else if (fimInput.value && prazoInput.value) {
-                inicioInput.value = parseInt(fimInput.value, 10) - parseInt(prazoInput.value) + 1;
-              }
-            }
-            const profissaoInput = atividade.querySelector('#profissao');
-            if (profissaoInput && typeof formatarNomeProprio === 'function') formatarNomeProprio(profissaoInput);
-          });
-        }, 350);
-      }
-    }, 50);
+
+    window.formStateManager.ensureFormAndRestore(currentStepKey);
+
+    // Após restaurar, disparar validações
+    setTimeout(function() {
+      document.querySelectorAll('.atividade-item').forEach(atividade => {
+        const inicioInput = atividade.querySelector('.periodo-inicio');
+        const fimInput = atividade.querySelector('.periodo-fim');
+        const prazoInput = atividade.querySelector('.periodo-prazo');
+        if (inicioInput && fimInput && prazoInput) {
+          if (inicioInput.value && fimInput.value) {
+            let prazo = parseInt(fimInput.value, 10) - parseInt(inicioInput.value, 10) + 1;
+            prazoInput.value = prazo > 0 ? prazo + ' anos' : '';
+          } else if (inicioInput.value && prazoInput.value) {
+            fimInput.value = parseInt(inicioInput.value, 10) + parseInt(prazoInput.value) - 1;
+          } else if (fimInput.value && prazoInput.value) {
+            inicioInput.value = parseInt(fimInput.value, 10) - parseInt(prazoInput.value) + 1;
+          }
+        }
+        const profissaoInput = atividade.querySelector('#profissao');
+        if (profissaoInput && typeof formatarNomeProprio === 'function') formatarNomeProprio(profissaoInput);
+      });
+    }, 350);
   }
 
-  // Após setupEvents();
   // Aplicar lógica de sincronização e máscara do campo prazo para a primeira linha
   const primeiraAtividade = document.querySelector('.atividade-item');
   if (primeiraAtividade) {
@@ -99,57 +104,19 @@ window.initModule = function() {
           fimInput.value = inicio + prazo - 1;
         }
       }
-      function syncInicio() {
-        const fim = parseInt(fimInput.value, 10);
-        const prazo = parseInt(prazoInput.value);
-        if (!isNaN(fim) && !isNaN(prazo)) {
-          inicioInput.value = fim - prazo + 1;
-        }
-      }
-      prazoInput.addEventListener('input', function(e) {
-        let val = this.value.replace(/\D/g, '');
-        if (val) this.value = val + ' anos';
-        else this.value = '';
-      });
-      inicioInput.addEventListener('input', function() {
-        if (fimInput.value) syncPrazo();
-        else if (prazoInput.value) syncFim();
-      });
-      fimInput.addEventListener('input', function() {
-        if (inicioInput.value) syncPrazo();
-        else if (prazoInput.value) syncInicio();
-      });
-      prazoInput.addEventListener('input', function() {
-        if (inicioInput.value) syncFim();
-        else if (fimInput.value) syncInicio();
-      });
-      function validatePeriodo() {
-        const inicio = parseInt(inicioInput.value, 10);
-        const fim = parseInt(fimInput.value, 10);
-        if (!isNaN(inicio) && !isNaN(fim) && inicio > fim) {
-          inicioInput.setCustomValidity('O ano de início não pode ser maior que o ano de fim.');
-        } else {
-          inicioInput.setCustomValidity('');
-        }
-      }
-      inicioInput.addEventListener('input', validatePeriodo);      fimInput.addEventListener('input', validatePeriodo);
+
+      // Aplicar as funções de sincronização aos campos
+      inicioInput.addEventListener('input', syncPrazo);
+      fimInput.addEventListener('input', syncPrazo);
+      prazoInput.addEventListener('input', syncFim);
     }
   }
 
-  // Configurar listeners para campos tipo-atividade (modais)
-  document.querySelectorAll('.tipo-atividade').forEach(select => {
-    select.addEventListener('change', function() {
-      if (this.value === 'outro') {
-        window.currentAtividadeSelectGlobal = this;
-        if (typeof window.showOutroAtividadeModal === 'function') {
-          window.showOutroAtividadeModal();
-        }
-      }
-    });
-  });
-
-  console.log('[professional.js] Módulo totalmente inicializado (incluindo modais) e restauração solicitada.');
-};
+  // Configurar botões de navegação usando o sistema padronizado
+  if (window.Navigation) {
+    window.Navigation.setupNavigationButtons();
+  }
+}
 
 // Função para resetar a UI da seção de atividades profissionais
 function resetProfessionalUI() {

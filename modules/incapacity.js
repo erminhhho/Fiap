@@ -264,13 +264,49 @@ window.initModule = null;
 
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
-  // Remover a proteção que estava bloqueando a inicialização
-  window._incapacityInitialized = false;
-  // Inicializar configurações básicas
+  console.log('[incapacity.js] initModule: Iniciando módulo de incapacidades.');
+
+  // Forçar reinicialização quando acessado diretamente pela URL
+  if (window.location.hash === '#incapacity') {
+    window._incapacityInitialized = false;
+  }
+
+  // Verificar se o módulo já foi inicializado nesta sessão
+  if (window._incapacityInitialized) {
+    console.log('[incapacity.js] Módulo de incapacidades já inicializado.');
+    return;
+  }
+
+  // Marcar como inicializado
+  window._incapacityInitialized = true;
+
+  // Inicializar o conteúdo da página de forma estruturada
+  initializePageContent();
+
+  // Limpar flag quando a página mudar
+  document.addEventListener('stepChanged', function handleStepChange() {
+    window._incapacityInitialized = false;
+    document.removeEventListener('stepChanged', handleStepChange);
+  }, { once: true });
+
+  console.log('[incapacity.js] Módulo de incapacidade: eventos configurados e inicialização solicitada.');
+};
+
+// Função unificada para inicializar o conteúdo da página
+function initializePageContent() {
+  // Configurar eventos do módulo
   setupEvents();
 
   // Configurar modal de "Outro Tipo de Documento"
   setupDocumentoTipoSelects();
+
+  // Expor addDoencaField globalmente
+  if (typeof window.addDoencaField === 'undefined' && typeof addDoencaField === 'function') {
+    window.addDoencaField = addDoencaField;
+    console.log("[incapacity.js] initModule: window.addDoencaField definido.");
+  }
+
+  console.log('[incapacity.js] Iniciando inicialização de componentes...');
 
   // Configurar fechamento automático dos dropdowns
   setupDropdownHandlers();
@@ -278,76 +314,75 @@ window.initModule = function() {
   // Injetar estilos CSS para garantir que a visualização do item selecionado seja ocultada
   injectFixStyles();
 
-  // Inicializar verificação de isenção de carência - garante que a verificação é feita
+  // Inicializar verificação de isenção de carência
   setupIsencaoCarencia();
 
   // Implementar o novo sistema de pesquisa e autocomplete para CID e doença
   setupImprovedCidSearch();
 
+  // Inicializar sistema CID
   if (typeof initCidSystem === 'function') {
+    console.log('[incapacity.js] Inicializando sistema CID...');
     try {
       initCidSystem();
     } catch (e) {
-      console.warn("Erro na primeira inicialização do sistema CID:", e);
+      console.warn("[incapacity.js] Erro na inicialização do sistema CID:", e);
     }
-    setTimeout(() => {
-      try {
-        initCidSystem();
-      } catch (e) {
-        console.warn("Erro na segunda inicialização do sistema CID:", e);
-      }
-      document.querySelectorAll('.doenca-input, .cid-input').forEach(input => {
-        if (input.classList.contains('doenca-input')) {
-          verificarIsencaoCarencia(input);
-        } else if (input.classList.contains('cid-input')) {
-          const index = input.getAttribute('data-index');
-          const doencaInput = document.getElementById('doenca' + index);
-          if (doencaInput) {
-            verificarIsencaoCarencia(doencaInput);
-          }
-        }
-      });
-    }, 500);
   }
 
-  // Expor addDoencaField globalmente ANTES da restauração
-  if (typeof window.addDoencaField === 'undefined' && typeof addDoencaField === 'function') {
-    window.addDoencaField = addDoencaField;
-    console.log("[incapacity.js] initModule: window.addDoencaField definido.");
+  // Ocultar dropdown de profissão antes de restaurar
+  const profInput = document.getElementById('profissao');
+  const profDropdown = document.getElementById('profissaoDropdown');
+  if (profInput && profDropdown) {
+    profDropdown.classList.add('hidden');
   }
 
   // Restaurar dados para esta etapa
   if (window.formStateManager) {
     const currentStepKey = 'incapacity';
-    // Ocultar imediatamente o dropdown de profissão antes de restaurar
-    const profInput = document.getElementById('profissao');
-    const profDropdown = document.getElementById('profissaoDropdown');
-    if (profInput && profDropdown) {
-      profDropdown.classList.add('hidden');
-    }
-    setTimeout(() => {
-      console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
-      window.formStateManager.ensureFormAndRestore(currentStepKey);
-      // Após restaurar, disparar validações
-      setTimeout(function() {
-        document.querySelectorAll('.doenca-input').forEach(input => {
-          if (typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(input);
-        });
-        document.querySelectorAll('.cid-input').forEach(input => {
-          const index = input.getAttribute('data-index');
-          const doencaInput = document.getElementById('doenca' + index);
-          if (doencaInput && typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(doencaInput);
-        });
-        // Ocultar dropdown de profissão se já estiver preenchido (reforço com requestAnimationFrame)
-        requestAnimationFrame(() => {
-          const profInput = document.getElementById('profissao');
-          const profDropdown = document.getElementById('profissaoDropdown');
-          if (profInput && profDropdown) {
-            profDropdown.classList.add('hidden');
+    console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
+    window.formStateManager.ensureFormAndRestore(currentStepKey);
+
+    // Aplicar validações após a restauração
+    setTimeout(function() {
+      console.log('[incapacity.js] Aplicando validações pós-restauração...');
+
+      document.querySelectorAll('.doenca-input').forEach(input => {
+        if (typeof verificarIsencaoCarencia === 'function') {
+          verificarIsencaoCarencia(input);
+        }
+      });
+
+      document.querySelectorAll('.cid-input').forEach(input => {
+        const index = input.getAttribute('data-index');
+        const doencaInput = document.getElementById('doenca' + index);
+        if (doencaInput && typeof verificarIsencaoCarencia === 'function') {
+          verificarIsencaoCarencia(doencaInput);
+        }
+      });
+
+      // Re-inicializar sistema CID após restauração com pequeno delay
+      if (typeof initCidSystem === 'function') {
+        setTimeout(() => {
+          try {
+            initCidSystem();
+            console.log('[incapacity.js] Sistema CID re-inicializado após restauração.');
+          } catch (e) {
+            console.warn("[incapacity.js] Erro na re-inicialização do sistema CID:", e);
           }
-        });
-      }, 350);
-    }, 700);  } else {
+        }, 200);
+      }
+
+      // Garantir que dropdown de profissão permanece oculto
+      requestAnimationFrame(() => {
+        if (profInput && profDropdown) {
+          profDropdown.classList.add('hidden');
+        }
+      });
+
+      console.log('[incapacity.js] Validações pós-restauração aplicadas.');
+    }, 350);
+  } else {
     console.error("[incapacity.js] initModule: formStateManager não encontrado. A restauração não ocorrerá.");
   }
 
@@ -363,8 +398,13 @@ window.initModule = function() {
     });
   });
 
-  console.log('[incapacity.js] Módulo de incapacidade totalmente inicializado (incluindo modais) e restauração solicitada.');
-};
+  // Configurar botões de navegação usando o sistema padronizado
+  if (window.Navigation) {
+    window.Navigation.setupNavigationButtons();
+  }
+
+  console.log('[incapacity.js] Componentes inicializados com sucesso.');
+}
 
 // Função para resetar a UI da seção de incapacidade (doenças/CIDs)
 function resetIncapacityUI() {
@@ -1089,79 +1129,77 @@ function setupEvents() {
     });
   });
 
-  // Botão Voltar
-  const backButton = document.getElementById('btn-back');
-  if (backButton) {
-    // Aplicar estilo centralizado ao botão voltar
-    if (window.tw && typeof window.tw.applyTo === 'function') {
-      window.tw.applyTo(backButton, 'button.secondary');
+  // Configurar botões de navegação usando o sistema padronizado
+  if (typeof window.Navigation !== 'undefined') {
+    console.log('[incapacity.js] Configurando navegação com sistema padronizado...');
+    window.Navigation.setupNavigationButtons();
+  } else {
+    console.warn('[incapacity.js] Sistema de navegação padronizado não encontrado, usando método legado...');
+
+    // Fallback para método legado - botão voltar
+    const backButton = document.getElementById('btn-back');
+    if (backButton) {
+      // Aplicar estilo centralizado ao botão voltar
+      if (window.tw && typeof window.tw.applyTo === 'function') {
+        window.tw.applyTo(backButton, 'button.secondary');
+      }
+
+      backButton.addEventListener('click', function() {
+        navigateTo('social');
+      });
     }
 
-    backButton.addEventListener('click', function() {
-      navigateTo('social');
-    });
-  }
+    // Fallback para método legado - botão próximo
+    const nextButton = document.getElementById('btn-next');
+    if (nextButton) {
+      // Aplicar estilo centralizado ao botão próximo
+      if (window.tw && typeof window.tw.applyTo === 'function') {
+        window.tw.applyTo(nextButton, 'button.primary');
+      }
 
-  // Botão Próximo
-  const nextButton = document.getElementById('btn-next');
-  if (nextButton) {
-    // Aplicar estilo centralizado ao botão próximo
-    if (window.tw && typeof window.tw.applyTo === 'function') {
-      window.tw.applyTo(nextButton, 'button.primary');
-    }
+      // Remover eventos existentes
+      const newBtn = nextButton.cloneNode(true);
+      nextButton.parentNode.replaceChild(newBtn, nextButton);
 
-    // Remover eventos existentes
-    const newBtn = nextButton.cloneNode(true);
-    nextButton.parentNode.replaceChild(newBtn, nextButton);
+      // Flag para prevenir múltiplos cliques
+      let isNavigating = false;
 
-    // Flag para prevenir múltiplos cliques
-    let isNavigating = false;
+      // Adicionar novo evento com proteção
+      newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-    // Adicionar novo evento com proteção
-    newBtn.addEventListener('click', function(e) {
-      // Evitar comportamento padrão para prevenir propagação de evento
-      e.preventDefault();
-      e.stopPropagation();
+        if (isNavigating) return;
+        isNavigating = true;
 
-      // Evitar múltiplos cliques
-      if (isNavigating) return;
-      isNavigating = true;
+        const originalText = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
+        this.classList.add('opacity-75');
 
-      // Feedback visual
-      const originalText = this.innerHTML;
-      this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
-      this.classList.add('opacity-75');
+        try {
+          if (window.formStateManager) {
+            window.formStateManager.captureCurrentFormData();
+          }
 
-      try {
-        // Salvar dados manualmente uma única vez, sem depender dos listeners em state.js
-        if (window.formStateManager) {
-          window.formStateManager.captureCurrentFormData();
-        }
-
-        // Atraso pequeno para garantir que o salvamento termine
-        setTimeout(() => {
-          // Navegar para a próxima página
-          navigateTo('professional');
-
-          // Restaurar estado do botão após navegação
           setTimeout(() => {
-            if (document.body.contains(this)) {
-              this.innerHTML = originalText;
-              this.classList.remove('opacity-75');
-            }
-            isNavigating = false;
-          }, 500);
-        }, 100);
-      } catch (error) {
-        console.error('Erro ao navegar para a próxima página:', error);
-        this.innerHTML = originalText;
-        this.classList.remove('opacity-75');
-        isNavigating = false;      }
-    });
+            navigateTo('professional');
+            setTimeout(() => {
+              if (document.body.contains(this)) {
+                this.innerHTML = originalText;
+                this.classList.remove('opacity-75');
+              }
+              isNavigating = false;
+            }, 500);
+          }, 100);
+        } catch (error) {
+          console.error('Erro ao navegar para a próxima página:', error);
+          this.innerHTML = originalText;
+          this.classList.remove('opacity-75');
+          isNavigating = false;
+        }
+      });
+    }
   }
-
-  // Configurar modal de "Outro Tipo de Documento"
-  setupDocumentoTipoSelects();
 }
 
 // Função para adicionar um novo campo de doença

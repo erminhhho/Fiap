@@ -8,10 +8,50 @@ window.initModule = null;
 // Definir nova função de inicialização do módulo
 window.initModule = function() {
   console.log('[social.js] initModule: Iniciando módulo social.');
+
+  // Forçar reinicialização quando acessado diretamente pela URL
+  if (window.location.hash === '#social') {
+    window._socialInitialized = false;
+  }
+
+  // Verificar se o módulo já foi inicializado nesta sessão
+  if (window._socialInitialized) {
+    console.log('[social.js] Módulo social já inicializado.');
+    return;
+  }
+
+  // Marcar como inicializado
+  window._socialInitialized = true;
+
+  // Inicializar o conteúdo da página de forma estruturada
+  initializePageContent();
+
+  // Limpar flag quando a página mudar
+  document.addEventListener('stepChanged', function handleStepChange() {
+    window._socialInitialized = false;
+    document.removeEventListener('stepChanged', handleStepChange);
+  }, { once: true });
+
+  console.log('[social.js] Módulo social: eventos configurados e inicialização do assistido/restauração solicitada.');
+};
+
+// Função unificada para inicializar o conteúdo da página
+function initializePageContent() {
+  // Configurar eventos
+  setupEvents();
+
+  // Garantir que addFamilyMember esteja disponível globalmente
+  if (typeof window.addFamilyMember === 'undefined' && typeof addFamilyMember === 'function') {
+    window.addFamilyMember = addFamilyMember;
+    console.log("[social.js] initModule: window.addFamilyMember definido.");
+  }
+
+  // Verificar se o formStateManager existe
   if (window.formStateManager && window.formStateManager.formData) {
     console.log('[social.js] initModule: formStateManager.formData existe.');
     if (window.formStateManager.formData.personal) {
-      console.log('[social.js] initModule: formStateManager.formData.personal encontrado:', JSON.parse(JSON.stringify(window.formStateManager.formData.personal)));
+      console.log('[social.js] initModule: formStateManager.formData.personal encontrado:',
+                  JSON.parse(JSON.stringify(window.formStateManager.formData.personal)));
     } else {
       console.warn('[social.js] initModule: formStateManager.formData.personal NÃO encontrado.');
     }
@@ -19,53 +59,41 @@ window.initModule = function() {
     console.warn('[social.js] initModule: formStateManager ou formStateManager.formData NÃO encontrado.');
   }
 
-  setupEvents();
-  // Garantir que addFamilyMember esteja disponível globalmente ANTES da restauração
-  if (typeof window.addFamilyMember === 'undefined' && typeof addFamilyMember === 'function') {
-    window.addFamilyMember = addFamilyMember;
-    console.log("[social.js] initModule: window.addFamilyMember definido.");
+  // Inicializar o assistido
+  const container = document.getElementById('membros-familia-list');
+  if (container) {
+    console.log("Container 'membros-familia-list' encontrado, inicializando assistido...");
+    inicializarAssistido(); // Isso preenche a linha do assistido e os campos de nome/cpf/idade
+  } else {
+    console.error("ERRO: Container 'membros-familia-list' não encontrado. A lista de família não será populada corretamente.");
+    return; // Se não conseguir inicializar o assistido, não continue
   }
 
-  // Função unificada para inicializar o assistido e restaurar dados
-  // Isso evita múltiplos setTimeout causando o efeito de "piscar"
-  const initializePageContent = () => {
-    // Primeiro inicializar o assistido
-    const container = document.getElementById('membros-familia-list');
-    if (container) {
-      console.log("Container 'membros-familia-list' encontrado, inicializando assistido...");
-      inicializarAssistido(); // Isso preenche a linha do assistido e os campos de nome/cpf/idade
-    } else {
-      console.error("ERRO: Container 'membros-familia-list' não encontrado. A lista de família não será populada corretamente.");
-      return; // Se não conseguir inicializar o assistido, não continue
-    }
+  // Restaurar dados para esta etapa
+  if (window.formStateManager) {
+    const currentStepKey = 'social';
+    console.log(`[social.js] initModule: Solicitando restauração para a etapa: ${currentStepKey} após inicialização do assistido.`);
+    window.formStateManager.ensureFormAndRestore(currentStepKey);
 
-    // Em seguida, restaurar os dados (sem esperar)
-    if (window.formStateManager) {
-      const currentStepKey = 'social';
-      console.log(`[social.js] initModule: Solicitando restauração para a etapa: ${currentStepKey} após inicialização do assistido.`);
-      window.formStateManager.ensureFormAndRestore(currentStepKey);
+    // Aplicar formatação imediatamente após a restauração
+    document.querySelectorAll('input[name="familiar_nome[]"]').forEach(input => {
+      if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
+    });
+    document.querySelectorAll('input[name="familiar_cpf[]"]').forEach(input => {
+      if (typeof maskCPF === 'function') maskCPF(input);
+    });
+    document.querySelectorAll('input[name="familiar_idade[]"]').forEach(input => {
+      if (typeof formatAgeWithSuffix === 'function') formatAgeWithSuffix(input);
+    });
+  } else {
+    console.error("[social.js] initModule: formStateManager não encontrado. A restauração de dados não ocorrerá.");
+  }
 
-      // Aplicar formatação imediatamente após a restauração
-      document.querySelectorAll('input[name="familiar_nome[]"]').forEach(input => {
-        if (typeof formatarNomeProprio === 'function') formatarNomeProprio(input);
-      });
-      document.querySelectorAll('input[name="familiar_cpf[]"]').forEach(input => {
-        if (typeof maskCPF === 'function') maskCPF(input);
-      });
-      document.querySelectorAll('input[name="familiar_idade[]"]').forEach(input => {
-        if (typeof formatAgeWithSuffix === 'function') formatAgeWithSuffix(input);
-      });
-    } else {
-      console.error("[social.js] initModule: formStateManager não encontrado. A restauração de dados não ocorrerá.");
-    }
-  };
-
-  // Aguardar que o DOM esteja pronto e inicializar tudo de uma vez
-  // Um pequeno atraso único em vez de múltiplos setTimeout
-  setTimeout(initializePageContent, 50);
-
-  console.log('[social.js] Módulo social: eventos configurados e inicialização do assistido/restauração solicitada.');
-};
+  // Configurar botões de navegação usando o sistema padronizado
+  if (window.Navigation) {
+    window.Navigation.setupNavigationButtons();
+  }
+}
 
 // Função para resetar a UI da seção de perfil social (membros da família)
 function resetSocialUI() {
