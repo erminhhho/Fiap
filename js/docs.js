@@ -710,6 +710,12 @@ async function gerarRelatorioPDF() {
       return String(value);
     };
 
+    // Adicionar função de capitalização diretamente no escopo
+    const capitalizeFirst = (text) => {
+      if (typeof text !== 'string' || !text) return text;
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    };
+
     const createFieldItem = (label, value, options = {}) => {
       const className = options.fullWidth ? 'field-item full-width' : 'field-item';
       // Para perguntas booleanas ou de seleção direta, mostrar 'Não informado' puro se vazio
@@ -760,17 +766,32 @@ async function gerarRelatorioPDF() {
         const relacaoPrincipal = sectionData.autor_relationship?.[0] || 'Requerente';
         htmlContent += `<div class="item-block compact-card">`;
         htmlContent += `<div class="subsection-title" style="margin-bottom:1.5mm; padding-bottom:0.8mm;">${formatValue(relacaoPrincipal)}</div>`;
-        htmlContent += `<div class="field-group compact-layout" style="grid-template-columns: repeat(5, 1fr); gap: 1mm 2mm;">`;
+        htmlContent += `<div class="field-group compact-layout" style="grid-template-columns: 3fr 1fr 1fr; gap: 1mm 2mm;">`;
         let nomePrincipal = formatValue(sectionData.autor_nome?.[0]);
         if (relacaoPrincipal && String(relacaoPrincipal).trim() !== '' && relacaoPrincipal !== 'Requerente') {
           nomePrincipal += ` <span class="relationship-select" data-value="${relacaoPrincipal}">${formatValue(relacaoPrincipal)}</span>`;
         }
         htmlContent += createFieldItem('Nome Completo', nomePrincipal, { isHtml: true });
         htmlContent += createFieldItem('CPF', sectionData.autor_cpf?.[0]);
-        htmlContent += createFieldItem('Data de Nascimento', sectionData.autor_nascimento?.[0]);
+        htmlContent += createFieldItem('Data de Nasc.', sectionData.autor_nascimento?.[0]);
+        htmlContent += `</div>`;
+        
+        // Segunda linha com mais campos
+        htmlContent += `<div class="field-group compact-layout" style="grid-template-columns: repeat(5, 1fr); gap: 1mm 2mm;">`;
         htmlContent += createFieldItem('Idade', sectionData.autor_idade?.[0]);
         htmlContent += createFieldItem('Apelido', sectionData.autor_apelido?.[0]);
-        htmlContent += createFieldItem('Telefone Principal', sectionData.autor_telefone?.[0]);
+
+        // Telefone com WhatsApp
+        const telefone = sectionData.autor_telefone?.[0];
+        const telefoneWhatsapp = sectionData.autor_telefone_whatsapp && sectionData.autor_telefone_whatsapp[0] === true;
+        
+        let telefoneDisplay = telefone;
+        if (telefoneWhatsapp && telefone) {
+          telefoneDisplay = telefone + ' <span class="data-tag" style="font-size:7.5pt; padding:0.1em 0.4em; margin-left:3px; background-color:#25D366; color:#fff; font-weight:500;">WhatsApp</span>';
+        }
+        
+        htmlContent += `<div class="field-item"><strong>Telefone:</strong> <span>${telefoneDisplay || '<span class="empty-value">Não informado</span>'}</span></div>`;
+        
         htmlContent += createFieldItem('Senha MeuINSS', sectionData.autor_senha_meuinss?.[0]);
         htmlContent += createFieldItem('Colaborador', sectionData.colaborador);
         if (sectionData.segurado_especial !== undefined) {
@@ -806,23 +827,32 @@ async function gerarRelatorioPDF() {
         let addressContent = '';
         let obsContent = '';
 
-        // Endereço: layout compacto
+        // Endereço: layout compacto otimizado (1-2 linhas)
         if (sectionData.cep || sectionData.endereco || sectionData.numero ||
             (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') ||
             sectionData.bairro || sectionData.cidade) {
+          
           addressContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.8mm;">`;
           addressContent += `<div class="subsection-title" style="margin:0 0 1mm 0; padding-bottom:0.6mm; font-size:9pt;">Endereço</div>`;
-          addressContent += `<div class="field-group compact-layout" style="grid-template-columns:repeat(3, 1fr); gap:0.8mm 1.5mm; margin-bottom:0;">`;
-          addressContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">CEP:</strong> ${formatValue(sectionData.cep)}</div>`;
-          addressContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Cidade:</strong> ${formatValue(sectionData.cidade)}</div>`;
-          addressContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Bairro:</strong> ${formatValue(sectionData.bairro)}</div>`;
-          addressContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Nº:</strong> ${formatValue(sectionData.numero)}</div>`;
-          addressContent += `<div style="grid-column:1/-1; font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Endereço:</strong> ${formatValue(sectionData.endereco)}`;
-          if (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') {
-            addressContent += `, ${formatValue(sectionData.complemento)}`;
-          }
+          
+          // Primeira linha: cidade, bairro, CEP
+          addressContent += `<div class="field-group compact-layout" style="grid-template-columns:2fr 2fr 1fr; gap:0.8mm 1.5mm; margin-bottom:0.8mm;">`;
+          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">Cidade:</strong> ${formatValue(sectionData.cidade)}</div>`;
+          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">Bairro:</strong> ${formatValue(sectionData.bairro)}</div>`;
+          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">CEP:</strong> ${formatValue(sectionData.cep)}</div>`;
           addressContent += `</div>`;
-          addressContent += `</div></div>`;
+          
+          // Segunda linha: endereço, número, complemento
+          addressContent += `<div class="field-group compact-layout" style="grid-template-columns:4fr 1fr; gap:0.8mm 1.5mm; margin-bottom:0;">`;
+          let enderecoCompleto = formatValue(sectionData.endereco);
+          if (sectionData.complemento && sectionData.complemento.trim() !== '' && sectionData.complemento.trim().toLowerCase() !== 'não informado') {
+            enderecoCompleto += `, ${formatValue(sectionData.complemento)}`;
+          }
+          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">Endereço:</strong> ${enderecoCompleto}</div>`;
+          addressContent += `<div style="font-size:8pt;"><strong style="color:#1e3a8a; font-size:7.8pt;">Nº:</strong> ${formatValue(sectionData.numero)}</div>`;
+          addressContent += `</div>`;
+          
+          addressContent += `</div>`;
         }
 
         // Observações: layout compacto
@@ -951,11 +981,22 @@ async function gerarRelatorioPDF() {
               const doenca = sectionData.doencas?.[index] || '';
               const cid = sectionData.cids?.[index] || '';
               const dataDoc = sectionData.dataDocumentos?.[index] || '';
-
+              
+              // Verificar isenção de carência
+              const isencaoCarencia = sectionData.isencaoCarencia?.[index] === true;
+              
               if (tipoDoc.trim() !== '' || doenca.trim() !== '' || cid.trim() !== '' || dataDoc.trim() !== '') {
                 htmlContent += '<tr>';
-                htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(tipoDoc)}</td>`;
-                htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(doenca)}</td>`;
+                // Capitalizar primeira letra do tipo de documento
+                htmlContent += `<td style="padding:0.8mm 1mm;">${capitalizeFirst(formatValue(tipoDoc))}</td>`;
+                
+                // Adicionar tag de isenção de carência
+                let doencaCell = formatValue(doenca);
+                if (isencaoCarencia) {
+                  doencaCell = doenca + ' <span class="data-tag" style="font-size:7.5pt; padding:0.1em 0.4em; margin-left:3px; background-color:#ff6b6b; color:#fff; font-weight:500;">Isenção de Carência</span>';
+                }
+                
+                htmlContent += `<td style="padding:0.8mm 1mm;">${doencaCell}</td>`;
                 htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(cid)}</td>`;
                 htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(dataDoc)}</td>`;
                 htmlContent += '</tr>';
@@ -1003,7 +1044,7 @@ async function gerarRelatorioPDF() {
             if (statusValProf === null || statusValProf === undefined || String(statusValProf).trim() === '') {
               cellContentProf = formatValue(statusValProf);
             } else {
-              cellContentProf = `<span class="data-tag" style="padding:0.1em 0.4em; font-size:0.75em;">${formatValue(statusValProf)}</span>`;
+              cellContentProf = `<span class="data-tag" style="font-size:8.5pt; font-weight:500; display:inline-block; padding:0.2em 0.5em; background-color:#60a5fa; color:#ffffff; border-radius:3px;">${formatValue(statusValProf)}</span>`;
             }
 
             htmlContent += `<td style="padding:0.8mm 1mm;">${cellContentProf}</td>`;
@@ -1047,13 +1088,14 @@ async function gerarRelatorioPDF() {
             htmlContent += '<tr>';
             htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(doc.nome)}</td>`;
 
+            // Padronização do estilo das tags de status
             const statusValDoc = doc.status;
             let cellContentDoc;
             if (statusValDoc === null || statusValDoc === undefined || String(statusValDoc).trim() === '') {
               cellContentDoc = formatValue(statusValDoc);
             } else {
-              // Aumentado o tamanho da fonte do status
-              cellContentDoc = `<span class="relationship-select" data-value="${statusValDoc}" style="font-size:8.5pt; font-weight:500;">${formatValue(statusValDoc)}</span>`;
+              // Estilo consistente com outras tags do relatório
+              cellContentDoc = `<span class="data-tag" style="font-size:8.5pt; font-weight:500; display:inline-block; padding:0.2em 0.5em; background-color:#60a5fa; color:#ffffff; border-radius:3px;">${formatValue(statusValDoc)}</span>`;
             }
 
             htmlContent += `<td style="padding:0.8mm 1mm; text-align:center;">${cellContentDoc}</td>`;
