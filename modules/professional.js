@@ -132,12 +132,23 @@ window.initModule = function() {
           inicioInput.setCustomValidity('');
         }
       }
-      inicioInput.addEventListener('input', validatePeriodo);
-      fimInput.addEventListener('input', validatePeriodo);
+      inicioInput.addEventListener('input', validatePeriodo);      fimInput.addEventListener('input', validatePeriodo);
     }
   }
 
-  console.log('[professional.js] Módulo totalmente inicializado e restauração solicitada.');
+  // Configurar listeners para campos tipo-atividade (modais)
+  document.querySelectorAll('.tipo-atividade').forEach(select => {
+    select.addEventListener('change', function() {
+      if (this.value === 'outro') {
+        window.currentAtividadeSelectGlobal = this;
+        if (typeof window.showOutroAtividadeModal === 'function') {
+          window.showOutroAtividadeModal();
+        }
+      }
+    });
+  });
+
+  console.log('[professional.js] Módulo totalmente inicializado (incluindo modais) e restauração solicitada.');
 };
 
 // Função para resetar a UI da seção de atividades profissionais
@@ -352,7 +363,7 @@ function addAtividade() {
   // Aplicar máscara de nome próprio ao campo de profissão
   const profissaoInput = atividadeDiv.querySelector('#profissao');
   if (profissaoInput) {
-    profissaoInput.onblur = function() { formatarNomeProprio(this); };
+    profissaoInput.oninput = function() { formatarNomeProprio(this); };
   }
 
   // Adicionar ao DOM - coloque sempre no final da lista
@@ -594,9 +605,10 @@ function showOutroAtividadeModal() {
   setTimeout(() => {
     const input = document.getElementById('outroAtividadeInputGeneric');
     if (input) {
-      // Aplicar formatação de nome próprio em tempo real ao digitar
-      input.addEventListener('input', function() {        if (typeof window.formatarNomeProprio === 'function') {
-          window.formatarNomeProprio(this);
+      // Aplicar formatação de nome próprio com delay para detectar exceções
+      input.addEventListener('input', function() {
+        if (typeof window.formatarNomeProprioModal === 'function') {
+          window.formatarNomeProprioModal(this);
         }
       });
 
@@ -606,6 +618,9 @@ function showOutroAtividadeModal() {
           handleSaveOutroAtividade();
         }
       });
+
+      // Focar no campo
+      input.focus();
     }
   }, 100);
 }
@@ -668,4 +683,27 @@ function handleSaveOutroAtividade() {
 function isDefaultAtividadeOption(value) {
     const defaultOptions = ["segurado_especial", "empregado", "autonomo", "empresario", "pescador", "domestico", "informal", "outro"];
     return defaultOptions.includes(value);
+}
+
+// Função para formatação de nome próprio no modal com delay
+function formatarNomeProprioModal(input) {
+  if (!input) return;
+  
+  // Clear any existing timeout
+  clearTimeout(input.formatTimeout);
+  
+  // Set new timeout
+  input.formatTimeout = setTimeout(() => {
+    if (typeof window.formatarNomeProprio === 'function') {
+      window.formatarNomeProprio(input);
+    }
+  }, 300);
+}
+
+// Exportar para o escopo global
+if (typeof window !== 'undefined') {
+  window.formatarNomeProprioModal = formatarNomeProprioModal;
+  window.showOutroAtividadeModal = showOutroAtividadeModal;
+  window.handleSaveOutroAtividade = handleSaveOutroAtividade;
+  window.handleCancelOutroAtividade = handleCancelOutroAtividade;
 }

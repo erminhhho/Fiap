@@ -214,7 +214,7 @@ function addAuthor() {
           case 'nome':
             field.name = 'autor_nome[]';
             field.value = '';
-            field.setAttribute('onblur', 'formatarNomeProprio(this)');
+            field.setAttribute('oninput', 'formatarNomeProprio(this)');
             console.log(`[personal.js] addAuthor: Campo ${newId} nomeado para autor_nome[]`);
             break;
           case 'cpf':

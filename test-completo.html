@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Completo - Modais e Formatação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .test-pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">
+            🧪 Teste Completo - Sistema de Modais e Formatação
+        </h1>
+        
+        <!-- Status dos Módulos -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📊 Status dos Módulos</h2>
+            <div id="module-status" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Será preenchido via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Teste 1: Modal Tipo de Atividade -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🏢 Teste 1: Modal Tipo de Atividade</h2>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Atividade:</label>
+                <select class="tipo-atividade w-full border border-gray-300 rounded-lg p-3">
+                    <option value="">Selecione...</option>
+                    <option value="empregado">Empregado</option>
+                    <option value="autonomo">Autônomo</option>
+                    <option value="empresario">Empresário</option>
+                    <option value="outro">Outro...</option>
+                </select>
+            </div>
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                <p class="text-sm text-blue-700">
+                    <strong>Como testar:</strong>
+                    <br>1. Selecione "Outro..." na lista acima
+                    <br>2. Digite: "PROGRAMADOR DE sistemas" 
+                    <br>3. Deve aparecer formatado como: "Programador de Sistemas"
+                    <br>4. Teste com: "ANALISTA DE dados" → "Analista de Dados"
+                </p>
+            </div>
+        </div>
+
+        <!-- Teste 2: Modal Tipo de Documento -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📄 Teste 2: Modal Tipo de Documento</h2>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Documento:</label>
+                <select class="tipo-documento w-full border border-gray-300 rounded-lg p-3">
+                    <option value="">Selecione...</option>
+                    <option value="exame">Exame</option>
+                    <option value="atestado">Atestado</option>
+                    <option value="laudo">Laudo</option>
+                    <option value="receita">Receita</option>
+                    <option value="outro">Outro...</option>
+                </select>
+            </div>
+            <div class="bg-green-50 border-l-4 border-green-400 p-4">
+                <p class="text-sm text-green-700">
+                    <strong>Como testar:</strong>
+                    <br>1. Selecione "Outro..." na lista acima
+                    <br>2. Digite: "RELATÓRIO DA consulta"
+                    <br>3. Deve aparecer formatado como: "Relatório da Consulta" 
+                    <br>4. Teste com: "COMPROVANTE DO exame" → "Comprovante do Exame"
+                </p>
+            </div>
+        </div>
+
+        <!-- Teste 3: Formatação Direta (sem delay) -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">⚡ Teste 3: Formatação Direta</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo (oninput):</label>
+                    <input type="text" 
+                           class="w-full border border-gray-300 rounded-lg p-3"
+                           placeholder="Digite um nome para testar"
+                           oninput="formatarNomeProprio(this)"
+                           onblur="formatarNomeProprio(this)">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome Familiar (onblur):</label>
+                    <input type="text" 
+                           class="w-full border border-gray-300 rounded-lg p-3"
+                           placeholder="Digite e saia do campo"
+                           onblur="formatarNomeProprio(this)">
+                </div>
+            </div>
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
+                <p class="text-sm text-yellow-700">
+                    <strong>Como testar:</strong>
+                    <br>1. Digite nomes em maiúsculo: "JOÃO DA SILVA" → "João da Silva"
+                    <br>2. Digite nomes mistos: "maria DE santos" → "Maria de Santos"
+                    <br>3. Teste exceções: "PEDRO DOS reis" → "Pedro dos Reis"
+                </p>
+            </div>
+        </div>
+
+        <!-- Teste 4: Casos Especiais -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🎯 Teste 4: Casos Especiais</h2>
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Teste de Exceções:</label>
+                    <input type="text" 
+                           class="w-full border border-gray-300 rounded-lg p-3"
+                           placeholder="Teste palavras como: de, da, do, das, dos, e, em, para"
+                           oninput="formatarNomeProprio(this)">
+                </div>
+            </div>
+            <div class="bg-purple-50 border-l-4 border-purple-400 p-4 mt-4">
+                <p class="text-sm text-purple-700">
+                    <strong>Casos para testar:</strong>
+                    <br>• "ANTONIO DE PADUA DOS SANTOS E SILVA" → "Antonio de Padua dos Santos e Silva"
+                    <br>• "ANA CAROLINA DA COSTA" → "Ana Carolina da Costa"
+                    <br>• "JOSÉ CARLOS DO NASCIMENTO" → "José Carlos do Nascimento"
+                    <br>• "MARIA DAS GRAÇAS" → "Maria das Graças"
+                </p>
+            </div>
+        </div>
+
+        <!-- Resultados dos Testes -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">📋 Log de Testes</h2>
+            <div id="test-log" class="space-y-2 max-h-64 overflow-y-auto">
+                <!-- Logs serão adicionados aqui -->
+            </div>
+            <button onclick="clearLog()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                Limpar Log
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal genérico -->
+    <div id="genericModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="genericModalTitle" class="text-lg font-semibold"></h3>
+                <button onclick="closeGenericModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="genericModalMessage" class="mb-4 text-gray-700"></div>
+            <div id="genericModalContent" class="mb-6"></div>
+            <div id="genericModalButtons" class="flex items-center space-x-3"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/mask.js"></script>
+    <script src="modules/professional.js"></script>
+    <script src="modules/incapacity.js"></script>
+    
+    <script>
+        // Função para adicionar log
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('test-log');
+            const logEntry = document.createElement('div');
+            logEntry.className = `p-3 rounded-md text-sm ${type === 'success' ? 'test-pass' : type === 'error' ? 'test-fail' : 'bg-gray-100 text-gray-700'}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('test-log').innerHTML = '';
+        }
+
+        // Modal genérico
+        window.showGenericModal = function(config) {
+            addLog(`Abrindo modal: ${config.title}`, 'info');
+            
+            const modal = document.getElementById('genericModal');
+            const title = document.getElementById('genericModalTitle');
+            const message = document.getElementById('genericModalMessage');
+            const content = document.getElementById('genericModalContent');
+            const buttons = document.getElementById('genericModalButtons');
+            
+            title.textContent = config.title || '';
+            message.textContent = config.message || '';
+            content.innerHTML = config.content || '';
+            
+            buttons.innerHTML = '';
+            
+            if (config.buttons && config.buttons.length > 0) {
+                config.buttons.forEach(button => {
+                    const btn = document.createElement('button');
+                    btn.textContent = button.text;
+                    btn.className = button.className;
+                    btn.onclick = button.onclick;
+                    buttons.appendChild(btn);
+                });
+            }
+            
+            modal.classList.remove('hidden');
+        };
+        
+        window.closeGenericModal = function() {
+            addLog('Fechando modal', 'info');
+            document.getElementById('genericModal').classList.add('hidden');
+        };
+
+        // Verificar status dos módulos
+        function checkModuleStatus() {
+            const statusContainer = document.getElementById('module-status');
+            const modules = [
+                { name: 'mask.js', check: () => typeof window.formatarNomeProprio === 'function' },
+                { name: 'formatarNomeProprioModal', check: () => typeof window.formatarNomeProprioModal === 'function' },
+                { name: 'showOutroAtividadeModal', check: () => typeof window.showOutroAtividadeModal === 'function' },
+                { name: 'showOutroDocumentoModal', check: () => typeof window.showOutroDocumentoModal === 'function' },
+                { name: 'showGenericModal', check: () => typeof window.showGenericModal === 'function' },
+                { name: 'closeGenericModal', check: () => typeof window.closeGenericModal === 'function' }
+            ];
+
+            modules.forEach(module => {
+                const status = module.check();
+                const statusDiv = document.createElement('div');
+                statusDiv.className = `p-3 rounded-md ${status ? 'test-pass' : 'test-fail'}`;
+                statusDiv.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span>${module.name}</span>
+                        <span>${status ? '✅ OK' : '❌ ERRO'}</span>
+                    </div>
+                `;
+                statusContainer.appendChild(statusDiv);
+                
+                addLog(`Módulo ${module.name}: ${status ? 'Carregado' : 'Não encontrado'}`, status ? 'success' : 'error');
+            });
+        }
+
+        // Configurar listeners quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('Iniciando testes de funcionalidade', 'info');
+            
+            // Verificar status dos módulos
+            checkModuleStatus();
+            
+            // Configurar listeners para os selects
+            const atividadeSelects = document.querySelectorAll('.tipo-atividade');
+            const documentoSelects = document.querySelectorAll('.tipo-documento');
+            
+            addLog(`Encontrados ${atividadeSelects.length} campos tipo-atividade`, 'info');
+            addLog(`Encontrados ${documentoSelects.length} campos tipo-documento`, 'info');
+            
+            // Listener para tipo-atividade
+            atividadeSelects.forEach(select => {
+                select.addEventListener('change', function() {
+                    addLog(`Selecionado tipo de atividade: ${this.value}`, 'info');
+                    if (this.value === 'outro') {
+                        window.currentAtividadeSelectGlobal = this;
+                        if (typeof window.showOutroAtividadeModal === 'function') {
+                            addLog('Chamando showOutroAtividadeModal', 'success');
+                            window.showOutroAtividadeModal();
+                        } else {
+                            addLog('Erro: showOutroAtividadeModal não encontrada', 'error');
+                        }
+                    }
+                });
+            });
+            
+            // Listener para tipo-documento
+            documentoSelects.forEach(select => {
+                select.addEventListener('change', function() {
+                    addLog(`Selecionado tipo de documento: ${this.value}`, 'info');
+                    if (this.value === 'outro') {
+                        window.currentDocumentoSelectGlobal = this;
+                        if (typeof window.showOutroDocumentoModal === 'function') {
+                            addLog('Chamando showOutroDocumentoModal', 'success');
+                            window.showOutroDocumentoModal();
+                        } else {
+                            addLog('Erro: showOutroDocumentoModal não encontrada', 'error');
+                        }
+                    }
+                });
+            });
+            
+            addLog('Configuração de listeners concluída', 'success');
+        });
+
+        // Observer para detectar mudanças nos inputs
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                    const target = mutation.target;
+                    if (target.tagName === 'INPUT') {
+                        addLog(`Input alterado: "${target.value}"`, 'info');
+                    }
+                }
+            });
+        });
+
+        // Observar mudanças nos inputs de texto
+        document.addEventListener('input', function(e) {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
+                addLog(`Digitando: "${e.target.value}"`, 'info');
+            }
+        });
+    </script>
+</body>
+</html>

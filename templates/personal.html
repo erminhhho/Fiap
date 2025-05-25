@@ -27,8 +27,9 @@
                     <option value="Requerente Rep." class="relationship-option requerente-rep">Requerente Rep.</option>
                     <option value="Litsconsorte" class="relationship-option litsconsorte">Litsconsorte</option>
                   </select>
-                </div>
-                <input type="text" id="nome" name="autor_nome[]" onblur="formatarNomeProprio(this)"
+                </div>                <input type="text" id="nome" name="autor_nome[]" 
+                  oninput="formatarNomeProprio(this)" 
+                  onblur="formatarNomeProprio(this)"
                   class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                   placeholder="Digite o nome completo" />
                 <label for="nome" class="input-label">
@@ -82,8 +83,9 @@
           <div class="mt-4">
             <div class="grid grid-cols-1 md:grid-cols-24 gap-4 w-full">
               <!-- Apelido -->
-              <div class="relative md:col-span-8">
-                <input type="text" id="apelido" name="autor_apelido[]" onblur="formatarNomeProprio(this)"
+              <div class="relative md:col-span-8">                <input type="text" id="apelido" name="autor_apelido[]" 
+                  oninput="formatarNomeProprio(this)" 
+                  onblur="formatarNomeProprio(this)"
                   class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                   placeholder="Apelido (opcional)" />
                 <label for="apelido" class="input-label">
@@ -107,7 +109,7 @@
               <div class="grid grid-cols-24 gap-4 md:col-span-11">
                 <!-- Senha MeuINSS -->
                 <div class="relative col-span-12">
-                  <input type="text" id="telefone_detalhes" name="autor_senha_meuinss[]" onblur="formatarNomeProprio(this)"
+                  <input type="text" id="telefone_detalhes" name="autor_senha_meuinss[]" oninput="formatarNomeProprio(this)"
                     class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                     placeholder="Senha de acesso ao MeuINSS" />
                   <label for="telefone_detalhes" class="input-label">
@@ -117,8 +119,9 @@
 
                 <!-- Campo Colaborador com pesquisa -->
                 <div class="relative col-span-12">
-                  <div class="relative">
-                    <input type="text" id="colaborador" name="colaborador" onblur="formatarNomeProprio(this)"
+                  <div class="relative">                    <input type="text" id="colaborador" name="colaborador" 
+                      oninput="formatarNomeProprio(this)" 
+                      onblur="formatarNomeProprio(this)"
                       class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
                       placeholder="Pesquisar colaborador" />
                     <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -168,18 +171,18 @@
           </label>
         </div>
         <!-- Bairro -->
-        <div class="relative md:col-span-8">
-          <input type="text" id="bairro" name="bairro" onblur="formatarNomeProprio(this)"
+        <div class="relative md:col-span-8">          <input type="text" id="bairro" name="bairro" 
+            oninput="formatarNomeProprio(this)" 
+            onblur="formatarNomeProprio(this)"
             class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
             placeholder="Bairro" />
           <label for="bairro" class="input-label">
             Bairro
           </label>
-        </div>
-        <!-- Cidade -->
-        <div class="relative md:col-span-8">
-          <input type="text" id="cidade" name="cidade" onblur="formatarNomeProprio(this)"
-            oninput="buscarCidades(this)"
+        </div>        <!-- Cidade -->
+        <div class="relative md:col-span-8">          <input type="text" id="cidade" name="cidade" 
+            oninput="formatarNomeProprio(this); buscarCidades(this)" 
+            onblur="formatarNomeProprio(this)"
             autocomplete="off"
             class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
             placeholder="Cidade" />
@@ -201,8 +204,9 @@
       <!-- Logradouro e Número -->
       <div class="flex flex-col md:flex-row gap-4 mb-6 w-full">
         <!-- Logradouro -->
-        <div class="relative w-full md:w-[83.33%]">
-          <input type="text" id="endereco" name="endereco" onblur="formatarNomeProprio(this)"
+        <div class="relative w-full md:w-[83.33%]">          <input type="text" id="endereco" name="endereco" 
+            oninput="formatarNomeProprio(this)" 
+            onblur="formatarNomeProprio(this)"
             class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
             placeholder="Rua, avenida, etc." />
           <label for="endereco" class="input-label">

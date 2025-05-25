@@ -347,11 +347,23 @@ window.initModule = function() {
           }
         });
       }, 350);
-    }, 700);
-  } else {
+    }, 700);  } else {
     console.error("[incapacity.js] initModule: formStateManager não encontrado. A restauração não ocorrerá.");
   }
-  console.log('[incapacity.js] Módulo de incapacidade totalmente inicializado e restauração solicitada.');
+
+  // Configurar listeners para campos tipo-documento (modais)
+  document.querySelectorAll('.tipo-documento').forEach(select => {
+    select.addEventListener('change', function() {
+      if (this.value === 'outro') {
+        window.currentDocumentoSelectGlobal = this;
+        if (typeof window.showOutroDocumentoModal === 'function') {
+          window.showOutroDocumentoModal();
+        }
+      }
+    });
+  });
+
+  console.log('[incapacity.js] Módulo de incapacidade totalmente inicializado (incluindo modais) e restauração solicitada.');
 };
 
 // Função para resetar a UI da seção de incapacidade (doenças/CIDs)
@@ -1264,7 +1276,7 @@ function addDoencaField() {
   // Após adicionar o campo de profissão (input#profissao) ou ao criar dinamicamente:
   const profissaoInput = document.getElementById('profissao') || newDoencaField.querySelector('#profissao');
   if (profissaoInput) {
-    profissaoInput.onblur = function() { formatarNomeProprio(this); };
+    profissaoInput.oninput = function() { formatarNomeProprio(this); };
   }
 }
 
@@ -1325,14 +1337,15 @@ function showOutroDocumentoModal() {
         }
       }
     ]
-  });  // Configurar eventos adicionais
+  });  
+  
+  // Configurar eventos adicionais
   setTimeout(() => {
     const input = document.getElementById('outroDocumentoInputGeneric');
     if (input) {
-      // Aplicar formatação de nome próprio em tempo real ao digitar
-      input.addEventListener('input', function() {        if (typeof window.formatarNomeProprio === 'function') {
-          window.formatarNomeProprio(this);
-        }
+      // Aplicar formatação de nome próprio com delay no modal
+      input.addEventListener('input', function() {
+        formatarNomeProprioModal(this);
       });
 
       // Salvar ao pressionar Enter
@@ -1343,6 +1356,21 @@ function showOutroDocumentoModal() {
       });
     }
   }, 100);
+}
+
+// Função para formatação de nome próprio no modal com delay
+function formatarNomeProprioModal(input) {
+  if (!input) return;
+  
+  // Clear any existing timeout
+  clearTimeout(input.formatTimeout);
+  
+  // Set new timeout
+  input.formatTimeout = setTimeout(() => {
+    if (typeof window.formatarNomeProprio === 'function') {
+      window.formatarNomeProprio(input);
+    }
+  }, 300);
 }
 
 // Função para lidar com o cancelamento
@@ -1403,4 +1431,11 @@ function handleSaveOutroDocumento() {
 function isDefaultDocumentoOption(value) {
     const defaultOptions = ["exame", "atestado", "laudo", "pericia", "receita", "outro"];
     return defaultOptions.includes(value);
+}
+
+// Exportar funções para o escopo global
+if (typeof window !== 'undefined') {
+  window.showOutroDocumentoModal = showOutroDocumentoModal;
+  window.handleSaveOutroDocumento = handleSaveOutroDocumento;
+  window.handleCancelOutroDocumento = handleCancelOutroDocumento;
 }

@@ -310,98 +310,80 @@ const Mask = {
     value = value.toUpperCase();
 
     input.value = value;
-  },
-  /**
-   * Formata nomes próprios em tempo real (primeira letra maiúscula)
+  },  /**
+   * Formata nomes próprios em tempo real com lógica inteligente
    * @param {HTMLInputElement} input - Campo de entrada do nome
    */
   properName: function(input) {
+    if (!input || typeof input.value === 'undefined') return;
+
+    // Se o valor estiver vazio, não fazer nada
+    if (!input.value.trim()) return;
+
     // Salvar posição do cursor
     const cursorPos = input.selectionStart;
-    const cursorEnd = input.selectionEnd;
+    const valorOriginal = input.value;
 
-    // Lista de palavras que devem permanecer em minúsculo
-    const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'por', 'com'];
+    // Lista de palavras que devem permanecer em minúsculo (nunca são capitalizadas)
+    const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'por', 'com', 'del', 'la', 'le'];
 
-    // Obter o texto e dividir em palavras
-    let texto = input.value.toLowerCase();
-    if (!texto) return;
+    try {
+      // Dividir o texto em palavras
+      const palavras = valorOriginal.split(' ');
+      let textoModificado = false;
 
-    // Dividir o texto em palavras, preservando espaços
-    let palavras = texto.split(' ');
+      // Processar cada palavra
+      for (let i = 0; i < palavras.length; i++) {
+        const palavra = palavras[i];
+        
+        // Pular palavras vazias ou apenas espaços
+        if (!palavra || !palavra.trim()) continue;
 
-    // Processar cada palavra
-    for (let i = 0; i < palavras.length; i++) {
-      const palavra = palavras[i];
+        const palavraLower = palavra.toLowerCase();
+        const palavraOriginal = palavras[i];
 
-      // Pular palavras vazias
-      if (!palavra) continue;
+        // Determinar como a palavra deve estar formatada
+        let palavraFormatada;
+        
+        if (i === 0) {
+          // Primeira palavra: sempre com inicial maiúscula
+          palavraFormatada = palavraLower.charAt(0).toUpperCase() + palavraLower.slice(1);
+        } else if (excecoes.includes(palavraLower)) {
+          // Palavra de exceção: toda minúscula
+          palavraFormatada = palavraLower;
+        } else {
+          // Palavra normal: inicial maiúscula
+          palavraFormatada = palavraLower.charAt(0).toUpperCase() + palavraLower.slice(1);
+        }
 
-      // Sempre colocar a primeira palavra com inicial maiúscula
-      // ou se não for uma exceção
-      if (i === 0 || !excecoes.includes(palavra)) {
-        palavras[i] = palavra.charAt(0).toUpperCase() + palavra.slice(1);
+        // Verificar se a palavra precisa ser alterada
+        if (palavraOriginal !== palavraFormatada) {
+          palavras[i] = palavraFormatada;
+          textoModificado = true;
+        }
       }
-    }
 
-    // Juntar as palavras novamente
-    const novoTexto = palavras.join(' ');
+      // Só atualizar se algo foi realmente modificado
+      if (textoModificado) {
+        const novoTexto = palavras.join(' ');
+        input.value = novoTexto;
 
-    // Só atualizar se realmente mudou para evitar loop infinito
-    if (input.value !== novoTexto) {
-      input.value = novoTexto;
-
-      // Restaurar posição do cursor
-      if (cursorPos !== null) {
-        input.setSelectionRange(cursorPos, cursorEnd);
+        // Restaurar posição do cursor
+        if (typeof cursorPos === 'number') {
+          const novaPosicao = Math.min(cursorPos, novoTexto.length);
+          
+          // Usar requestAnimationFrame para garantir que o DOM seja atualizado
+          requestAnimationFrame(() => {
+            try {
+              input.setSelectionRange(novaPosicao, novaPosicao);
+            } catch (e) {
+              // Ignorar erros de posicionamento de cursor
+            }
+          });
+        }
       }
-    }
-  },
-
-  /**
-   * Formata nome próprio em tempo real (durante a digitação)
-   * @param {HTMLInputElement} input - Campo de entrada
-   */
-  properNameRealTime: function(input) {
-    // Salvar posição do cursor
-    const cursorPos = input.selectionStart;
-    const cursorEnd = input.selectionEnd;
-
-    // Lista de palavras que devem permanecer em minúsculo
-    const excecoes = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'por', 'com'];
-
-    // Obter o texto e dividir em palavras
-    let texto = input.value.toLowerCase();
-    if (!texto) return;
-
-    // Dividir o texto em palavras, preservando espaços
-    let palavras = texto.split(' ');
-
-    // Processar cada palavra
-    for (let i = 0; i < palavras.length; i++) {
-      const palavra = palavras[i];
-
-      // Pular palavras vazias
-      if (!palavra) continue;
-
-      // Sempre colocar a primeira palavra com inicial maiúscula
-      // ou se não for uma exceção
-      if (i === 0 || !excecoes.includes(palavra)) {
-        palavras[i] = palavra.charAt(0).toUpperCase() + palavra.slice(1);
-      }
-    }
-
-    // Juntar as palavras novamente
-    const novoTexto = palavras.join(' ');
-
-    // Só atualizar se realmente mudou para evitar loop infinito
-    if (input.value !== novoTexto) {
-      input.value = novoTexto;
-
-      // Restaurar posição do cursor
-      if (cursorPos !== null) {
-        input.setSelectionRange(cursorPos, cursorEnd);
-      }
+    } catch (error) {
+      console.warn('Erro na formatação de nome próprio:', error);
     }
   },
 
@@ -487,11 +469,10 @@ const Mask = {
         element.oninput = () => Mask.phone(element);      } else if (onInputAttr.includes('maskUF')) {
         element.oninput = () => Mask.uf(element);
       } else if (onInputAttr.includes('maskMoney') || onInputAttr.includes('FIAP.masks.money')) {
-        element.oninput = () => Mask.money(element);
-      } else if (onInputAttr.includes('maskOnlyNumbers')) {
+        element.oninput = () => Mask.money(element);      } else if (onInputAttr.includes('maskOnlyNumbers')) {
         element.oninput = () => Mask.onlyNumbers(element);
       } else if (onInputAttr.includes('formatarNomeProprio')) {
-        element.onblur = () => Mask.properName(element);
+        element.oninput = () => Mask.properName(element);
       } else if (onInputAttr.includes('capitalizeFirstLetterOnly')) {
         element.oninput = () => Mask.capitalizeFirstLetterOnly(element);
       } else if (onInputAttr.includes('maskNumericAge')) {
@@ -511,8 +492,6 @@ window.maskPhone = Mask.phone.bind(Mask);
 window.maskUF = Mask.uf.bind(Mask);
 window.maskOnlyNumbers = Mask.onlyNumbers.bind(Mask);
 window.maskMoney = Mask.money.bind(Mask);
-window.formatarNomeProprio = Mask.properName.bind(Mask);
-window.formatarNomeProprio = Mask.properName.bind(Mask);
 window.capitalizeFirstLetterOnly = Mask.capitalizeFirstLetterOnly.bind(Mask);
 window.maskNumericAge = Mask.numericAge.bind(Mask);
 window.formatAgeWithSuffix = Mask.formatAgeWithSuffix.bind(Mask);
@@ -520,10 +499,85 @@ window.formatAgeWithSuffix = Mask.formatAgeWithSuffix.bind(Mask);
 // Exportar todo o objeto Mask
 window.Mask = Mask;
 
+// Função global para formatação de nomes próprios
+window.formatarNomeProprio = function(input) {
+  if (Mask && typeof Mask.properName === 'function') {
+    return Mask.properName(input);
+  } else {
+    console.warn('Mask.properName não está disponível ainda');
+  }
+};
+
+// Função especial para modais com delay para detectar exceções
+window.formatarNomeProprioModal = function(input) {
+  // Limpar timeout anterior se existir
+  if (input._formatTimeout) {
+    clearTimeout(input._formatTimeout);
+  }
+  
+  // Aguardar um pouco antes de formatar para dar tempo do usuário completar a palavra
+  input._formatTimeout = setTimeout(() => {
+    if (Mask && typeof Mask.properName === 'function') {
+      Mask.properName(input);
+    }
+  }, 300); // 300ms de delay
+};
+
+// Função de inicialização das máscaras
+function initializeMasks() {
+  try {
+    // Aplicar formatação em campos que já existem com valores
+    document.querySelectorAll('input[oninput*="formatarNomeProprio"]').forEach(input => {
+      if (input.value && input.value.trim()) {
+        Mask.properName(input);
+      }
+    });
+
+    console.log('Sistema de máscaras centralizado inicializado');
+  } catch (error) {
+    console.error('Erro na inicialização das máscaras:', error);
+  }
+}
+
 // Inicializar automaticamente quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
-  // Inicializar as máscaras
-  Mask.init();
-
-  console.log('Sistema de máscaras centralizado inicializado');
+  // Aguardar um pequeno delay para garantir que todos os scripts estejam carregados
+  setTimeout(initializeMasks, 50);
 });
+
+// Fallback caso o DOMContentLoaded já tenha passado
+if (document.readyState === 'loading') {
+  // DOM ainda carregando, aguardar evento
+} else {
+  // DOM já carregado, inicializar imediatamente
+  setTimeout(initializeMasks, 10);
+}
+
+// Observar mudanças no DOM para aplicar máscaras em novos elementos
+const maskObserver = new MutationObserver(mutations => {
+  mutations.forEach(mutation => {
+    mutation.addedNodes.forEach(node => {
+      if (node.nodeType === 1) {
+        // Aplicar em novos inputs com formatação de nome
+        const nameInputs = node.querySelectorAll ? node.querySelectorAll('input[oninput*="formatarNomeProprio"]') : [];
+        nameInputs.forEach(input => {
+          if (!input.dataset.maskInitialized) {
+            input.dataset.maskInitialized = 'true';
+            // Não adicionar listener adicional, o oninput inline já chama a função
+          }
+        });
+
+        // Se o próprio node for um input de nome
+        if (node.tagName === 'INPUT' && node.getAttribute('oninput') && node.getAttribute('oninput').includes('formatarNomeProprio')) {
+          if (!node.dataset.maskInitialized) {
+            node.dataset.maskInitialized = 'true';
+            // Não adicionar listener adicional, o oninput inline já chama a função
+          }
+        }
+      }
+    });
+  });
+});
+
+// Iniciar observação
+maskObserver.observe(document.body, { childList: true, subtree: true });
