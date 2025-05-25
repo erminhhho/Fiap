@@ -450,24 +450,6 @@
       const modal = document.getElementById('genericModal');
       modal.classList.add('hidden');
     }
-
-    // Exemplo de uso do modal genérico
-    document.getElementById('btn-exemplo').addEventListener('click', function() {
-      openGenericModal('Título do Modal', 'Esta é uma mensagem de exemplo para o modal genérico.', '<p>Conteúdo adicional pode ser inserido aqui.</p>', [
-        {
-          text: 'Cancelar',
-          type: 'cancel',
-          action: closeGenericModal
-        },
-        {
-          text: 'Confirmar',
-          action: function() {
-            alert('Ação confirmada!');
-            closeGenericModal();
-          }
-        }
-      ]);
-    });
   </script>
 </body>
 </html>
