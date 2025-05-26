@@ -299,19 +299,13 @@ async function loadModuleWithTemplate(route) {
       // Garantir que o fade-in seja aplicado mesmo sem initModule
       appContent.classList.remove('fade-out');
       appContent.classList.add('fade-in');
-    }
-
-    // Inicializar o sistema CID se estiver na página de incapacidades
+    }    // Inicializar o sistema CID se estiver na página de incapacidades
     if (route.scriptUrl.includes('incapacity.js') && typeof window.initCidSystem === 'function') {
-      // Inicializa imediatamente
-      routerLog('Inicializando sistema CID');
-      window.initCidSystem();
-
-      // E também com um pequeno atraso para garantir que todos os elementos foram carregados
+      // Usar apenas um timeout para garantir que todos os elementos foram carregados
       setTimeout(() => {
-        routerLog('Re-inicializando sistema CID após delay');
+        routerLog('Inicializando sistema CID após elementos carregados');
         window.initCidSystem();
-      }, 500);
+      }, 200);
     }
 
     // Restaurar o estado do formulário para o módulo carregado

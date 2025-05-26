@@ -88,19 +88,6 @@
 /* Garantir que todos os menus dropdown no sistema tenham texto visível */
 select,
 select option,
-.dropdown-menu,
-.dropdown-menu li,
-.dropdown-menu a,
-.dropdown-item {
-  color: #333333 !important;
-}
-
-/* Novo estilo para labels posicionados no canto superior direito */
-.form-field {
-  position: relative;
-  margin-bottom: var(--spacing-lg);
-}
-
 /* Reset para elementos de formulário para garantir consistência em navegadores */
 button, input, select, textarea {
   font-family: inherit;

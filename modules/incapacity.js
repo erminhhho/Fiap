@@ -415,15 +415,16 @@ function initializePageContent() {
 
   // Implementar o novo sistema de pesquisa e autocomplete para CID e doença
   setupImprovedCidSearch();
-
-  // Inicializar sistema CID
-  if (typeof initCidSystem === 'function') {
+  // Inicializar sistema CID (apenas se não foi inicializado)
+  if (typeof initCidSystem === 'function' && !window.cidSystemInitialized) {
     console.log('[incapacity.js] Inicializando sistema CID...');
     try {
       initCidSystem();
     } catch (e) {
       console.warn("[incapacity.js] Erro na inicialização do sistema CID:", e);
     }
+  } else if (window.cidSystemInitialized) {
+    console.log('[incapacity.js] Sistema CID já inicializado, pulando...');
   }
 
   // Ocultar dropdown de profissão antes de restaurar
@@ -455,18 +456,18 @@ function initializePageContent() {
         if (doencaInput && typeof verificarIsencaoCarencia === 'function') {
           verificarIsencaoCarencia(doencaInput);
         }
-      });
-
-      // Re-inicializar sistema CID após restauração com pequeno delay
-      if (typeof initCidSystem === 'function') {
+      });      // Re-inicializar sistema CID apenas se necessário
+      if (typeof initCidSystem === 'function' && !window.cidSystemInitialized) {
         setTimeout(() => {
           try {
             initCidSystem();
-            console.log('[incapacity.js] Sistema CID re-inicializado após restauração.');
+            console.log('[incapacity.js] Sistema CID inicializado após restauração.');
           } catch (e) {
-            console.warn("[incapacity.js] Erro na re-inicialização do sistema CID:", e);
+            console.warn("[incapacity.js] Erro na inicialização do sistema CID:", e);
           }
         }, 200);
+      } else if (window.cidSystemInitialized) {
+        console.log('[incapacity.js] Sistema CID já está inicializado.');
       }
 
       // Garantir que dropdown de profissão permanece oculto
@@ -1532,11 +1533,13 @@ function addDoencaField() {
       verificarIsencaoCarencia(this);
     });
   }
-
-  // Inicializar sistema CID para o novo campo, se disponível
+  // Forçar inicialização do sistema CID para novos campos adicionados dinamicamente
   if (typeof initCidSystem === 'function') {
     try {
+      // Reset o flag para permitir reinicialização com novos campos
+      window.cidSystemInitialized = false;
       initCidSystem();
+      console.log("Sistema CID inicializado para novos campos adicionados");
     } catch (e) {
       console.warn("Erro ao inicializar CID para novos campos:", e);
     }

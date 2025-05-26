@@ -213,12 +213,13 @@ const Navigation = {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // Verificações específicas por módulo
-    switch (step) {
-      case 'incapacity':
-        // Aguardar sistema CID estar disponível
-        if (typeof window.initCidSystem === 'function') {
+    switch (step) {      case 'incapacity':
+        // Aguardar sistema CID estar disponível (apenas se não foi inicializado)
+        if (typeof window.initCidSystem === 'function' && !window.cidSystemInitialized) {
           this.log('Inicializando sistema CID...');
           await window.initCidSystem();
+        } else if (window.cidSystemInitialized) {
+          this.log('Sistema CID já inicializado, pulando...');
         }
         break;
 
