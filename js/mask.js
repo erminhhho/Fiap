@@ -310,6 +310,31 @@ const Mask = {
   },
 
   /**
+   * Formata valor monetário inteiro no formato R$ X.XXX (sem centavos)
+   * @param {HTMLInputElement} input - Campo de entrada do valor monetário
+   */
+  moneyInteger: function(input) {
+    let value = input.value.replace(/\D/g, '');
+
+    if (value === '') {
+      input.value = '';
+      return;
+    }
+
+    // Converter para número inteiro
+    value = parseInt(value, 10);
+
+    if (isNaN(value)) {
+      input.value = '';
+      return;
+    }
+
+    // Formatar com pontos como separadores de milhar
+    value = value.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ".");
+    input.value = 'R$ ' + value;
+  },
+
+  /**
    * Formata UF (sigla de estado) em maiúsculas
    * @param {HTMLInputElement} input - Campo de entrada da UF
    */
@@ -486,6 +511,9 @@ const Mask = {
         element.oninput = () => Mask.uf(element); // Corrigido: adicionado ')'
       } else if (onInputAttr.includes('maskMoney') || onInputAttr.includes('FIAP.masks.money')) {
         element.oninput = () => Mask.money(element);
+      } else if (onInputAttr.includes('maskMoneyInteger') || onInputAttr.includes('FIAP.masks.moneyInteger')) { // Adicionado para a nova máscara
+        element.oninput = () => Mask.moneyInteger(element);
+        element.onblur = () => Mask.moneyInteger(element); // Aplicar no blur também para garantir formatação
       } else if (onInputAttr.includes('maskOnlyNumbers')) {
         element.oninput = () => Mask.onlyNumbers(element);
       } else if (onInputAttr.includes('formatarNomeProprio')) {
@@ -509,6 +537,7 @@ window.maskPhone = Mask.phone.bind(Mask);
 window.maskUF = Mask.uf.bind(Mask);
 window.maskOnlyNumbers = Mask.onlyNumbers.bind(Mask);
 window.maskMoney = Mask.money.bind(Mask);
+window.maskMoneyInteger = Mask.moneyInteger.bind(Mask); // Exportar a nova função
 window.capitalizeFirstLetterOnly = Mask.capitalizeFirstLetterOnly.bind(Mask);
 window.maskNumericAge = Mask.numericAge.bind(Mask);
 window.formatAgeWithSuffix = Mask.formatAgeWithSuffix.bind(Mask);

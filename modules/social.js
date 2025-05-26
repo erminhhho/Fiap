@@ -85,6 +85,14 @@ function initializePageContent() {
     document.querySelectorAll('input[name="familiar_idade[]"]').forEach(input => {
       if (typeof formatAgeWithSuffix === 'function') formatAgeWithSuffix(input);
     });
+    // Reaplicar máscara de renda inteira após restauração
+    document.querySelectorAll('input[name="familiar_renda[]"]').forEach(input => {
+      if (FIAP && FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
+        FIAP.masks.moneyInteger(input);
+      } else if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
+        Mask.moneyInteger(input);
+      }
+    });
   } else {
     console.error("[social.js] initModule: formStateManager não encontrado. A restauração de dados não ocorrerá.");
   }
@@ -147,9 +155,23 @@ function setupEvents() {
   const configMoneyMasks = () => {
     document.querySelectorAll('input[name="familiar_renda[]"]').forEach(input => {
       if (input) {
-        input.addEventListener('input', function() {
-          if (FIAP.masks && typeof FIAP.masks.money === 'function') {
-            FIAP.masks.money(this);
+        // Remover event listener antigo para evitar duplicidade ou conflito
+        const new_input = input.cloneNode(true);
+        input.parentNode.replaceChild(new_input, input);
+        
+        new_input.addEventListener('input', function() {
+          if (FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
+            FIAP.masks.moneyInteger(this);
+          } else if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
+            Mask.moneyInteger(this);
+          }
+        });
+        // Adicionar também no blur para garantir a formatação correta ao sair do campo
+        new_input.addEventListener('blur', function() {
+          if (FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
+            FIAP.masks.moneyInteger(this);
+          } else if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
+            Mask.moneyInteger(this);
           }
         });
       }
