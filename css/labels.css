@@ -33,10 +33,9 @@ select ~ label {
   font-size: var(--label-font-size) !important;
   line-height: 1 !important;
   margin: 0 !important;
-  padding: var(--label-padding) !important;
-  border-radius: var(--label-border-radius) !important;
+  padding: var(--label-padding) !important;  border-radius: var(--label-border-radius) !important;
   background: var(--label-bg-gradient) !important;
-  box-shadow: var(--label-box-shadow) !important;
+  box-shadow: none !important;
   color: var(--color-primary) !important;
   z-index: var(--label-z-index) !important;
   pointer-events: none !important;
@@ -78,10 +77,9 @@ label[for] {
   font-size: 0.82rem !important;
   margin: 0 !important;
   z-index: 10 !important;
-  border-radius: 4px !important;
-  padding: 0.12rem 0.28rem !important;
-  background: linear-gradient(to bottom, #ffffff, #f9fafb) !important;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
+  border-radius: 4px !important;  padding: 0.12rem 0.28rem !important;
+  background: var(--color-bg) !important;
+  box-shadow: none !important;
   color: var(--color-primary) !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
@@ -118,7 +116,7 @@ select:not(:placeholder-shown) ~ .input-label,
 .peer:not(:placeholder-shown) ~ .input-label,
 .peer-focus ~ .input-label,
 .field-filled ~ .input-label {
-  background: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark)) !important;
+  background: var(--color-bg) !important;
   color: var(--color-primary) !important;
 }
 
@@ -126,7 +124,7 @@ select:not(:placeholder-shown) ~ .input-label,
 .peer:not(:placeholder-shown) ~ .input-label {
   color: var(--color-primary) !important;
   opacity: 1 !important;
-  background: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark)) !important;
+  background: var(--color-bg) !important;
 }
 
 /* Garantir que todos os estados mantenham o label exatamente sobre a borda */
@@ -142,9 +140,9 @@ select:not(:placeholder-shown) ~ .input-label,
 .cep-invalid ~ .input-label {
   top: 0 !important;
   transform: translateY(-50%) !important;
-  background: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark)) !important;
+  background: var(--color-bg) !important;
   color: var(--color-primary) !important;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 0 2px rgba(59, 130, 246, 0.05) !important;
+  box-shadow: none !important;
 }
 
 /* Estilo da linha do campo como suporte para o texto */
@@ -212,7 +210,7 @@ textarea[id*="obs_"]:not(:placeholder-shown) ~ label {
 .right-label textarea:focus,
 .right-label select:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  box-shadow: none;
   outline: none;
 }
 
@@ -239,12 +237,11 @@ textarea[id*="obs_"]:not(:placeholder-shown) ~ label {
 textarea[id*="observacao"] ~ label,
 textarea[id*="observacoes"] ~ label,
 textarea[id*="obs_"] ~ label,
-textarea#observacao ~ label[for="observacao"] {
-  font-size: var(--font-size-sm) !important;
+textarea#observacao ~ label[for="observacao"] {  font-size: var(--font-size-sm) !important;
   background-color: var(--color-bg) !important;
   color: var(--color-primary) !important;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
-  background-image: linear-gradient(to bottom, var(--color-bg), var(--color-bg-dark)) !important;
+  box-shadow: none !important;
+  background-image: none !important;
 }
 
 /* SOLUÇÃO DEFINITIVA PARA OS CAMPOS DE OBSERVAÇÃO */
@@ -265,9 +262,33 @@ textarea[id*="obs_"] ~ label {
   font-size: var(--label-font-size) !important;
   pointer-events: none !important;
   z-index: 50 !important;
-  position: absolute !important;
-  left: var(--spacing-base) !important;
+  position: absolute !important;  left: var(--spacing-base) !important;
   top: 0 !important;
   transform: translateY(-50%) !important;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
+  box-shadow: none !important;
+}
+
+/* ESTILO PARA CAMPOS PREENCHIDOS COM FUNDO BRANCO PURO */
+.field-filled,
+input.field-filled,
+select.field-filled,
+textarea.field-filled {
+  background-color: var(--color-bg) !important; /* Branco puro (#FFFFFF) */
+}
+
+/* SOBRESCREVER TAILWIND CSS PARA CAMPOS PREENCHIDOS */
+/* Garantir que campos preenchidos tenham fundo branco puro independente de outras classes */
+.field-filled.bg-gray-50,
+input.field-filled.bg-gray-50,
+select.field-filled.bg-gray-50,
+textarea.field-filled.bg-gray-50,
+.bg-gray-50.field-filled {
+  background-color: var(--color-bg) !important; /* Branco puro (#FFFFFF) */
+}
+
+/* Remover a classe bg-gray-50 automaticamente quando o campo for preenchido */
+input:not(:placeholder-shown),
+select:not(:placeholder-shown),
+textarea:not(:placeholder-shown) {
+  background-color: var(--color-bg) !important; /* Branco puro quando preenchido */
 }
