@@ -5,6 +5,10 @@
  * O arquivo modules/disability.js foi marcado como obsoleto em favor deste.
  */
 
+console.log('[incapacity.js] *** INICIANDO CARREGAMENTO DO MÓDULO ***');
+console.log('[incapacity.js] Timestamp:', new Date().toLocaleTimeString());
+console.log('[incapacity.js] window.setupProfissaoAutocomplete será definido...');
+
 // Lista de CIDs e doenças que dispensam carência
 // Verificar se já existe para evitar redeclaração
 if (typeof window.cidsSemCarencia === 'undefined') {
@@ -114,6 +118,8 @@ window.profissoesComuns = [
   "Vigilante"
 ];
 
+console.log('[incapacity.js] Profissões carregadas:', window.profissoesComuns.length, 'itens');
+
 // Função de busca de profissões (pode ser adaptada para API futuramente)
 window.buscarProfissoes = function(query) {
   return new Promise(resolve => {
@@ -133,49 +139,21 @@ window.renderProfissoesDropdown = function(resultados) {
 window.setupProfissaoAutocomplete = function() {
   const input = document.getElementById('profissao');
   const dropdown = document.getElementById('profissaoDropdown');
-  if (!input || !dropdown || !window.Search) return;
-
-  const searchInstance = new window.Search();
-  searchInstance.setupAutocomplete(
-    input,
-    dropdown,
-    window.buscarProfissoes,
-    window.renderProfissoesDropdown,
-    function(item) {
-      input.value = item.textContent;
-      dropdown.classList.add('hidden');
-      input.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  );
-
-  // Corrige exibição do dropdown (Tailwind)
-  input.addEventListener('input', function() {
-    if (dropdown.innerHTML && dropdown.innerHTML.trim() !== '') {
-      dropdown.classList.remove('hidden');
-    } else {
-      dropdown.classList.add('hidden');
-    }
-  });
-};
-
-// --- AUTOCOMPLETE PROFISSÃO (PADRÃO DOCUMENTOS) ---
-(function setupProfissaoAutocompletePadraoDocumentos() {
-  const input = document.getElementById('profissao');
-  const dropdown = document.getElementById('profissaoDropdown');
   if (!input || !dropdown) return;
+
+  console.log('[incapacity.js] Configurando autocomplete de profissão...');
 
   // Sempre esconder o dropdown de profissão se o campo já estiver preenchido ao restaurar
   dropdown.classList.add('hidden');
-  // Também ao restaurar a página (navegação SPA ou F5)
-  window.addEventListener('pageshow', function() {
-    dropdown.classList.add('hidden');
-  });
 
   let debounceTimer;
 
   // Função para buscar profissões
   function buscarProfissoes(query) {
-    return window.profissoesComuns.filter(p => p.toLowerCase().includes(query.toLowerCase()));
+    console.log('[incapacity.js] Buscando profissões para:', query);
+    const resultados = window.profissoesComuns.filter(p => p.toLowerCase().includes(query.toLowerCase()));
+    console.log('[incapacity.js] Profissões encontradas:', resultados.length);
+    return resultados;
   }
 
   // Função para renderizar resultados
@@ -194,6 +172,7 @@ window.setupProfissaoAutocomplete = function() {
         input.value = prof;
         dropdown.classList.add('hidden');
         input.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('[incapacity.js] Profissão selecionada:', prof);
       });
       dropdown.appendChild(item);
     });
@@ -203,6 +182,7 @@ window.setupProfissaoAutocomplete = function() {
   // Evento de input com debounce
   input.addEventListener('input', function() {
     const query = this.value.trim();
+    console.log('[incapacity.js] Input digitado:', query);
     clearTimeout(debounceTimer);
     if (!query || query.length < 2) {
       dropdown.classList.add('hidden');
@@ -234,25 +214,49 @@ window.setupProfissaoAutocomplete = function() {
       dropdown.classList.add('hidden');
     }
   });
-})();
+  console.log('[incapacity.js] Autocomplete de profissão configurado com sucesso!');
+};
 
-// Garante que o label do campo profissão sempre aparece
-// (o label já está no HTML, mas se for necessário, pode-se forçar aqui)
-document.addEventListener('DOMContentLoaded', function() {
-  // Espera Search.js estar disponível
+console.log('[incapacity.js] window.setupProfissaoAutocomplete definida!');
+
+// Função para inicializar o autocomplete de profissão
+function initializeProfissaoAutocomplete() {
+  console.log('[incapacity.js] Inicializando autocomplete de profissão...');
+
+  let tentativas = 0;
+  const maxTentativas = 50; // 5 segundos (50 * 100ms)
+
+  // Espera o campo estar disponível antes de configurar
   function tryInitProfissaoAutocomplete() {
-    if (window.Search) {
+    tentativas++;
+    const input = document.getElementById('profissao');
+    const dropdown = document.getElementById('profissaoDropdown');
+
+    console.log(`[incapacity.js] Tentativa ${tentativas}/${maxTentativas} - input:`, !!input, 'dropdown:', !!dropdown, 'setupFunction:', !!window.setupProfissaoAutocomplete);
+
+    if (input && dropdown && window.setupProfissaoAutocomplete) {
+      console.log('[incapacity.js] Elementos encontrados, configurando autocomplete...');
       window.setupProfissaoAutocomplete();
-    } else {
+      return true;
+    } else if (tentativas < maxTentativas) {
       setTimeout(tryInitProfissaoAutocomplete, 100);
+      return false;
+    } else {
+      console.error('[incapacity.js] TIMEOUT: Não foi possível inicializar o autocomplete após', maxTentativas, 'tentativas');
+      console.error('[incapacity.js] Estado final - input:', !!input, 'dropdown:', !!dropdown, 'setupFunction:', !!window.setupProfissaoAutocomplete);
+      return false;
     }
   }
   tryInitProfissaoAutocomplete();
-});
+}
 
-document.addEventListener('DOMContentLoaded', function() {
-  window.setupProfissaoAutocomplete();
-});
+// Inicializar tanto no DOMContentLoaded quanto imediatamente (para carregamento dinâmico)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeProfissaoAutocomplete);
+} else {
+  // DOM já está pronto, inicializar imediatamente
+  setTimeout(initializeProfissaoAutocomplete, 100);
+}
 
 // Variável para evitar inicialização múltipla
 if (typeof window.isDropdownHandlersInitialized === 'undefined') {
@@ -279,6 +283,10 @@ window.initModule = function() {
 
   // Marcar como inicializado
   window._incapacityInitialized = true;
+
+  // Inicializar o autocomplete de profissão
+  console.log('[incapacity.js] initModule: Chamando inicialização do autocomplete...');
+  initializeProfissaoAutocomplete();
 
   // Inicializar o conteúdo da página de forma estruturada
   initializePageContent();

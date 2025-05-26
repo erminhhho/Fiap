@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Autocomplete</title>
+    <style>
+        body { padding: 20px; font-family: Arial, sans-serif; }
+        input { width: 300px; padding: 10px; border: 1px solid #ccc; margin: 10px 0; }
+        .dropdown { border: 1px solid #ccc; max-height: 200px; overflow-y: auto; }
+        .dropdown-item { padding: 10px; cursor: pointer; }
+        .dropdown-item:hover { background: #f0f0f0; }
+        .hidden { display: none; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Debug do Autocomplete de Profissões</h1>
+
+    <div>
+        <label>Profissão:</label><br>
+        <input type="text" id="profissao" placeholder="Digite uma profissão...">
+        <div id="profissaoDropdown" class="dropdown hidden"></div>
+    </div>
+
+    <div class="debug" id="debug">Aguardando...</div>
+
+    <button onclick="testFunction()">Testar Função</button>
+    <button onclick="clearDebug()">Limpar Debug</button>
+
+    <script>
+        const debugDiv = document.getElementById('debug');
+
+        function debug(msg) {
+            debugDiv.innerHTML += new Date().toLocaleTimeString() + ': ' + msg + '<br>';
+        }
+
+        function clearDebug() {
+            debugDiv.innerHTML = '';
+        }
+
+        function testFunction() {
+            debug('--- TESTE MANUAL ---');
+            const input = document.getElementById('profissao');
+            const dropdown = document.getElementById('profissaoDropdown');
+
+            debug('Input encontrado: ' + (input ? 'SIM' : 'NÃO'));
+            debug('Dropdown encontrado: ' + (dropdown ? 'SIM' : 'NÃO'));
+            debug('Função setupProfissaoAutocomplete: ' + (typeof window.setupProfissaoAutocomplete));
+            debug('Array profissoesComuns: ' + (window.profissoesComuns ? window.profissoesComuns.length + ' itens' : 'NÃO ENCONTRADO'));
+
+            if (window.setupProfissaoAutocomplete) {
+                debug('Chamando setupProfissaoAutocomplete...');
+                window.setupProfissaoAutocomplete();
+            }
+        }
+
+        debug('Página carregada');
+        debug('Carregando módulo incapacity.js...');
+    </script>
+
+    <script src="modules/incapacity.js"></script>
+
+    <script>
+        setTimeout(() => {
+            debug('Módulo carregado');
+            debug('setupProfissaoAutocomplete disponível: ' + (typeof window.setupProfissaoAutocomplete));
+            debug('profissoesComuns disponível: ' + (window.profissoesComuns ? 'SIM (' + window.profissoesComuns.length + ' itens)' : 'NÃO'));
+
+            // Auto-teste
+            if (typeof window.setupProfissaoAutocomplete === 'function') {
+                debug('Executando auto-teste...');
+                window.setupProfissaoAutocomplete();
+            }
+        }, 100);
+    </script>
+</body>
+</html>
