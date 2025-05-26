@@ -549,6 +549,9 @@ function initializePageContent() {
   // O novo sistema CID se inicializa automaticamente via MutationObserver
   console.log('[incapacity.js] Sistema CID é gerenciado automaticamente pelo novo CIDSystem');
 
+  // Configurar dropdowns múltiplos para limitações e tratamentos
+  // setupMultipleSelectDropdowns(); // Removido - usando dropdowns simples agora
+
   // Ocultar dropdown de profissão antes de restaurar
   const profInput = document.getElementById('profissao');
   const profDropdown = document.getElementById('profissaoDropdown');
