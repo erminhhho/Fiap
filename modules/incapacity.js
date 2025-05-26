@@ -55,33 +55,103 @@ if (typeof window.cidsSemCarencia === 'undefined') {
   ];
 }
 
-// Lista de doenças que dispensam carência (mantida para compatibilidade)
+// Lista de doenças que dispensam carência (REVISADA - termos mais específicos)
 if (typeof window.doencasSemCarencia === 'undefined') {
   window.doencasSemCarencia = [
+    // Tuberculose - deve ser "ativa"
     'tuberculose ativa',
+    'tuberculose pulmonar ativa',
+    'tuberculose extrapulmonar ativa',
+
+    // Hanseníase
     'hanseníase',
+    'lepra',
+    'mal de hansen',
+
+    // Transtornos mentais graves - termos mais específicos
     'alienação mental',
-    'transtorno mental grave',
     'esquizofrenia',
+    'transtorno esquizoafetivo',
     'transtorno bipolar',
+    'transtorno depressivo maior',
+    'transtorno depressivo grave',
+    'demência',
+    'alzheimer',
+    'transtorno psicótico',
+      // Neoplasias malignas - termos mais específicos (REFINADO)
     'neoplasia maligna',
-    'câncer',
-    'cancer',
+    'carcinoma in situ',
+    'carcinoma invasivo',
+    'carcinoma metastático',
+    'adenocarcinoma',
+    'carcinoma espinocelular',
+    'carcinoma basocelular invasivo',
+    'sarcoma',
+    'melanoma maligno',
+    'linfoma hodgkin',
+    'linfoma não hodgkin',
+    'leucemia mieloide',
+    'leucemia linfoide',
+    'leucemia aguda',
+    'leucemia crônica',
+    'mieloma múltiplo',
+    'tumor maligno primário',
+    'tumor maligno secundário',
+    'metástase',
+
+    // Cegueira
     'cegueira',
+    'cegueira bilateral',
+    'amaurose',
+    'perda total da visão',
+
+    // Paralisia
     'paralisia irreversível',
     'paralisia incapacitante',
+    'tetraplegia',
+    'paraplegia',
+    'hemiplegia',
+    'paralisia cerebral',
+
+    // Cardiopatia grave
     'cardiopatia grave',
+    'insuficiência cardíaca',
+    'cardiopatia isquêmica',
+    'cardiomiopatia',
+    'infarto do miocárdio',
+
+    // Parkinson
     'doença de parkinson',
+    'parkinsonismo',
+
+    // Espondiloartrose
     'espondiloartrose anquilosante',
+    'espondilite anquilosante',
+
+    // Nefropatia grave
     'nefropatia grave',
+    'insuficiência renal crônica',
+    'doença renal crônica',
+
+    // Doença de Paget
     'doença de paget',
     'osteíte deformante',
+
+    // AIDS/HIV
     'aids',
-    'hiv',
+    'síndrome da imunodeficiência adquirida',
     'síndrome da deficiência imunológica adquirida',
+    'hiv',
+    'vírus da imunodeficiência humana',
+
+    // Contaminação por radiação
     'contaminação por radiação',
+    'síndrome da radiação',
+
+    // Hepatopatia grave
     'hepatopatia grave',
-    'cirrose hepática'
+    'cirrose hepática',
+    'insuficiência hepática'
   ];
 }
 
@@ -147,12 +217,13 @@ window.setupProfissaoAutocomplete = function() {
   dropdown.classList.add('hidden');
 
   let debounceTimer;
-
   // Função para buscar profissões
   function buscarProfissoes(query) {
-    console.log('[incapacity.js] Buscando profissões para:', query);
     const resultados = window.profissoesComuns.filter(p => p.toLowerCase().includes(query.toLowerCase()));
-    console.log('[incapacity.js] Profissões encontradas:', resultados.length);
+    // Log apenas se encontrar resultados ou se a query for significativa
+    if (resultados.length > 0 || query.length > 2) {
+      console.log('[incapacity.js] Profissões encontradas para "' + query + '":', resultados.length);
+    }
     return resultados;
   }
 
@@ -219,12 +290,27 @@ window.setupProfissaoAutocomplete = function() {
 
 console.log('[incapacity.js] window.setupProfissaoAutocomplete definida!');
 
+// Variável para controlar inicialização única do autocomplete
+let profissaoAutocompleteInitialized = false;
+
+// Função para resetar o estado de inicialização (útil para testes ou reinicialização)
+window.resetProfissaoAutocompleteState = function() {
+  profissaoAutocompleteInitialized = false;
+  console.log('[incapacity.js] Estado do autocomplete de profissão resetado.');
+};
+
 // Função para inicializar o autocomplete de profissão
 function initializeProfissaoAutocomplete() {
+  // Verificar se já foi inicializado para evitar múltiplas tentativas
+  if (profissaoAutocompleteInitialized) {
+    console.log('[incapacity.js] Autocomplete de profissão já foi inicializado, ignorando chamada duplicada.');
+    return;
+  }
+
   console.log('[incapacity.js] Inicializando autocomplete de profissão...');
 
   let tentativas = 0;
-  const maxTentativas = 50; // 5 segundos (50 * 100ms)
+  const maxTentativas = 20; // Reduzido para 2 segundos (20 * 100ms)
 
   // Espera o campo estar disponível antes de configurar
   function tryInitProfissaoAutocomplete() {
@@ -232,31 +318,34 @@ function initializeProfissaoAutocomplete() {
     const input = document.getElementById('profissao');
     const dropdown = document.getElementById('profissaoDropdown');
 
-    console.log(`[incapacity.js] Tentativa ${tentativas}/${maxTentativas} - input:`, !!input, 'dropdown:', !!dropdown, 'setupFunction:', !!window.setupProfissaoAutocomplete);
+    // Log apenas nas primeiras e últimas tentativas para reduzir spam
+    const shouldLog = tentativas <= 3 || tentativas >= maxTentativas - 2;
+
+    if (shouldLog) {
+      console.log(`[incapacity.js] Tentativa ${tentativas}/${maxTentativas} - input:`, !!input, 'dropdown:', !!dropdown, 'setupFunction:', !!window.setupProfissaoAutocomplete);
+    }
 
     if (input && dropdown && window.setupProfissaoAutocomplete) {
-      console.log('[incapacity.js] Elementos encontrados, configurando autocomplete...');
+      console.log('[incapacity.js] ✅ Elementos encontrados, configurando autocomplete...');
       window.setupProfissaoAutocomplete();
+      profissaoAutocompleteInitialized = true; // Marcar como inicializado
       return true;
     } else if (tentativas < maxTentativas) {
       setTimeout(tryInitProfissaoAutocomplete, 100);
       return false;
     } else {
-      console.error('[incapacity.js] TIMEOUT: Não foi possível inicializar o autocomplete após', maxTentativas, 'tentativas');
-      console.error('[incapacity.js] Estado final - input:', !!input, 'dropdown:', !!dropdown, 'setupFunction:', !!window.setupProfissaoAutocomplete);
+      console.warn('[incapacity.js] ⚠️  TIMEOUT: Não foi possível inicializar o autocomplete de profissão após', maxTentativas, 'tentativas');
+      console.warn('[incapacity.js] Estado final - input:', !!input, 'dropdown:', !!dropdown, 'setupFunction:', !!window.setupProfissaoAutocomplete);
+      console.warn('[incapacity.js] Isso pode ser normal se o template atual não contém campos de profissão.');
+      profissaoAutocompleteInitialized = true; // Marcar para evitar novas tentativas
       return false;
     }
   }
   tryInitProfissaoAutocomplete();
 }
 
-// Inicializar tanto no DOMContentLoaded quanto imediatamente (para carregamento dinâmico)
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeProfissaoAutocomplete);
-} else {
-  // DOM já está pronto, inicializar imediatamente
-  setTimeout(initializeProfissaoAutocomplete, 100);
-}
+// Inicialização será controlada apenas pelo initModule para evitar duplicatas
+// A função será chamada quando o módulo for explicitamente inicializado
 
 // Variável para evitar inicialização múltipla
 if (typeof window.isDropdownHandlersInitialized === 'undefined') {
@@ -274,10 +363,9 @@ window.initModule = function() {
   if (window.location.hash === '#incapacity') {
     window._incapacityInitialized = false;
   }
-
   // Verificar se o módulo já foi inicializado nesta sessão
   if (window._incapacityInitialized) {
-    console.log('[incapacity.js] Módulo de incapacidades já inicializado.');
+    console.log('[incapacity.js] ✅ Módulo de incapacidades já inicializado, ignorando duplicata.');
     return;
   }
 
@@ -285,7 +373,7 @@ window.initModule = function() {
   window._incapacityInitialized = true;
 
   // Inicializar o autocomplete de profissão
-  console.log('[incapacity.js] initModule: Chamando inicialização do autocomplete...');
+  console.log('[incapacity.js] 🔧 Inicializando componentes do módulo...');
   initializeProfissaoAutocomplete();
 
   // Inicializar o conteúdo da página de forma estruturada
@@ -952,48 +1040,193 @@ function setupInputEventHandlers(input) {
   input.dataset.handlersInitialized = 'true';
 }
 
-// Função para verificar se a doença dispensa carência
+// Função para verificar se a doença dispensa carência (REVISADA)
 function verificarIsencaoCarencia(input) {
-  // Verificar pelo CID primeiro (preferencial)
+  console.log('[incapacity.js] Verificando isenção de carência para input:', input.id);
+
+  // Verificar pelo CID primeiro (método preferencial e mais preciso)
   const cidIndex = input.getAttribute('data-index');
   const cidInput = document.getElementById('cid' + cidIndex);
   let isento = false;
+  let motivoIsencao = '';
 
   if (cidInput && cidInput.value.trim() !== '') {
-    const cidValor = cidInput.value.toLowerCase().replace(/\s+/g, '').replace(/\./g, '.');
+    const cidValor = cidInput.value.toLowerCase().trim().replace(/\s+/g, '').replace(/\./g, '');
+    console.log('[incapacity.js] Verificando CID:', cidValor);
 
-    // Verificar se o CID está na lista de isentos
+    // Verificar se o CID está na lista de isentos (comparação por prefixo)
     isento = window.cidsSemCarencia.some(cid => {
-      // Comparação exata do início do CID (prefixo)
-      return cidValor.startsWith(cid.toLowerCase().replace(/\s+/g, ''));
+      const cidNormalizado = cid.toLowerCase().replace(/\s+/g, '').replace(/\./g, '');
+      const match = cidValor.startsWith(cidNormalizado);
+      if (match) {
+        motivoIsencao = `CID ${cid.toUpperCase()} - isenção legal de carência`;
+        console.log('[incapacity.js] CID isento encontrado:', cid);
+      }
+      return match;
     });
   }
 
-  // Se não encontrou pelo CID, tenta pelo nome da doença (método secundário)
-  if (!isento) {
-    const doencaValor = input.value.toLowerCase();
-    isento = window.doencasSemCarencia.some(doenca => doencaValor.includes(doenca));
+  // Se não encontrou pelo CID, verificar pelo nome da doença (método secundário)
+  if (!isento && input.value.trim() !== '') {
+    const doencaValor = input.value.toLowerCase().trim();
+    console.log('[incapacity.js] Verificando doença:', doencaValor);
+
+    // Usar busca mais rigorosa para evitar falsos positivos
+    isento = window.doencasSemCarencia.some(doenca => {
+      const doencaNormalizada = doenca.toLowerCase().trim();
+
+      // Verificação rigorosa: a doença digitada deve conter o termo completo
+      // ou ser uma correspondência muito próxima
+      const match = verificarCorrespondenciaDoenca(doencaValor, doencaNormalizada);
+
+      if (match) {
+        motivoIsencao = `Doença: "${doenca}" - isenção legal de carência`;
+        console.log('[incapacity.js] Doença isenta encontrada:', doenca);
+      }
+      return match;
+    });
   }
 
   // Encontrar a tag de isenção associada a este input
-  const tagIsencao = input.closest('.relative').querySelector('.isento-carencia-tag');
+  const tagIsencao = input.closest('.relative')?.querySelector('.isento-carencia-tag');
 
   if (isento && (input.value.trim() !== '' || (cidInput && cidInput.value.trim() !== ''))) {
-    tagIsencao.classList.remove('hidden');
+    console.log('[incapacity.js] Aplicando isenção de carência:', motivoIsencao);
 
-    // Adicionar tooltip (title) para explicar a isenção
-    tagIsencao.setAttribute('title', 'Esta condição/CID dispensa o cumprimento de carência para benefícios previdenciários');
+    if (tagIsencao) {
+      tagIsencao.classList.remove('hidden');
+      tagIsencao.setAttribute('title', motivoIsencao);
+    }
 
-    // Garantir que o campo tenha uma anotação visual também
+    // Adicionar classe visual para o campo
     input.classList.add('isento-carencia-field');
-    if (cidInput) cidInput.classList.add('isento-carencia-field');
+    if (cidInput) cidInput.classList.add('isento-carencia-field');    // Armazenar informação da isenção no formStateManager se disponível
+    if (window.formStateManager && cidIndex) {
+      // Acessar dados diretamente da propriedade formData
+      const stepData = window.formStateManager.formData.incapacity || {};
+      if (!stepData.isencaoCarencia) {
+        stepData.isencaoCarencia = {};
+      }
+      stepData.isencaoCarencia[cidIndex] = {
+        doenca: doenca,
+        temIsencao: true,
+        timestamp: Date.now()
+      };
+      // Os dados são automaticamente salvos pois stepData é uma referência
+    }
   } else {
-    tagIsencao.classList.add('hidden');
+    console.log('[incapacity.js] Sem isenção de carência aplicável');
 
-    // Remover a anotação visual se existir
+    if (tagIsencao) {
+      tagIsencao.classList.add('hidden');
+      tagIsencao.removeAttribute('title');
+    }
+
+    // Remover a anotação visual
     input.classList.remove('isento-carencia-field');
-    if (cidInput) cidInput.classList.remove('isento-carencia-field');
+    if (cidInput) cidInput.classList.remove('isento-carencia-field');    // Remover informação da isenção do formStateManager se disponível
+    if (window.formStateManager && cidIndex) {
+      // Acessar dados diretamente da propriedade formData
+      const stepData = window.formStateManager.formData.incapacity || {};
+      if (stepData.isencaoCarencia && stepData.isencaoCarencia[cidIndex]) {
+        delete stepData.isencaoCarencia[cidIndex];
+        // Os dados são automaticamente salvos pois stepData é uma referência
+      }
+    }
   }
+}
+
+/**
+ * Função auxiliar para verificar correspondência rigorosa entre doenças
+ * Evita falsos positivos com termos muito genéricos
+ */
+function verificarCorrespondenciaDoenca(doencaDigitada, doencaReferencia) {
+  // Normalizar strings removendo acentos e caracteres especiais
+  const normalizarTexto = (texto) => {
+    return texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^\w\s]/g, '') // Remove pontuação
+      .replace(/\s+/g, ' ') // Normaliza espaços
+      .trim();
+  };
+
+  const doencaDigitadaNorm = normalizarTexto(doencaDigitada);
+  const doencaReferenciaNorm = normalizarTexto(doencaReferencia);
+
+  // NOVA VALIDAÇÃO: Verificar se não contém termos que invalidam a isenção
+  const termosExcludentes = [
+    'benigno', 'benigna', 'suspeita', 'risco', 'chance', 'medo', 'exame',
+    'preventivo', 'rastreamento', 'histórico', 'historico', 'familiar',
+    'hereditário', 'hereditario', 'predisposição', 'predisposicao'
+  ];
+
+  const contemTermoExcludente = termosExcludentes.some(termo =>
+    doencaDigitadaNorm.includes(termo)
+  );
+
+  if (contemTermoExcludente) {
+    console.log('[incapacity.js] Termo excludente encontrado, rejeitando isenção');
+    return false;
+  }
+
+  // Método 1: Correspondência exata
+  if (doencaDigitadaNorm === doencaReferenciaNorm) {
+    return true;
+  }
+
+  // Método 2: A doença digitada contém exatamente o termo de referência como palavra completa
+  const palavrasReferencia = doencaReferenciaNorm.split(' ');
+  const palavrasDigitada = doencaDigitadaNorm.split(' ');
+
+  // Verificar se todas as palavras da referência estão presentes na doença digitada
+  const todasPalavrasPresentes = palavrasReferencia.every(palavra => {
+    return palavrasDigitada.includes(palavra);
+  });
+
+  if (todasPalavrasPresentes && palavrasReferencia.length >= 2) {
+    return true; // Só aceita se a referência tem pelo menos 2 palavras
+  }
+  // Método 3: Para termos únicos importantes, verificar se são palavras completas
+  const termosUnicos = [
+    'esquizofrenia', 'hanseniase', 'lepra', 'aids', 'hiv', 'cegueira',
+    'tetraplegia', 'paraplegia', 'alzheimer', 'parkinson', 'cirrose'
+  ];
+
+  if (termosUnicos.includes(doencaReferenciaNorm)) {
+    // Verificar se a palavra aparece como termo completo (não como substring)
+    const regex = new RegExp(`\\b${doencaReferenciaNorm}\\b`, 'i');
+    return regex.test(doencaDigitadaNorm);
+  }
+
+  // Método 4: Para termos de neoplasia, aplicar validação muito rigorosa
+  const termosNeoplasia = ['carcinoma', 'adenocarcinoma', 'sarcoma', 'melanoma', 'linfoma', 'leucemia', 'mieloma'];
+  if (termosNeoplasia.some(termo => doencaReferenciaNorm.includes(termo))) {
+    // Para neoplasias, exigir correspondência exata ou muito específica
+    const termoEncontrado = termosNeoplasia.find(termo => doencaReferenciaNorm.includes(termo));
+    const regex = new RegExp(`\\b${termoEncontrado}\\b`, 'i');
+    const matchExato = regex.test(doencaDigitadaNorm);
+
+    // Adicionalmente, verificar se não há qualificadores que invalidem
+    const qualificadoresInvalidos = ['in situ', 'benigno', 'benigna'];
+    const temQualificadorInvalido = qualificadoresInvalidos.some(qual =>
+      doencaDigitadaNorm.includes(qual)
+    );
+
+    return matchExato && !temQualificadorInvalido;
+  }
+
+  // Método 5: Para neoplasias com qualificadores específicos, verificar ambos os termos
+  if (doencaReferenciaNorm.includes('neoplasia maligna') ||
+      doencaReferenciaNorm.includes('tumor maligno')) {
+    const temNeoplasia = doencaDigitadaNorm.includes('neoplasia') || doencaDigitadaNorm.includes('tumor');
+    const temMaligno = doencaDigitadaNorm.includes('maligna') || doencaDigitadaNorm.includes('maligno');
+    return temNeoplasia && temMaligno;
+  }
+
+  // Se chegou até aqui, não houve correspondência válida
+  return false;
 }
 
 // Função para configurar a verificação de isenção de carência
