@@ -404,18 +404,8 @@ function initializePageContent() {
   console.log('[incapacity.js] Iniciando inicialização de componentes...');
   // Inicializar verificação de isenção de carência
   setupIsencaoCarencia();
-
-  // Inicializar sistema CID (apenas se não foi inicializado)
-  if (typeof initCidSystem === 'function' && !window.cidSystemInitialized) {
-    console.log('[incapacity.js] Inicializando sistema CID...');
-    try {
-      initCidSystem();
-    } catch (e) {
-      console.warn("[incapacity.js] Erro na inicialização do sistema CID:", e);
-    }
-  } else if (window.cidSystemInitialized) {
-    console.log('[incapacity.js] Sistema CID já inicializado, pulando...');
-  }
+  // O novo sistema CID se inicializa automaticamente via MutationObserver
+  console.log('[incapacity.js] Sistema CID é gerenciado automaticamente pelo novo CIDSystem');
 
   // Ocultar dropdown de profissão antes de restaurar
   const profInput = document.getElementById('profissao');
@@ -446,19 +436,9 @@ function initializePageContent() {
         if (doencaInput && typeof verificarIsencaoCarencia === 'function') {
           verificarIsencaoCarencia(doencaInput);
         }
-      });      // Re-inicializar sistema CID apenas se necessário
-      if (typeof initCidSystem === 'function' && !window.cidSystemInitialized) {
-        setTimeout(() => {
-          try {
-            initCidSystem();
-            console.log('[incapacity.js] Sistema CID inicializado após restauração.');
-          } catch (e) {
-            console.warn("[incapacity.js] Erro na inicialização do sistema CID:", e);
-          }
-        }, 200);
-      } else if (window.cidSystemInitialized) {
-        console.log('[incapacity.js] Sistema CID já está inicializado.');
-      }
+      });      // O novo sistema CID detecta e configura campos automaticamente
+      // através do MutationObserver, não sendo necessário reinicialização manual
+      console.log('[incapacity.js] Campos CID são configurados automaticamente pelo CIDSystem');
 
       // Garantir que dropdown de profissão permanece oculto
       requestAnimationFrame(() => {
@@ -1042,7 +1022,6 @@ function addDoencaField() {
       newDoencaField.remove();
     });
   }
-
   // Inicializar verificação de isenção de carência
   const doencaInput = newDoencaField.querySelector('.doenca-input');
   if (doencaInput) {
@@ -1050,29 +1029,20 @@ function addDoencaField() {
       verificarIsencaoCarencia(this);
     });
   }
-  // Forçar inicialização do sistema CID para novos campos adicionados dinamicamente
-  if (typeof initCidSystem === 'function') {
-    try {
-      // Reset o flag para permitir reinicialização com novos campos
-      window.cidSystemInitialized = false;
-      initCidSystem();
-      console.log("Sistema CID inicializado para novos campos adicionados");
-    } catch (e) {
-      console.warn("Erro ao inicializar CID para novos campos:", e);
-    }
+
+  // O novo sistema CID detecta campos dinamicamente via MutationObserver
+  // Não é necessário reinicialização manual
+  console.log(`Nova linha de doença adicionada com índice ${nextIndex} - CID configurado automaticamente`);
+
+  // Aplicar máscaras e eventos aos novos campos
+  const dataInput = newDoencaField.querySelector(`#dataDocumento${nextIndex}`);
+  if (dataInput && typeof maskDate === 'function') {
+    dataInput.oninput = function() { maskDate(this); };
   }
 
-  // Aplicar o novo sistema de pesquisa para o campo CID adicionado
-  const cidInput = newDoencaField.querySelector('.cid-input');
-  if (cidInput) {
-    configurarCampoCID(cidInput);
-    cidInput.focus();
-  }
-
-  // Após adicionar o campo de profissão (input#profissao) ou ao criar dinamicamente:
-  const profissaoInput = document.getElementById('profissao') || newDoencaField.querySelector('#profissao');
-  if (profissaoInput) {
-    profissaoInput.oninput = function() { formatarNomeProprio(this); };
+  // Destacar campos se a função estiver disponível
+  if (typeof destacarCamposPreenchidos === 'function') {
+    destacarCamposPreenchidos();
   }
 }
 

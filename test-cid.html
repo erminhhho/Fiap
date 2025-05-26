@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste CID Dropdown</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/search.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-8">
+        <h1 class="text-2xl font-bold text-blue-600 mb-8">Teste do CID Dropdown</h1>
+
+        <!-- Teste da primeira linha (estática) -->
+        <div class="bg-white rounded-2xl shadow p-8 mb-8">
+            <h2 class="text-lg font-semibold text-blue-600 mb-6">Linha 1 (Estática)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
+                <!-- Documento -->
+                <div class="relative md:col-span-4">
+                    <select class="tipo-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200" id="tipoDocumento1" name="tipoDocumentos[]" data-index="1">
+                        <option value="" selected disabled>Selecione</option>
+                        <option value="exame">Exame</option>
+                        <option value="atestado">Atestado</option>
+                        <option value="laudo">Laudo</option>
+                    </select>
+                    <label for="tipoDocumento1" class="input-label">Documento</label>
+                </div>
+
+                <!-- CID -->
+                <div class="relative md:col-span-5">
+                    <div class="relative">
+                        <input type="text" class="cid-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200"
+                               id="cid1" placeholder="CID" name="cids[]" data-index="1" autocomplete="off">
+                        <label for="cid1" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none input-label">CID</label>
+                        <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="cid-dropdown hidden" id="cidDropdown1"></div>
+                    </div>
+                </div>
+
+                <!-- Doença -->
+                <div class="relative md:col-span-10">
+                    <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                           id="doenca1" placeholder="Preenchido automaticamente pelo CID" name="doencas[]" data-index="1" autocomplete="off" readonly>
+                    <label for="doenca1" class="input-label">Doença</label>
+                </div>
+
+                <!-- Data -->
+                <div class="relative md:col-span-4">
+                    <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200"
+                           id="dataDocumento1" name="dataDocumentos[]" data-index="1" placeholder="dd/mm/aa">
+                    <label for="dataDocumento1" class="input-label">Data</label>
+                </div>
+
+                <!-- Botão Adicionar -->
+                <div class="md:col-span-1 flex items-center justify-center">
+                    <button type="button" class="add-doenca-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
+                            onclick="testAddField()" title="Adicionar CID/Doença">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container para campos dinâmicos -->
+        <div id="doencasList"></div>
+
+        <!-- Botões de teste -->
+        <div class="bg-white rounded-2xl shadow p-8">
+            <h2 class="text-lg font-semibold text-blue-600 mb-4">Controles de Teste</h2>
+            <div class="flex gap-4">
+                <button onclick="testAddField()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    Adicionar Campo
+                </button>
+                <button onclick="testReinitCID()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
+                    Reinicializar CID
+                </button>
+                <button onclick="testDebugDropdown()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
+                    Debug Dropdown
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts necessários -->
+    <script src="js/cache.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/cid.js"></script>
+    <script src="modules/incapacity.js"></script>
+
+    <script>
+        // Funções de teste
+        function testAddField() {
+            console.log('Testando adição de campo...');
+            if (typeof addDoencaField === 'function') {
+                addDoencaField();
+            } else {
+                console.error('Função addDoencaField não encontrada');
+            }
+        }
+
+        function testReinitCID() {
+            console.log('Testando reinicialização do CID...');
+            if (typeof window.reinitCidForNewFields === 'function') {
+                window.reinitCidForNewFields();
+            } else if (typeof initCidSystem === 'function') {
+                window.cidSystemInitialized = false;
+                initCidSystem();
+            } else {
+                console.error('Funções de inicialização CID não encontradas');
+            }
+        }
+
+        function testDebugDropdown() {
+            console.log('Estado dos dropdowns:');
+            document.querySelectorAll('.cid-dropdown').forEach((dropdown, index) => {
+                console.log(`Dropdown ${index + 1}:`, {
+                    id: dropdown.id,
+                    hidden: dropdown.classList.contains('hidden'),
+                    display: dropdown.style.display,
+                    innerHTML: dropdown.innerHTML.length,
+                    visible: dropdown.offsetHeight > 0
+                });
+            });
+        }
+
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Página de teste carregada');
+
+            // Aguardar um pouco para os scripts carregarem
+            setTimeout(() => {
+                if (typeof initCidSystem === 'function') {
+                    initCidSystem();
+                    console.log('Sistema CID inicializado para teste');
+                } else {
+                    console.error('Sistema CID não disponível');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

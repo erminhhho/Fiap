@@ -294,6 +294,3 @@ window.initCidSystem = () => {
     window.cidSystem.setupExistingFields();
   }
 };
-
-// Manter compatibilidade com código existente
-window.cidInstance = window.cidSystem;

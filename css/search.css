@@ -1,87 +1,79 @@
 /* Estilos para componentes de busca */
 
-/* Estilo do dropdown - versão consolidada e única */
-.cid-dropdown,
-.doenca-dropdown {
-  max-height: 300px;
-  overflow-y: auto;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border-radius: 0.5rem;
-  border: 1px solid rgba(209, 213, 219, 1);
-  z-index: 50;
-  background-color: white;
+/* Dropdown CID - estilo unificado e limpo */
+.cid-dropdown {
   position: absolute;
   width: 100%;
+  max-height: 300px;
   margin-top: 0.25rem;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 50;
+  overflow-y: auto;
+  top: 100%; /* Garantir posicionamento correto */
+  left: 0;
 }
 
-/* Garantir que quando hidden está aplicado, o dropdown realmente some */
-.cid-dropdown.hidden,
-.doenca-dropdown.hidden {
-  display: none;
+/* Ocultar dropdown quando classe hidden está presente - FORÇA OCULTAMENTO */
+.cid-dropdown.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
-/* Garantir que os itens dos dropdowns tenham cor visível e comportamento correto */
-.cid-dropdown .dropdown-item,
-.cid-dropdown .cid-item,
-.doenca-dropdown .dropdown-item,
-.dropdown-item {
-  color: #333333;
-  display: block;
-  padding: 0.5rem 1rem;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-/* Garantir que os itens tenham o comportamento correto */
+/* Estilo dos itens do dropdown */
 .cid-dropdown .cid-item {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  color: #333333;
-  text-decoration: none;
+  transition: background-color 0.15s ease;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-/* Hover states para todos os tipos de item de dropdown */
-.cid-dropdown .dropdown-item:hover,
-.cid-dropdown .cid-item:hover,
-.doenca-dropdown .dropdown-item:hover,
-.dropdown-item:hover {
-  background-color: #eff6ff;
+.cid-dropdown .cid-item:last-child {
+  border-bottom: none;
 }
 
-/* Scrollbar personalizada */
-.cid-dropdown::-webkit-scrollbar,
-.doenca-dropdown::-webkit-scrollbar {
+/* Hover state */
+.cid-dropdown .cid-item:hover {
+  background-color: #f3f4f6;
+}
+
+/* Scrollbar personalizada para dropdown */
+.cid-dropdown::-webkit-scrollbar {
   width: 6px;
 }
 
-.cid-dropdown::-webkit-scrollbar-track,
-.doenca-dropdown::-webkit-scrollbar-track {
-  background: #f3f4f6;
+.cid-dropdown::-webkit-scrollbar-track {
+  background: #f9fafb;
   border-radius: 3px;
 }
 
-.cid-dropdown::-webkit-scrollbar-thumb,
-.doenca-dropdown::-webkit-scrollbar-thumb {
+.cid-dropdown::-webkit-scrollbar-thumb {
   background: #d1d5db;
   border-radius: 3px;
 }
 
-.cid-dropdown::-webkit-scrollbar-thumb:hover,
-.doenca-dropdown::-webkit-scrollbar-thumb:hover {
+.cid-dropdown::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
 
-/* Animações */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Animação suave para o dropdown */
+.cid-dropdown {
+  animation: fadeIn 0.15s ease-out;
 }
 
-.cid-dropdown, .doenca-dropdown {
-  animation: fadeIn 0.2s ease-out;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
