@@ -169,9 +169,7 @@ class CIDSystem {
 
       // Add filled class
       cidInput.classList.add('filled');
-      doencaInput.classList.add('filled');
-
-      // Trigger events
+      doencaInput.classList.add('filled');      // Trigger events
       cidInput.dispatchEvent(new Event('change', { bubbles: true }));
       doencaInput.dispatchEvent(new Event('change', { bubbles: true }));
 
@@ -181,6 +179,11 @@ class CIDSystem {
       // Call highlight function if available
       if (typeof destacarCamposPreenchidos === 'function') {
         destacarCamposPreenchidos();
+      }
+
+      // Trigger auto-tag verification for disease field
+      if (typeof verificarIsencaoCarencia === 'function') {
+        verificarIsencaoCarencia(doencaInput);
       }
 
       console.log(`CID selecionado: ${code} - ${description}`);

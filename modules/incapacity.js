@@ -728,8 +728,7 @@ function verificarCorrespondenciaDoenca(doencaDigitada, doencaReferencia) {
 }
 
 // Função para configurar a verificação de isenção de carência
-function setupIsencaoCarencia() {
-  // Adicionar listeners para campos existentes
+function setupIsencaoCarencia() {  // Adicionar listeners para campos existentes
   document.querySelectorAll('.doenca-input').forEach(input => {
     if (!input.dataset.isencaoListenerAdded) {
       input.addEventListener('input', function() {
@@ -738,12 +737,15 @@ function setupIsencaoCarencia() {
       input.addEventListener('blur', function() {
         verificarIsencaoCarencia(this);
       });
+      // Importante: escutar também eventos 'change' para campos readonly
+      input.addEventListener('change', function() {
+        verificarIsencaoCarencia(this);
+      });
       input.dataset.isencaoListenerAdded = 'true';
       // Verificar estado inicial
       verificarIsencaoCarencia(input);
     }
   });
-
   // Adicionar listeners também para os campos CID existentes
   document.querySelectorAll('.cid-input').forEach(input => {
     if (!input.dataset.isencaoListenerAdded) {
@@ -755,6 +757,14 @@ function setupIsencaoCarencia() {
         }
       });
       input.addEventListener('blur', function() {
+        const index = this.getAttribute('data-index');
+        const doencaInput = document.getElementById('doenca' + index);
+        if (doencaInput) {
+          verificarIsencaoCarencia(doencaInput);
+        }
+      });
+      // Importante: escutar também eventos 'change' dos campos CID
+      input.addEventListener('change', function() {
         const index = this.getAttribute('data-index');
         const doencaInput = document.getElementById('doenca' + index);
         if (doencaInput) {
@@ -780,13 +790,16 @@ function setupIsencaoCarencia() {
           mutation.addedNodes.forEach(function(node) {
             if (node.nodeType === 1) { // Element node
               const novosCampos = node.querySelectorAll('.doenca-input, .cid-input');
-              novosCampos.forEach(input => {
-                if (!input.dataset.isencaoListenerAdded) {
+              novosCampos.forEach(input => {                if (!input.dataset.isencaoListenerAdded) {
                   if (input.classList.contains('doenca-input')) {
                     input.addEventListener('input', function() {
                       verificarIsencaoCarencia(this);
                     });
                     input.addEventListener('blur', function() {
+                      verificarIsencaoCarencia(this);
+                    });
+                    // Importante: escutar também eventos 'change' para campos readonly
+                    input.addEventListener('change', function() {
                       verificarIsencaoCarencia(this);
                     });
                   } else if (input.classList.contains('cid-input')) {
@@ -798,6 +811,14 @@ function setupIsencaoCarencia() {
                       }
                     });
                     input.addEventListener('blur', function() {
+                      const index = this.getAttribute('data-index');
+                      const doencaInput = document.getElementById('doenca' + index);
+                      if (doencaInput) {
+                        verificarIsencaoCarencia(doencaInput);
+                      }
+                    });
+                    // Importante: escutar também eventos 'change' dos campos CID
+                    input.addEventListener('change', function() {
                       const index = this.getAttribute('data-index');
                       const doencaInput = document.getElementById('doenca' + index);
                       if (doencaInput) {
@@ -1021,13 +1042,20 @@ function addDoencaField() {
     removeButton.addEventListener('click', function() {
       newDoencaField.remove();
     });
-  }
-  // Inicializar verificação de isenção de carência
+  }  // Inicializar verificação de isenção de carência
   const doencaInput = newDoencaField.querySelector('.doenca-input');
   if (doencaInput) {
     doencaInput.addEventListener('input', function() {
       verificarIsencaoCarencia(this);
     });
+    doencaInput.addEventListener('blur', function() {
+      verificarIsencaoCarencia(this);
+    });
+    // Importante: escutar também eventos 'change' para campos readonly
+    doencaInput.addEventListener('change', function() {
+      verificarIsencaoCarencia(this);
+    });
+    doencaInput.dataset.isencaoListenerAdded = 'true';
   }
 
   // O novo sistema CID detecta campos dinamicamente via MutationObserver
