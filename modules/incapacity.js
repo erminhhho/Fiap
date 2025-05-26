@@ -9,19 +9,25 @@ console.log('[incapacity.js] *** INICIANDO CARREGAMENTO DO MÓDULO ***');
 console.log('[incapacity.js] Timestamp:', new Date().toLocaleTimeString());
 console.log('[incapacity.js] window.setupProfissaoAutocomplete será definido...');
 
-// Lista de CIDs e doenças que dispensam carência
+// Lista de CIDs que dispensam carência - ATUALIZADA conforme Portaria Interministerial MTPS/MS Nº 22 DE 31/08/2022
 // Verificar se já existe para evitar redeclaração
 if (typeof window.cidsSemCarencia === 'undefined') {
   // Definir no escopo global para evitar redeclaração
   window.cidsSemCarencia = [
-    // Tuberculose ativa
+    // I - tuberculose ativa
     'a15', 'a16', 'a17', 'a18', 'a19',
-    // Hanseníase
+
+    // II - hanseníase
     'a30',
-    // Alienação mental / transtornos mentais graves
-    'f00', 'f01', 'f02', 'f03', 'f20', 'f21', 'f22', 'f23', 'f24', 'f25', 'f28', 'f29',
-    'f30', 'f31', 'f32', 'f33',
-    // Neoplasia maligna (câncer)
+
+    // III - transtorno mental grave (cursando com alienação mental)
+    'f20', 'f21', 'f22', 'f23', 'f24', 'f25', 'f28', 'f29', // Esquizofrenia e transtornos psicóticos
+    'f30', 'f31', // Transtorno bipolar
+    'f32', 'f33', // Transtornos depressivos graves
+    'f00', 'f01', 'f02', 'f03', // Demências
+    'f84', // Autismo (transtorno global do desenvolvimento)
+
+    // IV - neoplasia maligna
     'c00', 'c01', 'c02', 'c03', 'c04', 'c05', 'c06', 'c07', 'c08', 'c09',
     'c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16', 'c17', 'c18', 'c19',
     'c20', 'c21', 'c22', 'c23', 'c24', 'c25', 'c26', 'c27', 'c28', 'c29',
@@ -32,126 +38,262 @@ if (typeof window.cidsSemCarencia === 'undefined') {
     'c70', 'c71', 'c72', 'c73', 'c74', 'c75', 'c76', 'c77', 'c78', 'c79',
     'c80', 'c81', 'c82', 'c83', 'c84', 'c85', 'c86', 'c87', 'c88', 'c89',
     'c90', 'c91', 'c92', 'c93', 'c94', 'c95', 'c96', 'c97',
-    // Cegueira
-    'h54.0', 'h54.1', 'h54.3',
-    // Paralisia irreversível e incapacitante
-    'g80', 'g81', 'g82', 'g83',
-    // Cardiopatia grave
-    'i20', 'i21', 'i22', 'i24', 'i25', 'i42', 'i50',
-    // Doença de Parkinson
-    'g20',
-    // Espondiloartrose anquilosante
-    'm45',
-    // Nefropatia grave
-    'n17', 'n18', 'n19',
-    // Estado avançado da Doença de Paget (osteíte deformante)
-    'm88',
-    // AIDS
-    'b20', 'b21', 'b22', 'b23', 'b24',
-    // Contaminação por radiação
-    't66',
-    // Hepatopatia grave
-    'k72', 'k74', 'k76.6', 'k76.7'
+    'd00', 'd01', 'd02', 'd03', 'd04', 'd05', 'd06', 'd07', 'd08', 'd09', // Neoplasias in situ
+
+    // V - cegueira
+    'h54.0', 'h54.1', 'h54.4', 'h54.9', // Cegueira total e amaurose
+
+    // VI - paralisia irreversível e incapacitante
+    'g80', 'g81', 'g82', 'g83', // Paralisia cerebral, hemiplegia, paraplegia, tetraplegia
+    'g12', 'g14', // Esclerose lateral amiotrófica e doenças do neurônio motor
+
+    // VII - cardiopatia grave
+    'i20', 'i21', 'i22', 'i24', 'i25', // Doença isquêmica do coração
+    'i42', 'i43', // Cardiomiopatia
+    'i50', // Insuficiência cardíaca
+
+    // VIII - doença de Parkinson
+    'g20', 'g21', // Doença de Parkinson e parkinsonismo secundário
+
+    // IX - espondilite anquilosante
+    'm45', // Espondilite anquilosante
+
+    // X - nefropatia grave
+    'n17', 'n18', 'n19', // Insuficiência renal aguda e crônica
+    'n04', 'n05', 'n06', // Síndrome nefrítica e nefrótica
+
+    // XI - estado avançado da doença de Paget (osteíte deformante)
+    'm88', // Doença de Paget
+
+    // XII - síndrome da deficiência imunológica adquirida (AIDS)
+    'b20', 'b21', 'b22', 'b23', 'b24', // HIV/AIDS
+    'z21', // Estado de infecção assintomática pelo HIV
+
+    // XIII - contaminação por radiação
+    't66', // Efeitos da radiação
+    'z87.891', // História pessoal de exposição à radiação
+
+    // XIV - hepatopatia grave
+    'k72', // Insuficiência hepática
+    'k74', // Fibrose e cirrose hepática
+    'k76.6', 'k76.7', // Hipertensão portal e síndrome hepatorrenal
+
+    // XV - esclerose múltipla
+    'g35', // Esclerose múltipla
+
+    // XVI - acidente vascular encefálico (agudo)
+    'i60', 'i61', 'i62', 'i63', 'i64', // AVC hemorrágico e isquêmico
+    'g93.1', // Lesão cerebral anóxica
+
+    // XVII - abdome agudo cirúrgico
+    'k35', 'k36', 'k37', // Apendicite aguda
+    'k40', 'k41', 'k42', 'k43', 'k44', 'k45', 'k46', // Hérnias com obstrução/gangrena
+    'k56', // Íleo paralítico e obstrução intestinal
+    'k92.2', // Hemorragia gastrointestinal
+    'n13.3', 'n13.4', 'n13.5' // Hidronefrose com obstrução
   ];
 }
 
-// Lista de doenças que dispensam carência (REVISADA - termos mais específicos)
+// Lista de doenças que dispensam carência - ATUALIZADA conforme Portaria Interministerial MTPS/MS Nº 22 DE 31/08/2022
 if (typeof window.doencasSemCarencia === 'undefined') {
   window.doencasSemCarencia = [
-    // Tuberculose - deve ser "ativa"
+    // I - tuberculose ativa
     'tuberculose ativa',
     'tuberculose pulmonar ativa',
     'tuberculose extrapulmonar ativa',
+    'tuberculose miliar ativa',
 
-    // Hanseníase
+    // II - hanseníase
     'hanseníase',
     'lepra',
     'mal de hansen',
+    'doença de hansen',
 
-    // Transtornos mentais graves - termos mais específicos
+    // III - transtorno mental grave (cursando com alienação mental)
+    'transtorno mental grave',
     'alienação mental',
     'esquizofrenia',
+    'transtorno esquizofreniforme',
     'transtorno esquizoafetivo',
+    'transtorno delirante',
+    'transtorno psicótico breve',
+    'transtorno psicótico induzido',
     'transtorno bipolar',
-    'transtorno depressivo maior',
-    'transtorno depressivo grave',
+    'episódio maníaco',
+    'episódio depressivo maior grave',
+    'transtorno depressivo maior grave',
     'demência',
     'alzheimer',
-    'transtorno psicótico',
-      // Neoplasias malignas - termos mais específicos (REFINADO)
+    'doença de alzheimer',
+    'demência vascular',
+    'demência por corpos de lewy',
+    'transtorno neurocognitivo maior',
+
+    // IV - neoplasia maligna
     'neoplasia maligna',
-    'carcinoma in situ',
-    'carcinoma invasivo',
-    'carcinoma metastático',
+    'tumor maligno',
+    'câncer',
+    'carcinoma',
     'adenocarcinoma',
     'carcinoma espinocelular',
+    'carcinoma de células escamosas',
     'carcinoma basocelular invasivo',
     'sarcoma',
     'melanoma maligno',
+    'melanoma',
     'linfoma hodgkin',
     'linfoma não hodgkin',
-    'leucemia mieloide',
-    'leucemia linfoide',
-    'leucemia aguda',
-    'leucemia crônica',
+    'linfoma',
+    'leucemia',
+    'leucemia mieloide aguda',
+    'leucemia linfoide aguda',
+    'leucemia mieloide crônica',
+    'leucemia linfoide crônica',
     'mieloma múltiplo',
+    'plasmocitoma',
+    'tumor de wilms',
+    'neuroblastoma',
+    'retinoblastoma',
+    'osteossarcoma',
+    'condrossarcoma',
+    'rabdomiossarcoma',
+    'fibrossarcoma',
+    'lipossarcoma',
+    'angiosarcoma',
     'tumor maligno primário',
     'tumor maligno secundário',
     'metástase',
+    'carcinomatose',
 
-    // Cegueira
+    // V - cegueira
     'cegueira',
     'cegueira bilateral',
+    'cegueira total',
     'amaurose',
     'perda total da visão',
+    'ausência de percepção luminosa',
 
-    // Paralisia
+    // VI - paralisia irreversível e incapacitante
     'paralisia irreversível',
     'paralisia incapacitante',
     'tetraplegia',
+    'quadriplegia',
     'paraplegia',
     'hemiplegia',
     'paralisia cerebral',
+    'esclerose lateral amiotrófica',
+    'ela',
+    'doença do neurônio motor',
+    'paralisia bulbar progressiva',
+    'paralisia pseudobulbar',
 
-    // Cardiopatia grave
+    // VII - cardiopatia grave
     'cardiopatia grave',
     'insuficiência cardíaca',
+    'insuficiência cardíaca congestiva',
     'cardiopatia isquêmica',
+    'doença arterial coronariana',
     'cardiomiopatia',
+    'cardiomiopatia dilatada',
+    'cardiomiopatia hipertrófica',
+    'cardiomiopatia restritiva',
+    'infarto agudo do miocárdio',
     'infarto do miocárdio',
+    'síndrome coronariana aguda',
+    'angina instável',
 
-    // Parkinson
+    // VIII - doença de Parkinson
     'doença de parkinson',
+    'mal de parkinson',
     'parkinsonismo',
+    'síndrome parkinsoniana',
 
-    // Espondiloartrose
-    'espondiloartrose anquilosante',
+    // IX - espondilite anquilosante
     'espondilite anquilosante',
+    'espondiloartrite anquilosante',
+    'doença de bechterew',
 
-    // Nefropatia grave
+    // X - nefropatia grave
     'nefropatia grave',
     'insuficiência renal crônica',
     'doença renal crônica',
+    'insuficiência renal aguda',
+    'síndrome nefrítica',
+    'síndrome nefrótica',
+    'glomerulonefrite',
+    'nefrite',
+    'rim policístico',
 
-    // Doença de Paget
+    // XI - estado avançado da doença de Paget (osteíte deformante)
     'doença de paget',
     'osteíte deformante',
+    'estado avançado da doença de paget',
 
-    // AIDS/HIV
+    // XII - síndrome da deficiência imunológica adquirida (AIDS)
     'aids',
     'síndrome da imunodeficiência adquirida',
     'síndrome da deficiência imunológica adquirida',
     'hiv',
     'vírus da imunodeficiência humana',
+    'infecção pelo hiv',
 
-    // Contaminação por radiação
+    // XIII - contaminação por radiação
     'contaminação por radiação',
     'síndrome da radiação',
+    'exposição à radiação',
+    'doença da radiação',
+    'efeitos da radiação',
 
-    // Hepatopatia grave
+    // XIV - hepatopatia grave
     'hepatopatia grave',
     'cirrose hepática',
-    'insuficiência hepática'
+    'cirrose',
+    'insuficiência hepática',
+    'insuficiência hepática aguda',
+    'insuficiência hepática crônica',
+    'hepatite fulminante',
+    'doença hepática terminal',
+
+    // XV - esclerose múltipla
+    'esclerose múltipla',
+    'esclerose em placas',
+
+    // XVI - acidente vascular encefálico (agudo)
+    'acidente vascular encefálico',
+    'acidente vascular cerebral',
+    'avc',
+    'ave',
+    'derrame cerebral',
+    'avc isquêmico',
+    'avc hemorrágico',
+    'hemorragia cerebral',
+    'hemorragia intracerebral',
+    'hemorragia subaracnóidea',
+    'infarto cerebral',
+    'trombose cerebral',
+    'embolia cerebral',
+
+    // XVII - abdome agudo cirúrgico
+    'abdome agudo cirúrgico',
+    'abdômen agudo cirúrgico',
+    'apendicite aguda',
+    'peritonite',
+    'perfuração intestinal',
+    'obstrução intestinal',
+    'íleo paralítico',
+    'volvo intestinal',
+    'intussuscepção',
+    'hénia encarcerada',
+    'hénia estrangulada',
+    'colecistite aguda',
+    'pancreatite aguda',
+    'perfuração gástrica',
+    'perfuração duodenal',
+    'hemorragia digestiva alta',
+    'hemorragia digestiva baixa',
+    'isquemia mesentérica',
+    'torção testicular',
+    'gravidez ectópica'
   ];
 }
 
@@ -589,11 +731,18 @@ function verificarIsencaoCarencia(input) {
   const tagIsencao = input.closest('.relative')?.querySelector('.isento-carencia-tag');
 
   if (isento && (input.value.trim() !== '' || (cidInput && cidInput.value.trim() !== ''))) {
-    console.log('[incapacity.js] Aplicando isenção de carência:', motivoIsencao);
-
-    if (tagIsencao) {
+    console.log('[incapacity.js] Aplicando isenção de carência:', motivoIsencao);    if (tagIsencao) {
       tagIsencao.classList.remove('hidden');
       tagIsencao.setAttribute('title', motivoIsencao);
+
+      // Tornar a tag clicável
+      tagIsencao.style.cursor = 'pointer';
+
+      // Remover listener anterior para evitar duplicatas
+      tagIsencao.removeEventListener('click', showIsencaoCarenciaModal);
+
+      // Adicionar evento de clique para mostrar modal com informações legais
+      tagIsencao.addEventListener('click', showIsencaoCarenciaModal);
     }
 
     // Adicionar classe visual para o campo
@@ -1227,9 +1376,80 @@ function isDefaultDocumentoOption(value) {
     return defaultOptions.includes(value);
 }
 
+// Função para mostrar modal com informações legais sobre isenção de carência
+function showIsencaoCarenciaModal() {
+  if (typeof window.showGenericModal !== 'function') {
+    console.error('Modal genérico não disponível');
+    return;
+  }
+
+  const conteudoModal = `
+    <div class="space-y-4">
+      <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <i class="fas fa-info-circle text-blue-400"></i>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-blue-700">
+              <strong>Isenção de Carência para Auxílio por Incapacidade Temporária</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-sm text-gray-700 space-y-3">
+        <p>
+          <strong>Base Legal:</strong> Portaria Interministerial MTP/MS Nº 22, de 31 de agosto de 2022
+        </p>
+
+        <p>
+          <strong>Publicação:</strong> Diário Oficial da União (DOU) - Seção 1, nº 168, de 01/09/2022
+        </p>
+
+        <p>
+          Esta condição médica está incluída na lista oficial de doenças que conferem isenção do período de carência
+          de 12 meses para o auxílio por incapacidade temporária, conforme regulamentação do INSS.
+        </p>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <p class="text-sm text-yellow-800">
+            <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+            <strong>Importante:</strong> A isenção aplica-se apenas ao período de carência. Outros requisitos
+            para concessão do benefício devem ser atendidos conforme legislação vigente.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  window.showGenericModal({
+    title: 'Informações Legais - Isenção de Carência',
+    message: '',
+    content: conteudoModal,
+    buttons: [
+      {
+        text: 'Consultar DOU',
+        className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
+        onclick: function() {
+          window.open('https://in.gov.br/en/web/dou/-/portaria-interministerial-mtp/ms-n-22-de-31-de-agosto-de-2022-426206445', '_blank');
+        }
+      },
+      {
+        text: 'Fechar',
+        className: 'flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center',
+        onclick: function() {
+          window.closeGenericModal();
+        }
+      }
+    ]
+  });
+}
+
 // Exportar funções para o escopo global
 if (typeof window !== 'undefined') {
   window.showOutroDocumentoModal = showOutroDocumentoModal;
   window.handleSaveOutroDocumento = handleSaveOutroDocumento;
   window.handleCancelOutroDocumento = handleCancelOutroDocumento;
+  window.showIsencaoCarenciaModal = showIsencaoCarenciaModal;
 }
