@@ -15,40 +15,18 @@
   margin-top: 0.25rem;
 }
 
-/* Reset completo para dropdown do CID - sobrescrever outros estilos */
-.cid-dropdown {
-  max-height: 300px !important;
-  overflow-y: auto !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-  border-radius: 0.5rem !important;
-  border: 1px solid rgba(209, 213, 219, 1) !important;
-  z-index: 9999 !important;
-  background-color: white !important;
-  position: absolute !important;
-  width: 100% !important;
-  margin-top: 0.25rem !important;
-  left: 0 !important;
-  top: 100% !important;
-}
-
 /* Garantir que quando hidden está aplicado, o dropdown realmente some */
-.cid-dropdown.hidden {
-  display: none !important;
-  opacity: 0 !important;
-  visibility: hidden !important;
+.cid-dropdown.hidden,
+.doenca-dropdown.hidden {
+  display: none;
 }
 
 /* Garantir que os itens dos dropdowns tenham cor visível e comportamento correto */
 .cid-dropdown .dropdown-item,
 .cid-dropdown .cid-item,
 .doenca-dropdown .dropdown-item,
-.cid-dropdown div,
-.doenca-dropdown div,
-.dropdown-item,
-select option,
-.dropdown-menu li,
-.dropdown-menu a {
-  color: #333333 !important; /* Cor escura para o texto dos itens */
+.dropdown-item {
+  color: #333333;
   display: block;
   padding: 0.5rem 1rem;
   text-decoration: none;
@@ -58,23 +36,21 @@ select option,
 
 /* Garantir que os itens tenham o comportamento correto */
 .cid-dropdown .cid-item {
-  display: flex !important;
-  align-items: center !important;
-  padding: 0.5rem 1rem !important;
-  cursor: pointer !important;
-  transition: background-color 0.2s ease !important;
-  color: #333333 !important;
-  text-decoration: none !important;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: #333333;
+  text-decoration: none;
 }
 
 /* Hover states para todos os tipos de item de dropdown */
 .cid-dropdown .dropdown-item:hover,
 .cid-dropdown .cid-item:hover,
 .doenca-dropdown .dropdown-item:hover,
-.dropdown-item:hover,
-.dropdown-menu li:hover,
-.dropdown-menu a:hover {
-  background-color: #eff6ff !important;
+.dropdown-item:hover {
+  background-color: #eff6ff;
 }
 
 /* Scrollbar personalizada */

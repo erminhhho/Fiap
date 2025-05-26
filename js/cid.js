@@ -72,22 +72,16 @@ class CID {
           element.removeEventListener(event, listener);
         });
         this.activeListeners.delete(existingKey);
-      }
-
-      // Limpar dropdown completamente
+      }      // Limpar dropdown completamente
       cidDropdown.innerHTML = '';
       cidDropdown.classList.add('hidden');
-      cidDropdown.style.display = 'none';
 
       // Array para armazenar os listeners deste campo
-      const listeners = [];
-
-      // Função para fechar dropdown definitivamente
+      const listeners = [];      // Função para fechar dropdown definitivamente
       const closeDropdownCompletely = () => {
         cidDropdown.classList.add('hidden');
-        cidDropdown.style.display = 'none';
         cidDropdown.innerHTML = '';
-      };      // Implementação direta sem usar o sistema search.js para evitar conflitos
+      };// Implementação direta sem usar o sistema search.js para evitar conflitos
       let debounceTimer;
 
       const inputListener = async function() {
@@ -120,10 +114,7 @@ class CID {
                     </div>`
                   ).join('')}
                 </div>
-              `;
-
-              cidDropdown.innerHTML = html;
-              cidDropdown.style.display = 'block';
+              `;              cidDropdown.innerHTML = html;
               cidDropdown.classList.remove('hidden');
             } else {
               closeDropdownCompletely();
