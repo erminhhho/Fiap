@@ -326,11 +326,16 @@ function addAtividade() {
       atividadeDiv.remove();
     });
   }
-
   // Aplicar máscara de nome próprio ao campo de profissão
   const profissaoInput = atividadeDiv.querySelector('#profissao');
   if (profissaoInput) {
     profissaoInput.oninput = function() { formatarNomeProprio(this); };
+  }
+
+  // Aplicar capitalização da primeira letra no campo de detalhes
+  const detalhesInput = atividadeDiv.querySelector('.detalhes');
+  if (detalhesInput) {
+    detalhesInput.oninput = function() { capitalizeFirstLetterOnly(this); };
   }
 
   // Adicionar ao DOM - coloque sempre no final da lista

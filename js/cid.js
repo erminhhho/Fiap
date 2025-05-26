@@ -34,9 +34,7 @@ class CID {
       // Guardar no cache de pesquisa
       this.search.addToCache(query, results);
       return results;
-    }
-
-    /**
+    }    /**
      * Configura autocomplete para os campos de CID e doença
      * @param {number} index - Índice do par de campos
      */
@@ -44,11 +42,10 @@ class CID {
       const cidInput = document.getElementById(`cid${index}`);
       const doencaInput = document.getElementById(`doenca${index}`);
       const cidDropdown = document.getElementById(`cidDropdown${index}`);
-      const doencaDropdown = document.getElementById(`doencaDropdown${index}`);
 
-      if (!cidInput || !doencaInput || !cidDropdown || !doencaDropdown) return;
+      if (!cidInput || !doencaInput || !cidDropdown) return;
 
-      // Configura autocomplete para o campo CID
+      // Configura autocomplete APENAS para o campo CID
       this.search.setupAutocomplete(
         cidInput,
         cidDropdown,
@@ -84,7 +81,7 @@ class CID {
         }
       );
 
-      // Adiciona manualmente listeners para os itens do dropdown
+      // Adiciona manualmente listeners para os itens do dropdown do CID
       cidDropdown.addEventListener('click', function(e) {
         const cidItem = e.target.closest('.cid-item');
         if (cidItem) {
@@ -109,78 +106,27 @@ class CID {
 
           // Fechar dropdown
           cidDropdown.classList.add('hidden');
-          doencaDropdown.classList.add('hidden');
+          cidDropdown.style.display = 'none';
 
           // Destacar campos - usando a função global padronizada
-          destacarCamposPreenchidos();
+          if (typeof destacarCamposPreenchidos === 'function') {
+            destacarCamposPreenchidos();
+          }
         }
       });
 
-      // Configura autocomplete para o campo doença (similar ao anterior)
-      this.search.setupAutocomplete(
-        doencaInput,
-        doencaDropdown,
-        async (query) => {
-          console.log('CID: Buscando por descrição:', query);
-          const results = await this.find(query);
-          console.log('CID: Resultados encontrados:', results.length);
-          return results;
-        },
-        (results) => {
-          if (results.length === 0) {
-            return `<div class="p-3 text-center text-gray-500 text-sm">Nenhum resultado encontrado</div>`;
-          }
-
-          // Nova implementação para garantir que os cliques funcionem
-          return `
-            <div class="py-2" id="doencaResultsList${index}">
-              ${results.map((item, i) =>
-                `<div class="doenca-item flex items-center px-4 py-2 hover:bg-blue-50 transition-colors cursor-pointer"
-                     data-index="${i}"
-                     data-code="${item.code}"
-                     data-description="${item.description}">
-                  <span class="text-blue-600 font-bold mr-1">${item.code}</span>
-                  <span class="text-gray-600">- ${item.description}</span>
-                </div>`
-              ).join('')}
-            </div>
-          `;
-        },
-        (selectedElement) => {
-          // Esta função não é mais usada diretamente devido à nossa abordagem manual
-          // A manipulação será feita pelo event listener abaixo
-        }
-      );
-
-      // Adiciona manualmente listeners para os itens do dropdown
-      doencaDropdown.addEventListener('click', function(e) {
-        const doencaItem = e.target.closest('.doenca-item');
-        if (doencaItem) {
-          const code = doencaItem.dataset.code;
-          const description = doencaItem.dataset.description;
-
-          console.log('CID: Item selecionado via doença manualmente:', code, description);
-
-          // Preencher os campos
-          cidInput.value = code;
-          doencaInput.value = description;
-
-          // Adicionar classe preenchida
-          cidInput.classList.add('filled');
-          doencaInput.classList.add('filled');
-
-          // Disparar eventos
-          cidInput.dispatchEvent(new Event('change', { bubbles: true }));
-          doencaInput.dispatchEvent(new Event('change', { bubbles: true }));
-          cidInput.dispatchEvent(new Event('input', { bubbles: true }));
-          doencaInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-          // Fechar dropdown
+      // Evento para fechar dropdown quando clicar fora ou pressionar Escape
+      document.addEventListener('click', function(e) {
+        if (!cidInput.contains(e.target) && !cidDropdown.contains(e.target)) {
           cidDropdown.classList.add('hidden');
-          doencaDropdown.classList.add('hidden');
+          cidDropdown.style.display = 'none';
+        }
+      });
 
-          // Destacar campos - usando a função global padronizada
-          destacarCamposPreenchidos();
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          cidDropdown.classList.add('hidden');
+          cidDropdown.style.display = 'none';
         }
       });
     }

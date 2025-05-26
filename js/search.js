@@ -54,17 +54,15 @@ class Search {
     if (!input || !dropdown) return;
 
     // Variáveis para controle de debounce
-    let debounceTimer;
-
-    // Função para exibir dropdown
+    let debounceTimer;    // Função para exibir dropdown
     const showDropdown = (html) => {
       dropdown.innerHTML = html;
       dropdown.style.display = 'block';
-    };
-
-    // Função para ocultar dropdown
+      dropdown.classList.remove('hidden');
+    };// Função para ocultar dropdown
     const hideDropdown = () => {
       dropdown.style.display = 'none';
+      dropdown.classList.add('hidden');
     };
 
     // Configurar evento de digitação com debounce

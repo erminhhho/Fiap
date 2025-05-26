@@ -1488,15 +1488,12 @@ function addDoencaField() {
           </div>
           <div class="cid-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown${nextIndex}"></div>
         </div>
-      </div>
-
-      <!-- Doença (terceiro campo - aumentado e readonly) -->
+      </div>      <!-- Doença (terceiro campo - aumentado e readonly) -->
       <div class="relative md:col-span-10">
         <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" id="doenca${nextIndex}" placeholder="Preenchido automaticamente pelo CID" name="doencas[]" data-index="${nextIndex}" autocomplete="off" readonly>
         <label for="doenca${nextIndex}" class="input-label">
           Doença
         </label>
-        <div class="doenca-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="doencaDropdown${nextIndex}"></div>
         <div class="isento-carencia-tag hidden">Isenção de carência</div>
       </div>
 
