@@ -443,23 +443,22 @@ select option:focus {
 }
 
 /* Estilos para os selects minimalistas */
-.minimalist-select {
-  border: none !important; /* Remove a borda */
-  -webkit-appearance: none; /* Remove a aparência padrão do WebKit/Blink */
-  -moz-appearance: none; /* Remove a aparência padrão do Mozilla */
-  appearance: none; /* Remove a aparência padrão */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E"); /* Adiciona uma seta personalizada */
+/* .minimalist-select {
+  border: none !important; 
+  -webkit-appearance: none; 
+  -moz-appearance: none; 
+  appearance: none; 
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E"); 
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
   background-size: 1.5em 1.5em;
-  padding-right: 2.5rem; /* Adiciona espaço para a seta */
+  padding-right: 2.5rem; 
 }
 
-/* Remove o anel de foco padrão, já que não há borda */
 .minimalist-select:focus {
   outline: none;
   box-shadow: none;
-}
+} */
 
 /* Estilos para as opções dentro dos selects */
 select option {
