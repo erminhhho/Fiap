@@ -170,12 +170,55 @@
   z-index: 21 !important; /* Acima do container para capturar cliques */
 }
 
+/* Garantir que as opções do dropdown sejam visíveis com cores adequadas */
+select option {
+  color: #374151 !important; /* Texto preto/cinza escuro */
+  background-color: white !important; /* Fundo branco */
+}
+
+/* Estilo para hover nas opções do dropdown */
+select option:hover,
+select option:focus {
+  background-color: #f3f4f6 !important; /* Cinza claro no hover */
+  color: #111827 !important; /* Texto mais escuro no hover */
+}
+
 /* Garantir que o texto sempre apareça */
 .relationship-label {
   color: white !important;
   font-weight: 600 !important;
   font-size: 0.75rem !important;
   pointer-events: none !important; /* Permitir que cliques passem para o select */
+}
+
+/* CORREÇÃO CRÍTICA para options dos dropdowns - Máxima prioridade */
+.relationship-select select option {
+  color: #374151 !important; /* Texto escuro */
+  background-color: white !important; /* Fundo branco */
+  font-weight: normal !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  border: none !important;
+}
+
+.relationship-select select option:hover,
+.relationship-select select option:focus {
+  background-color: #e5e7eb !important; /* Cinza no hover */
+  color: #111827 !important; /* Texto mais escuro no hover */
+}
+
+/* Regras globais para todos os options em selects */
+select option {
+  color: #374151 !important; /* Texto escuro para TODOS os options */
+  background-color: white !important; /* Fundo branco */
+  font-weight: normal !important;
+  text-shadow: none !important;
+}
+
+select option:hover,
+select option:focus {
+  background-color: #e5e7eb !important; /* Cinza no hover */
+  color: #111827 !important; /* Texto mais escuro no hover */
 }
 
 /* Estilos para mensagens de status e avisos */
@@ -193,6 +236,315 @@
   box-shadow: none; /* Removido o efeito de sombra */
   margin-right: 0.5rem;
   cursor: pointer; /* Mantém apenas o cursor como mãozinha no hover */
+}
+
+/* Regras específicas para corrigir o problema de texto branco em fundo branco nos dropdowns */
+select {
+  color: #374151; /* Garante que o texto do select seja escuro por padrão */
+}
+
+select option {
+  color: #374151 !important; /* Texto cinza escuro */
+  background-color: white !important; /* Fundo branco */
+  font-weight: normal !important; /* Peso normal para as opções */
+  text-shadow: none !important; /* Evita problemas com sombras de texto */
+}
+
+select option:hover,
+select option:focus {
+  background-color: #e5e7eb !important; /* Cinza mais visível no hover */
+  color: #111827 !important; /* Texto quase preto no hover */
+}
+
+/* Tipos de tags - com menos transparência no background */
+.status-tag.success {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-tag.error {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-tag.warning {
+    background-color: rgba(234, 179, 8, 0.08);
+    color: #854d0e;
+    border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.status-tag.info {
+    background-color: rgba(33, 150, 243, 0.08);
+    color: #1976d2;
+    border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+/* Tags para validação de documentos */
+.status-tag.cpf-valid {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-tag.cpf-invalid {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-tag.cep-valid {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-tag.cep-invalid {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Tags para relacionamentos */
+.status-tag.beneficiario {
+    background-color: rgba(236, 72, 153, 0.08);
+    color: #9d174d;
+    border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+.status-tag.dependente {
+    background-color: rgba(249, 115, 22, 0.08);
+    color: #9a3412;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.status-tag.responsavel {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Estilos para o indicador de status de salvamento */
+#save-status-indicator {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+  font-size: 0.875rem;
+  transition: opacity 0.3s ease-in-out;
+}
+
+#save-status-indicator.saving {
+  background-color: rgba(246, 246, 246, 0.95);
+}
+
+#save-status-indicator.saved {
+  background-color: rgba(240, 253, 244, 0.95);
+}
+
+#save-status-indicator.error {
+  background-color: rgba(254, 242, 242, 0.95);
+}
+
+#save-status-text {
+  font-weight: 500;
+}
+
+#save-status-indicator {
+  transition: all 0.3s ease;
+  z-index: 40;
+  opacity: 0.8;
+  border: 1px solid #e5e7eb;
+}
+
+#save-status-indicator:hover {
+  opacity: 1;
+}
+
+#save-status-indicator.bg-blue-50 {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+#save-status-indicator.bg-red-50 {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* Tag para isenção de carência */
+.isento-carencia-tag {
+  position: absolute;
+  top: 0;
+  right: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 2px 10px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: not-allowed;
+  transition: none;
+  z-index: 20;
+  white-space: nowrap;
+  transform: translateY(-50%);
+  border: none;
+  color: white;
+  background: #059669 !important; /* Verde forte e meio escuro */
+}
+
+/* Estilo para destacar campos com isenção de carência */
+.isento-carencia-field {
+  border-color: #f97316 !important; /* Borda laranja sutil */
+}
+
+/* Estilos para as tags de classificação etária judicial */
+.age-classification-tag {
+  font-size: 0.75rem; /* Alterado de 0.65rem */
+  font-weight: 600;
+  padding: 2px 10px; /* Alterado de 2px 8px */
+  border-radius: 12px; /* Alterado de 9999px */
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); Removido */
+  white-space: nowrap;
+  /* user-select: none; Removido */
+  /* letter-spacing: 0.5px; Removido */
+  transition: all 0.2s ease;
+  color: white;
+}
+
+/* Cores específicas para cada tipo de classificação etária */
+.age-classification-tag[data-selected="nascituro"] {
+  background-color: #4c1d95; /* Roxo Bem Escuro */
+}
+
+.age-classification-tag[data-selected="infante"] {
+  background-color: #9d174d; /* Rosa Escuro Queimado */
+}
+
+.age-classification-tag[data-selected="impubere"] {
+  background-color: #9a3412; /* Laranja Queimado */
+}
+
+.age-classification-tag[data-selected="pubere"] {
+  background-color: #854d0e; /* Amarelo Mostarda Escuro */
+}
+
+.age-classification-tag[data-selected="rel-incapaz"] {
+  background-color: #14532d; /* Verde Musgo Escuro */
+}
+
+.age-classification-tag[data-selected="idoso"] {
+  background-color: #334155; /* Azul Ardósia */
+}
+
+.age-classification-tag[data-selected="capaz"] {
+  background-color: #075985; /* Azul Petróleo Escuro */
+}
+
+/* Estilos para os selects minimalistas */
+.minimalist-select {
+  border: none !important; /* Remove a borda */
+  -webkit-appearance: none; /* Remove a aparência padrão do WebKit/Blink */
+  -moz-appearance: none; /* Remove a aparência padrão do Mozilla */
+  appearance: none; /* Remove a aparência padrão */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E"); /* Adiciona uma seta personalizada */
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem; /* Adiciona espaço para a seta */
+}
+
+/* Remove o anel de foco padrão, já que não há borda */
+.minimalist-select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Estilos para as opções dentro dos selects */
+select option {
+  color: #374151 !important; /* Texto preto/cinza escuro */
+  background-color: white !important; /* Fundo branco */
+}
+
+/* Estilo para hover nas opções do dropdown */
+select option:hover,
+select option:focus {
+  background-color: #f3f4f6 !important; /* Cinza claro no hover */
+  color: #111827 !important; /* Texto mais escuro no hover */
+}
+
+/* Garantir que o texto sempre apareça */
+.relationship-label {
+  color: white !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  pointer-events: none !important; /* Permitir que cliques passem para o select */
+}
+
+/* CORREÇÃO CRÍTICA para options dos dropdowns - Máxima prioridade */
+.relationship-select select option {
+  color: #374151 !important; /* Texto escuro */
+  background-color: white !important; /* Fundo branco */
+  font-weight: normal !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  border: none !important;
+}
+
+.relationship-select select option:hover,
+.relationship-select select option:focus {
+  background-color: #e5e7eb !important; /* Cinza no hover */
+  color: #111827 !important; /* Texto mais escuro no hover */
+}
+
+/* Regras globais para todos os options em selects */
+select option {
+  color: #374151 !important; /* Texto escuro para TODOS os options */
+  background-color: white !important; /* Fundo branco */
+  font-weight: normal !important;
+  text-shadow: none !important;
+}
+
+select option:hover,
+select option:focus {
+  background-color: #e5e7eb !important; /* Cinza no hover */
+  color: #111827 !important; /* Texto mais escuro no hover */
+}
+
+/* Estilos para mensagens de status e avisos */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem; /* Fonte menor */
+  font-weight: 600; /* Alterado de normal !important */
+  border-radius: 12px;
+  padding: 2px 10px; /* Alterado de 0.05rem 0.6rem */
+  /* height: 1.4rem; Removido para altura automática */
+  height: auto;
+  transition: all 0.2s ease;
+  box-shadow: none; /* Removido o efeito de sombra */
+  margin-right: 0.5rem;
+  cursor: pointer; /* Mantém apenas o cursor como mãozinha no hover */
+}
+
+/* Regras específicas para corrigir o problema de texto branco em fundo branco nos dropdowns */
+select {
+  color: #374151; /* Garante que o texto do select seja escuro por padrão */
+}
+
+select option {
+  color: #374151 !important; /* Texto cinza escuro */
+  background-color: white !important; /* Fundo branco */
+  font-weight: normal !important; /* Peso normal para as opções */
+  text-shadow: none !important; /* Evita problemas com sombras de texto */
+}
+
+select option:hover,
+select option:focus {
+  background-color: #e5e7eb !important; /* Cinza mais visível no hover */
+  color: #111827 !important; /* Texto quase preto no hover */
 }
 
 /* Tipos de tags - com menos transparência no background */
