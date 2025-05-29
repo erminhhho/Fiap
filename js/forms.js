@@ -278,62 +278,12 @@ function addFamilyMember() {
 
   // Atualizar os botões de remoção
   updateRemoveMemberButton();
-
   return novoMembro;
 }
 
-// Adicionar novo participante (usado na tela de autores)
-function addAuthor() {
-  const authorsContainer = document.getElementById('authors-container');
-  if (!authorsContainer) return;
-
-  // Calcular o próximo ID de autor
-  const existentes = authorsContainer.querySelectorAll('.author-row');
-  const proximoId = existentes.length + 1;
-
-  // Clone do modelo do primeiro autor
-  const primeiroAutor = authorsContainer.querySelector('.author-row');
-  if (!primeiroAutor) return;
-
-  const novoAutor = primeiroAutor.cloneNode(true);
-
-  // Atualizar IDs e names para o novo autor
-  novoAutor.querySelectorAll('input, select').forEach(campo => {
-    if (campo.id) {
-      // Manter nome do campo e adicionar _ID
-      const baseName = campo.id.split('_')[0];
-      campo.id = baseName + '_' + proximoId;
-
-      // Se for um select de relacionamento, atualize também o handler
-      if (campo.tagName === 'SELECT' && campo.id.includes('relationship')) {
-        campo.setAttribute('onchange', `updateRelationshipLabel(this, ${proximoId})`);
-      }
-    }
-    campo.value = '';
-  });
-
-  // Atualizar labels
-  novoAutor.querySelectorAll('label').forEach(label => {
-    if (label.getAttribute('for')) {
-      const baseFor = label.getAttribute('for').split('_')[0];
-      label.setAttribute('for', baseFor + '_' + proximoId);
-    }
-  });
-
-  // Atualizar seletores de relacionamento
-  const relacionamentoSelecao = novoAutor.querySelector('.relationship-select');
-  if (relacionamentoSelecao) {
-    relacionamentoSelecao.dataset.selected = 'Dependente';
-    relacionamentoSelecao.dataset.value = 'Dependente';
-    relacionamentoSelecao.setAttribute('onclick', `toggleRelationshipTag(this)`);
-  }
-
-  // Limpar valores e adicionar ao container
-  authorsContainer.appendChild(novoAutor);
-
-  // Retornar ao início da scroll position suavemente após adicionar
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+// NOTA: A função addAuthor() foi movida para modules/personal.js
+// para ter melhor controle sobre a funcionalidade específica dos dados pessoais
+// incluindo a mudança automática de "Nascimento" para "Falecimento" quando "Instituidor" for selecionado
 
 // Função para remover o último membro da família
 function removeLastFamilyMember() {

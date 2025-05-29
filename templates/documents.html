@@ -9,10 +9,9 @@
     </div>
 
     <!-- Lista de Documentos -->
-    <div id="documentsList" class="space-y-1">
-      <!-- Campo de pesquisa centralizado com design mais compacto -->
+    <div id="documentsList" class="space-y-1">      <!-- Campo de pesquisa centralizado com design mais compacto -->
       <div class="relative mb-8 max-w-lg mx-auto">
-        <input type="text" id="documento-pesquisa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 text-base" placeholder="Digite o nome do documento para pesquisar ou adicionar...">
+        <input type="text" id="documento-pesquisa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 text-base" placeholder="Digite o nome do documento para pesquisar ou adicionar..." oninput="formatarNomeProprio(this)">
         <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
           <i class="fas fa-search"></i>
         </div>
@@ -62,11 +61,9 @@
     <!-- Ícone de informação -->
     <div class="flex-shrink-0">
       <i class="fas fa-info-circle text-blue-400 hover:text-blue-600 text-lg cursor-pointer info-documento-btn" title="Ver descrição do documento"></i>
-    </div>
-
-    <!-- Nome do documento -->
+    </div>    <!-- Nome do documento -->
     <div class="flex-grow relative">
-      <input type="text" class="nome-documento w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do documento">
+      <input type="text" class="nome-documento w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do documento" oninput="formatarNomeProprio(this)">
 
       <!-- Tags como dropdown na borda superior direita (melhor posicionado) -->
       <div class="relationship-select absolute -top-3 -right-8 z-10" data-selected="Obter" data-value="Obter" onclick="toggleDocumentStatusTag(this)">
@@ -88,11 +85,9 @@
       <button type="button" class="remover-documento bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Remover documento">
         <i class="fas fa-minus"></i>
       </button>
-    </div>
-
-    <!-- Campo de detalhes oculto (será exibido no popup) -->
+    </div>    <!-- Campo de detalhes oculto (será exibido no popup) -->
     <div class="detalhes-documento-container hidden w-0 h-0 overflow-hidden">
-      <textarea class="detalhes-documento" rows="2" placeholder="Detalhes adicionais sobre o documento..."></textarea>
+      <textarea class="detalhes-documento" rows="2" placeholder="Detalhes adicionais sobre o documento..." oninput="formatarNomeProprio(this)"></textarea>
     </div>
 
     <!-- Campo de descrição oculto para o popup de informações -->

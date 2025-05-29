@@ -342,12 +342,23 @@ function adicionarNovoDocumento(docData = null) {
         const detailsButton = clone.querySelector('.detalhes-documento-btn');
         if (detailsButton) {
             detailsButton.addEventListener('click', function() { abrirModalDetalhes(this.closest('.documento-item')); });
-        }
-        const statusSelect = clone.querySelector('.documento-status');
+        }        const statusSelect = clone.querySelector('.documento-status');
         if (statusSelect) {
             statusSelect.addEventListener('change', function() { updateDocumentStatusTag(this); });
             updateDocumentStatusTag(statusSelect); // Inicializa a tag visualmente
         }
+
+        // Adicionar formatação de nomes próprios aos campos de texto
+        const nomeDocumentoInput = clone.querySelector('.nome-documento');
+        if (nomeDocumentoInput && window.formatarNomeProprio) {
+            nomeDocumentoInput.addEventListener('input', function() { window.formatarNomeProprio(this); });
+        }
+
+        const detalhesTextarea = clone.querySelector('.detalhes-documento');
+        if (detalhesTextarea && window.formatarNomeProprio) {
+            detalhesTextarea.addEventListener('input', function() { window.formatarNomeProprio(this); });
+        }
+
         documentosContainer.appendChild(clone);
         return documentoItem;
       } else {

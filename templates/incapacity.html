@@ -110,69 +110,37 @@
           <label for="ultimoTrabalho" class="input-label">Quando trabalhou pela última vez?</label>
         </div>
       </div>
-    </div>
-
-    <!-- Limitações e Tratamentos -->
+    </div>    <!-- Limitações e Medicamentos -->
     <div>
       <div class="flex items-center justify-between gap-2 mb-4">
         <div class="flex items-center gap-2">
           <i class="fas fa-notes-medical text-blue-500 text-2xl"></i>
-          <h2 class="text-lg font-semibold text-blue-600">Limitações e Tratamentos</h2>
+          <h2 class="text-lg font-semibold text-blue-600">Limitações e Medicamentos</h2>
         </div>
         <i class="fas fa-eraser cursor-pointer text-gray-400 hover:text-red-500 text-xl transition" title="Limpar seção" onclick="showClearConfirmation(event, 'limitacoes')"></i>
-      </div>      <!-- Limitações, Tratamentos e Medicamentos - Grid com 3 colunas -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">        <!-- Limitações do dia a dia -->
+      </div><!-- Limitações e Medicamentos - Grid com 2 colunas -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Limitações do dia a dia - Nova implementação pesquisável -->
         <div class="relative">
-          <select id="limitacoesDiarias" name="limitacoesDiarias" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
-            <option value="" selected disabled>Selecione...</option>
-            <option value="dificuldade_caminhar">Dificuldade para caminhar</option>
-            <option value="dor_costas">Dores nas costas</option>
-            <option value="dor_articulacoes">Dores nas articulações</option>
-            <option value="fadiga_cansaco">Fadiga/cansaço constante</option>
-            <option value="dor_ficar_sentado">Dores ao ficar sentado</option>
-            <option value="dor_ficar_pe">Dores ao ficar em pé</option>
-            <option value="dificuldade_levantar_peso">Dificuldade para levantar peso</option>
-            <option value="problemas_concentracao">Problemas de concentração</option>
-            <option value="dificuldade_memoria">Dificuldade de memória</option>
-            <option value="dor_cabeca">Dores de cabeça frequentes</option>
-            <option value="problemas_sono">Problemas para dormir</option>
-            <option value="dificuldade_equilibrio">Dificuldade de equilíbrio</option>
-            <option value="limitacao_movimento_bracos">Limitação de movimento dos braços</option>
-            <option value="limitacao_movimento_pernas">Limitação de movimento das pernas</option>
-            <option value="ansiedade_stress">Ansiedade/estresse</option>
-            <option value="depressao">Sintomas depressivos</option>
-            <option value="falta_ar">Falta de ar/dificuldade respiratória</option>
-            <option value="tontura_vertigem">Tontura/vertigem</option>
-          </select>
-          <label for="limitacoesDiarias" class="input-label">
-            Limitações diárias
-          </label>
-        </div>        <!-- Tratamentos realizados -->
-        <div class="relative">
-          <select id="tratamentosRealizados" name="tratamentosRealizados" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
-            <option value="" selected disabled>Selecione...</option>
-            <option value="fisioterapia">Fisioterapia</option>
-            <option value="cirurgia_realizada">Cirurgia realizada</option>
-            <option value="ortopedista">Consultas com ortopedista</option>
-            <option value="neurologista">Consultas com neurologista</option>
-            <option value="psiquiatra">Consultas com psiquiatra</option>
-            <option value="psicologo">Acompanhamento psicológico</option>
-            <option value="cardiologista">Consultas com cardiologista</option>
-            <option value="clinico_geral">Consultas com clínico geral</option>
-            <option value="acupuntura">Acupuntura</option>
-            <option value="rpg">RPG (Reeducação Postural Global)</option>
-            <option value="hidroginastica">Hidroginástica</option>
-            <option value="pilates">Pilates terapêutico</option>
-            <option value="terapia_ocupacional">Terapia ocupacional</option>
-            <option value="fonoaudiologia">Fonoaudiologia</option>
-            <option value="quimioterapia">Quimioterapia</option>
-            <option value="radioterapia">Radioterapia</option>
-            <option value="hemodialise">Hemodiálise</option>
-          </select>
-          <label for="tratamentosRealizados" class="input-label">
-            Tratamentos realizados
-          </label>
-        </div>        <!-- Medicamentos atuais -->
+          <div class="limitacoes-container">
+            <input type="text" id="limitacoesInput" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Digite para buscar limitações..." autocomplete="off">
+            <label for="limitacoesInput" class="input-label">
+              Limitações diárias
+            </label>
+            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+              <i class="fas fa-search"></i>
+            </div>
+            <div id="limitacoesDropdown" class="hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto"></div>
+          </div>
+
+          <!-- Container para tags das limitações selecionadas -->
+          <div id="limitacoesSelecionadas" class="mt-3 flex flex-wrap gap-2"></div>
+
+          <!-- Campo hidden para envio dos dados -->
+          <input type="hidden" id="limitacoesDiarias" name="limitacoesDiarias" value="">
+        </div>
+
+        <!-- Medicamentos atuais - Lista limpa com opção "Outro" -->
         <div class="relative">
           <select id="medicamentosAtuais" name="medicamentosAtuais" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
             <option value="" selected disabled>Selecione...</option>
@@ -181,19 +149,12 @@
             <option value="relaxante_muscular">Relaxante muscular</option>
             <option value="antidepressivo">Para depressão</option>
             <option value="ansiolitico">Para ansiedade</option>
-            <option value="anticonvulsivante">Para convulsões</option>
             <option value="para_dormir">Para dormir</option>
             <option value="para_pressao">Para pressão alta</option>
             <option value="para_diabetes">Para diabetes</option>
             <option value="para_coracao">Para problemas cardíacos</option>
-            <option value="anticoagulante">Anticoagulante</option>
-            <option value="vitaminas">Vitaminas/suplementos</option>
-            <option value="antibiotico">Antibiótico</option>
-            <option value="corticoide">Corticoide</option>
-            <option value="opioides">Opioides (dor forte)</option>
-            <option value="quimioterapico">Quimioterápico</option>
             <option value="insulina">Insulina</option>
-            <option value="broncodilatador">Para problemas respiratórios</option>
+            <option value="outro">Outro</option>
           </select>
           <label for="medicamentosAtuais" class="input-label">
             Medicamentos por função
@@ -218,6 +179,33 @@
     </button>
     <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="btn-next">
       Próximo <i class="fas fa-arrow-right"></i>
-    </button>
-  </div>
+    </button>  </div>
 </form>
+
+<!-- Modal para Outro Medicamento -->
+<div id="outroMedicamentoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg p-6 w-96 max-w-full mx-4">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-800">Especificar Medicamento</h3>
+      <button type="button" onclick="closeOutroMedicamentoModal()" class="text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="mb-4">
+      <label for="outroMedicamentoInput" class="block text-sm font-medium text-gray-700 mb-2">
+        Nome do medicamento ou função:
+      </label>
+      <input type="text" id="outroMedicamentoInput" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3" placeholder="Ex: Remédio para enxaqueca">
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <button type="button" onclick="closeOutroMedicamentoModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+        Cancelar
+      </button>
+      <button type="button" onclick="saveOutroMedicamento()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        Adicionar
+      </button>
+    </div>
+  </div>
+</div>

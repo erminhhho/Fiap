@@ -1449,10 +1449,444 @@ function showIsencaoCarenciaModal() {
   });
 }
 
-// Exportar funções para o escopo global
-if (typeof window !== 'undefined') {
-  window.showOutroDocumentoModal = showOutroDocumentoModal;
-  window.handleSaveOutroDocumento = handleSaveOutroDocumento;
-  window.handleCancelOutroDocumento = handleCancelOutroDocumento;
-  window.showIsencaoCarenciaModal = showIsencaoCarenciaModal;
+// Lista de limitações populares organizadas por categoria para autocomplete
+if (typeof window.limitacoesComuns === 'undefined') {
+  window.limitacoesComuns = [
+    // Limitações de mobilidade (12 itens)
+    'Dificuldade para caminhar',
+    'Não consegue caminhar',
+    'Usa cadeira de rodas',
+    'Usa muletas',
+    'Dificuldade para subir escadas',
+    'Não consegue subir escadas',
+    'Dificuldade para se levantar',
+    'Não consegue se levantar',
+    'Dificuldade para se abaixar',
+    'Não consegue se abaixar',
+    'Limitação para ficar em pé',
+    'Limitação para sentar',
+
+    // Limitações de movimentos das mãos/braços (8 itens)
+    'Dificuldade para pegar objetos',
+    'Não consegue pegar objetos',
+    'Dificuldade para escrever',
+    'Não consegue escrever',
+    'Limitação nos movimentos dos braços',
+    'Limitação nos movimentos das mãos',
+    'Dificuldade para fazer força',
+    'Tremores nas mãos',
+
+    // Limitações cognitivas/mentais (9 itens)
+    'Dificuldade de concentração',
+    'Problemas de memória',
+    'Dificuldade para aprender',
+    'Confusão mental',
+    'Desorientação',
+    'Dificuldade para tomar decisões',
+    'Ansiedade limitante',
+    'Depressão incapacitante',
+    'Transtorno mental',
+
+    // Limitações visuais (7 itens)
+    'Cegueira total',
+    'Cegueira parcial',
+    'Baixa visão',
+    'Dificuldade para enxergar',
+    'Visão embaçada',
+    'Sensibilidade à luz',
+    'Campo visual reduzido',
+
+    // Limitações auditivas (4 itens)
+    'Surdez total',
+    'Surdez parcial',
+    'Dificuldade para ouvir',
+    'Zumbido no ouvido',
+
+    // Limitações respiratórias (5 itens)
+    'Falta de ar',
+    'Dificuldade para respirar',
+    'Cansaço fácil',
+    'Limitação para exercícios',
+    'Uso de oxigênio',
+
+    // Limitações de autocuidado (5 itens)
+    'Dificuldade para se vestir',
+    'Dificuldade para tomar banho',
+    'Dificuldade para comer',
+    'Dificuldade para usar banheiro',
+    'Necessita de cuidador',
+
+    // Limitações de dor (6 itens)
+    'Dor crônica',
+    'Dor constante',
+    'Dor limitante',
+    'Dor nas costas',
+    'Dor nas articulações',
+    'Dor de cabeça frequente',
+
+    // Outras limitações (9 itens)
+    'Limitação para trabalhar',
+    'Limitação para dirigir',
+    'Limitação para atividades domésticas',
+    'Limitação para estudar',
+    'Isolamento social',
+    'Dependência de medicamentos',
+    'Limitação para viajar',
+    'Limitação para atividades de lazer',
+    'Outras limitações funcionais'
+  ];
 }
+
+// Função para buscar limitações
+window.buscarLimitacoes = function(query) {
+  return new Promise(resolve => {
+    const resultados = window.limitacoesComuns.filter(l =>
+      l.toLowerCase().includes(query.toLowerCase())
+    );
+    resolve(resultados);
+  });
+};
+
+// Função para configurar o sistema de limitações diárias
+function setupLimitacoesDiarias() {
+  const input = document.getElementById('limitacoesInput');
+  const dropdown = document.getElementById('limitacoesDropdown');
+  const containerSelecionadas = document.getElementById('limitacoesSelecionadas');
+  const hiddenField = document.getElementById('limitacoesDiarias');
+
+  if (!input || !dropdown || !containerSelecionadas || !hiddenField) {
+    console.log('[incapacity.js] Elementos de limitações não encontrados no template atual');
+    return;
+  }
+
+  console.log('[incapacity.js] Configurando sistema de limitações diárias...');
+
+  let limitacoesSelecionadas = [];
+  let debounceTimer;
+
+  // Função para renderizar resultados do dropdown
+  function renderizarLimitacoes(resultados) {
+    dropdown.innerHTML = '';
+    if (!resultados.length) {
+      dropdown.classList.add('hidden');
+      return;
+    }
+
+    resultados.forEach(limitacao => {
+      // Não mostrar limitações já selecionadas
+      if (limitacoesSelecionadas.includes(limitacao)) return;
+
+      const item = document.createElement('div');
+      item.className = 'dropdown-item px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0';
+      item.textContent = limitacao;
+
+      item.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        adicionarLimitacao(limitacao);
+        input.value = '';
+        dropdown.classList.add('hidden');
+      });
+
+      dropdown.appendChild(item);
+    });
+
+    dropdown.classList.remove('hidden');
+  }
+
+  // Função para adicionar limitação selecionada
+  function adicionarLimitacao(limitacao) {
+    if (limitacoesSelecionadas.includes(limitacao)) return;
+
+    limitacoesSelecionadas.push(limitacao);
+    atualizarTagsVisuais();
+    atualizarCampoHidden();
+
+    console.log('[incapacity.js] Limitação adicionada:', limitacao);
+    console.log('[incapacity.js] Total selecionadas:', limitacoesSelecionadas.length);
+  }
+
+  // Função para remover limitação
+  function removerLimitacao(limitacao) {
+    const index = limitacoesSelecionadas.indexOf(limitacao);
+    if (index > -1) {
+      limitacoesSelecionadas.splice(index, 1);
+      atualizarTagsVisuais();
+      atualizarCampoHidden();
+
+      console.log('[incapacity.js] Limitação removida:', limitacao);
+      console.log('[incapacity.js] Total selecionadas:', limitacoesSelecionadas.length);
+    }
+  }
+
+  // Função para atualizar as tags visuais
+  function atualizarTagsVisuais() {
+    containerSelecionadas.innerHTML = '';
+
+    if (limitacoesSelecionadas.length === 0) {
+      containerSelecionadas.innerHTML = '<p class="text-gray-500 text-sm italic">Nenhuma limitação selecionada</p>';
+      return;
+    }
+
+    limitacoesSelecionadas.forEach(limitacao => {
+      const tag = document.createElement('div');
+      tag.className = 'inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mr-2 mb-2';
+      tag.innerHTML = `
+        <span class="mr-2">${limitacao}</span>
+        <button type="button" class="text-blue-600 hover:text-blue-800 focus:outline-none" title="Remover limitação">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      `;
+
+      // Configurar botão de remover
+      const removeBtn = tag.querySelector('button');
+      removeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        removerLimitacao(limitacao);
+      });
+
+      containerSelecionadas.appendChild(tag);
+    });
+  }
+
+  // Função para atualizar o campo hidden
+  function atualizarCampoHidden() {
+    hiddenField.value = limitacoesSelecionadas.join('|');
+
+    // Disparar evento change para o formStateManager
+    hiddenField.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  // Função para carregar limitações salvas
+  function carregarLimitacoesSalvas() {
+    const valorSalvo = hiddenField.value;
+    if (valorSalvo && valorSalvo.trim() !== '') {
+      limitacoesSelecionadas = valorSalvo.split('|').filter(l => l.trim() !== '');
+      atualizarTagsVisuais();
+      console.log('[incapacity.js] Limitações carregadas:', limitacoesSelecionadas);
+    }
+  }
+
+  // Configurar eventos do input
+  input.addEventListener('input', function() {
+    const query = this.value.trim();
+    clearTimeout(debounceTimer);
+
+    if (!query || query.length < 2) {
+      dropdown.classList.add('hidden');
+      return;
+    }
+
+    debounceTimer = setTimeout(async () => {
+      try {
+        const resultados = await window.buscarLimitacoes(query);
+        renderizarLimitacoes(resultados);
+      } catch (error) {
+        console.error('[incapacity.js] Erro ao buscar limitações:', error);
+        dropdown.classList.add('hidden');
+      }
+    }, 250);
+  });
+
+  // Navegação com teclado
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !dropdown.classList.contains('hidden')) {
+      e.preventDefault();
+      const firstItem = dropdown.querySelector('.dropdown-item');
+      if (firstItem) firstItem.dispatchEvent(new MouseEvent('mousedown'));
+    }
+  });
+
+  // Fechar dropdown ao clicar fora
+  document.addEventListener('mousedown', function(event) {
+    if (!dropdown.contains(event.target) &&
+        event.target !== input &&
+        !containerSelecionadas.contains(event.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // Carregar limitações salvas ao inicializar
+  carregarLimitacoesSalvas();
+
+  // Expor funções para uso externo
+  window.adicionarLimitacao = adicionarLimitacao;
+  window.removerLimitacao = removerLimitacao;
+  window.carregarLimitacoesSalvas = carregarLimitacoesSalvas;
+
+  console.log('[incapacity.js] Sistema de limitações diárias configurado com sucesso!');
+}
+
+// Função para configurar o modal "Outro Medicamento"
+function setupOutroMedicamentoModal() {
+  // Configurar listener para o select de medicamentos
+  document.addEventListener('change', function(event) {
+    if (event.target.id === 'medicamentos' && event.target.value === 'outro') {
+      showOutroMedicamentoModal();
+    }
+  });
+}
+
+// Função para mostrar o modal "Outro Medicamento"
+function showOutroMedicamentoModal() {
+  const conteudoModal = `
+    <div class="space-y-4">
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">
+          Nome do Medicamento
+        </label>
+        <input type="text" id="novoMedicamentoInput"
+               class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200"
+               placeholder="Digite o nome do medicamento">
+      </div>
+
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p class="text-sm text-blue-800">
+          <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+          Digite o nome completo do medicamento. Ele será adicionado à lista de opções.
+        </p>
+      </div>
+    </div>
+  `;
+
+  window.showGenericModal({
+    title: 'Adicionar Outro Medicamento',
+    message: '',
+    content: conteudoModal,
+    buttons: [
+      {
+        text: 'Cancelar',
+        className: 'flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center',
+        onclick: function() {
+          handleCancelOutroMedicamento();
+        }
+      },
+      {
+        text: 'Salvar',
+        className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
+        onclick: function() {
+          handleSaveOutroMedicamento();
+        }
+      }
+    ]
+  });
+
+  // Focar no input após o modal abrir
+  setTimeout(() => {
+    const input = document.getElementById('novoMedicamentoInput');
+    if (input) {
+      input.focus();
+
+      // Configurar formatação de nome próprio
+      input.addEventListener('input', function() {
+        formatarNomeProprioModal(this);
+      });
+
+      // Salvar com Enter
+      input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleSaveOutroMedicamento();
+        }
+      });
+    }
+  }, 100);
+}
+
+// Função para lidar com o cancelamento do modal de medicamento
+function handleCancelOutroMedicamento() {
+  const medicamentosSelect = document.getElementById('medicamentos');
+  if (medicamentosSelect) {
+    medicamentosSelect.value = '';
+  }
+  window.closeGenericModal();
+}
+
+// Função para lidar com o salvamento do modal de medicamento
+function handleSaveOutroMedicamento() {
+  const input = document.getElementById('novoMedicamentoInput');
+  const medicamentosSelect = document.getElementById('medicamentos');
+
+  if (!input || !medicamentosSelect) {
+    console.error('[incapacity.js] Elementos não encontrados no modal de medicamento');
+    return;
+  }
+
+  const novoMedicamento = input.value.trim();
+
+  if (!novoMedicamento) {
+    input.focus();
+    input.classList.add('border-red-300', 'focus:border-red-600');
+    setTimeout(() => {
+      input.classList.remove('border-red-300', 'focus:border-red-600');
+    }, 3000);
+    return;
+  }
+
+  // Verificar se não é uma opção padrão
+  if (isDefaultMedicamentoOption(novoMedicamento.toLowerCase())) {
+    input.focus();
+    input.classList.add('border-yellow-300', 'focus:border-yellow-600');
+    setTimeout(() => {
+      input.classList.remove('border-yellow-300', 'focus:border-yellow-600');
+    }, 3000);
+    return;
+  }
+
+  // Adicionar nova opção ao select
+  const novaOpcao = document.createElement('option');
+  novaOpcao.value = novoMedicamento.toLowerCase().replace(/\s+/g, '_');
+  novaOpcao.textContent = novoMedicamento;
+  novaOpcao.selected = true;
+
+  // Inserir antes da opção "Outro"
+  const opcaoOutro = medicamentosSelect.querySelector('option[value="outro"]');
+  if (opcaoOutro) {
+    medicamentosSelect.insertBefore(novaOpcao, opcaoOutro);
+  } else {
+    medicamentosSelect.appendChild(novaOpcao);
+  }
+
+  // Disparar evento change
+  medicamentosSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+  console.log('[incapacity.js] Novo medicamento adicionado:', novoMedicamento);
+
+  window.closeGenericModal();
+}
+
+// Função auxiliar para verificar se um medicamento é uma das opções padrão
+function isDefaultMedicamentoOption(value) {
+  const defaultOptions = [
+    'analgesicos', 'anti-inflamatorios', 'antidepressivos', 'ansiolíticos',
+    'anticonvulsivantes', 'relaxantes_musculares', 'corticoides',
+    'medicamentos_cardiovasculares', 'hipnoticos', 'antipsicoticos', 'outros'
+  ];
+  return defaultOptions.includes(value.toLowerCase().replace(/\s+/g, '_'));
+}
+
+// Função para inicializar as novas funcionalidades de limitações e medicamentos
+function initializeLimitacoesAndMedicamentos() {
+  // Configurar sistema de limitações diárias
+  setupLimitacoesDiarias();
+
+  // Configurar modal de "Outro Medicamento"
+  setupOutroMedicamentoModal();
+
+  console.log('[incapacity.js] Sistemas de limitações e medicamentos configurados');
+}
+
+// Inicializar as funcionalidades quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', function() {
+  // Aguardar um pouco para garantir que outros scripts foram carregados
+  setTimeout(function() {
+    initializeLimitacoesAndMedicamentos();
+  }, 100);
+});
+
+// Expor funções globalmente para uso no modal
+window.showOutroMedicamentoModal = showOutroMedicamentoModal;
+window.handleCancelOutroMedicamento = handleCancelOutroMedicamento;
+window.handleSaveOutroMedicamento = handleSaveOutroMedicamento;
+
+// Exportar funções para o escopo global

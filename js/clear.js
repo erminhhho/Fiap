@@ -64,12 +64,10 @@ window.executeClearSection = function(section) {
       if (formData.duracao) {
         formData.duracao.trabalhaAtualmente = '';
         formData.duracao.ultimoTrabalho = '';
-      }
-    } else if (section === 'limitacoes') {
+      }    } else if (section === 'limitacoes') {
       // Limpar limitações
       if (formData.limitacoes) {
         formData.limitacoes.limitacoesDiarias = '';
-        formData.limitacoes.tratamentosRealizados = '';
         formData.limitacoes.medicamentosAtuais = '';
       }
     } else if (section === 'atividades') {
@@ -135,9 +133,27 @@ window.executeClearSection = function(section) {
         input.value = '';
       });
     } else if (section === 'duracao') {
-      fields = ['trabalhaAtualmente', 'ultimoTrabalho'];
-    } else if (section === 'limitacoes') {
-      fields = ['limitacoesDiarias', 'tratamentosRealizados', 'medicamentosAtuais'];
+      fields = ['trabalhaAtualmente', 'ultimoTrabalho'];    } else if (section === 'limitacoes') {
+      // Limpar limitações múltiplas selecionadas
+      const limitacoesSelecionadas = document.getElementById('limitacoesSelecionadas');
+      if (limitacoesSelecionadas) {
+        limitacoesSelecionadas.innerHTML = '';
+      }
+
+      // Limpar input de busca
+      const limitacoesInput = document.getElementById('limitacoesInput');
+      if (limitacoesInput) {
+        limitacoesInput.value = '';
+      }
+
+      // Resetar dropdown
+      const limitacoesDropdown = document.getElementById('limitacoesDropdown');
+      if (limitacoesDropdown) {
+        limitacoesDropdown.style.display = 'none';
+        limitacoesDropdown.innerHTML = '';
+      }
+
+      fields = ['limitacoesDiarias', 'medicamentosAtuais'];
     } else if (section === 'atividades') {
       // Limpar campos nas linhas de atividades, mas não remover as linhas
       const atividadesInputs = document.querySelectorAll('#atividadesList input, #atividadesList select, #atividadesList textarea');

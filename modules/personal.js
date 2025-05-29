@@ -420,28 +420,79 @@ function updateRelationshipLabel(selectElement, authorId) {
 
 // Função para alterar o label do campo de nascimento quando "Instituidor" for selecionado
 function updateBirthDeathLabel(selectElement, selectedValue) {
+  console.log('[Personal] updateBirthDeathLabel: Iniciando com', { selectedValue });
+
   // Encontrar o autor container (pode ser #author-1, #author-2, etc.)
   const authorContainer = selectElement.closest('.author-row');
-  if (!authorContainer) return;
+  if (!authorContainer) {
+    console.warn('[Personal] updateBirthDeathLabel: Container do autor não encontrado');
+    return;
+  }
 
   // Encontrar o campo de nascimento e seu label dentro deste autor
   const birthInput = authorContainer.querySelector('input[name="autor_nascimento[]"]');
-  const birthLabel = authorContainer.querySelector('label[for*="nascimento"]');
 
-  if (!birthInput || !birthLabel) return;
+  // Buscar o label de múltiplas formas para garantir compatibilidade
+  let birthLabel = null;
+
+  // 1. Buscar pelo atributo for que contém "nascimento"
+  birthLabel = authorContainer.querySelector('label[for*="nascimento"]');
+
+  // 2. Se não encontrou, buscar por classe input-label próximo ao campo de nascimento
+  if (!birthLabel && birthInput) {
+    const parentDiv = birthInput.parentElement;
+    birthLabel = parentDiv.querySelector('label.input-label') || parentDiv.querySelector('label');
+  }
+
+  // 3. Se ainda não encontrou, buscar pelo texto do label
+  if (!birthLabel) {
+    const labels = authorContainer.querySelectorAll('label');
+    birthLabel = Array.from(labels).find(label =>
+      label.textContent.trim().includes('Nascimento') ||
+      label.textContent.trim().includes('Falecimento')
+    );
+  }
+
+  // 4. Último recurso: buscar qualquer label no container do input de nascimento
+  if (!birthLabel && birthInput) {
+    const inputContainer = birthInput.closest('.relative') || birthInput.parentElement;
+    birthLabel = inputContainer.querySelector('label');
+  }
+
+  if (!birthInput || !birthLabel) {
+    console.warn('[Personal] updateBirthDeathLabel: Campo de nascimento ou label não encontrado', {
+      authorContainer: authorContainer.id,
+      birthInput: !!birthInput,
+      birthLabel: !!birthLabel,
+      availableLabels: authorContainer.querySelectorAll('label').length
+    });
+    return;
+  }
 
   // Se "Instituidor" for selecionado, mudar para "Falecimento"
   if (selectedValue === 'Instituidor') {
     birthLabel.textContent = 'Falecimento';
-    birthInput.placeholder = 'dd/mm/aaaa';
-    // Adicionar uma classe ou atributo para identificar que este campo agora é de falecimento
+    // Adicionar uma classe para facilitar identificação posterior
+    birthLabel.classList.add('death-label');
+    birthLabel.classList.remove('birth-label');
+    // Adicionar atributo ao input para identificar que este campo agora é de falecimento
     birthInput.setAttribute('data-field-type', 'death');
+    birthInput.setAttribute('data-original-placeholder', birthInput.placeholder);
+    console.log('[Personal] Label alterado para "Falecimento" no autor', authorContainer.id || 'sem ID');
   } else {
     // Para qualquer outra opção, voltar para "Nascimento"
     birthLabel.textContent = 'Nascimento';
-    birthInput.placeholder = 'dd/mm/aaaa';
-    // Remover o atributo de falecimento
+    // Restaurar classes originais
+    birthLabel.classList.add('birth-label');
+    birthLabel.classList.remove('death-label');
+    // Remover atributos de falecimento
     birthInput.removeAttribute('data-field-type');
+    const originalPlaceholder = birthInput.getAttribute('data-original-placeholder');
+    if (originalPlaceholder) {
+      birthInput.placeholder = originalPlaceholder;
+      birthInput.removeAttribute('data-original-placeholder');
+    }
+    console.log('[Personal] Label alterado para "Nascimento" no autor', authorContainer.id || 'sem ID');
   }
 }
 
@@ -478,12 +529,13 @@ function applyRelationshipStyles() {
       }
       // Importante: Atualizar o valor do select para que o estado salvo reflita o padrão aplicado.
       select.value = valueToApply;
-    }
-
-    // Aplicar a classe inicialmente com base na opção selecionada ou no valor deduzido
+    }    // Aplicar a classe inicialmente com base na opção selecionada ou no valor deduzido
     container.setAttribute('data-selected', valueToApply);
     // data-value é usado para o texto da tag via CSS ::after, então deve refletir o valor selecionado.
     container.setAttribute('data-value', valueToApply);
+
+    // Aplicar a funcionalidade de mudança de label baseada no valor inicial
+    updateBirthDeathLabel(select, valueToApply);
 
     // Remover estilos inline que possam estar causando conflitos
     container.removeAttribute('style');
@@ -499,6 +551,8 @@ function applyRelationshipStyles() {
           currentContainer.setAttribute('data-selected', newValue);
           currentContainer.setAttribute('data-value', newValue);
         }
+        // Aplicar também a mudança de label quando o valor muda
+        updateBirthDeathLabel(this, newValue);
       });
     }
   });
@@ -518,6 +572,7 @@ function applyRelationshipStyles() {
 window.removeLastAuthor = removeLastAuthor;
 window.removeSpecificAuthor = removeSpecificAuthor;
 window.updateRelationshipLabel = updateRelationshipLabel;
+window.updateBirthDeathLabel = updateBirthDeathLabel;
 window.toggleRelationshipTag = toggleRelationshipTag;
 
 // Array de colaboradores pré-cadastrados para demonstração
