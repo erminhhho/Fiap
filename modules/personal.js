@@ -459,6 +459,29 @@ function updateBirthDeathLabel(selectElement, selectedValue) {
     birthLabel = inputContainer.querySelector('label');
   }
 
+  // Encontrar o campo de idade e seu label dentro deste autor
+  const ageInput = authorContainer.querySelector('input[name="autor_idade[]"]');
+  let ageLabel = null;
+
+  // Buscar o label do campo idade de múltiplas formas
+  if (ageInput) {
+    // 1. Buscar pelo atributo for que contém "idade"
+    ageLabel = authorContainer.querySelector('label[for*="idade"]');
+
+    // 2. Se não encontrou, buscar por classe input-label próximo ao campo de idade
+    if (!ageLabel) {
+      const parentDiv = ageInput.parentElement;
+      ageLabel = parentDiv.querySelector('label.input-label') || parentDiv.querySelector('label');
+    }    // 3. Se ainda não encontrou, buscar pelo texto do label
+    if (!ageLabel) {
+      const labels = authorContainer.querySelectorAll('label');
+      ageLabel = Array.from(labels).find(label =>
+        label.textContent.trim().includes('Idade') ||
+        label.textContent.trim().includes('Óbito')
+      );
+    }
+  }
+
   if (!birthInput || !birthLabel) {
     console.warn('[Personal] updateBirthDeathLabel: Campo de nascimento ou label não encontrado', {
       authorContainer: authorContainer.id,
@@ -477,7 +500,17 @@ function updateBirthDeathLabel(selectElement, selectedValue) {
     birthLabel.classList.remove('birth-label');
     // Adicionar atributo ao input para identificar que este campo agora é de falecimento
     birthInput.setAttribute('data-field-type', 'death');
-    birthInput.setAttribute('data-original-placeholder', birthInput.placeholder);
+    birthInput.setAttribute('data-original-placeholder', birthInput.placeholder);    // Modificar o campo de idade para mostrar "Óbito"
+    if (ageInput && ageLabel) {
+      ageLabel.textContent = 'Óbito';
+      ageLabel.classList.add('death-time-label');
+      ageLabel.classList.remove('age-label');
+      ageInput.setAttribute('data-field-type', 'death-time');
+
+      // Adicionar tag "Falecido" no campo de idade
+      addDeathTag(ageInput);
+    }
+
     console.log('[Personal] Label alterado para "Falecimento" no autor', authorContainer.id || 'sem ID');
   } else {
     // Para qualquer outra opção, voltar para "Nascimento"
@@ -492,7 +525,98 @@ function updateBirthDeathLabel(selectElement, selectedValue) {
       birthInput.placeholder = originalPlaceholder;
       birthInput.removeAttribute('data-original-placeholder');
     }
+
+    // Restaurar o campo de idade para "Idade" normal
+    if (ageInput && ageLabel) {
+      ageLabel.textContent = 'Idade';
+      ageLabel.classList.add('age-label');
+      ageLabel.classList.remove('death-time-label');
+      ageInput.removeAttribute('data-field-type');
+
+      // Remover tag "Falecido" do campo de idade
+      removeDeathTag(ageInput);
+    }
+
     console.log('[Personal] Label alterado para "Nascimento" no autor', authorContainer.id || 'sem ID');
+  }
+}
+
+// Função para adicionar tag "Falecido" no campo de idade
+function addDeathTag(ageInput) {
+  if (!ageInput) return;
+
+  const parentElement = ageInput.parentElement;
+  if (!parentElement) return;
+
+  // Verificar se já existe uma tag de falecimento
+  const existingDeathTag = parentElement.querySelector('.death-tag');
+  if (existingDeathTag) return;
+
+  // Remover tag de classificação etária existente (ex: "Capaz", "Idoso", etc.)
+  const existingAgeTag = parentElement.querySelector('.age-classification-tag');
+  if (existingAgeTag) {
+    existingAgeTag.remove();
+  }
+
+  // Criar a tag "Falecido"
+  const deathTag = document.createElement('span');
+  deathTag.className = 'death-tag relationship-tag';
+  deathTag.setAttribute('data-value', 'deceased');
+  deathTag.setAttribute('data-selected', 'deceased');
+  deathTag.innerText = 'Falecido';
+  deathTag.title = 'Pessoa falecida - Instituidor de benefício';
+
+  // Estilo da tag (seguindo o padrão das tags de relacionamento)
+  deathTag.style.position = 'absolute';
+  deathTag.style.right = '0.5rem';
+  deathTag.style.top = '0';
+  deathTag.style.transform = 'translateY(-50%)';
+  deathTag.style.zIndex = '10';
+  deathTag.style.backgroundColor = '#6B7280'; // Cor cinza para falecido
+  deathTag.style.color = 'white';
+  deathTag.style.padding = '0.125rem 0.375rem';
+  deathTag.style.borderRadius = '0.375rem';
+  deathTag.style.fontSize = '0.75rem';
+  deathTag.style.fontWeight = '500';
+
+  // Garantir posicionamento relativo no container
+  parentElement.style.position = 'relative';
+
+  // Adicionar a tag ao container
+  parentElement.appendChild(deathTag);
+
+  console.log('[Personal] Tag "Falecido" adicionada ao campo de idade');
+}
+
+// Função para remover tag "Falecido" do campo de idade
+function removeDeathTag(ageInput) {
+  if (!ageInput) return;
+
+  const parentElement = ageInput.parentElement;
+  if (!parentElement) return;
+
+  // Remover tag de falecimento
+  const existingDeathTag = parentElement.querySelector('.death-tag');
+  if (existingDeathTag) {
+    existingDeathTag.remove();
+    console.log('[Personal] Tag "Falecido" removida do campo de idade');
+  }
+
+  // Se o campo de idade tiver um valor válido, recriar a tag de classificação etária
+  if (ageInput.value && ageInput.value.includes('anos') && window.FIAP && FIAP.calculation) {
+    const ageText = ageInput.value;
+    const anosMatch = ageText.match(/(\d+)\s*anos/);
+    const mesesMatch = ageText.match(/(\d+)\s*meses/);
+
+    if (anosMatch) {
+      const anos = parseInt(anosMatch[1], 10);
+      const meses = mesesMatch ? parseInt(mesesMatch[1], 10) : 0;
+
+      // Pequeno delay para garantir que a tag foi removida antes de adicionar a nova
+      setTimeout(() => {
+        FIAP.calculation.addAgeClassificationTag(anos, meses, ageInput);
+      }, 50);
+    }
   }
 }
 
@@ -574,6 +698,8 @@ window.removeSpecificAuthor = removeSpecificAuthor;
 window.updateRelationshipLabel = updateRelationshipLabel;
 window.updateBirthDeathLabel = updateBirthDeathLabel;
 window.toggleRelationshipTag = toggleRelationshipTag;
+window.addDeathTag = addDeathTag;
+window.removeDeathTag = removeDeathTag;
 
 // Array de colaboradores pré-cadastrados para demonstração
 window.colaboradores = [

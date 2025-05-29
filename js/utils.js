@@ -217,8 +217,7 @@ FIAP.validation = {
 /**
  * Módulo de cálculos e operações com dados
  */
-FIAP.calculation = {
-  /**
+FIAP.calculation = {  /**
    * Calcula idade a partir da data de nascimento
    * @param {string} dataNascimento - Data de nascimento no formato DD/MM/YYYY
    * @param {string} idadeElementId - ID do elemento para exibir a idade
@@ -261,7 +260,12 @@ FIAP.calculation = {
       // Verificar se a data não é futura
       const hoje = new Date();
       const dataNascimentoFormatada = new Date(year, month - 1, day);
-      if (dataNascimentoFormatada > hoje) {
+
+      // Buscar o campo de nascimento correspondente para verificar se é um campo de falecimento
+      const birthInput = document.querySelector(`input[data-target-age="${idadeElementId}"]`);
+      const isDeathField = birthInput && birthInput.getAttribute('data-field-type') === 'death';
+
+      if (!isDeathField && dataNascimentoFormatada > hoje) {
         idadeInput.value = "Data no futuro";
         idadeInput.classList.add('field-invalid');
         // Remover tag existente
@@ -271,11 +275,12 @@ FIAP.calculation = {
         return;
       }
 
-      // Verificar se a data não é muito antiga (limite de 120 anos)
+      // Verificar se a data não é muito antiga (limite de 120 anos para nascimento, 200 anos para falecimento)
       const limiteIdade = new Date();
-      limiteIdade.setFullYear(hoje.getFullYear() - 120);
+      const limitMaximo = isDeathField ? 200 : 120;
+      limiteIdade.setFullYear(hoje.getFullYear() - limitMaximo);
       if (dataNascimentoFormatada < limiteIdade) {
-        idadeInput.value = "Mais de 120 anos";
+        idadeInput.value = isDeathField ? `Mais de ${limitMaximo} anos` : "Mais de 120 anos";
         idadeInput.classList.add('field-invalid');
 
         // Adicionar tag de erro
@@ -290,8 +295,8 @@ FIAP.calculation = {
         tagElement.className = 'age-classification-tag relationship-tag';
         tagElement.setAttribute('data-value', 'error');
         tagElement.setAttribute('data-selected', 'error');
-        tagElement.innerText = 'Idade inválida';
-        tagElement.title = 'A idade ultrapassou o limite de 120 anos';
+        tagElement.innerText = isDeathField ? 'Data inválida' : 'Idade inválida';
+        tagElement.title = isDeathField ? `A data ultrapassou o limite de ${limitMaximo} anos` : 'A idade ultrapassou o limite de 120 anos';
         tagElement.style.position = 'absolute';
         tagElement.style.right = '12px';
         tagElement.style.top = '0';
@@ -320,8 +325,8 @@ FIAP.calculation = {
         idadeAnos--;
       }
 
-      // Verificar se idade é negativa (caso de erro na entrada da data)
-      if (idadeAnos < 0 || (idadeAnos === 0 && idadeMeses < 0)) {
+      // Verificar se idade é negativa (caso de erro na entrada da data para nascimento)
+      if (!isDeathField && (idadeAnos < 0 || (idadeAnos === 0 && idadeMeses < 0))) {
         idadeInput.value = "Idade negativa";
         idadeInput.classList.add('field-invalid');
 
@@ -332,10 +337,26 @@ FIAP.calculation = {
         return;
       }
 
-      // Formatação da idade para mostrar anos e meses
-      let idadeFormatada = idadeAnos + " anos";
-      if (idadeMeses > 0) {
-        idadeFormatada += " e " + idadeMeses + " meses";
+      // Formatação da idade/tempo de falecimento para mostrar anos e meses
+      let idadeFormatada;
+      if (isDeathField) {
+        // Para falecimento, mostrar "há X anos" ou "há X anos e Y meses"
+        if (idadeAnos === 0 && idadeMeses === 0) {
+          idadeFormatada = "Faleceu recentemente";
+        } else if (idadeAnos === 0) {
+          idadeFormatada = idadeMeses === 1 ? "há 1 mês" : `há ${idadeMeses} meses`;
+        } else {
+          idadeFormatada = idadeAnos === 1 ? "há 1 ano" : `há ${idadeAnos} anos`;
+          if (idadeMeses > 0) {
+            idadeFormatada += idadeMeses === 1 ? " e 1 mês" : ` e ${idadeMeses} meses`;
+          }
+        }
+      } else {
+        // Para nascimento, formato normal
+        idadeFormatada = idadeAnos + " anos";
+        if (idadeMeses > 0) {
+          idadeFormatada += " e " + idadeMeses + " meses";
+        }
       }
 
       // Definir valor da idade no campo correspondente
@@ -343,8 +364,10 @@ FIAP.calculation = {
       idadeInput.classList.remove('field-invalid');
       idadeInput.classList.add('field-valid');
 
-      // Adicionar tag apenas no campo idade
-      this.addAgeClassificationTag(idadeAnos, idadeMeses, idadeInput);
+      // Adicionar tag apenas no campo idade (não para campos de falecimento)
+      if (!isDeathField) {
+        this.addAgeClassificationTag(idadeAnos, idadeMeses, idadeInput);
+      }
     }
   },
 
