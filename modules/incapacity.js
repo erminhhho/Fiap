@@ -1540,7 +1540,7 @@ if (typeof window.limitacoesComuns === 'undefined') {
 // Função para configurar o sistema de limitações
 function setupLimitacoesDiarias() {
   console.log('[incapacity.js] setupLimitacoesDiarias: Iniciando configuração...');
-  
+
   const select = document.getElementById('limitacoesSelect');
   const containerSelecionadas = document.getElementById('limitacoesSelecionadas');
   const hiddenField = document.getElementById('limitacoesDiarias');
@@ -1564,7 +1564,7 @@ function setupLimitacoesDiarias() {
   function popularDropdown() {
     // Limpar opções existentes exceto a primeira
     select.innerHTML = '<option value="" selected disabled>Selecione limitações...</option>';
-    
+
     // Adicionar limitações comuns agrupadas por categoria
     const categorias = {
       'Mobilidade': [
@@ -1656,14 +1656,14 @@ function setupLimitacoesDiarias() {
     Object.keys(categorias).forEach(categoria => {
       const optgroup = document.createElement('optgroup');
       optgroup.label = categoria;
-      
+
       categorias[categoria].forEach(limitacao => {
         const option = document.createElement('option');
         option.value = limitacao;
         option.textContent = limitacao;
         optgroup.appendChild(option);
       });
-      
+
       select.appendChild(optgroup);
     });
 
@@ -1751,7 +1751,7 @@ function setupLimitacoesDiarias() {
   // Configurar evento do select
   select.addEventListener('change', function() {
     const valor = this.value;
-    
+
     if (valor === 'outra') {
       // Mostrar modal para "outra limitação"
       showOutraLimitacaoModal();
@@ -1841,7 +1841,7 @@ function showOutraLimitacaoModal() {
     const input = document.getElementById('outraLimitacaoInput');
     if (input) {
       input.focus();
-      
+
       // Configurar Enter para salvar
       input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
@@ -1892,7 +1892,7 @@ function handleSaveOutraLimitacao() {
     // Adicionar a nova limitação
     window.adicionarLimitacao(novaLimitacao);
     console.log('[incapacity.js] Nova limitação adicionada:', novaLimitacao);
-    
+
     // Fechar modal
     window.closeGenericModal();
   } else {
@@ -2052,7 +2052,7 @@ function isDefaultMedicamentoOption(value) {
 // Função para inicializar as novas funcionalidades de limitações e medicamentos
 function initializeLimitacoesAndMedicamentos() {
   console.log('[incapacity.js] initializeLimitacoesAndMedicamentos: Iniciando...');
-  
+
   // Configurar sistema de limitações diárias
   setupLimitacoesDiarias();
 
@@ -2065,7 +2065,7 @@ function initializeLimitacoesAndMedicamentos() {
 // Inicializar as funcionalidades quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
   console.log('[incapacity.js] DOM carregado, iniciando configuração...');
-  
+
   // Aguardar um pouco para garantir que outros scripts foram carregados
   setTimeout(function() {
     console.log('[incapacity.js] Timeout executado, chamando initializeLimitacoesAndMedicamentos...');
