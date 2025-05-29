@@ -119,18 +119,16 @@
         </div>
         <i class="fas fa-eraser cursor-pointer text-gray-400 hover:text-red-500 text-xl transition" title="Limpar seção" onclick="showClearConfirmation(event, 'limitacoes')"></i>
       </div><!-- Limitações e Medicamentos - Grid com 2 colunas -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Limitações do dia a dia - Nova implementação pesquisável -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">        <!-- Limitações - Dropdown com limitações comuns -->
         <div class="relative">
-          <div class="limitacoes-container">
-            <input type="text" id="limitacoesInput" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Digite para buscar limitações..." autocomplete="off">
-            <label for="limitacoesInput" class="input-label">
-              Limitações diárias
-            </label>
-            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-              <i class="fas fa-search"></i>
-            </div>
-            <div id="limitacoesDropdown" class="hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto"></div>
+          <select id="limitacoesSelect" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
+            <option value="" selected disabled>Selecione limitações...</option>
+          </select>
+          <label for="limitacoesSelect" class="input-label">
+            Limitações
+          </label>
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+            <i class="fas fa-plus"></i>
           </div>
 
           <!-- Container para tags das limitações selecionadas -->

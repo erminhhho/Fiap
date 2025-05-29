@@ -140,17 +140,10 @@ window.executeClearSection = function(section) {
         limitacoesSelecionadas.innerHTML = '';
       }
 
-      // Limpar input de busca
-      const limitacoesInput = document.getElementById('limitacoesInput');
-      if (limitacoesInput) {
-        limitacoesInput.value = '';
-      }
-
-      // Resetar dropdown
-      const limitacoesDropdown = document.getElementById('limitacoesDropdown');
-      if (limitacoesDropdown) {
-        limitacoesDropdown.style.display = 'none';
-        limitacoesDropdown.innerHTML = '';
+      // Limpar select de limitações
+      const limitacoesSelect = document.getElementById('limitacoesSelect');
+      if (limitacoesSelect) {
+        limitacoesSelect.value = '';
       }
 
       fields = ['limitacoesDiarias', 'medicamentosAtuais'];
