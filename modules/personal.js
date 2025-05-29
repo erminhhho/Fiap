@@ -413,6 +413,36 @@ function updateRelationshipLabel(selectElement, authorId) {
     container.setAttribute('data-selected', selectedValue);
     container.setAttribute('data-value', selectedValue);
   }
+
+  // Implementar lógica para alterar label "Nascimento" para "Falecimento" quando "Instituidor" for selecionado
+  updateBirthDeathLabel(selectElement, selectedValue);
+}
+
+// Função para alterar o label do campo de nascimento quando "Instituidor" for selecionado
+function updateBirthDeathLabel(selectElement, selectedValue) {
+  // Encontrar o autor container (pode ser #author-1, #author-2, etc.)
+  const authorContainer = selectElement.closest('.author-row');
+  if (!authorContainer) return;
+
+  // Encontrar o campo de nascimento e seu label dentro deste autor
+  const birthInput = authorContainer.querySelector('input[name="autor_nascimento[]"]');
+  const birthLabel = authorContainer.querySelector('label[for*="nascimento"]');
+
+  if (!birthInput || !birthLabel) return;
+
+  // Se "Instituidor" for selecionado, mudar para "Falecimento"
+  if (selectedValue === 'Instituidor') {
+    birthLabel.textContent = 'Falecimento';
+    birthInput.placeholder = 'dd/mm/aaaa';
+    // Adicionar uma classe ou atributo para identificar que este campo agora é de falecimento
+    birthInput.setAttribute('data-field-type', 'death');
+  } else {
+    // Para qualquer outra opção, voltar para "Nascimento"
+    birthLabel.textContent = 'Nascimento';
+    birthInput.placeholder = 'dd/mm/aaaa';
+    // Remover o atributo de falecimento
+    birthInput.removeAttribute('data-field-type');
+  }
 }
 
 // Função para aplicar as classes de estilo às opções do select

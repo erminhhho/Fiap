@@ -39,10 +39,11 @@ const CONFIG = {
     { value: 'separado', label: 'Separado(a)' },
     { value: 'uniao_estavel', label: 'União Estável' }
   ],
-
   // Opções de relacionamentos familiares
   familyRelationships: [
     { value: 'conjuge', label: 'Cônjuge' },
+    { value: 'companheiro', label: 'Companheiro' },
+    { value: 'companheira', label: 'Companheira' },
     { value: 'filho', label: 'Filho(a)' },
     { value: 'pai', label: 'Pai' },
     { value: 'mae', label: 'Mãe' },

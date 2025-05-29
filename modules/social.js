@@ -158,7 +158,7 @@ function setupEvents() {
         // Remover event listener antigo para evitar duplicidade ou conflito
         const new_input = input.cloneNode(true);
         input.parentNode.replaceChild(new_input, input);
-        
+
         new_input.addEventListener('input', function() {
           if (FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
             FIAP.masks.moneyInteger(this);
@@ -1096,7 +1096,7 @@ function closeOutroParentescoModal() {
 
 // Função auxiliar para verificar se uma opção de parentesco é uma das padrões
 function isDefaultParentescoOption(value) {
-    const defaultOptions = ["Cônjuge", "Filho", "Filha", "Pai", "Mãe", "Irmão", "Irmã", "Enteado", "Enteada", "Sobrinho", "Sobrinha", "Outro"];
+    const defaultOptions = ["Cônjuge", "Companheiro", "Companheira", "Filho", "Filha", "Pai", "Mãe", "Irmão", "Irmã", "Enteado", "Enteada", "Outro"];
     return defaultOptions.includes(value);
 }
 
