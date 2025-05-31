@@ -84,14 +84,13 @@ class MultiCIDManager {
     this.updateIsencaoCarencia(documentIndex);
 
     return true;
-  }
-
-  /**
+  }  /**
    * Remove um CID de um documento
    * @param {string} documentIndex - Índice do documento
    * @param {string} code - Código CID a remover
+   * @param {boolean} isFromModal - Se a remoção é feita a partir do modal "Ver todos"
    */
-  removeCid(documentIndex, code) {
+  removeCid(documentIndex, code, isFromModal = false) {
     if (!this.cidsData.has(documentIndex)) return;
 
     const cidList = this.cidsData.get(documentIndex);
@@ -106,14 +105,46 @@ class MultiCIDManager {
         this.cidsData.delete(documentIndex);
       }
 
-      // Atualizar UI
+      // Atualizar UI sempre
       this.renderCidLinks(documentIndex);
 
       // Atualizar estado do formulário
       this.updateFormState();
 
       // Atualizar tag de isenção
-      this.updateIsencaoCarencia(documentIndex);
+      this.updateIsencaoCarencia(documentIndex);      // Se a remoção foi feita a partir de um modal, verificar qual modal atualizar
+      if (isFromModal) {
+        // Usar timeout para garantir que a atualização aconteça após o DOM ser atualizado
+        setTimeout(() => {
+          // Verificar se algum modal está aberto usando seletor mais específico
+          const activeModal = document.querySelector('.modal:not(.hidden)');
+          const modalTitle = activeModal?.querySelector('.modal-title');
+          
+          if (modalTitle) {
+            const modalTitleText = modalTitle.textContent?.trim();
+            const isShowingAllCidsModal = modalTitleText?.includes(`CIDs - Documento ${documentIndex}`);
+            const isShowingDetailModal = modalTitleText === code;
+            
+            console.log(`[MultiCIDManager] Modal ativo detectado: "${modalTitleText}"`);
+            
+            // Se está mostrando o modal "Ver todos", atualizar sem fechar
+            if (isShowingAllCidsModal) {
+              if (cidList.length > 0) {
+                console.log(`[MultiCIDManager] Atualizando modal "Ver todos" para documento ${documentIndex}`);
+                this.updateAllCidsModalContent(documentIndex);
+              } else {
+                console.log(`[MultiCIDManager] Fechando modal "Ver todos" - não há mais CIDs`);
+                window.closeGenericModal();
+              }
+            } 
+            // Se está mostrando o modal de detalhes do CID removido, fechar
+            else if (isShowingDetailModal) {
+              console.log(`[MultiCIDManager] Fechando modal de detalhes do CID ${code}`);
+              window.closeGenericModal();
+            }
+          }
+        }, 100);
+      }
     }
   }
   /**
@@ -150,14 +181,14 @@ class MultiCIDManager {
       const isencaoStyle = cid.isencao ? 'font-weight: bold; color: #059669;' : 'color: #2563eb;';
       return `<span class="cid-code" data-code="${cid.code}" style="${isencaoStyle} cursor: pointer; text-decoration: underline;">${cid.code}</span>`;
     });
-
+    
     // Container flexível para CIDs com botão "Ver todos" se houver múltiplos CIDs
     let cidsContainer;
     if (cidList.length > 1) {
       cidsContainer = `
         <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
           ${cidCodes.join(', ')}
-          <button class="ver-todos-btn ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+          <button class="ver-todos-btn ml-2 text-xs text-blue-600 hover:text-blue-800 underline" 
                   style="background: none; border: none; cursor: pointer; font-size: 0.75rem;"
                   onclick="window.multiCIDManager.showAllCidsModal('${documentIndex}')"
                   title="Ver detalhes de todos os CIDs">
@@ -166,14 +197,42 @@ class MultiCIDManager {
         </div>`;
     } else {
       cidsContainer = `<div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">${cidCodes.join(', ')}</div>`;
-    }
-
-    doencaInput.innerHTML = cidsContainer;
+    }    doencaInput.innerHTML = cidsContainer;
     doencaInput.style.height = 'auto';
     doencaInput.style.minHeight = '48px';
 
     // Adicionar eventos aos links
-    this.attachCidLinkEvents(documentIndex);
+    this.attachCidLinkEvents(documentIndex);    // Forçar atualização do estado do label após renderizar
+    setTimeout(() => {
+      if (typeof updateLabelState === 'function') {
+        updateLabelState(doencaInput);
+      } else {
+        // Fallback: forçar visibilidade do label manualmente
+        const label = doencaInput.closest('.relative')?.querySelector('label');
+        if (label) {
+          if (cidList.length > 0) {
+            // Há CIDs - mostrar label
+            doencaInput.classList.add('field-filled');
+            label.classList.add('text-blue-600');
+            label.classList.remove('text-gray-500', 'text-transparent');
+            label.style.opacity = '1';
+            label.style.visibility = 'visible';
+            label.style.color = 'var(--color-primary)';
+            label.style.background = 'var(--color-bg)';
+            label.style.display = 'block';
+            console.log(`[renderCidLinks] Label forçado como visível para ${documentIndex}`);
+          } else {
+            // Sem CIDs - ocultar label
+            doencaInput.classList.remove('field-filled');
+            label.classList.remove('text-blue-600');
+            label.classList.add('text-gray-500');
+            label.style.opacity = '0';
+            label.style.visibility = 'hidden';
+            console.log(`[renderCidLinks] Label forçado como oculto para ${documentIndex}`);
+          }
+        }
+      }
+    }, 50);
   }
   /**
    * Adiciona eventos aos links de CID
@@ -202,9 +261,8 @@ class MultiCIDManager {
       <div class="flex items-center justify-between gap-3">
         <div class="flex-1 min-w-0">
           <p class="text-gray-800 text-base leading-snug">${cid.description}</p>
-          ${cid.isencao ? '<div class="inline-flex items-center px-2 py-1 bg-orange-50 text-orange-800 text-xs rounded-full mt-1"><i class="fas fa-shield-check mr-1 text-xs"></i>Isento de carência</div>' : ''}
-        </div>        <button class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
-                onclick="window.multiCIDManager.removeCid('${documentIndex}', '${code}'); window.closeGenericModal();"
+          ${cid.isencao ? '<div class="inline-flex items-center px-2 py-1 bg-orange-50 text-orange-800 text-xs rounded-full mt-1"><i class="fas fa-shield-check mr-1 text-xs"></i>Isento de carência</div>' : ''}        </div>        <button class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" 
+                onclick="window.multiCIDManager.removeCid('${documentIndex}', '${code}', true); window.closeGenericModal();" 
                 title="Remover CID">
           <i class="fas fa-minus text-lg"></i>
         </button>
@@ -235,7 +293,7 @@ class MultiCIDManager {
               <span class="font-semibold text-blue-600 text-sm">${cid.code}</span>
               <span class="text-gray-700 ml-2 text-sm">${cid.description}</span>
               ${cid.isencao ? '<span class="ml-2 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Isento de carência</span>' : ''}
-            </div>            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
+            </div>            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" 
                     data-doc-index="${documentIndex}" data-code="${cid.code}" title="Remover CID">
               <i class="fas fa-minus text-sm"></i>
             </button>
@@ -255,9 +313,7 @@ class MultiCIDManager {
         title: `CIDs - Documento ${documentIndex}`,
         content: content,
         buttons: [] // Removido botão de fechar
-      });
-
-      // Adicionar eventos aos itens e botões de remover
+      });      // Adicionar eventos aos itens e botões de remover
       setTimeout(() => {
         // Eventos para ver detalhes (clique no conteúdo)
         document.querySelectorAll('.cid-item-detail').forEach(item => {
@@ -274,8 +330,8 @@ class MultiCIDManager {
             e.stopPropagation();
             const docIndex = btn.dataset.docIndex;
             const code = btn.dataset.code;
-            this.removeCid(docIndex, code);
-
+            this.removeCid(docIndex, code, true); // true para indicar que a remoção é feita a partir do modal
+            
             // Atualizar modal sem fechar se ainda houver CIDs
             const remainingCids = this.cidsData.get(docIndex) || [];
             if (remainingCids.length > 0) {
@@ -312,7 +368,7 @@ class MultiCIDManager {
               <span class="text-gray-700 ml-2 text-sm">${cid.description}</span>
               ${cid.isencao ? '<span class="ml-2 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Isento de carência</span>' : ''}
             </div>
-            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
+            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" 
                     data-doc-index="${documentIndex}" data-code="${cid.code}" title="Remover CID">
               <i class="fas fa-minus text-sm"></i>
             </button>
@@ -327,13 +383,23 @@ class MultiCIDManager {
           ${cidItems}
         </div>
       </div>
-    `;
-
-    // Atualizar o conteúdo do modal existente
-    const modalContent = document.querySelector('.modal-content .content');
+    `;    // Atualizar o conteúdo do modal existente
+    const modalContent = document.querySelector('.modal-content .content') || 
+                        document.querySelector('#genericModalContent');
     if (modalContent) {
       modalContent.innerHTML = content;
-
+      
+      // Triggerar atualização do label do campo principal após atualização do modal
+      setTimeout(() => {
+        const doencaInput = document.getElementById(`doenca${documentIndex}`);
+        if (doencaInput) {
+          if (typeof updateLabelState === 'function') {
+            updateLabelState(doencaInput);
+            console.log(`[updateAllCidsModalContent] Label atualizado para documento ${documentIndex}`);
+          }
+        }
+      }, 10);
+      
       // Reanexar eventos ao novo conteúdo
       setTimeout(() => {
         // Eventos para ver detalhes (clique no conteúdo)
@@ -345,16 +411,14 @@ class MultiCIDManager {
               this.showCidDetailsModal(documentIndex, code);
             }, 100);
           });
-        });
-
-        // Eventos para remover CID
+        });// Eventos para remover CID
         document.querySelectorAll('.remove-cid-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const docIndex = btn.dataset.docIndex;
             const code = btn.dataset.code;
-            this.removeCid(docIndex, code);
-
+            this.removeCid(docIndex, code, true); // true para indicar que a remoção é feita a partir do modal
+            
             // Atualizar modal sem fechar se ainda houver CIDs
             const remainingCids = this.cidsData.get(docIndex) || [];
             if (remainingCids.length > 0) {
@@ -1929,13 +1993,13 @@ function showIsencaoCarenciaModal() {
       <!-- Base legal simplificada com link -->
       <div class="text-center">
         <p class="text-xs text-gray-600 mb-2">
-          Fundamentação: Portaria MTP/MS 22/2022 e Lei 8.213/91
+          Fundamentação: 
+          <a href="https://in.gov.br/en/web/dou/-/portaria-interministerial-mtp/ms-n-22-de-31-de-agosto-de-2022-426206445" 
+             target="_blank" 
+             class="text-blue-600 hover:text-blue-800 underline">
+            Portaria MTP/MS 22/2022 e Lei 8.213/91
+          </a>
         </p>
-        <a href="https://in.gov.br/en/web/dou/-/portaria-interministerial-mtp/ms-n-22-de-31-de-agosto-de-2022-426206445"
-           target="_blank"
-           class="text-blue-600 hover:text-blue-800 underline text-sm">
-          Ver legislação
-        </a>
       </div>
     </div>
   `;
@@ -2582,36 +2646,55 @@ function setupStickyLabels() {
     if (field.id && field.id.startsWith('doenca') && field.tagName.toLowerCase() === 'div') {
       const fieldContainer = field.closest('.relative');
       if (fieldContainer) {
-        label = fieldContainer.querySelector('label');
+        label = fieldContainer.querySelector('label, .input-label');
       }
-        if (label) {
-        // Detecção aprimorada para CIDs: verificar múltiplos indicadores de conteúdo válido
+      
+      if (label) {        // Detecção aprimorada para CIDs: verificar múltiplos indicadores de conteúdo válido
         const hasValidContent = field.innerHTML && (
           // Verificar se há elementos CID específicos
-          field.innerHTML.includes('class="cid-code"') ||
-          field.innerHTML.includes('data-code=') ||
           field.querySelector('.cid-code') !== null ||
           field.querySelector('[data-code]') !== null ||
-          // Verificar se há spans ou elementos estruturados
-          field.innerHTML.includes('<span') ||
+          field.querySelector('.ver-todos-btn') !== null ||
+          field.querySelector('.text-blue-600') !== null ||
+          field.querySelector('span[style*="color"]') !== null ||
+          // Verificar se há spans estruturados (CIDs renderizados)
+          (field.innerHTML.includes('<span') && !field.innerHTML.includes('Adicione CIDs')) ||
+          // Verificar se há divs com estrutura de CID
+          field.innerHTML.includes('text-blue-600') ||
+          field.innerHTML.includes('cid-code') ||
+          field.innerHTML.includes('data-code') ||
+          field.innerHTML.includes('underline') ||
           // Verificar se há texto substantivo (não placeholder)
-          (field.textContent &&
-           field.textContent.trim() !== '' &&
+          (field.textContent && 
+           field.textContent.trim() !== '' && 
            !field.textContent.includes('Adicione CIDs usando o campo ao lado') &&
            !field.textContent.includes('Selecione') &&
            field.textContent.trim().length > 3 &&
-           // Verificar se não é apenas espaços ou caracteres especiais
-           /[a-zA-Z0-9]/.test(field.textContent.trim()))
+           // Verificar se há códigos CID (padrão alfanumérico melhorado)
+           (/[A-Z]\d+(\.\d+)?|[a-z]\d+(\.\d+)?|\d+[A-Z]|\d+[a-z]|[A-Z]\d+[A-Z]?|\d+\.?\d*/.test(field.textContent.trim()) ||
+            // Ou se há texto substantivo sem placeholder
+            (/[a-zA-Z0-9]/.test(field.textContent.trim()) && 
+             !field.textContent.includes('campo ao lado') &&
+             field.textContent.trim().length > 5)))
         );
-
+        
+        // Forçar visibilidade se o campo tem conteúdo válido ou está em foco
         if (hasValidContent || field === document.activeElement) {
           field.classList.add('field-filled');
           label.classList.add('text-blue-600');
-          label.classList.remove('text-gray-500');
+          label.classList.remove('text-gray-500', 'text-transparent');
           label.style.opacity = '1';
           label.style.visibility = 'visible';
           label.style.color = 'var(--color-primary)';
           label.style.background = 'var(--color-bg)';
+          label.style.display = 'block';
+          
+          // Log para debug quando o campo doença está sendo detectado como preenchido
+          console.log(`[updateLabelState] Campo doença ${field.id} detectado como preenchido:`, {
+            hasValidContent,
+            innerHTML: field.innerHTML.substring(0, 100),
+            textContent: field.textContent.substring(0, 50)
+          });
         } else {
           field.classList.remove('field-filled');
           label.classList.remove('text-blue-600');
@@ -2623,6 +2706,7 @@ function setupStickyLabels() {
       return;
     }
 
+    // Tratamento para campos normais (input, select, textarea)
     if (label && label.classList.contains('input-label')) {
       const hasContent = field.value && field.value.trim() !== '';
       const isSelect = field.tagName.toLowerCase() === 'select';
@@ -2634,6 +2718,7 @@ function setupStickyLabels() {
         label.style.visibility = 'visible';
         label.style.color = 'var(--color-primary)';
         label.style.background = 'var(--color-bg)';
+        label.classList.remove('text-transparent');
       } else if (field !== document.activeElement) {
         field.classList.remove('field-filled');
         if (!hasContent && !isSelectWithValue) {

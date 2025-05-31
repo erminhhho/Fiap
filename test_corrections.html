@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste das Correções do Módulo de Incapacidade</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Teste das Correções - Módulo de Incapacidade</h1>
+    
+    <div class="test-section">
+        <h2>📋 Resumo das Correções Implementadas</h2>
+        <ul>
+            <li><strong>Problema 1:</strong> CID sendo removido do campo mas não dos modais quando removido através dos botões nos modais "Ver todos" e detalhes</li>
+            <li><strong>Problema 2:</strong> Títulos/labels de campos doença não ficando visíveis quando há conteúdo CID presente</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Correções Aplicadas</h2>
+        
+        <div class="status success">
+            <strong>✓ Função removeCid aprimorada:</strong>
+            <ul>
+                <li>Detecção melhorada de modal ativo usando <code>.modal:not(.hidden)</code></li>
+                <li>Timeout de 100ms para garantir atualização após mudanças no DOM</li>
+                <li>Logs detalhados para debug</li>
+            </ul>
+        </div>
+
+        <div class="status success">
+            <strong>✓ Função updateLabelState expandida:</strong>
+            <ul>
+                <li>Verificação de elementos <code>.cid-code</code>, <code>[data-code]</code>, <code>.ver-todos-btn</code></li>
+                <li>Detecção de spans estruturados e divs com estrutura de CID</li>
+                <li>Regex melhorada para códigos CID: <code>/[A-Z]\d+(\.\d+)?|[a-z]\d+(\.\d+)?|\d+[A-Z]|.../</code></li>
+                <li>Log de debug para campos doença detectados como preenchidos</li>
+            </ul>
+        </div>
+
+        <div class="status success">
+            <strong>✓ Método renderCidLinks melhorado:</strong>
+            <ul>
+                <li>Trigger automático para <code>updateLabelState</code> com timeout de 50ms</li>
+                <li>Fallback manual para forçar visibilidade do label</li>
+                <li>Suporte para ocultar label quando não há CIDs</li>
+            </ul>
+        </div>
+
+        <div class="status success">
+            <strong>✓ Função updateAllCidsModalContent aprimorada:</strong>
+            <ul>
+                <li>Seletor melhorado para modalContent com fallback</li>
+                <li>Trigger automático para atualização de labels após atualização do modal</li>
+                <li>Log de confirmação da atualização do label</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Cenários de Teste</h2>
+        
+        <div class="status warning">
+            <strong>⚠️ Para testar manualmente:</strong>
+            <ol>
+                <li>Abra o módulo de incapacidade</li>
+                <li>Adicione múltiplos CIDs a um documento</li>
+                <li>Clique em "Ver todos" para abrir o modal</li>
+                <li>Remova um CID usando o botão X no modal</li>
+                <li>Verifique se:
+                    <ul>
+                        <li>O modal é atualizado sem fechar (se ainda há CIDs)</li>
+                        <li>O label do campo doença permanece visível</li>
+                        <li>O campo principal reflete a remoção</li>
+                    </ul>
+                </li>
+                <li>Clique em um CID individual para abrir detalhes</li>
+                <li>Remova o CID usando o botão X no modal de detalhes</li>
+                <li>Verifique se o modal fecha e o campo principal é atualizado</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Verificação Técnica</h2>
+        
+        <div id="verification-results">
+            <button onclick="runVerification()">🔍 Executar Verificação</button>
+        </div>
+    </div>
+
+    <script>
+        function runVerification() {
+            const results = document.getElementById('verification-results');
+            let html = '<h3>Resultados da Verificação:</h3>';
+            
+            // Verificar se as funções existem
+            const checks = [
+                {
+                    name: 'MultiCIDManager exists',
+                    test: () => typeof window.MultiCIDManager !== 'undefined',
+                    description: 'Classe MultiCIDManager está disponível'
+                },
+                {
+                    name: 'removeCid method exists',
+                    test: () => {
+                        if (window.multiCIDManager) {
+                            return typeof window.multiCIDManager.removeCid === 'function';
+                        }
+                        return false;
+                    },
+                    description: 'Método removeCid existe no MultiCIDManager'
+                },
+                {
+                    name: 'updateLabelState function exists',
+                    test: () => typeof updateLabelState === 'function',
+                    description: 'Função updateLabelState está disponível globalmente'
+                },
+                {
+                    name: 'updateAllCidsModalContent method exists',
+                    test: () => {
+                        if (window.multiCIDManager) {
+                            return typeof window.multiCIDManager.updateAllCidsModalContent === 'function';
+                        }
+                        return false;
+                    },
+                    description: 'Método updateAllCidsModalContent existe no MultiCIDManager'
+                },
+                {
+                    name: 'renderCidLinks method exists',
+                    test: () => {
+                        if (window.multiCIDManager) {
+                            return typeof window.multiCIDManager.renderCidLinks === 'function';
+                        }
+                        return false;
+                    },
+                    description: 'Método renderCidLinks existe no MultiCIDManager'
+                }
+            ];
+
+            checks.forEach(check => {
+                const passed = check.test();
+                const statusClass = passed ? 'success' : 'error';
+                const icon = passed ? '✅' : '❌';
+                
+                html += `
+                    <div class="status ${statusClass}">
+                        ${icon} <strong>${check.name}:</strong> ${check.description}
+                        ${passed ? ' - OK' : ' - FALHOU'}
+                    </div>
+                `;
+            });
+
+            // Verificar estrutura DOM necessária
+            const domChecks = [
+                {
+                    name: 'doencasList container exists',
+                    selector: '#doencasList',
+                    description: 'Container principal de doenças existe'
+                },
+                {
+                    name: 'CID input fields exist',
+                    selector: '.cid-input',
+                    description: 'Campos de input CID existem',
+                    multiple: true
+                },
+                {
+                    name: 'Doenca input fields exist',
+                    selector: '.doenca-input',
+                    description: 'Campos de doença existem',
+                    multiple: true
+                }
+            ];
+
+            html += '<h4>Verificação da Estrutura DOM:</h4>';
+            
+            domChecks.forEach(check => {
+                const elements = document.querySelectorAll(check.selector);
+                const exists = elements.length > 0;
+                const statusClass = exists ? 'success' : 'warning';
+                const icon = exists ? '✅' : '⚠️';
+                
+                html += `
+                    <div class="status ${statusClass}">
+                        ${icon} <strong>${check.name}:</strong> ${check.description}
+                        ${exists ? ` - Encontrados ${elements.length} elemento(s)` : ' - Não encontrado'}
+                    </div>
+                `;
+            });
+
+            results.innerHTML = html;
+        }
+
+        // Executar verificação automaticamente quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(runVerification, 1000);
+        });
+    </script>
+</body>
+</html>
