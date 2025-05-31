@@ -40,18 +40,18 @@
                 </div>
                 <div class="cid-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown1"></div>
               </div>
-            </div>            <!-- Doença (terceiro campo - aumentado e readonly) -->
+            </div>            <!-- Doença (terceiro campo - aumentado, agora suporta múltiplos CIDs) -->
             <div class="relative md:col-span-10">
-              <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" id="doenca1" placeholder="Preenchido automaticamente pelo CID" name="doencas[]" data-index="1" autocomplete="off" readonly>
+              <div class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 min-h-[48px]" id="doenca1" data-index="1" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+                <span class="text-gray-400" style="display: block; width: 100%;">Adicione CIDs usando o campo ao lado</span>
+              </div>
               <label for="doenca1" class="input-label">
-                Doença
+                CIDs do Documento
               </label>
               <div class="isento-carencia-tag hidden">Isenção de carência</div>
-            </div>
-
-            <!-- Data (último campo) -->
+            </div>            <!-- Data (último campo) -->
             <div class="relative md:col-span-4">
-              <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento1" name="dataDocumentos[]" data-index="1" placeholder="dd/mm/aa" oninput="maskDate(this)">
+              <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento1" name="dataDocumentos[]" data-index="1" placeholder="dd/mm/aaaa" oninput="maskDate(this)">
               <label for="dataDocumento1" class="input-label">
                 Data
               </label>

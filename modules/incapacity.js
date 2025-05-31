@@ -9,6 +9,541 @@ console.log('[incapacity.js] *** INICIANDO CARREGAMENTO DO MÓDULO ***');
 console.log('[incapacity.js] Timestamp:', new Date().toLocaleTimeString());
 console.log('[incapacity.js] window.setupProfissaoAutocomplete será definido...');
 
+/**
+ * Classe para gerenciar múltiplos CIDs por documento
+ */
+class MultiCIDManager {
+  constructor() {
+    this.cidsData = new Map(); // Armazena CIDs por índice de documento
+    this.initialized = false;
+  }
+
+  /**
+   * Inicializa o sistema
+   */
+  init() {
+    if (this.initialized) {
+      console.log('[MultiCIDManager] Já inicializado');
+      return;
+    }
+
+    console.log('[MultiCIDManager] Inicializando sistema de múltiplos CIDs...');
+    this.initialized = true;
+
+    // Restaurar dados se existirem
+    this.restoreFromFormState();
+  }
+
+  /**
+   * Adiciona um CID a um documento específico
+   * @param {string} documentIndex - Índice do documento
+   * @param {string} code - Código CID
+   * @param {string} description - Descrição da doença
+   * @returns {boolean} - Sucesso da operação
+   */
+  addCid(documentIndex, code, description) {
+    if (!documentIndex || !code || !description) {
+      console.warn('[MultiCIDManager] Parâmetros inválidos para addCid');
+      return false;
+    }
+
+    // Inicializar array se não existir
+    if (!this.cidsData.has(documentIndex)) {
+      this.cidsData.set(documentIndex, []);
+    }
+
+    const cidList = this.cidsData.get(documentIndex);
+
+    // Verificar se já existe
+    const exists = cidList.some(cid => cid.code.toLowerCase() === code.toLowerCase());
+    if (exists) {
+      console.warn('[MultiCIDManager] CID já existe para este documento');
+      return false;
+    }
+
+    // Verificar isenção de carência
+    const isencao = this.checkIsencaoCarencia(code, description);
+
+    // Adicionar CID
+    cidList.push({
+      code: code.toUpperCase(),
+      description,
+      isencao,
+      timestamp: Date.now()
+    });
+
+    console.log(`[MultiCIDManager] CID ${code} adicionado ao documento ${documentIndex}`);
+
+    // Atualizar UI
+    this.renderCidLinks(documentIndex);
+
+    // Atualizar estado do formulário
+    this.updateFormState();
+
+    // Atualizar tag de isenção no documento
+    this.updateIsencaoCarencia(documentIndex);
+
+    return true;
+  }
+
+  /**
+   * Remove um CID de um documento
+   * @param {string} documentIndex - Índice do documento
+   * @param {string} code - Código CID a remover
+   */
+  removeCid(documentIndex, code) {
+    if (!this.cidsData.has(documentIndex)) return;
+
+    const cidList = this.cidsData.get(documentIndex);
+    const index = cidList.findIndex(cid => cid.code === code);
+
+    if (index > -1) {
+      cidList.splice(index, 1);
+      console.log(`[MultiCIDManager] CID ${code} removido do documento ${documentIndex}`);
+
+      // Se não há mais CIDs, remover o array
+      if (cidList.length === 0) {
+        this.cidsData.delete(documentIndex);
+      }
+
+      // Atualizar UI
+      this.renderCidLinks(documentIndex);
+
+      // Atualizar estado do formulário
+      this.updateFormState();
+
+      // Atualizar tag de isenção
+      this.updateIsencaoCarencia(documentIndex);
+    }
+  }
+  /**
+   * Renderiza os links de CIDs no campo de doença
+   * @param {string} documentIndex - Índice do documento
+   */
+  renderCidLinks(documentIndex) {
+    const doencaInput = document.getElementById(`doenca${documentIndex}`);
+    if (!doencaInput) return;
+
+    const cidList = this.cidsData.get(documentIndex) || [];
+
+    if (cidList.length === 0) {
+      doencaInput.innerHTML = '<span class="text-gray-400" style="display: block; width: 100%;">Adicione CIDs usando o campo ao lado</span>';
+
+      // Remover label destacada quando vazio
+      const label = doencaInput.closest('.relative')?.querySelector('label');
+      if (label) {
+        label.classList.remove('text-blue-600');
+        label.classList.add('text-gray-500');
+      }
+      return;
+    }    // Manter label destacada quando tem conteúdo
+    const label = doencaInput.closest('.relative')?.querySelector('label');
+    if (label) {
+      label.classList.add('text-blue-600');
+      label.classList.remove('text-gray-500');
+      label.style.opacity = '1';
+      label.style.visibility = 'visible';
+      label.style.color = 'var(--color-primary)';
+      label.style.background = 'var(--color-bg)';
+    }    // Criar CIDs separados por vírgula (sem ícones de atenção)
+    const cidCodes = cidList.map(cid => {
+      const isencaoStyle = cid.isencao ? 'font-weight: bold; color: #059669;' : 'color: #2563eb;';
+      return `<span class="cid-code" data-code="${cid.code}" style="${isencaoStyle} cursor: pointer; text-decoration: underline;">${cid.code}</span>`;
+    });
+
+    // Container flexível para CIDs com botão "Ver todos" se houver múltiplos CIDs
+    let cidsContainer;
+    if (cidList.length > 1) {
+      cidsContainer = `
+        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+          ${cidCodes.join(', ')}
+          <button class="ver-todos-btn ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                  style="background: none; border: none; cursor: pointer; font-size: 0.75rem;"
+                  onclick="window.multiCIDManager.showAllCidsModal('${documentIndex}')"
+                  title="Ver detalhes de todos os CIDs">
+            Ver todos (${cidList.length})
+          </button>
+        </div>`;
+    } else {
+      cidsContainer = `<div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">${cidCodes.join(', ')}</div>`;
+    }
+
+    doencaInput.innerHTML = cidsContainer;
+    doencaInput.style.height = 'auto';
+    doencaInput.style.minHeight = '48px';
+
+    // Adicionar eventos aos links
+    this.attachCidLinkEvents(documentIndex);
+  }
+  /**
+   * Adiciona eventos aos links de CID
+   * @param {string} documentIndex - Índice do documento
+   */
+  attachCidLinkEvents(documentIndex) {
+    const doencaInput = document.getElementById(`doenca${documentIndex}`);
+    if (!doencaInput) return;    // Eventos para códigos CID individuais
+    doencaInput.querySelectorAll('.cid-code').forEach(span => {
+      span.addEventListener('click', (e) => {
+        e.preventDefault();
+        const code = span.dataset.code;
+        this.showCidDetailsModal(documentIndex, code);
+      });
+    });
+  }  /**
+   * Mostra modal com detalhes de um CID específico (versão minimalista)
+   * @param {string} documentIndex - Índice do documento
+   * @param {string} code - Código CID
+   */  showCidDetailsModal(documentIndex, code) {
+    const cidList = this.cidsData.get(documentIndex) || [];
+    const cid = cidList.find(c => c.code === code);
+
+    if (!cid) return;    // Layout minimal com espaçamento reduzido
+    const content = `
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex-1 min-w-0">
+          <p class="text-gray-800 text-base leading-snug">${cid.description}</p>
+          ${cid.isencao ? '<div class="inline-flex items-center px-2 py-1 bg-orange-50 text-orange-800 text-xs rounded-full mt-1"><i class="fas fa-shield-check mr-1 text-xs"></i>Isento de carência</div>' : ''}
+        </div>        <button class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
+                onclick="window.multiCIDManager.removeCid('${documentIndex}', '${code}'); window.closeGenericModal();"
+                title="Remover CID">
+          <i class="fas fa-minus text-lg"></i>
+        </button>
+      </div>
+    `;
+
+    if (window.showGenericModal) {
+      window.showGenericModal({
+        title: cid.code,
+        content: content,
+        buttons: []
+      });
+    }
+  }
+  /**
+   * Mostra modal com todos os CIDs do documento (versão simplificada)
+   * @param {string} documentIndex - Índice do documento
+   */
+  showAllCidsModal(documentIndex) {
+    const cidList = this.cidsData.get(documentIndex) || [];
+
+    if (cidList.length === 0) return;    // Layout minimalista com espaçamento reduzido
+    const cidItems = cidList.map(cid => {
+      return `
+        <div class="border border-gray-200 rounded-lg p-2 hover:bg-gray-50 transition-colors" data-code="${cid.code}">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex-1 cursor-pointer cid-item-detail min-w-0" data-code="${cid.code}">
+              <span class="font-semibold text-blue-600 text-sm">${cid.code}</span>
+              <span class="text-gray-700 ml-2 text-sm">${cid.description}</span>
+              ${cid.isencao ? '<span class="ml-2 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Isento de carência</span>' : ''}
+            </div>            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
+                    data-doc-index="${documentIndex}" data-code="${cid.code}" title="Remover CID">
+              <i class="fas fa-minus text-sm"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');    const content = `
+      <div class="space-y-2">
+        <div class="space-y-1.5 max-h-80 overflow-y-auto">
+          ${cidItems}
+        </div>
+      </div>
+    `;
+
+    if (window.showGenericModal) {
+      window.showGenericModal({
+        title: `CIDs - Documento ${documentIndex}`,
+        content: content,
+        buttons: [] // Removido botão de fechar
+      });
+
+      // Adicionar eventos aos itens e botões de remover
+      setTimeout(() => {
+        // Eventos para ver detalhes (clique no conteúdo)
+        document.querySelectorAll('.cid-item-detail').forEach(item => {
+          item.addEventListener('click', () => {
+            const code = item.dataset.code;
+            window.closeGenericModal();
+            setTimeout(() => {
+              this.showCidDetailsModal(documentIndex, code);
+            }, 100);
+          });
+        });        // Eventos para remover CID
+        document.querySelectorAll('.remove-cid-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const docIndex = btn.dataset.docIndex;
+            const code = btn.dataset.code;
+            this.removeCid(docIndex, code);
+
+            // Atualizar modal sem fechar se ainda houver CIDs
+            const remainingCids = this.cidsData.get(docIndex) || [];
+            if (remainingCids.length > 0) {
+              // Atualizar conteúdo do modal sem fechar
+              this.updateAllCidsModalContent(docIndex);
+            } else {
+              // Fechar modal apenas se não houver mais CIDs
+              window.closeGenericModal();
+            }
+          });
+        });
+      }, 100);
+    }  }
+
+  /**
+   * Atualiza o conteúdo do modal "Ver todos" sem fechá-lo (elimina "piscada")
+   * @param {string} documentIndex - Índice do documento
+   */
+  updateAllCidsModalContent(documentIndex) {
+    const cidList = this.cidsData.get(documentIndex) || [];
+
+    if (cidList.length === 0) {
+      window.closeGenericModal();
+      return;
+    }
+
+    // Regenerar conteúdo
+    const cidItems = cidList.map(cid => {
+      return `
+        <div class="border border-gray-200 rounded-lg p-2 hover:bg-gray-50 transition-colors" data-code="${cid.code}">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex-1 cursor-pointer cid-item-detail min-w-0" data-code="${cid.code}">
+              <span class="font-semibold text-blue-600 text-sm">${cid.code}</span>
+              <span class="text-gray-700 ml-2 text-sm">${cid.description}</span>
+              ${cid.isencao ? '<span class="ml-2 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Isento de carência</span>' : ''}
+            </div>
+            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
+                    data-doc-index="${documentIndex}" data-code="${cid.code}" title="Remover CID">
+              <i class="fas fa-minus text-sm"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const content = `
+      <div class="space-y-2">
+        <div class="space-y-1.5 max-h-80 overflow-y-auto">
+          ${cidItems}
+        </div>
+      </div>
+    `;
+
+    // Atualizar o conteúdo do modal existente
+    const modalContent = document.querySelector('.modal-content .content');
+    if (modalContent) {
+      modalContent.innerHTML = content;
+
+      // Reanexar eventos ao novo conteúdo
+      setTimeout(() => {
+        // Eventos para ver detalhes (clique no conteúdo)
+        document.querySelectorAll('.cid-item-detail').forEach(item => {
+          item.addEventListener('click', () => {
+            const code = item.dataset.code;
+            window.closeGenericModal();
+            setTimeout(() => {
+              this.showCidDetailsModal(documentIndex, code);
+            }, 100);
+          });
+        });
+
+        // Eventos para remover CID
+        document.querySelectorAll('.remove-cid-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const docIndex = btn.dataset.docIndex;
+            const code = btn.dataset.code;
+            this.removeCid(docIndex, code);
+
+            // Atualizar modal sem fechar se ainda houver CIDs
+            const remainingCids = this.cidsData.get(docIndex) || [];
+            if (remainingCids.length > 0) {
+              // Atualizar conteúdo do modal sem fechar
+              this.updateAllCidsModalContent(docIndex);
+            } else {
+              // Fechar modal apenas se não houver mais CIDs
+              window.closeGenericModal();
+            }
+          });
+        });
+      }, 50);
+    }
+  }
+
+  /**
+   * Verifica se CID/doença tem isenção de carência
+   * @param {string} code - Código CID
+   * @param {string} description - Descrição da doença
+   * @returns {boolean} - Se tem isenção
+   */
+  checkIsencaoCarencia(code, description) {
+    // Verificar pelo CID
+    const cidNormalizado = code.toLowerCase().replace(/\s+/g, '').replace(/\./g, '');
+    const isentoPorCid = window.cidsSemCarencia && window.cidsSemCarencia.some(cid => {
+      const cidRef = cid.toLowerCase().replace(/\s+/g, '').replace(/\./g, '');
+      return cidNormalizado.startsWith(cidRef);
+    });
+
+    if (isentoPorCid) return true;
+
+    // Verificar pela descrição
+    if (window.doencasSemCarencia && description) {
+      const descricaoNorm = description.toLowerCase().trim();
+      const isentoPorDoenca = window.doencasSemCarencia.some(doenca => {
+        const doencaNorm = doenca.toLowerCase().trim();
+        return this.verificarCorrespondenciaDoenca(descricaoNorm, doencaNorm);
+      });
+
+      return isentoPorDoenca;
+    }
+
+    return false;
+  }
+
+  /**
+   * Verifica correspondência entre doenças (método simplificado)
+   * @param {string} doencaDigitada - Doença digitada
+   * @param {string} doencaReferencia - Doença de referência
+   * @returns {boolean} - Se há correspondência
+   */
+  verificarCorrespondenciaDoenca(doencaDigitada, doencaReferencia) {
+    if (typeof verificarCorrespondenciaDoenca === 'function') {
+      return verificarCorrespondenciaDoenca(doencaDigitada, doencaReferencia);
+    }
+
+    // Fallback simples
+    return doencaDigitada.includes(doencaReferencia) || doencaReferencia.includes(doencaDigitada);
+  }
+
+  /**
+   * Atualiza tag de isenção de carência no documento
+   * @param {string} documentIndex - Índice do documento
+   */
+  updateIsencaoCarencia(documentIndex) {
+    const doencaContainer = document.getElementById(`doenca${documentIndex}`)?.closest('.relative');
+    const tagIsencao = doencaContainer?.querySelector('.isento-carencia-tag');
+
+    if (!tagIsencao) return;
+
+    const cidList = this.cidsData.get(documentIndex) || [];
+    const temIsencao = cidList.some(cid => cid.isencao);
+
+    if (temIsencao) {
+      tagIsencao.classList.remove('hidden');
+      tagIsencao.setAttribute('title', 'Este documento possui CID(s) com isenção de carência');
+      tagIsencao.style.cursor = 'pointer';
+
+      // Remover listener anterior
+      tagIsencao.removeEventListener('click', this.showIsencaoInfo);
+
+      // Adicionar novo listener
+      tagIsencao.addEventListener('click', this.showIsencaoInfo);
+    } else {
+      tagIsencao.classList.add('hidden');
+      tagIsencao.removeAttribute('title');
+    }
+  }
+
+  /**
+   * Mostra informações sobre isenção de carência
+   */
+  showIsencaoInfo() {
+    if (typeof showIsencaoCarenciaModal === 'function') {
+      showIsencaoCarenciaModal();
+    }
+  }
+
+  /**
+   * Atualiza estado do formulário
+   */
+  updateFormState() {
+    if (!window.formStateManager) return;
+
+    const incapacityData = window.formStateManager.formData.incapacity || {};
+
+    // Converter dados para formato compatível
+    incapacityData.multiCids = {};
+    incapacityData.isencaoCarencia = {};
+
+    this.cidsData.forEach((cidList, documentIndex) => {
+      incapacityData.multiCids[documentIndex] = cidList;
+      incapacityData.isencaoCarencia[documentIndex] = cidList.some(cid => cid.isencao);
+    });
+
+    window.formStateManager.formData.incapacity = incapacityData;
+  }
+
+  /**
+   * Restaura dados do estado do formulário
+   */
+  restoreFromFormState() {
+    if (!window.formStateManager?.formData?.incapacity?.multiCids) return;
+
+    const multiCids = window.formStateManager.formData.incapacity.multiCids;
+
+    Object.entries(multiCids).forEach(([documentIndex, cidList]) => {
+      if (Array.isArray(cidList) && cidList.length > 0) {
+        this.cidsData.set(documentIndex, cidList);
+        // Aguardar DOM estar pronto antes de renderizar
+        setTimeout(() => {
+          this.renderCidLinks(documentIndex);
+          this.updateIsencaoCarencia(documentIndex);
+        }, 100);
+      }
+    });
+
+    console.log('[MultiCIDManager] Dados restaurados do formState');
+  }
+
+  /**
+   * Obtém CIDs de um documento
+   * @param {string} documentIndex - Índice do documento
+   * @returns {Array} - Lista de CIDs
+   */
+  getCids(documentIndex) {
+    return this.cidsData.get(documentIndex) || [];
+  }
+
+  /**
+   * Obtém todos os dados de CIDs
+   * @returns {Map} - Mapa com todos os CIDs
+   */
+  getAllCids() {
+    return new Map(this.cidsData);
+  }
+
+  /**
+   * Limpa todos os dados
+   */
+  clear() {
+    this.cidsData.clear();
+    this.updateFormState();
+  }
+
+  /**
+   * Limpa todos os CIDs de um documento específico
+   * @param {string} documentIndex - Índice do documento
+   */
+  clearDocumentCids(documentIndex) {
+    if (this.cidsData.has(documentIndex)) {
+      this.cidsData.delete(documentIndex);
+      console.log(`[MultiCIDManager] Todos os CIDs removidos do documento ${documentIndex}`);
+
+      // Atualizar UI
+      this.renderCidLinks(documentIndex);
+
+      // Atualizar estado do formulário
+      this.updateFormState();
+
+      // Atualizar tag de isenção
+      this.updateIsencaoCarencia(documentIndex);
+    }
+  }
+}
+
+// Criar instância global
+window.multiCIDManager = new MultiCIDManager();
+
 // Lista de CIDs que dispensam carência - ATUALIZADA conforme Portaria Interministerial MTPS/MS Nº 22 DE 31/08/2022
 // Verificar se já existe para evitar redeclaração
 if (typeof window.cidsSemCarencia === 'undefined') {
@@ -538,6 +1073,11 @@ function initializePageContent() {
   // Configurar modal de "Outro Tipo de Documento"
   setupDocumentoTipoSelects();
 
+  // Inicializar sistema de múltiplos CIDs
+  if (window.multiCIDManager) {
+    window.multiCIDManager.init();
+  }
+
   // Expor addDoencaField globalmente
   if (typeof window.addDoencaField === 'undefined' && typeof addDoencaField === 'function') {
     window.addDoencaField = addDoencaField;
@@ -683,19 +1223,32 @@ window.resetIncapacityUI = resetIncapacityUI;
 
 
 
-// Função para verificar se a doença dispensa carência (REVISADA)
-function verificarIsencaoCarencia(input) {
-  console.log('[incapacity.js] Verificando isenção de carência para input:', input.id);
+// Função para verificar se a doença dispensa carência (REVISADA PARA MÚLTIPLOS Cids)
+function verificarIsencaoCarencia(element) {
+  console.log('[incapacity.js] Verificando isenção de carência para elemento:', element.id);
 
-  // Verificar pelo CID primeiro (método preferencial e mais preciso)
-  const cidIndex = input.getAttribute('data-index');
+  // Obter o índice do documento
+  const cidIndex = element.getAttribute('data-index');
+  if (!cidIndex) {
+    console.warn('[incapacity.js] Índice não encontrado para elemento:', element.id);
+    return;
+  }
+
+  // Com o novo sistema, verificar se há CIDs armazenados no MultiCIDManager
+  if (window.multiCIDManager) {
+    const isento = window.multiCIDManager.checkIsencaoCarencia(cidIndex);
+    console.log('[incapacity.js] Resultado da verificação de isenção:', isento);
+    return;
+  }
+
+  // Fallback para o sistema antigo (caso o MultiCIDManager não esteja disponível)
   const cidInput = document.getElementById('cid' + cidIndex);
   let isento = false;
   let motivoIsencao = '';
 
-  if (cidInput && cidInput.value.trim() !== '') {
+  if (cidInput && cidInput.value && cidInput.value.trim() !== '') {
     const cidValor = cidInput.value.toLowerCase().trim().replace(/\s+/g, '').replace(/\./g, '');
-    console.log('[incapacity.js] Verificando CID:', cidValor);
+    console.log('[incapacity.js] Verificando CID (fallback):', cidValor);
 
     // Verificar se o CID está na lista de isentos (comparação por prefixo)
     isento = window.cidsSemCarencia.some(cid => {
@@ -703,16 +1256,15 @@ function verificarIsencaoCarencia(input) {
       const match = cidValor.startsWith(cidNormalizado);
       if (match) {
         motivoIsencao = `CID ${cid.toUpperCase()} - isenção legal de carência`;
-        console.log('[incapacity.js] CID isento encontrado:', cid);
+        console.log('[incapacity.js] CID isento encontrado (fallback):', cid);
       }
       return match;
     });
   }
-
-  // Se não encontrou pelo CID, verificar pelo nome da doença (método secundário)
-  if (!isento && input.value.trim() !== '') {
-    const doencaValor = input.value.toLowerCase().trim();
-    console.log('[incapacity.js] Verificando doença:', doencaValor);
+  // Verificar pelo texto da doença (método secundário - apenas para fallback)
+  if (!isento && element.textContent && element.textContent.trim() !== '') {
+    const doencaValor = element.textContent.toLowerCase().trim();
+    console.log('[incapacity.js] Verificando doença (fallback):', doencaValor);
 
     // Usar busca mais rigorosa para evitar falsos positivos
     isento = window.doencasSemCarencia.some(doenca => {
@@ -730,11 +1282,11 @@ function verificarIsencaoCarencia(input) {
     });
   }
 
-  // Encontrar a tag de isenção associada a este input
-  const tagIsencao = input.closest('.relative')?.querySelector('.isento-carencia-tag');
+  // Encontrar a tag de isenção associada a este elemento
+  const tagIsencao = element.closest('.relative')?.querySelector('.isento-carencia-tag');
 
-  if (isento && (input.value.trim() !== '' || (cidInput && cidInput.value.trim() !== ''))) {
-    console.log('[incapacity.js] Aplicando isenção de carência:', motivoIsencao);    if (tagIsencao) {
+  if (isento && (element.textContent.trim() !== '' || (cidInput && cidInput.value && cidInput.value.trim() !== ''))) {
+    console.log('[incapacity.js] Aplicando isenção de carência (fallback):', motivoIsencao);    if (tagIsencao) {
       tagIsencao.classList.remove('hidden');
       tagIsencao.setAttribute('title', motivoIsencao);
 
@@ -745,12 +1297,13 @@ function verificarIsencaoCarencia(input) {
       tagIsencao.removeEventListener('click', showIsencaoCarenciaModal);
 
       // Adicionar evento de clique para mostrar modal com informações legais
-      tagIsencao.addEventListener('click', showIsencaoCarenciaModal);
-    }
+      tagIsencao.addEventListener('click', showIsencaoCarenciaModal);    }
 
-    // Adicionar classe visual para o campo
-    input.classList.add('isento-carencia-field');
-    if (cidInput) cidInput.classList.add('isento-carencia-field');    // Armazenar informação da isenção no formStateManager se disponível
+    // Adicionar classe visual para o campo (apenas no fallback)
+    element.classList.add('isento-carencia-field');
+    if (cidInput) cidInput.classList.add('isento-carencia-field');
+
+    // Armazenar informação da isenção no formStateManager se disponível
     if (window.formStateManager && cidIndex) {
       // Acessar dados diretamente da propriedade formData
       const stepData = window.formStateManager.formData.incapacity || {};
@@ -758,23 +1311,23 @@ function verificarIsencaoCarencia(input) {
         stepData.isencaoCarencia = {};
       }
       stepData.isencaoCarencia[cidIndex] = {
-        doenca: doenca,
+        doenca: element.textContent || '',
         temIsencao: true,
         timestamp: Date.now()
       };
       // Os dados são automaticamente salvos pois stepData é uma referência
     }
   } else {
-    console.log('[incapacity.js] Sem isenção de carência aplicável');
-
-    if (tagIsencao) {
+    console.log('[incapacity.js] Sem isenção de carência aplicável');    if (tagIsencao) {
       tagIsencao.classList.add('hidden');
       tagIsencao.removeAttribute('title');
     }
 
-    // Remover a anotação visual
-    input.classList.remove('isento-carencia-field');
-    if (cidInput) cidInput.classList.remove('isento-carencia-field');    // Remover informação da isenção do formStateManager se disponível
+    // Remover a anotação visual (apenas no fallback)
+    element.classList.remove('isento-carencia-field');
+    if (cidInput) cidInput.classList.remove('isento-carencia-field');
+
+    // Remover informação da isenção do formStateManager se disponível
     if (window.formStateManager && cidIndex) {
       // Acessar dados diretamente da propriedade formData
       const stepData = window.formStateManager.formData.incapacity || {};
@@ -880,114 +1433,78 @@ function verificarCorrespondenciaDoenca(doencaDigitada, doencaReferencia) {
 }
 
 // Função para configurar a verificação de isenção de carência
-function setupIsencaoCarencia() {  // Adicionar listeners para campos existentes
-  document.querySelectorAll('.doenca-input').forEach(input => {
-    if (!input.dataset.isencaoListenerAdded) {
-      input.addEventListener('input', function() {
-        verificarIsencaoCarencia(this);
-      });
-      input.addEventListener('blur', function() {
-        verificarIsencaoCarencia(this);
-      });
-      // Importante: escutar também eventos 'change' para campos readonly
-      input.addEventListener('change', function() {
-        verificarIsencaoCarencia(this);
-      });
-      input.dataset.isencaoListenerAdded = 'true';
-      // Verificar estado inicial
-      verificarIsencaoCarencia(input);
-    }
-  });
-  // Adicionar listeners também para os campos CID existentes
-  document.querySelectorAll('.cid-input').forEach(input => {
-    if (!input.dataset.isencaoListenerAdded) {
-      input.addEventListener('input', function() {
-        const index = this.getAttribute('data-index');
-        const doencaInput = document.getElementById('doenca' + index);
-        if (doencaInput) {
-          verificarIsencaoCarencia(doencaInput);
-        }
-      });
-      input.addEventListener('blur', function() {
-        const index = this.getAttribute('data-index');
-        const doencaInput = document.getElementById('doenca' + index);
-        if (doencaInput) {
-          verificarIsencaoCarencia(doencaInput);
-        }
-      });
-      // Importante: escutar também eventos 'change' dos campos CID
-      input.addEventListener('change', function() {
-        const index = this.getAttribute('data-index');
-        const doencaInput = document.getElementById('doenca' + index);
-        if (doencaInput) {
-          verificarIsencaoCarencia(doencaInput);
-        }
-      });
-      input.dataset.isencaoListenerAdded = 'true';
-      // Verificar estado inicial
-      const index = input.getAttribute('data-index');
-      const doencaInput = document.getElementById('doenca' + index);
-      if (doencaInput) {
-        verificarIsencaoCarencia(doencaInput);
+function setupIsencaoCarencia() {
+  // Com o novo sistema de múltiplos CIDs, a verificação de isenção é feita pelo MultiCIDManager
+  // Esta função serve como fallback para compatibilidade com o sistema antigo
+
+  // Adicionar listeners para campos de doença (que agora são divs)
+  document.querySelectorAll('.doenca-input').forEach(element => {
+    if (!element.dataset.isencaoListenerAdded) {
+      element.dataset.isencaoListenerAdded = 'true';
+
+      // Verificar estado inicial apenas se não há MultiCIDManager
+      if (!window.multiCIDManager) {
+        verificarIsencaoCarencia(element);
       }
     }
   });
 
-  // Atualizar quando novos campos forem adicionados
+  // Adicionar listeners para campos CID existentes como fallback
+  document.querySelectorAll('.cid-input').forEach(input => {
+    if (!input.dataset.isencaoListenerAdded) {
+      // Apenas adicionar listeners se MultiCIDManager não estiver disponível
+      if (!window.multiCIDManager) {
+        input.addEventListener('input', function() {
+          const index = this.getAttribute('data-index');
+          const doencaElement = document.getElementById('doenca' + index);
+          if (doencaElement) {
+            verificarIsencaoCarencia(doencaElement);
+          }
+        });
+
+        input.addEventListener('change', function() {
+          const index = this.getAttribute('data-index');
+          const doencaElement = document.getElementById('doenca' + index);
+          if (doencaElement) {
+            verificarIsencaoCarencia(doencaElement);
+          }
+        });
+
+        input.addEventListener('blur', function() {
+          const index = this.getAttribute('data-index');
+          const doencaElement = document.getElementById('doenca' + index);
+          if (doencaElement) {
+            verificarIsencaoCarencia(doencaElement);
+          }
+        });
+      }
+
+      input.dataset.isencaoListenerAdded = 'true';
+    }
+  });
+
+  // Observar mudanças no DOM para novos campos adicionados
   const doencasList = document.getElementById('doencasList');
-  if (doencasList) {
+  if (doencasList && !window.multiCIDManager) {
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.addedNodes.length > 0) {
           mutation.addedNodes.forEach(function(node) {
             if (node.nodeType === 1) { // Element node
               const novosCampos = node.querySelectorAll('.doenca-input, .cid-input');
-              novosCampos.forEach(input => {                if (!input.dataset.isencaoListenerAdded) {
-                  if (input.classList.contains('doenca-input')) {
-                    input.addEventListener('input', function() {
-                      verificarIsencaoCarencia(this);
-                    });
-                    input.addEventListener('blur', function() {
-                      verificarIsencaoCarencia(this);
-                    });
-                    // Importante: escutar também eventos 'change' para campos readonly
-                    input.addEventListener('change', function() {
-                      verificarIsencaoCarencia(this);
-                    });
-                  } else if (input.classList.contains('cid-input')) {
-                    input.addEventListener('input', function() {
+              novosCampos.forEach(campo => {
+                if (!campo.dataset.isencaoListenerAdded) {
+                  if (campo.classList.contains('cid-input')) {
+                    campo.addEventListener('change', function() {
                       const index = this.getAttribute('data-index');
-                      const doencaInput = document.getElementById('doenca' + index);
-                      if (doencaInput) {
-                        verificarIsencaoCarencia(doencaInput);
-                      }
-                    });
-                    input.addEventListener('blur', function() {
-                      const index = this.getAttribute('data-index');
-                      const doencaInput = document.getElementById('doenca' + index);
-                      if (doencaInput) {
-                        verificarIsencaoCarencia(doencaInput);
-                      }
-                    });
-                    // Importante: escutar também eventos 'change' dos campos CID
-                    input.addEventListener('change', function() {
-                      const index = this.getAttribute('data-index');
-                      const doencaInput = document.getElementById('doenca' + index);
-                      if (doencaInput) {
-                        verificarIsencaoCarencia(doencaInput);
+                      const doencaElement = document.getElementById('doenca' + index);
+                      if (doencaElement) {
+                        verificarIsencaoCarencia(doencaElement);
                       }
                     });
                   }
-                  input.dataset.isencaoListenerAdded = 'true';
-
-                  // Verificar estado inicial se for um campo de doença
-                  if (input.classList.contains('doenca-input')) {
-                    verificarIsencaoCarencia(input);
-                  }
+                  campo.dataset.isencaoListenerAdded = 'true';
                 }
-
-                // Configurar manipuladores de eventos para os dropdowns
-                setupInputEventHandlers(input);
               });
             }
           });
@@ -995,7 +1512,6 @@ function setupIsencaoCarencia() {  // Adicionar listeners para campos existentes
       });
     });
 
-    // Observar o container de doenças para detectar quando novos campos são adicionados
     observer.observe(doencasList, { childList: true, subtree: true });
   }
 }
@@ -1158,19 +1674,18 @@ function addDoencaField() {
             <i class="fas fa-search"></i>
           </div>
           <div class="cid-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown${nextIndex}"></div>
-        </div>
-      </div>      <!-- Doença (terceiro campo - aumentado e readonly) -->
+        </div>      </div>      <!-- Doença (terceiro campo - aumentado, agora suporta múltiplos CIDs) -->
       <div class="relative md:col-span-10">
-        <input type="text" class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" id="doenca${nextIndex}" placeholder="Preenchido automaticamente pelo CID" name="doencas[]" data-index="${nextIndex}" autocomplete="off" readonly>
+        <div class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 min-h-[48px]" id="doenca${nextIndex}" data-index="${nextIndex}" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+          <span class="text-gray-400" style="display: block; width: 100%;">Adicione CIDs usando o campo ao lado</span>
+        </div>
         <label for="doenca${nextIndex}" class="input-label">
-          Doença
+          CIDs do Documento
         </label>
         <div class="isento-carencia-tag hidden">Isenção de carência</div>
-      </div>
-
-      <!-- Data (quarto campo) -->
+      </div>      <!-- Data (quarto campo) -->
       <div class="relative md:col-span-4">
-        <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento${nextIndex}" name="dataDocumentos[]" data-index="${nextIndex}" placeholder="dd/mm/aa" oninput="maskDate(this)">
+        <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento${nextIndex}" name="dataDocumentos[]" data-index="${nextIndex}" placeholder="dd/mm/aaaa" oninput="maskDate(this)">
         <label for="dataDocumento${nextIndex}" class="input-label">
           Data
         </label>
@@ -1187,27 +1702,21 @@ function addDoencaField() {
 
   // Adicionar ao DOM
   doencasList.appendChild(newDoencaField);
-
   // Configurar botão de remover
   const removeButton = newDoencaField.querySelector('.remove-doenca-btn');
   if (removeButton) {
     removeButton.addEventListener('click', function() {
+      // Limpar dados do MultiCIDManager ao remover o campo
+      if (window.multiCIDManager) {
+        window.multiCIDManager.clearDocumentCids(nextIndex.toString());
+      }
       newDoencaField.remove();
     });
-  }  // Inicializar verificação de isenção de carência
-  const doencaInput = newDoencaField.querySelector('.doenca-input');
-  if (doencaInput) {
-    doencaInput.addEventListener('input', function() {
-      verificarIsencaoCarencia(this);
-    });
-    doencaInput.addEventListener('blur', function() {
-      verificarIsencaoCarencia(this);
-    });
-    // Importante: escutar também eventos 'change' para campos readonly
-    doencaInput.addEventListener('change', function() {
-      verificarIsencaoCarencia(this);
-    });
-    doencaInput.dataset.isencaoListenerAdded = 'true';
+  }
+
+  // Inicializar o MultiCIDManager para este novo campo
+  if (window.multiCIDManager) {
+    window.multiCIDManager.renderCidLinks(nextIndex.toString());
   }
 
   // O novo sistema CID detecta campos dinamicamente via MutationObserver
@@ -1279,6 +1788,7 @@ function showOutroDocumentoModal() {
         text: 'Salvar',
         className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
         onclick: function() {
+
           handleSaveOutroDocumento();
         }
       }
@@ -1385,67 +1895,54 @@ function showIsencaoCarenciaModal() {
     console.error('Modal genérico não disponível');
     return;
   }
-
-  const conteudoModal = `
+    const conteudoModal = `
     <div class="space-y-4">
-      <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <i class="fas fa-info-circle text-blue-400"></i>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm text-blue-700">
-              <strong>Isenção de Carência para Auxílio por Incapacidade Temporária</strong>
-            </p>
-          </div>
+      <!-- Status compacto -->
+      <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+        <div class="flex items-center">
+          <i class="fas fa-shield-check text-green-600 mr-2"></i>
+          <p class="font-medium text-green-800">Isenção de carência confirmada</p>
         </div>
       </div>
 
-      <div class="text-sm text-gray-700 space-y-3">
-        <p>
-          <strong>Base Legal:</strong> Portaria Interministerial MTP/MS Nº 22, de 31 de agosto de 2022
+      <!-- Benefício prático -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p class="text-sm text-blue-800">
+          <i class="fas fa-clock text-blue-600 mr-2"></i>
+          <strong>Sem período de carência</strong> - Pode requerer o benefício imediatamente após comprovar a incapacidade.
         </p>
+      </div>
 
-        <p>
-          <strong>Publicação:</strong> Diário Oficial da União (DOU) - Seção 1, nº 168, de 01/09/2022
+      <!-- Documentação necessária -->
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+        <p class="text-sm text-amber-800 mb-2">
+          <i class="fas fa-folder-medical text-amber-600 mr-2"></i>
+          <strong>Documentação essencial:</strong>
         </p>
+        <ul class="text-xs text-amber-700 space-y-1 ml-4">
+          <li>• Relatórios médicos detalhados</li>
+          <li>• Comprovação do diagnóstico</li>
+          <li>• Demonstração da incapacidade laboral</li>
+        </ul>
+      </div>
 
-        <p>
-          Esta condição médica está incluída na lista oficial de doenças que conferem isenção do período de carência
-          de 12 meses para o auxílio por incapacidade temporária, conforme regulamentação do INSS.
+      <!-- Base legal simplificada com link -->
+      <div class="text-center">
+        <p class="text-xs text-gray-600 mb-2">
+          Fundamentação: Portaria MTP/MS 22/2022 e Lei 8.213/91
         </p>
-
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-          <p class="text-sm text-yellow-800">
-            <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
-            <strong>Importante:</strong> A isenção aplica-se apenas ao período de carência. Outros requisitos
-            para concessão do benefício devem ser atendidos conforme legislação vigente.
-          </p>
-        </div>
+        <a href="https://in.gov.br/en/web/dou/-/portaria-interministerial-mtp/ms-n-22-de-31-de-agosto-de-2022-426206445"
+           target="_blank"
+           class="text-blue-600 hover:text-blue-800 underline text-sm">
+          Ver legislação
+        </a>
       </div>
     </div>
   `;
-
   window.showGenericModal({
-    title: 'Informações Legais - Isenção de Carência',
-    message: '',
+    title: 'Isenção de Carência',
     content: conteudoModal,
-    buttons: [
-      {
-        text: 'Consultar DOU',
-        className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
-        onclick: function() {
-          window.open('https://in.gov.br/en/web/dou/-/portaria-interministerial-mtp/ms-n-22-de-31-de-agosto-de-2022-426206445', '_blank');
-        }
-      },
-      {
-        text: 'Fechar',
-        className: 'flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center',
-        onclick: function() {
-          window.closeGenericModal();
-        }
-      }
-    ]
+    buttons: []
   });
 }
 
@@ -1722,7 +2219,6 @@ function setupLimitacoesDiarias() {
       const removeBtn = tag.querySelector('button');
       removeBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        e.stopPropagation();
         removerLimitacao(limitacao);
       });
 
@@ -1785,31 +2281,20 @@ function showOutraLimitacaoModal() {
 
   const conteudoModal = `
     <div class="space-y-4">
-      <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <i class="fas fa-info-circle text-blue-400"></i>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm text-blue-700">
-              <strong>Descreva a limitação específica</strong>
-            </p>
-          </div>
-        </div>
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">
+          Descreva a limitação específica
+        </label>
+        <input type="text" id="outraLimitacaoInput"
+               class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200"
+               placeholder="Digite a limitação...">
       </div>
 
-      <div class="space-y-3">
-        <div class="relative">
-          <input type="text" id="outraLimitacaoInput" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" placeholder="Digite a limitação..." autocomplete="off" oninput="formatarNomeProprio(this)">
-          <label for="outraLimitacaoInput" class="input-label">
-            Limitação
-          </label>
-        </div>
-
-        <div class="text-sm text-gray-600">
-          <p><strong>Exemplo:</strong> Dificuldade para concentração por mais de 30 minutos</p>
-          <p class="mt-1">Seja específico para melhor avaliação da limitação.</p>
-        </div>
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p class="text-sm text-blue-800">
+          <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+          Seja específico para melhor avaliação da limitação.
+        </p>
       </div>
     </div>
   `;
@@ -2070,14 +2555,180 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() {
     console.log('[incapacity.js] Timeout executado, chamando initializeLimitacoesAndMedicamentos...');
     initializeLimitacoesAndMedicamentos();
+
+    // Configurar labels fixos
+    setupStickyLabels();
   }, 100);
 });
 
-// Expor funções globalmente para uso no modal
-window.showOutroMedicamentoModal = showOutroMedicamentoModal;
-window.handleCancelOutroMedicamento = handleCancelOutroMedicamento;
-window.handleSaveOutroMedicamento = handleSaveOutroMedicamento;
-window.showOutraLimitacaoModal = showOutraLimitacaoModal;
-window.handleSaveOutraLimitacao = handleSaveOutraLimitacao;
+// Função para manter títulos fixos nos campos com conteúdo
+function setupStickyLabels() {
+  console.log('[incapacity.js] setupStickyLabels: Configurando labels fixos...');  // Função para atualizar o estado do label
+  function updateLabelState(field) {
+    let label = field.nextElementSibling || field.previousElementSibling;
 
-// Exportar funções para o escopo global
+    if (!label || !label.classList.contains('input-label')) {
+      // Tentar encontrar o label associado pelo 'for'
+      const fieldId = field.id;
+      if (fieldId) {
+        const associatedLabel = document.querySelector(`label[for="${fieldId}"]`);
+        if (associatedLabel) {
+          label = associatedLabel;
+        }
+      }
+    }
+
+    // Tratamento específico para campos doença (que são divs simulando inputs)
+    if (field.id && field.id.startsWith('doenca') && field.tagName.toLowerCase() === 'div') {
+      const fieldContainer = field.closest('.relative');
+      if (fieldContainer) {
+        label = fieldContainer.querySelector('label');
+      }
+        if (label) {
+        // Detecção aprimorada para CIDs: verificar múltiplos indicadores de conteúdo válido
+        const hasValidContent = field.innerHTML && (
+          // Verificar se há elementos CID específicos
+          field.innerHTML.includes('class="cid-code"') ||
+          field.innerHTML.includes('data-code=') ||
+          field.querySelector('.cid-code') !== null ||
+          field.querySelector('[data-code]') !== null ||
+          // Verificar se há spans ou elementos estruturados
+          field.innerHTML.includes('<span') ||
+          // Verificar se há texto substantivo (não placeholder)
+          (field.textContent &&
+           field.textContent.trim() !== '' &&
+           !field.textContent.includes('Adicione CIDs usando o campo ao lado') &&
+           !field.textContent.includes('Selecione') &&
+           field.textContent.trim().length > 3 &&
+           // Verificar se não é apenas espaços ou caracteres especiais
+           /[a-zA-Z0-9]/.test(field.textContent.trim()))
+        );
+
+        if (hasValidContent || field === document.activeElement) {
+          field.classList.add('field-filled');
+          label.classList.add('text-blue-600');
+          label.classList.remove('text-gray-500');
+          label.style.opacity = '1';
+          label.style.visibility = 'visible';
+          label.style.color = 'var(--color-primary)';
+          label.style.background = 'var(--color-bg)';
+        } else {
+          field.classList.remove('field-filled');
+          label.classList.remove('text-blue-600');
+          label.classList.add('text-gray-500');
+          label.style.opacity = '0';
+          label.style.visibility = 'hidden';
+        }
+      }
+      return;
+    }
+
+    if (label && label.classList.contains('input-label')) {
+      const hasContent = field.value && field.value.trim() !== '';
+      const isSelect = field.tagName.toLowerCase() === 'select';
+      const isSelectWithValue = isSelect && field.value && field.value !== '';
+
+      if (hasContent || isSelectWithValue || field === document.activeElement) {
+        field.classList.add('field-filled');
+        label.style.opacity = '1';
+        label.style.visibility = 'visible';
+        label.style.color = 'var(--color-primary)';
+        label.style.background = 'var(--color-bg)';
+      } else if (field !== document.activeElement) {
+        field.classList.remove('field-filled');
+        if (!hasContent && !isSelectWithValue) {
+          label.style.opacity = '0';
+          label.style.visibility = 'hidden';
+        }
+      }
+    }
+  }
+  // Configurar observadores para todos os campos
+  function setupFieldObservers() {
+    const fields = document.querySelectorAll('input, select, textarea, div[id^="doenca"]');
+
+    fields.forEach(field => {
+      // Estado inicial
+      updateLabelState(field);
+
+      // Eventos de foco e desfoque
+      field.addEventListener('focus', () => updateLabelState(field));
+      field.addEventListener('blur', () => {
+        setTimeout(() => updateLabelState(field), 50);
+      });
+
+      // Eventos de mudança de valor
+      field.addEventListener('input', () => updateLabelState(field));
+      field.addEventListener('change', () => updateLabelState(field));
+
+      // Para campos select
+      if (field.tagName.toLowerCase() === 'select') {
+        field.addEventListener('change', () => {
+          setTimeout(() => updateLabelState(field), 10);
+        });
+      }
+
+      // Para campos doença (divs que simulam inputs), observar mudanças no DOM
+      if (field.id && field.id.startsWith('doenca') && field.tagName.toLowerCase() === 'div') {
+        const observer = new MutationObserver(() => {
+          setTimeout(() => updateLabelState(field), 10);
+        });
+        observer.observe(field, {
+          childList: true,
+          subtree: true,
+          characterData: true
+        });
+      }
+    });
+  }
+  // Configurar observador para novos campos adicionados dinamicamente
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach(function(node) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const newFields = node.querySelectorAll ? node.querySelectorAll('input, select, textarea, div[id^="doenca"]') : [];
+            newFields.forEach(field => {
+              updateLabelState(field);
+
+              field.addEventListener('focus', () => updateLabelState(field));
+              field.addEventListener('blur', () => {
+                setTimeout(() => updateLabelState(field), 50);
+              });
+              field.addEventListener('input', () => updateLabelState(field));
+              field.addEventListener('change', () => updateLabelState(field));
+
+              // Para campos doença (divs), observar mudanças internas
+              if (field.id && field.id.startsWith('doenca') && field.tagName.toLowerCase() === 'div') {
+                const doencaObserver = new MutationObserver(() => {
+                  setTimeout(() => updateLabelState(field), 10);
+                });
+                doencaObserver.observe(field, {
+                  childList: true,
+                  subtree: true,
+                  characterData: true
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  });
+
+  // Iniciar observação
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  // Configurar campos existentes
+  setupFieldObservers();
+  // Verificar periodicamente o estado dos campos (fallback)
+  setInterval(() => {
+    const fields = document.querySelectorAll('input, select, textarea, div[id^="doenca"]');
+    fields.forEach(updateLabelState);
+  }, 2000);
+
+  console.log('[incapacity.js] Labels fixos configurados com sucesso');
+}

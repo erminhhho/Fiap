@@ -150,9 +150,7 @@ class CIDSystem {
       fieldData.debounceTimer = setTimeout(() => {
         this.searchCID(index, query);
       }, 300);
-    };
-
-    // Click event for dropdown items
+    };    // Click event for dropdown items
     const dropdownClickListener = (e) => {
       const cidItem = e.target.closest('.cid-item');
       if (!cidItem) return;
@@ -163,30 +161,51 @@ class CIDSystem {
       const code = cidItem.dataset.code;
       const description = cidItem.dataset.description;
 
-      // Fill fields
-      cidInput.value = code;
-      doencaInput.value = description;
+      // Integrar com o sistema de múltiplos CIDs
+      if (window.multiCIDManager) {
+        const success = window.multiCIDManager.addCid(index, code, description);
+        if (success) {
+          // Limpar campo CID para permitir adicionar mais
+          cidInput.value = '';
 
-      // Add filled class
-      cidInput.classList.add('filled');
-      doencaInput.classList.add('filled');      // Trigger events
-      cidInput.dispatchEvent(new Event('change', { bubbles: true }));
-      doencaInput.dispatchEvent(new Event('change', { bubbles: true }));
+          // Hide dropdown immediately
+          this.hideDropdown(index);
 
-      // Hide dropdown immediately
-      this.hideDropdown(index);
+          // Call highlight function if available
+          if (typeof destacarCamposPreenchidos === 'function') {
+            destacarCamposPreenchidos();
+          }
 
-      // Call highlight function if available
-      if (typeof destacarCamposPreenchidos === 'function') {
-        destacarCamposPreenchidos();
+          console.log(`CID adicionado: ${code} - ${description}`);
+        }
+      } else {
+        // Fallback para comportamento antigo
+        cidInput.value = code;
+        doencaInput.value = description;
+
+        // Add filled class
+        cidInput.classList.add('filled');
+        doencaInput.classList.add('filled');
+
+        // Trigger events
+        cidInput.dispatchEvent(new Event('change', { bubbles: true }));
+        doencaInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // Hide dropdown immediately
+        this.hideDropdown(index);
+
+        // Call highlight function if available
+        if (typeof destacarCamposPreenchidos === 'function') {
+          destacarCamposPreenchidos();
+        }
+
+        // Trigger auto-tag verification for disease field
+        if (typeof verificarIsencaoCarencia === 'function') {
+          verificarIsencaoCarencia(doencaInput);
+        }
+
+        console.log(`CID selecionado: ${code} - ${description}`);
       }
-
-      // Trigger auto-tag verification for disease field
-      if (typeof verificarIsencaoCarencia === 'function') {
-        verificarIsencaoCarencia(doencaInput);
-      }
-
-      console.log(`CID selecionado: ${code} - ${description}`);
     };
 
     // Outside click to close dropdown

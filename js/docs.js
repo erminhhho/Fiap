@@ -1029,65 +1029,97 @@ async function gerarRelatorioPDF() {
         htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Limitações Diárias:</strong> ${formatValue(sectionData.limitacoesDiarias)}</div>`;
         htmlContent += `<div style="font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Tratamentos:</strong> ${formatValue(sectionData.tratamentosRealizados)}</div>`;
         htmlContent += `<div style="grid-column:1/-1; font-size:8pt;"><strong style="color:#374151; font-size:7.8pt;">Medicamentos:</strong> ${formatValue(sectionData.medicamentosAtuais)}</div>`;
-        htmlContent += `</div></div>`;
-
-        // Tabela de documentos comprobatórios
-        if (sectionData.tipoDocumentos || sectionData.doencas || sectionData.cids || sectionData.dataDocumentos) {
-          const maxRows = Math.max(
-            sectionData.tipoDocumentos?.length || 0,
-            sectionData.doencas?.length || 0,
-            sectionData.cids?.length || 0,
-            sectionData.dataDocumentos?.length || 0
-          );
-
-          if (maxRows > 0) {
+        htmlContent += `</div></div>`;        // Tabela de documentos comprobatórios
+        if (sectionData.tipoDocumentos || sectionData.doencas || sectionData.cids || sectionData.dataDocumentos || sectionData.multiCids) {
+          // Se temos dados do sistema de múltiplos CIDs, usar eles
+          if (sectionData.multiCids && Object.keys(sectionData.multiCids).length > 0) {
             htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
             htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Documentos Comprobatórios</div>`;
             htmlContent += '<table class="compact-table" style="margin:0; font-size:7.8pt;">';
             htmlContent += '<thead><tr>';
             htmlContent += '<th style="padding:0.8mm 1mm;">Tipo Documento</th>';
-            htmlContent += '<th style="padding:0.8mm 1mm;">Doença/Condição</th>';
-            htmlContent += '<th style="padding:0.8mm 1mm;">CID</th>';
+            htmlContent += '<th style="padding:0.8mm 1mm;">CIDs</th>';
             htmlContent += '<th style="padding:0.8mm 1mm;">Data</th>';
             htmlContent += '</tr></thead><tbody>';
 
-            for (let index = 0; index < maxRows; index++) {
-              const tipoDoc = sectionData.tipoDocumentos?.[index] || '';
-              const doenca = sectionData.doencas?.[index] || '';
-              const cid = sectionData.cids?.[index] || '';
-              const dataDoc = sectionData.dataDocumentos?.[index] || '';
+            Object.entries(sectionData.multiCids).forEach(([documentIndex, cidList]) => {
+              const tipoDoc = sectionData.tipoDocumentos?.[parseInt(documentIndex) - 1] || '';
+              const dataDoc = sectionData.dataDocumentos?.[parseInt(documentIndex) - 1] || '';
 
-              // Verificar todas as propriedades possíveis para isenção de carência
-              const isencaoCarencia =
-                sectionData.isencaoCarencia?.[index] === true ||
-                sectionData.isencao_carencia?.[index] === true ||
-                (sectionData.doencas_tags &&
-                 Array.isArray(sectionData.doencas_tags[index]) &&
-                 sectionData.doencas_tags[index].some(tag =>
-                   typeof tag === 'string' &&
-                   (tag.toLowerCase().includes('isenção') ||
-                    tag.toLowerCase().includes('isencao') ||
-                    tag.toLowerCase().includes('carencia'))));
+              if (Array.isArray(cidList) && cidList.length > 0) {
+                // Criar lista de CIDs com indicação de isenção
+                const cidsText = cidList.map(cid => {
+                  const isencaoIcon = cid.isencao ? ' <span class="data-tag" style="font-size:6pt; padding:0.1em 0.3em; margin-left:2px; background-color:#ff6b6b; color:#fff; font-weight:500;">Isenção</span>' : '';
+                  return `${cid.code}${isencaoIcon}`;
+                }).join(', ');
 
-              if (tipoDoc.trim() !== '' || doenca.trim() !== '' || cid.trim() !== '' || dataDoc.trim() !== '') {
                 htmlContent += '<tr>';
-                // Capitalizar primeira letra do tipo de documento
                 htmlContent += `<td style="padding:0.8mm 1mm;">${capitalizeFirst(formatValue(tipoDoc))}</td>`;
-
-                // Adicionar tag de isenção de carência com fonte menor
-                let doencaCell = formatValue(doenca);
-                if (isencaoCarencia) {
-                  doencaCell = doenca + ' <span class="data-tag" style="font-size:7pt; padding:0.1em 0.4em; margin-left:3px; background-color:#ff6b6b; color:#fff; font-weight:500;">Isenção de Carência</span>';
-                }
-
-                htmlContent += `<td style="padding:0.8mm 1mm;">${doencaCell}</td>`;
-                htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(cid)}</td>`;
+                htmlContent += `<td style="padding:0.8mm 1mm;">${cidsText}</td>`;
                 htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(dataDoc)}</td>`;
                 htmlContent += '</tr>';
               }
-            }
+            });
 
             htmlContent += '</tbody></table></div>';
+          } else {
+            // Fallback para sistema antigo
+            const maxRows = Math.max(
+              sectionData.tipoDocumentos?.length || 0,
+              sectionData.doencas?.length || 0,
+              sectionData.cids?.length || 0,
+              sectionData.dataDocumentos?.length || 0
+            );
+
+            if (maxRows > 0) {
+              htmlContent += `<div class="item-block compact-card" style="padding:1.2mm; margin-bottom:1.5mm;">`;
+              htmlContent += `<div class="subsection-title" style="margin-bottom:1.2mm; padding-bottom:0.6mm; font-size:9pt;">Documentos Comprobatórios</div>`;
+              htmlContent += '<table class="compact-table" style="margin:0; font-size:7.8pt;">';
+              htmlContent += '<thead><tr>';
+              htmlContent += '<th style="padding:0.8mm 1mm;">Tipo Documento</th>';
+              htmlContent += '<th style="padding:0.8mm 1mm;">Doença/Condição</th>';
+              htmlContent += '<th style="padding:0.8mm 1mm;">CID</th>';
+              htmlContent += '<th style="padding:0.8mm 1mm;">Data</th>';
+              htmlContent += '</tr></thead><tbody>';
+
+              for (let index = 0; index < maxRows; index++) {
+                const tipoDoc = sectionData.tipoDocumentos?.[index] || '';
+                const doenca = sectionData.doencas?.[index] || '';
+                const cid = sectionData.cids?.[index] || '';
+                const dataDoc = sectionData.dataDocumentos?.[index] || '';
+
+                // Verificar todas as propriedades possíveis para isenção de carência
+                const isencaoCarencia =
+                  sectionData.isencaoCarencia?.[index] === true ||
+                  sectionData.isencao_carencia?.[index] === true ||
+                  (sectionData.doencas_tags &&
+                   Array.isArray(sectionData.doencas_tags[index]) &&
+                   sectionData.doencas_tags[index].some(tag =>
+                     typeof tag === 'string' &&
+                     (tag.toLowerCase().includes('isenção') ||
+                      tag.toLowerCase().includes('isencao') ||
+                      tag.toLowerCase().includes('carencia'))));
+
+                if (tipoDoc.trim() !== '' || doenca.trim() !== '' || cid.trim() !== '' || dataDoc.trim() !== '') {
+                  htmlContent += '<tr>';
+                  // Capitalizar primeira letra do tipo de documento
+                  htmlContent += `<td style="padding:0.8mm 1mm;">${capitalizeFirst(formatValue(tipoDoc))}</td>`;
+
+                  // Adicionar tag de isenção de carência com fonte menor
+                  let doencaCell = formatValue(doenca);
+                  if (isencaoCarencia) {
+                    doencaCell = doenca + ' <span class="data-tag" style="font-size:7pt; padding:0.1em 0.4em; margin-left:3px; background-color:#ff6b6b; color:#fff; font-weight:500;">Isenção de Carência</span>';
+                  }
+
+                  htmlContent += `<td style="padding:0.8mm 1mm;">${doencaCell}</td>`;
+                  htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(cid)}</td>`;
+                  htmlContent += `<td style="padding:0.8mm 1mm;">${formatValue(dataDoc)}</td>`;
+                  htmlContent += '</tr>';
+                }
+              }
+
+              htmlContent += '</tbody></table></div>';
+            }
           }
         }
 
