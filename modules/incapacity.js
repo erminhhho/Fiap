@@ -119,14 +119,14 @@ class MultiCIDManager {
           // Verificar se algum modal está aberto usando seletor mais específico
           const activeModal = document.querySelector('.modal:not(.hidden)');
           const modalTitle = activeModal?.querySelector('.modal-title');
-          
+
           if (modalTitle) {
             const modalTitleText = modalTitle.textContent?.trim();
             const isShowingAllCidsModal = modalTitleText?.includes(`CIDs - Documento ${documentIndex}`);
             const isShowingDetailModal = modalTitleText === code;
-            
+
             console.log(`[MultiCIDManager] Modal ativo detectado: "${modalTitleText}"`);
-            
+
             // Se está mostrando o modal "Ver todos", atualizar sem fechar
             if (isShowingAllCidsModal) {
               if (cidList.length > 0) {
@@ -136,7 +136,7 @@ class MultiCIDManager {
                 console.log(`[MultiCIDManager] Fechando modal "Ver todos" - não há mais CIDs`);
                 window.closeGenericModal();
               }
-            } 
+            }
             // Se está mostrando o modal de detalhes do CID removido, fechar
             else if (isShowingDetailModal) {
               console.log(`[MultiCIDManager] Fechando modal de detalhes do CID ${code}`);
@@ -181,14 +181,14 @@ class MultiCIDManager {
       const isencaoStyle = cid.isencao ? 'font-weight: bold; color: #059669;' : 'color: #2563eb;';
       return `<span class="cid-code" data-code="${cid.code}" style="${isencaoStyle} cursor: pointer; text-decoration: underline;">${cid.code}</span>`;
     });
-    
+
     // Container flexível para CIDs com botão "Ver todos" se houver múltiplos CIDs
     let cidsContainer;
     if (cidList.length > 1) {
       cidsContainer = `
         <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
           ${cidCodes.join(', ')}
-          <button class="ver-todos-btn ml-2 text-xs text-blue-600 hover:text-blue-800 underline" 
+          <button class="ver-todos-btn ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
                   style="background: none; border: none; cursor: pointer; font-size: 0.75rem;"
                   onclick="window.multiCIDManager.showAllCidsModal('${documentIndex}')"
                   title="Ver detalhes de todos os CIDs">
@@ -261,8 +261,8 @@ class MultiCIDManager {
       <div class="flex items-center justify-between gap-3">
         <div class="flex-1 min-w-0">
           <p class="text-gray-800 text-base leading-snug">${cid.description}</p>
-          ${cid.isencao ? '<div class="inline-flex items-center px-2 py-1 bg-orange-50 text-orange-800 text-xs rounded-full mt-1"><i class="fas fa-shield-check mr-1 text-xs"></i>Isento de carência</div>' : ''}        </div>        <button class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" 
-                onclick="window.multiCIDManager.removeCid('${documentIndex}', '${code}', true); window.closeGenericModal();" 
+          ${cid.isencao ? '<div class="inline-flex items-center px-2 py-1 bg-orange-50 text-orange-800 text-xs rounded-full mt-1"><i class="fas fa-shield-check mr-1 text-xs"></i>Isento de carência</div>' : ''}        </div>        <button class="bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
+                onclick="window.multiCIDManager.removeCid('${documentIndex}', '${code}', true); window.closeGenericModal();"
                 title="Remover CID">
           <i class="fas fa-minus text-lg"></i>
         </button>
@@ -293,7 +293,7 @@ class MultiCIDManager {
               <span class="font-semibold text-blue-600 text-sm">${cid.code}</span>
               <span class="text-gray-700 ml-2 text-sm">${cid.description}</span>
               ${cid.isencao ? '<span class="ml-2 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Isento de carência</span>' : ''}
-            </div>            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" 
+            </div>            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
                     data-doc-index="${documentIndex}" data-code="${cid.code}" title="Remover CID">
               <i class="fas fa-minus text-sm"></i>
             </button>
@@ -331,7 +331,7 @@ class MultiCIDManager {
             const docIndex = btn.dataset.docIndex;
             const code = btn.dataset.code;
             this.removeCid(docIndex, code, true); // true para indicar que a remoção é feita a partir do modal
-            
+
             // Atualizar modal sem fechar se ainda houver CIDs
             const remainingCids = this.cidsData.get(docIndex) || [];
             if (remainingCids.length > 0) {
@@ -368,7 +368,7 @@ class MultiCIDManager {
               <span class="text-gray-700 ml-2 text-sm">${cid.description}</span>
               ${cid.isencao ? '<span class="ml-2 text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Isento de carência</span>' : ''}
             </div>
-            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" 
+            <button class="remove-cid-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8"
                     data-doc-index="${documentIndex}" data-code="${cid.code}" title="Remover CID">
               <i class="fas fa-minus text-sm"></i>
             </button>
@@ -384,11 +384,11 @@ class MultiCIDManager {
         </div>
       </div>
     `;    // Atualizar o conteúdo do modal existente
-    const modalContent = document.querySelector('.modal-content .content') || 
+    const modalContent = document.querySelector('.modal-content .content') ||
                         document.querySelector('#genericModalContent');
     if (modalContent) {
       modalContent.innerHTML = content;
-      
+
       // Triggerar atualização do label do campo principal após atualização do modal
       setTimeout(() => {
         const doencaInput = document.getElementById(`doenca${documentIndex}`);
@@ -399,7 +399,7 @@ class MultiCIDManager {
           }
         }
       }, 10);
-      
+
       // Reanexar eventos ao novo conteúdo
       setTimeout(() => {
         // Eventos para ver detalhes (clique no conteúdo)
@@ -418,7 +418,7 @@ class MultiCIDManager {
             const docIndex = btn.dataset.docIndex;
             const code = btn.dataset.code;
             this.removeCid(docIndex, code, true); // true para indicar que a remoção é feita a partir do modal
-            
+
             // Atualizar modal sem fechar se ainda houver CIDs
             const remainingCids = this.cidsData.get(docIndex) || [];
             if (remainingCids.length > 0) {
@@ -490,32 +490,20 @@ class MultiCIDManager {
     if (!tagIsencao) return;
 
     const cidList = this.cidsData.get(documentIndex) || [];
-    const temIsencao = cidList.some(cid => cid.isencao);
-
-    if (temIsencao) {
+    const temIsencao = cidList.some(cid => cid.isencao);    if (temIsencao) {
       tagIsencao.classList.remove('hidden');
       tagIsencao.setAttribute('title', 'Este documento possui CID(s) com isenção de carência');
       tagIsencao.style.cursor = 'pointer';
 
       // Remover listener anterior
-      tagIsencao.removeEventListener('click', this.showIsencaoInfo);
+      tagIsencao.removeEventListener('click', showIsencaoCarenciaModal);
 
       // Adicionar novo listener
-      tagIsencao.addEventListener('click', this.showIsencaoInfo);
+      tagIsencao.addEventListener('click', showIsencaoCarenciaModal);
     } else {
       tagIsencao.classList.add('hidden');
       tagIsencao.removeAttribute('title');
-    }
-  }
-
-  /**
-   * Mostra informações sobre isenção de carência
-   */
-  showIsencaoInfo() {
-    if (typeof showIsencaoCarenciaModal === 'function') {
-      showIsencaoCarenciaModal();
-    }
-  }
+    }  }
 
   /**
    * Atualiza estado do formulário
@@ -1067,7 +1055,7 @@ function initializeProfissaoAutocomplete() {
     }
 
     if (input && dropdown && window.setupProfissaoAutocomplete) {
-      console.log('[incapacity.js] ✅ Elementos encontrados, configurando autocomplete...');
+      console.log('[incapacity.js] Elementos encontrados, configurando autocomplete...');
       window.setupProfissaoAutocomplete();
       profissaoAutocompleteInitialized = true; // Marcar como inicializado
       return true;
@@ -1106,7 +1094,7 @@ window.initModule = function() {
   }
   // Verificar se o módulo já foi inicializado nesta sessão
   if (window._incapacityInitialized) {
-    console.log('[incapacity.js] ✅ Módulo de incapacidades já inicializado, ignorando duplicata.');
+    console.log('[incapacity.js] Módulo de incapacidades já inicializado, ignorando duplicata.');
     return;
   }
 
@@ -1114,7 +1102,7 @@ window.initModule = function() {
   window._incapacityInitialized = true;
 
   // Inicializar o autocomplete de profissão
-  console.log('[incapacity.js] 🔧 Inicializando componentes do módulo...');
+  console.log('[incapacity.js] Inicializando componentes do módulo...');
   initializeProfissaoAutocomplete();
 
   // Inicializar o conteúdo da página de forma estruturada
@@ -1129,6 +1117,146 @@ window.initModule = function() {
   console.log('[incapacity.js] Módulo de incapacidade: eventos configurados e inicialização solicitada.');
 };
 
+// Função para configurar eventos do módulo
+function setupEvents() {
+  console.log('[incapacity.js] Configurando eventos do módulo...');
+  
+  // Configurar verificação de isenção de carência
+  setupIsencaoCarencia();
+  
+  // Configurar event listeners para limitações e medicamentos
+  setupMultiSelectEventListeners();
+  
+  console.log('[incapacity.js] Eventos do módulo configurados');
+}
+
+/**
+ * Configura event listeners para os selects de tipo de documento
+ */
+function setupDocumentoTipoSelects() {
+  console.log('[incapacity.js] Configurando event listeners para tipo de documento...');
+  
+  document.addEventListener('change', function(event) {
+    if (event.target.classList.contains('tipo-documento')) {
+      if (event.target.value === 'outro') {
+        window.currentDocumentoSelectGlobal = event.target;
+        showOutroDocumentoModal();
+      }
+    }
+  });
+  
+  console.log('[incapacity.js] Event listeners configurados para tipo de documento');
+}
+
+/**
+ * Mostra modal para adicionar um tipo de documento personalizado
+ */
+function showOutroDocumentoModal() {
+  if (typeof window.showGenericModal !== 'function') {
+    console.error('Modal genérico não disponível');
+    return;
+  }
+
+  window.showGenericModal({
+    title: 'Informar Tipo de Documento',
+    message: 'Digite o tipo de documento desejado:',
+    content: '<input type="text" id="outroDocumentoInput" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Relatório médico, Declaração">',
+    buttons: [
+      {
+        text: 'Cancelar',
+        className: 'flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center',
+        onclick: function() {
+          handleCancelOutroDocumento();
+        }
+      },
+      {
+        text: 'Salvar',
+        className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
+        onclick: function() {
+          handleSaveOutroDocumento();
+        }
+      }
+    ]
+  });
+
+  // Configurar eventos adicionais
+  setTimeout(() => {
+    const input = document.getElementById('outroDocumentoInput');
+    if (input) {
+      // Salvar ao pressionar Enter
+      input.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+          handleSaveOutroDocumento();
+        }
+      });
+      
+      // Focar no campo
+      input.focus();
+    }
+  }, 100);
+}
+
+/**
+ * Manipula o salvamento de um tipo de documento personalizado
+ */
+function handleSaveOutroDocumento() {
+  const input = document.getElementById('outroDocumentoInput');
+  if (!input || !window.currentDocumentoSelectGlobal) return;
+
+  const novoTipoDocumento = input.value.trim();
+  if (!novoTipoDocumento) {
+    alert('Por favor, informe o tipo de documento.');
+    input.focus();
+    return;
+  }
+
+  // Verificar se a opção já existe
+  const selectElement = window.currentDocumentoSelectGlobal;
+  const existingOption = Array.from(selectElement.options).find(
+    opt => opt.value.toLowerCase() === novoTipoDocumento.toLowerCase()
+  );
+
+  if (existingOption) {
+    selectElement.value = existingOption.value;
+  } else {
+    // Criar nova opção
+    const newOption = document.createElement('option');
+    newOption.value = novoTipoDocumento;
+    newOption.textContent = novoTipoDocumento;
+
+    // Inserir antes da opção "Outro"
+    const outroOption = Array.from(selectElement.options).find(opt => opt.value === 'outro');
+    if (outroOption) {
+      selectElement.insertBefore(newOption, outroOption);
+    } else {
+      selectElement.appendChild(newOption);
+    }
+
+    selectElement.value = novoTipoDocumento;
+  }
+
+  // Salvar automaticamente os dados do formulário
+  if (window.formStateManager) {
+    window.formStateManager.captureCurrentFormData();
+  }
+
+  window.currentDocumentoSelectGlobal = null;
+  window.closeGenericModal();
+}
+
+/**
+ * Manipula o cancelamento de tipo de documento personalizado
+ */
+function handleCancelOutroDocumento() {
+  // Se o usuário cancelou e o valor do select ainda é "outro", reseta
+  if (window.currentDocumentoSelectGlobal && window.currentDocumentoSelectGlobal.value === 'outro') {
+    window.currentDocumentoSelectGlobal.value = ""; // Reseta para "Selecione..."
+  }
+  
+  window.currentDocumentoSelectGlobal = null;
+  window.closeGenericModal();
+}
+
 // Função unificada para inicializar o conteúdo da página
 function initializePageContent() {
   // Configurar eventos do módulo
@@ -1136,10 +1264,17 @@ function initializePageContent() {
 
   // Configurar modal de "Outro Tipo de Documento"
   setupDocumentoTipoSelects();
-
   // Inicializar sistema de múltiplos CIDs
   if (window.multiCIDManager) {
     window.multiCIDManager.init();
+  }
+
+  // Inicializar sistemas de múltiplas limitações e medicamentos
+  if (window.multiLimitacoesManager) {
+    window.multiLimitacoesManager.init();
+  }
+  if (window.multiMedicamentosManager) {
+    window.multiMedicamentosManager.init();
   }
 
   // Expor addDoencaField globalmente
@@ -1167,11 +1302,17 @@ function initializePageContent() {
   if (window.formStateManager) {
     const currentStepKey = 'incapacity';
     console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
-    window.formStateManager.ensureFormAndRestore(currentStepKey);
-
-    // Aplicar validações após a restauração
+    window.formStateManager.ensureFormAndRestore(currentStepKey);    // Aplicar validações após a restauração
     setTimeout(function() {
       console.log('[incapacity.js] Aplicando validações pós-restauração...');
+
+      // Restaurar dados dos managers
+      if (window.multiLimitacoesManager) {
+        window.multiLimitacoesManager.restoreFromFormState();
+      }
+      if (window.multiMedicamentosManager) {
+        window.multiMedicamentosManager.restoreFromFormState();
+      }
 
       document.querySelectorAll('.doenca-input').forEach(input => {
         if (typeof verificarIsencaoCarencia === 'function') {
@@ -1185,7 +1326,7 @@ function initializePageContent() {
         if (doencaInput && typeof verificarIsencaoCarencia === 'function') {
           verificarIsencaoCarencia(doencaInput);
         }
-      });      // O novo sistema CID detecta e configura campos automaticamente
+      });// O novo sistema CID detecta e configura campos automaticamente
       // através do MutationObserver, não sendo necessário reinicialização manual
       console.log('[incapacity.js] Campos CID são configurados automaticamente pelo CIDSystem');
 
@@ -1201,7 +1342,6 @@ function initializePageContent() {
   } else {
     console.error("[incapacity.js] initModule: formStateManager não encontrado. A restauração não ocorrerá.");
   }
-
   // Configurar listeners para campos tipo-documento (modais)
   document.querySelectorAll('.tipo-documento').forEach(select => {
     select.addEventListener('change', function() {
@@ -1213,6 +1353,9 @@ function initializePageContent() {
       }
     });
   });
+
+  // Configurar event listeners para limitações e medicamentos
+  setupMultiSelectEventListeners();
 
   // Configurar botões de navegação usando o sistema padronizado
   if (window.Navigation) {
@@ -1332,11 +1475,11 @@ function verificarIsencaoCarencia(element) {
 
     // Usar busca mais rigorosa para evitar falsos positivos
     isento = window.doencasSemCarencia.some(doenca => {
-      const doencaNormalizada = doenca.toLowerCase().trim();
+      const doencaNorm = doenca.toLowerCase().trim();
 
       // Verificação rigorosa: a doença digitada deve conter o termo completo
       // ou ser uma correspondência muito próxima
-      const match = verificarCorrespondenciaDoenca(doencaValor, doencaNormalizada);
+      const match = verificarCorrespondenciaDoenca(doencaValor, doencaNorm);
 
       if (match) {
         motivoIsencao = `Doença: "${doenca}" - isenção legal de carência`;
@@ -1413,9 +1556,9 @@ function verificarCorrespondenciaDoenca(doencaDigitada, doencaReferencia) {
     return texto
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-      .replace(/[^\w\s]/g, '') // Remove pontuação
-      .replace(/\s+/g, ' ') // Normaliza espaços
+      .replace(/[\u0300-\u036f]/g, '') // Removes accents
+      .replace(/[^\w\s]/g, '') // Removes punctuation
+      .replace(/\s+/g, ' ') // Normalizes spaces
       .trim();
   };
 
@@ -1580,696 +1723,123 @@ function setupIsencaoCarencia() {
   }
 }
 
-// Função para configurar eventos do módulo
-function setupEvents() {
-  // Destacar campos preenchidos
-  if (typeof destacarCamposPreenchidos === 'function') {
-    destacarCamposPreenchidos();
+/**
+ * Classe para gerenciar múltiplas limitações
+ */
+class MultiLimitacoesManager {
+  constructor() {
+    this.limitacoesData = new Set();
   }
 
-  // Botão para adicionar doença/CID
-  const addDoencaBtn = document.getElementById('addDoenca');
-  if (addDoencaBtn) {
-    // Remover qualquer evento existente para evitar duplicação
-    const newBtn = addDoencaBtn.cloneNode(true);
-    addDoencaBtn.parentNode.replaceChild(newBtn, addDoencaBtn);
+  /**
+   * Inicializa o sistema
+   */
+  init() {
+    console.log('[MultiLimitacoesManager] Inicializando sistema de múltiplas limitações...');
+    this.setupDropdownOptions();
+  }
 
-    // Aplicar estilo centralizado ao botão de adicionar
-    if (window.tw && typeof window.tw.applyTo === 'function') {
-      window.tw.applyTo(newBtn, 'button.add');
+  /**
+   * Configura as opções do dropdown de limitações
+   */
+  setupDropdownOptions() {
+    const limitacoesSelect = document.getElementById('limitacoesSelect');
+    if (!limitacoesSelect) return;
+
+    const limitacoesComuns = [
+      'Dificuldade para caminhar',
+      'Dificuldade para subir escadas',
+      'Não consegue carregar peso',
+      'Dificuldade para ficar em pé',
+      'Dificuldade para se sentar',
+      'Não consegue dirigir',
+      'Dificuldade para se concentrar',
+      'Dificuldade para dormir',
+      'Limitação de movimentos',
+      'Dores constantes',
+      'Fadiga extrema',
+      'Dificuldade respiratória',
+      'Dificuldade visual',
+      'Dificuldade auditiva',
+      'Problemas de equilíbrio',
+      'Limitação de tempo para atividades'
+    ];    // Limpar opções existentes (exceto a primeira)
+    while (limitacoesSelect.children.length > 1) {
+      limitacoesSelect.removeChild(limitacoesSelect.lastChild);
     }
 
-    // Adicionar o evento ao novo botão - versão simplificada
-    newBtn.addEventListener('click', function(e) {
-      addDoencaField();
-    });
-  }
-
-  // Configurar campos "outro" nos selects
-  document.querySelectorAll('select[data-other-target]').forEach(select => {
-    select.addEventListener('change', function() {
-      const targetId = this.getAttribute('data-other-target');
-      const targetField = document.getElementById(targetId);
-
-      if (targetField) {
-        if (this.value === 'outro') {
-          targetField.classList.remove('hidden');
-        } else {
-          targetField.classList.add('hidden');
-        }
-      }
-    });
-  });
-
-  // Configurar botões de navegação usando o sistema padronizado
-  if (typeof window.Navigation !== 'undefined') {
-    console.log('[incapacity.js] Configurando navegação com sistema padronizado...');
-    window.Navigation.setupNavigationButtons();
-  } else {
-    console.warn('[incapacity.js] Sistema de navegação padronizado não encontrado, usando método legado...');
-
-    // Fallback para método legado - botão voltar
-    const backButton = document.getElementById('btn-back');
-    if (backButton) {
-      // Aplicar estilo centralizado ao botão voltar
-      if (window.tw && typeof window.tw.applyTo === 'function') {
-        window.tw.applyTo(backButton, 'button.secondary');
-      }
-
-      backButton.addEventListener('click', function() {
-        navigateTo('social');
-      });
-    }
-
-    // Fallback para método legado - botão próximo
-    const nextButton = document.getElementById('btn-next');
-    if (nextButton) {
-      // Aplicar estilo centralizado ao botão próximo
-      if (window.tw && typeof window.tw.applyTo === 'function') {
-        window.tw.applyTo(nextButton, 'button.primary');
-      }
-
-      // Remover eventos existentes
-      const newBtn = nextButton.cloneNode(true);
-      nextButton.parentNode.replaceChild(newBtn, nextButton);
-
-      // Flag para prevenir múltiplos cliques
-      let isNavigating = false;
-
-      // Adicionar novo evento com proteção
-      newBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (isNavigating) return;
-        isNavigating = true;
-
-        const originalText = this.innerHTML;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Carregando...';
-        this.classList.add('opacity-75');
-
-        try {
-          if (window.formStateManager) {
-            window.formStateManager.captureCurrentFormData();
-          }
-
-          setTimeout(() => {
-            navigateTo('professional');
-            setTimeout(() => {
-              if (document.body.contains(this)) {
-                this.innerHTML = originalText;
-                this.classList.remove('opacity-75');
-              }
-              isNavigating = false;
-            }, 500);
-          }, 100);
-        } catch (error) {
-          console.error('Erro ao navegar para a próxima página:', error);
-          this.innerHTML = originalText;
-          this.classList.remove('opacity-75');
-          isNavigating = false;
-        }
-      });
-    }
-  }
-}
-
-// Função para adicionar um novo campo de doença
-function addDoencaField() {
-  // Obter o container de doenças
-  const doencasList = document.getElementById('doencasList');
-  if (!doencasList) {
-    console.error('Container de doenças não encontrado');
-    return;
-  }
-
-  // Obter o próximo índice para os campos
-  const existingFields = doencasList.querySelectorAll('.cid-input');
-  const nextIndex = existingFields.length + 1;
-
-  // Criar o elemento HTML para o novo campo
-  const newDoencaField = document.createElement('div');
-  newDoencaField.className = 'mb-4';
-  newDoencaField.innerHTML = `
-    <!-- Layout otimizado: todos os campos na mesma linha -->
-    <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
-      <!-- Documento (agora é o primeiro) -->
-      <div class="relative md:col-span-4">
-        <select class="tipo-documento peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200" id="tipoDocumento${nextIndex}" name="tipoDocumentos[]" data-index="${nextIndex}">
-          <option value="" selected disabled>Selecione</option>
-          <option value="exame">Exame</option>
-          <option value="atestado">Atestado</option>
-          <option value="laudo">Laudo</option>
-          <option value="pericia">Perícia</option>
-          <option value="receita">Receita</option>
-          <option value="outro">Outro</option>
-        </select>
-        <label for="tipoDocumento${nextIndex}" class="input-label">
-          Documento
-        </label>
-      </div>
-
-      <!-- CID (segundo campo - reduzido) -->
-      <div class="relative md:col-span-5">
-        <div class="relative">
-          <input type="text" class="cid-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="cid${nextIndex}" placeholder="CID" name="cids[]" data-index="${nextIndex}" autocomplete="off">
-          <label for="cid${nextIndex}" class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none input-label">CID</label>
-          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <i class="fas fa-search"></i>
-          </div>
-          <div class="cid-dropdown hidden absolute z-50 bg-white w-full border border-gray-300 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto" id="cidDropdown${nextIndex}"></div>
-        </div>      </div>      <!-- Doença (terceiro campo - aumentado, agora suporta múltiplos CIDs) -->
-      <div class="relative md:col-span-10">
-        <div class="doenca-input peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 min-h-[48px]" id="doenca${nextIndex}" data-index="${nextIndex}" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
-          <span class="text-gray-400" style="display: block; width: 100%;">Adicione CIDs usando o campo ao lado</span>
-        </div>
-        <label for="doenca${nextIndex}" class="input-label">
-          CIDs do Documento
-        </label>
-        <div class="isento-carencia-tag hidden">Isenção de carência</div>
-      </div>      <!-- Data (quarto campo) -->
-      <div class="relative md:col-span-4">
-        <input type="text" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200" id="dataDocumento${nextIndex}" name="dataDocumentos[]" data-index="${nextIndex}" placeholder="dd/mm/aaaa" oninput="maskDate(this)">
-        <label for="dataDocumento${nextIndex}" class="input-label">
-          Data
-        </label>
-      </div>
-
-      <!-- Botão de remover (último campo) -->
-      <div class="md:col-span-1 flex items-center justify-center content-center text-center align-middle p-0">
-        <button type="button" class="remove-doenca-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8 mx-auto" title="Remover CID/Doença">
-          <i class="fas fa-minus"></i>
-        </button>
-      </div>
-    </div>
-  `;
-
-  // Adicionar ao DOM
-  doencasList.appendChild(newDoencaField);
-  // Configurar botão de remover
-  const removeButton = newDoencaField.querySelector('.remove-doenca-btn');
-  if (removeButton) {
-    removeButton.addEventListener('click', function() {
-      // Limpar dados do MultiCIDManager ao remover o campo
-      if (window.multiCIDManager) {
-        window.multiCIDManager.clearDocumentCids(nextIndex.toString());
-      }
-      newDoencaField.remove();
-    });
-  }
-
-  // Inicializar o MultiCIDManager para este novo campo
-  if (window.multiCIDManager) {
-    window.multiCIDManager.renderCidLinks(nextIndex.toString());
-  }
-
-  // O novo sistema CID detecta campos dinamicamente via MutationObserver
-  // Não é necessário reinicialização manual
-  console.log(`Nova linha de doença adicionada com índice ${nextIndex} - CID configurado automaticamente`);
-
-  // Aplicar máscaras e eventos aos novos campos
-  const dataInput = newDoencaField.querySelector(`#dataDocumento${nextIndex}`);
-  if (dataInput && typeof maskDate === 'function') {
-    dataInput.oninput = function() { maskDate(this); };
-  }
-
-  // Destacar campos se a função estiver disponível
-  if (typeof destacarCamposPreenchidos === 'function') {
-    destacarCamposPreenchidos();
-  }
-}
-
-// Expor a função para ser chamada externamente (ex: pelo FormStateManager)
-window.addDoencaField = addDoencaField;
-
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    // Validar isenção de carência
-    document.querySelectorAll('.doenca-input').forEach(input => {
-      if (typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(input);
-    });
-    // Validar CID
-    document.querySelectorAll('.cid-input').forEach(input => {
-      const index = input.getAttribute('data-index');
-      const doencaInput = document.getElementById('doenca' + index);
-      if (doencaInput && typeof verificarIsencaoCarencia === 'function') verificarIsencaoCarencia(doencaInput);
-    });
-  }, 300);
-});
-
-// Função para configurar os event listeners nos selects de tipo de documento
-function setupDocumentoTipoSelects() {
-  document.addEventListener('change', function(event) {
-    if (event.target.classList.contains('tipo-documento')) {
-      if (event.target.value === 'outro') {
-        window.currentDocumentoSelectGlobal = event.target;
-        showOutroDocumentoModal();
-      }
-    }
-  });
-}
-
-// Função para mostrar o modal de "Outro Tipo de Documento" usando o modal genérico
-function showOutroDocumentoModal() {
-  if (typeof window.showGenericModal !== 'function') {
-    console.error('Modal genérico não disponível');
-    return;
-  }
-
-  window.showGenericModal({
-    title: 'Informar Tipo de Documento',
-    message: 'Digite o tipo de documento desejado:',
-    content: '<input type="text" id="outroDocumentoInputGeneric" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Relatório, Comprovante">',
-    buttons: [
-      {
-        text: 'Cancelar',
-        className: 'flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center',
-        onclick: function() {
-          handleCancelOutroDocumento();
-        }
-      },
-      {
-        text: 'Salvar',
-        className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
-        onclick: function() {
-
-          handleSaveOutroDocumento();
-        }
-      }
-    ]
-  });
-
-  // Configurar eventos adicionais
-  setTimeout(() => {
-    const input = document.getElementById('outroDocumentoInputGeneric');
-    if (input) {
-      // Aplicar formatação de nome próprio com delay no modal
-      input.addEventListener('input', function() {
-        formatarNomeProprioModal(this);
-      });
-
-      // Salvar ao pressionar Enter
-      input.addEventListener('keyup', function(event) {
-        if (event.key === 'Enter') {
-          handleSaveOutroDocumento();
-        }
-      });
-    }
-  }, 100);
-}
-
-// Função para formatação de nome próprio no modal com delay
-function formatarNomeProprioModal(input) {
-  if (!input) return;
-
-  // Clear any existing timeout
-  clearTimeout(input.formatTimeout);
-
-  // Set new timeout
-  input.formatTimeout = setTimeout(() => {
-    if (typeof window.formatarNomeProprio === 'function') {
-      window.formatarNomeProprio(input);
-    }
-  }, 300);
-}
-
-// Função para lidar com o cancelamento
-function handleCancelOutroDocumento() {
-  // Se o usuário cancelou e o valor do select ainda é "outro", reseta para "Selecione..."
-  if (window.currentDocumentoSelectGlobal && window.currentDocumentoSelectGlobal.value === 'outro') {
-    const options = Array.from(window.currentDocumentoSelectGlobal.options);
-    const customOptionExists = options.some(opt => opt.value !== "" && opt.value !== "outro" && !isDefaultDocumentoOption(opt.value));
-
-    if (!customOptionExists) {
-      window.currentDocumentoSelectGlobal.value = ""; // Reseta para "Selecione..."
-    }
-  }
-  window.currentDocumentoSelectGlobal = null;
-  window.closeGenericModal();
-}
-
-// Função para lidar com o salvamento
-function handleSaveOutroDocumento() {
-  const input = document.getElementById('outroDocumentoInputGeneric');
-  const novoDocumento = input ? input.value.trim() : '';
-
-  if (novoDocumento && window.currentDocumentoSelectGlobal) {
-    // Verificar se a opção já existe (para não duplicar)
-    let optionExists = false;
-    for (let i = 0; i < window.currentDocumentoSelectGlobal.options.length; i++) {
-      if (window.currentDocumentoSelectGlobal.options[i].value === novoDocumento) {
-        optionExists = true;
-        break;
-      }
-    }
-
-    // Adicionar nova opção se não existir
-    if (!optionExists) {
-      const newOption = new Option(novoDocumento, novoDocumento, true, true);
-      // Insere a nova opção antes da opção "Outro..."
-      const outroOption = Array.from(window.currentDocumentoSelectGlobal.options).find(opt => opt.value === 'outro');
-      if (outroOption) {
-        window.currentDocumentoSelectGlobal.insertBefore(newOption, outroOption);
-      } else {
-        window.currentDocumentoSelectGlobal.appendChild(newOption);
-      }
-    }
-
-    window.currentDocumentoSelectGlobal.value = novoDocumento;
-
-    // Salvar automaticamente os dados do formulário
-    if (window.formStateManager) {
-      window.formStateManager.captureCurrentFormData();
-    }
-  }
-
-  window.currentDocumentoSelectGlobal = null;
-  window.closeGenericModal();
-}
-
-// Função auxiliar para verificar se uma opção de documento é uma das padrões
-function isDefaultDocumentoOption(value) {
-    const defaultOptions = ["exame", "atestado", "laudo", "pericia", "receita", "outro"];
-    return defaultOptions.includes(value);
-}
-
-// Função para mostrar modal com informações legais sobre isenção de carência
-function showIsencaoCarenciaModal() {
-  if (typeof window.showGenericModal !== 'function') {
-    console.error('Modal genérico não disponível');
-    return;
-  }
-    const conteudoModal = `
-    <div class="space-y-4">
-      <!-- Status compacto -->
-      <div class="bg-green-50 border border-green-200 rounded-lg p-3">
-        <div class="flex items-center">
-          <i class="fas fa-shield-check text-green-600 mr-2"></i>
-          <p class="font-medium text-green-800">Isenção de carência confirmada</p>
-        </div>
-      </div>
-
-      <!-- Benefício prático -->
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p class="text-sm text-blue-800">
-          <i class="fas fa-clock text-blue-600 mr-2"></i>
-          <strong>Sem período de carência</strong> - Pode requerer o benefício imediatamente após comprovar a incapacidade.
-        </p>
-      </div>
-
-      <!-- Documentação necessária -->
-      <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
-        <p class="text-sm text-amber-800 mb-2">
-          <i class="fas fa-folder-medical text-amber-600 mr-2"></i>
-          <strong>Documentação essencial:</strong>
-        </p>
-        <ul class="text-xs text-amber-700 space-y-1 ml-4">
-          <li>• Relatórios médicos detalhados</li>
-          <li>• Comprovação do diagnóstico</li>
-          <li>• Demonstração da incapacidade laboral</li>
-        </ul>
-      </div>
-
-      <!-- Base legal simplificada com link -->
-      <div class="text-center">
-        <p class="text-xs text-gray-600 mb-2">
-          Fundamentação: 
-          <a href="https://in.gov.br/en/web/dou/-/portaria-interministerial-mtp/ms-n-22-de-31-de-agosto-de-2022-426206445" 
-             target="_blank" 
-             class="text-blue-600 hover:text-blue-800 underline">
-            Portaria MTP/MS 22/2022 e Lei 8.213/91
-          </a>
-        </p>
-      </div>
-    </div>
-  `;
-  window.showGenericModal({
-    title: 'Isenção de Carência',
-    content: conteudoModal,
-    buttons: []
-  });
-}
-
-// Lista de limitações populares organizadas por categoria para autocomplete
-if (typeof window.limitacoesComuns === 'undefined') {
-  window.limitacoesComuns = [
-    // Limitações de mobilidade (12 itens)
-    'Dificuldade para caminhar',
-    'Não consegue caminhar',
-    'Usa cadeira de rodas',
-    'Usa muletas',
-    'Dificuldade para subir escadas',
-    'Não consegue subir escadas',
-    'Dificuldade para se levantar',
-    'Não consegue se levantar',
-    'Dificuldade para se abaixar',
-    'Não consegue se abaixar',
-    'Limitação para ficar em pé',
-    'Limitação para sentar',
-
-    // Limitações de movimentos das mãos/braços (8 itens)
-    'Dificuldade para pegar objetos',
-    'Não consegue pegar objetos',
-    'Dificuldade para escrever',
-    'Não consegue escrever',
-    'Limitação nos movimentos dos braços',
-    'Limitação nos movimentos das mãos',
-    'Dificuldade para fazer força',
-    'Tremores nas mãos',
-
-    // Limitações cognitivas/mentais (9 itens)
-    'Dificuldade de concentração',
-    'Problemas de memória',
-    'Dificuldade para aprender',
-    'Confusão mental',
-    'Desorientação',
-    'Dificuldade para tomar decisões',
-    'Ansiedade limitante',
-    'Depressão incapacitante',
-    'Transtorno mental',
-
-    // Limitações visuais (7 itens)
-    'Cegueira total',
-    'Cegueira parcial',
-    'Baixa visão',
-    'Dificuldade para enxergar',
-    'Visão embaçada',
-    'Sensibilidade à luz',
-    'Campo visual reduzido',
-
-    // Limitações auditivas (4 itens)
-    'Surdez total',
-    'Surdez parcial',
-    'Dificuldade para ouvir',
-    'Zumbido no ouvido',
-
-    // Limitações respiratórias (5 itens)
-    'Falta de ar',
-    'Dificuldade para respirar',
-    'Cansaço fácil',
-    'Limitação para exercícios',
-    'Uso de oxigênio',
-
-    // Limitações de autocuidado (5 itens)
-    'Dificuldade para se vestir',
-    'Dificuldade para tomar banho',
-    'Dificuldade para comer',
-    'Dificuldade para usar banheiro',
-    'Necessita de cuidador',
-
-    // Limitações de dor (6 itens)
-    'Dor crônica',
-    'Dor constante',
-    'Dor limitante',
-    'Dor nas costas',
-    'Dor nas articulações',
-    'Dor de cabeça frequente',
-
-    // Outras limitações (9 itens)
-    'Limitação para trabalhar',
-    'Limitação para dirigir',
-    'Limitação para atividades domésticas',
-    'Limitação para estudar',
-    'Isolamento social',
-    'Dependência de medicamentos',
-    'Limitação para viajar',
-    'Limitação para atividades de lazer',
-    'Outras limitações funcionais'
-  ];
-}
-
-// Função para configurar o sistema de limitações
-function setupLimitacoesDiarias() {
-  console.log('[incapacity.js] setupLimitacoesDiarias: Iniciando configuração...');
-
-  const select = document.getElementById('limitacoesSelect');
-  const containerSelecionadas = document.getElementById('limitacoesSelecionadas');
-  const hiddenField = document.getElementById('limitacoesDiarias');
-
-  console.log('[incapacity.js] Elementos encontrados:', {
-    select: !!select,
-    container: !!containerSelecionadas,
-    hidden: !!hiddenField
-  });
-
-  if (!select || !containerSelecionadas || !hiddenField) {
-    console.log('[incapacity.js] Elementos de limitações não encontrados no template atual');
-    return;
-  }
-
-  console.log('[incapacity.js] Configurando sistema de limitações...');
-
-  let limitacoesSelecionadas = [];
-
-  // Função para popular o dropdown com limitações comuns
-  function popularDropdown() {
-    // Limpar opções existentes exceto a primeira
-    select.innerHTML = '<option value="" selected disabled>Selecione limitações...</option>';
-
-    // Adicionar limitações comuns agrupadas por categoria
-    const categorias = {
-      'Mobilidade': [
-        'Dificuldade para caminhar',
-        'Não consegue caminhar',
-        'Usa cadeira de rodas',
-        'Usa muletas',
-        'Dificuldade para subir escadas',
-        'Não consegue subir escadas',
-        'Dificuldade para se levantar',
-        'Não consegue se levantar',
-        'Dificuldade para se abaixar',
-        'Não consegue se abaixar',
-        'Limitação para ficar em pé',
-        'Limitação para sentar'
-      ],
-      'Movimentos das mãos/braços': [
-        'Dificuldade para pegar objetos',
-        'Não consegue pegar objetos',
-        'Dificuldade para escrever',
-        'Não consegue escrever',
-        'Limitação nos movimentos dos braços',
-        'Limitação nos movimentos das mãos',
-        'Dificuldade para fazer força',
-        'Tremores nas mãos'
-      ],
-      'Cognitivas/mentais': [
-        'Dificuldade de concentração',
-        'Problemas de memória',
-        'Dificuldade para aprender',
-        'Confusão mental',
-        'Desorientação',
-        'Dificuldade para tomar decisões',
-        'Ansiedade limitante',
-        'Depressão incapacitante',
-        'Transtorno mental'
-      ],
-      'Visuais': [
-        'Cegueira total',
-        'Cegueira parcial',
-        'Baixa visão',
-        'Dificuldade para enxergar',
-        'Visão embaçada',
-        'Sensibilidade à luz',
-        'Campo visual reduzido'
-      ],
-      'Auditivas': [
-        'Surdez total',
-        'Surdez parcial',
-        'Dificuldade para ouvir',
-        'Zumbido no ouvido'
-      ],
-      'Respiratórias': [
-        'Falta de ar',
-        'Dificuldade para respirar',
-        'Cansaço fácil',
-        'Limitação para exercícios',
-        'Uso de oxigênio'
-      ],
-      'Autocuidado': [
-        'Dificuldade para se vestir',
-        'Dificuldade para tomar banho',
-        'Dificuldade para comer',
-        'Dificuldade para usar banheiro',
-        'Necessita de cuidador'
-      ],
-      'Dor': [
-        'Dor crônica',
-        'Dor constante',
-        'Dor limitante',
-        'Dor nas costas',
-        'Dor nas articulações',
-        'Dor de cabeça frequente'
-      ],
-      'Outras': [
-        'Limitação para trabalhar',
-        'Limitação para dirigir',
-        'Limitação para atividades domésticas',
-        'Limitação para estudar',
-        'Isolamento social',
-        'Dependência de medicamentos',
-        'Limitação para viajar',
-        'Limitação para atividades de lazer',
-        'Outras limitações funcionais'
-      ]
-    };
-
-    // Adicionar opções agrupadas por categoria
-    Object.keys(categorias).forEach(categoria => {
-      const optgroup = document.createElement('optgroup');
-      optgroup.label = categoria;
-
-      categorias[categoria].forEach(limitacao => {
-        const option = document.createElement('option');
-        option.value = limitacao;
-        option.textContent = limitacao;
-        optgroup.appendChild(option);
-      });
-
-      select.appendChild(optgroup);
+    // Adicionar opções
+    limitacoesComuns.forEach(limitacao => {
+      const option = document.createElement('option');
+      option.value = limitacao;
+      option.textContent = limitacao;
+      limitacoesSelect.appendChild(option);
     });
 
-    // Adicionar opção "Outra"
-    const option = document.createElement('option');
-    option.value = 'outra';
-    option.textContent = 'Outra limitação...';
-    select.appendChild(option);
+    // Adicionar opção "Outro"
+    const outroOption = document.createElement('option');
+    outroOption.value = 'outro';
+    outroOption.textContent = 'Outro';
+    limitacoesSelect.appendChild(outroOption);
   }
 
-  // Função para adicionar limitação selecionada
-  function adicionarLimitacao(limitacao) {
-    if (limitacoesSelecionadas.includes(limitacao)) return;
-
-    limitacoesSelecionadas.push(limitacao);
-    atualizarTagsVisuais();
-    atualizarCampoHidden();
-
-    console.log('[incapacity.js] Limitação adicionada:', limitacao);
-    console.log('[incapacity.js] Total selecionadas:', limitacoesSelecionadas.length);
-  }
-
-  // Função para remover limitação
-  function removerLimitacao(limitacao) {
-    const index = limitacoesSelecionadas.indexOf(limitacao);
-    if (index > -1) {
-      limitacoesSelecionadas.splice(index, 1);
-      atualizarTagsVisuais();
-      atualizarCampoHidden();
-
-      console.log('[incapacity.js] Limitação removida:', limitacao);
-      console.log('[incapacity.js] Total selecionadas:', limitacoesSelecionadas.length);
+  /**
+   * Adiciona uma limitação
+   * @param {string} limitacao - Limitação a adicionar
+   * @returns {boolean} - Sucesso da operação
+   */
+  addLimitacao(limitacao) {
+    if (!limitacao || typeof limitacao !== 'string') {
+      console.warn('[MultiLimitacoesManager] Limitação inválida');
+      return false;
     }
+
+    const limitacaoTrimmed = limitacao.trim();
+    if (this.limitacoesData.has(limitacaoTrimmed)) {
+      console.warn('[MultiLimitacoesManager] Limitação já existe');
+      return false;
+    }
+
+    this.limitacoesData.add(limitacaoTrimmed);
+    console.log(`[MultiLimitacoesManager] Limitação adicionada: ${limitacaoTrimmed}`);
+
+    this.renderLimitacoes();
+    this.updateFormState();
+    this.updateLabelState();
+
+    return true;
   }
 
-  // Função para atualizar as tags visuais
-  function atualizarTagsVisuais() {
-    containerSelecionadas.innerHTML = '';
+  /**
+   * Remove uma limitação
+   * @param {string} limitacao - Limitação a remover
+   */
+  removeLimitacao(limitacao) {
+    if (!limitacao) return;
 
-    if (limitacoesSelecionadas.length === 0) {
-      containerSelecionadas.innerHTML = '<p class="text-gray-500 text-sm italic">Nenhuma limitação selecionada</p>';
+    this.limitacoesData.delete(limitacao);
+    console.log(`[MultiLimitacoesManager] Limitação removida: ${limitacao}`);
+
+    this.renderLimitacoes();
+    this.updateFormState();
+    this.updateLabelState();
+  }
+
+  /**
+   * Renderiza as limitações como tags visuais
+   */
+  renderLimitacoes() {
+    const container = document.getElementById('limitacoesSelecionadas');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (this.limitacoesData.size === 0) {
+      container.innerHTML = '<p class="text-gray-500 text-sm italic">Nenhuma limitação selecionada</p>';
       return;
     }
 
-    limitacoesSelecionadas.forEach(limitacao => {
+    this.limitacoesData.forEach(limitacao => {
       const tag = document.createElement('div');
       tag.className = 'inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mr-2 mb-2';
       tag.innerHTML = `
@@ -2281,102 +1851,389 @@ function setupLimitacoesDiarias() {
 
       // Configurar botão de remover
       const removeBtn = tag.querySelector('button');
-      removeBtn.addEventListener('click', function(e) {
+      removeBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        removerLimitacao(limitacao);
+        this.removeLimitacao(limitacao);
       });
 
-      containerSelecionadas.appendChild(tag);
+      container.appendChild(tag);
     });
   }
 
-  // Função para atualizar o campo hidden
-  function atualizarCampoHidden() {
-    hiddenField.value = limitacoesSelecionadas.join('|');
+  /**
+   * Atualiza estado do formulário
+   */
+  updateFormState() {
+    if (!window.formStateManager) return;
 
-    // Disparar evento change para o formStateManager
-    hiddenField.dispatchEvent(new Event('change', { bubbles: true }));
-  }
+    const incapacityData = window.formStateManager.formData.incapacity || {};
+    incapacityData.limitacoes = Array.from(this.limitacoesData);
+    window.formStateManager.formData.incapacity = incapacityData;
 
-  // Função para carregar limitações salvas
-  function carregarLimitacoesSalvas() {
-    const valorSalvo = hiddenField.value;
-    if (valorSalvo && valorSalvo.trim() !== '') {
-      limitacoesSelecionadas = valorSalvo.split('|').filter(l => l.trim() !== '');
-      atualizarTagsVisuais();
-      console.log('[incapacity.js] Limitações carregadas:', limitacoesSelecionadas);
+    // Atualizar também o campo hidden
+    const hiddenField = document.getElementById('limitacoesDiarias');
+    if (hiddenField) {
+      hiddenField.value = JSON.stringify(Array.from(this.limitacoesData));
     }
   }
 
-  // Configurar evento do select
-  select.addEventListener('change', function() {
-    const valor = this.value;
+  /**
+   * Restaura dados do estado do formulário
+   */
+  restoreFromFormState() {
+    if (!window.formStateManager?.formData?.incapacity?.limitacoes) return;
 
-    if (valor === 'outra') {
-      // Mostrar modal para "outra limitação"
-      showOutraLimitacaoModal();
-    } else if (valor && valor !== '') {
-      // Adicionar limitação selecionada
-      adicionarLimitacao(valor);
+    const savedLimitacoes = window.formStateManager.formData.incapacity.limitacoes;
+
+    if (Array.isArray(savedLimitacoes)) {
+      this.limitacoesData.clear();
+      savedLimitacoes.forEach(limitacao => {
+        if (limitacao && typeof limitacao === 'string') {
+          this.limitacoesData.add(limitacao);
+        }
+      });
+
+      // Aguardar DOM estar pronto antes de renderizar
+      setTimeout(() => {
+        this.renderLimitacoes();
+        this.updateLabelState();
+      },  100);
+
+      console.log('[MultiLimitacoesManager] Dados restaurados do formState');
     }
+  }
 
-    // Reset do select
-    this.value = '';
-  });
+  /**
+   * Obtém todas as limitações
+   * @returns {Array} Array com todas as limitações
+   */
+  getLimitacoes() {
+    return Array.from(this.limitacoesData);
+  }
 
-  // Inicializar
-  popularDropdown();
-  carregarLimitacoesSalvas();
+  /**
+   * Limpa todas as limitações
+   */
+  clear() {
+    this.limitacoesData.clear();
+    this.renderLimitacoes();
+    this.updateFormState();
+    this.updateLabelState();
+  }
 
-  // Expor funções para uso externo
-  window.adicionarLimitacao = adicionarLimitacao;
-  window.removerLimitacao = removerLimitacao;
-  window.carregarLimitacoesSalvas = carregarLimitacoesSalvas;
+  /**
+   * Atualiza o estado do label
+   */
+  updateLabelState() {
+    const limitacoesSelect = document.getElementById('limitacoesSelect');
+    if (!limitacoesSelect) return;
 
-  console.log('[incapacity.js] Sistema de limitações configurado com sucesso!');
+    const label = limitacoesSelect.closest('.relative')?.querySelector('label');
+    if (!label) return;
+
+    if (this.limitacoesData.size > 0) {
+      label.classList.add('text-blue-600');
+      label.classList.remove('text-gray-500');
+      label.style.opacity = '1';
+      label.style.visibility = 'visible';
+      label.style.color = 'var(--color-primary)';
+      label.style.background = 'var(--color-bg)';
+    } else {
+      label.classList.remove('text-blue-600');
+      label.classList.add('text-gray-500');
+    }
+  }
 }
 
-// Função para mostrar o modal "Outra Limitação"
+/**
+ * Classe para gerenciar múltiplos medicamentos
+ */
+class MultiMedicamentosManager {
+  constructor() {
+    this.medicamentosData = new Set();
+    this.medicamentosMap = new Map(); // Para mapear valores do select para texto
+  }
+
+  /**
+   * Inicializa o sistema
+   */
+  init() {
+    console.log('[MultiMedicamentosManager] Inicializando sistema de múltiplos medicamentos...');
+    this.setupMedicamentosMap();
+  }
+
+  /**
+   * Configura o mapeamento de medicamentos
+   */
+  setupMedicamentosMap() {
+    this.medicamentosMap.set('analgesico_dor', 'Para dor');
+    this.medicamentosMap.set('anti_inflamatorio', 'Anti-inflamatório');
+    this.medicamentosMap.set('relaxante_muscular', 'Relaxante muscular');
+    this.medicamentosMap.set('antidepressivo', 'Para depressão');
+    this.medicamentosMap.set('ansiolitico', 'Para ansiedade');
+    this.medicamentosMap.set('para_dormir', 'Para dormir');
+    this.medicamentosMap.set('para_pressao', 'Para pressão alta');
+    this.medicamentosMap.set('para_diabetes', 'Para diabetes');
+    this.medicamentosMap.set('para_coracao', 'Para problemas cardíacos');
+    this.medicamentosMap.set('insulina', 'Insulina');
+    this.medicamentosMap.set('outro', 'Outro');
+  }
+
+  /**
+   * Adiciona um medicamento
+   * @param {string} medicamento - Medicamento a adicionar
+   * @returns {boolean} - Sucesso da operação
+   */
+  addMedicamento(medicamento) {
+    if (!medicamento || typeof medicamento !== 'string') {
+      console.warn('[MultiMedicamentosManager] Medicamento inválido');
+      return false;
+    }
+
+    const medicamentoTrimmed = medicamento.trim();
+    if (this.medicamentosData.has(medicamentoTrimmed)) {
+      console.warn('[MultiMedicamentosManager] Medicamento já existe');
+      return false;
+    }
+
+    this.medicamentosData.add(medicamentoTrimmed);
+    console.log(`[MultiMedicamentosManager] Medicamento adicionado: ${medicamentoTrimmed}`);
+
+    this.renderMedicamentos();
+    this.updateFormState();
+    this.updateLabelState();
+
+    return true;
+  }
+
+  /**
+   * Remove um medicamento
+   * @param {string} medicamento - Medicamento a remover
+   */
+  removeMedicamento(medicamento) {
+    if (!medicamento) return;
+
+    this.medicamentosData.delete(medicamento);
+    console.log(`[MultiMedicamentosManager] Medicamento removido: ${medicamento}`);
+
+    this.renderMedicamentos();
+    this.updateFormState();
+    this.updateLabelState();
+  }
+
+  /**
+   * Renderiza os medicamentos como tags visuais
+   */
+  renderMedicamentos() {
+    const container = document.getElementById('medicamentosSelecionados');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (this.medicamentosData.size === 0) {
+      container.innerHTML = '<p class="text-gray-500 text-sm italic">Nenhum medicamento selecionado</p>';
+      return;
+    }
+
+    this.medicamentosData.forEach(medicamento => {
+      const tag = document.createElement('div');
+      tag.className = 'inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm mr-2 mb-2';
+      tag.innerHTML = `
+        <span class="mr-2">${medicamento}</span>
+        <button type="button" class="text-green-600 hover:text-green-800 focus:outline-none" title="Remover medicamento">
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      `;
+
+      // Configurar botão de remover
+      const removeBtn = tag.querySelector('button');
+      removeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.removeMedicamento(medicamento);
+      });
+
+      container.appendChild(tag);
+    });
+  }
+
+  /**
+   * Atualiza estado do formulário
+   */
+  updateFormState() {
+    if (!window.formStateManager) return;
+
+    const incapacityData = window.formStateManager.formData.incapacity || {};
+    incapacityData.medicamentos = Array.from(this.medicamentosData);
+    window.formStateManager.formData.incapacity = incapacityData;
+
+    // Atualizar também o campo hidden
+    const hiddenField = document.getElementById('medicamentosAtuaisHidden');
+    if (hiddenField) {
+      hiddenField.value = JSON.stringify(Array.from(this.medicamentosData));
+    }
+  }
+
+  /**
+   * Restaura dados do estado do formulário
+   */
+  restoreFromFormState() {
+    if (!window.formStateManager?.formData?.incapacity?.medicamentos) return;
+
+    const savedMedicamentos = window.formStateManager.formData.incapacity.medicamentos;
+
+    if (Array.isArray(savedMedicamentos)) {
+      this.medicamentosData.clear();
+      savedMedicamentos.forEach(medicamento => {
+        if (medicamento && typeof medicamento === 'string') {
+          this.medicamentosData.add(medicamento);
+        }
+      });
+
+      // Aguardar DOM estar pronto antes de renderizar
+      setTimeout(() => {
+        this.renderMedicamentos();
+        this.updateLabelState();
+      }, 100);
+
+      console.log('[MultiMedicamentosManager] Dados restaurados do formState');
+    }
+  }
+
+  /**
+   * Obtém todos os medicamentos
+   * @returns {Array} Array com todos os medicamentos
+   */
+  getMedicamentos() {
+    return Array.from(this.medicamentosData);
+  }
+
+  /**
+   * Limpa todos os medicamentos
+   */
+  clear() {
+    this.medicamentosData.clear();
+    this.renderMedicamentos();
+    this.updateFormState();
+    this.updateLabelState();
+  }
+
+  /**
+   * Atualiza o estado do label
+   */
+  updateLabelState() {
+    const medicamentosSelect = document.getElementById('medicamentosAtuais');
+    if (!medicamentosSelect) return;
+
+    const label = medicamentosSelect.closest('.relative')?.querySelector('label');
+    if (!label) return;
+
+    if (this.medicamentosData.size > 0) {
+      label.classList.add('text-blue-600');
+      label.classList.remove('text-gray-500');
+      label.style.opacity = '1';
+      label.style.visibility = 'visible';
+      label.style.color = 'var(--color-primary)';
+      label.style.background = 'var(--color-bg)';
+    } else {
+      label.classList.remove('text-blue-600');
+      label.classList.add('text-gray-500');
+    }
+  }
+
+  /**
+   * Obtém o texto do medicamento a partir do valor do select
+   * @param {string} value - Valor do select
+   * @returns {string} Texto do medicamento
+   */
+  getMedicamentoText(value) {
+    return this.medicamentosMap.get(value) || value;
+  }
+}
+
+// Criar instâncias globais
+window.multiLimitacoesManager = new MultiLimitacoesManager();
+window.multiMedicamentosManager = new MultiMedicamentosManager();
+
+/**
+ * Configura event listeners para os dropdowns de limitações e medicamentos
+ */
+function setupMultiSelectEventListeners() {
+  console.log('[incapacity.js] Configurando event listeners para limitações e medicamentos...');
+
+  // Event listener para limitações
+  const limitacoesSelect = document.getElementById('limitacoesSelect');
+  if (limitacoesSelect) {
+    limitacoesSelect.addEventListener('change', function() {
+      const value = this.value;
+      if (value && value !== '') {
+        if (value === 'outro') {
+          // Abrir modal para "Outra limitação"
+          if (typeof showOutraLimitacaoModal === 'function') {
+            showOutraLimitacaoModal();
+          }
+        } else {
+          const success = window.multiLimitacoesManager.addLimitacao(value);
+          if (success) {
+            // Resetar dropdown após adicionar
+            this.value = '';
+            console.log('[incapacity.js] Limitação adicionada via dropdown:', value);
+          }
+        }
+      }
+    });
+    console.log('[incapacity.js] Event listener configurado para limitações');
+  }
+
+  // Event listener para medicamentos
+  const medicamentosSelect = document.getElementById('medicamentosAtuais');
+  if (medicamentosSelect) {
+    medicamentosSelect.addEventListener('change', function() {
+      const value = this.value;
+      if (value && value !== '') {
+        if (value === 'outro') {
+          // Abrir modal para "Outro medicamento"
+          if (typeof showOutroMedicamentoModal === 'function') {
+            showOutroMedicamentoModal();
+          }
+        } else {
+          // Obter texto legível do medicamento
+          const medicamentoText = window.multiMedicamentosManager.getMedicamentoText(value);
+          const success = window.multiMedicamentosManager.addMedicamento(medicamentoText);
+          if (success) {
+            // Resetar dropdown após adicionar
+            this.value = '';
+            console.log('[incapacity.js] Medicamento adicionado via dropdown:', medicamentoText);
+          }
+        }
+      }
+    });
+    console.log('[incapacity.js] Event listener configurado para medicamentos');
+  }
+}
+
+/**
+ * Mostra modal para adicionar uma limitação personalizada
+ */
 function showOutraLimitacaoModal() {
   if (typeof window.showGenericModal !== 'function') {
     console.error('Modal genérico não disponível');
     return;
   }
 
-  const conteudoModal = `
-    <div class="space-y-4">
-      <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">
-          Descreva a limitação específica
-        </label>
-        <input type="text" id="outraLimitacaoInput"
-               class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200"
-               placeholder="Digite a limitação...">
-      </div>
-
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p class="text-sm text-blue-800">
-          <i class="fas fa-info-circle text-blue-600 mr-2"></i>
-          Seja específico para melhor avaliação da limitação.
-        </p>
-      </div>
-    </div>
-  `;
-
   window.showGenericModal({
-    title: 'Adicionar Limitação',
-    message: '',
-    content: conteudoModal,
+    title: 'Informar Outra Limitação',
+    message: 'Digite a limitação que você possui:',
+    content: '<input type="text" id="outraLimitacaoInput" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Dificuldade para ler, Problemas de memória">',
     buttons: [
       {
         text: 'Cancelar',
         className: 'flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center',
         onclick: function() {
-          window.closeGenericModal();
+          handleCancelOutraLimitacao();
         }
       },
       {
-        text: 'Adicionar',
+        text: 'Salvar',
         className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
         onclick: function() {
           handleSaveOutraLimitacao();
@@ -2385,107 +2242,36 @@ function showOutraLimitacaoModal() {
     ]
   });
 
-  // Focar no input após o modal abrir
+  // Configurar eventos adicionais
   setTimeout(() => {
     const input = document.getElementById('outraLimitacaoInput');
     if (input) {
-      input.focus();
-
-      // Configurar Enter para salvar
-      input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
+      // Salvar ao pressionar Enter
+      input.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
           handleSaveOutraLimitacao();
         }
       });
+      
+      // Focar no campo
+      input.focus();
     }
   }, 100);
 }
 
-// Função para lidar com o salvamento da limitação personalizada
-function handleSaveOutraLimitacao() {
-  const input = document.getElementById('outraLimitacaoInput');
-  if (!input) return;
-
-  const novaLimitacao = input.value.trim();
-
-  // Validar input
-  if (!novaLimitacao) {
-    alert('Por favor, digite uma limitação.');
-    input.focus();
-    return;
-  }
-
-  if (novaLimitacao.length < 3) {
-    alert('A limitação deve ter pelo menos 3 caracteres.');
-    input.focus();
-    return;
-  }
-
-  // Verificar se não é uma limitação já existente
-  if (window.limitacoesComuns && window.limitacoesComuns.includes(novaLimitacao)) {
-    alert('Esta limitação já está disponível na lista. Selecione-a diretamente no dropdown.');
-    input.focus();
-    return;
-  }
-
-  // Verificar se já foi adicionada
-  if (window.adicionarLimitacao) {
-    const limitacoesSelecionadas = document.getElementById('limitacoesDiarias').value.split('|').filter(l => l.trim() !== '');
-    if (limitacoesSelecionadas.includes(novaLimitacao)) {
-      alert('Esta limitação já foi adicionada.');
-      window.closeGenericModal();
-      return;
-    }
-
-    // Adicionar a nova limitação
-    window.adicionarLimitacao(novaLimitacao);
-    console.log('[incapacity.js] Nova limitação adicionada:', novaLimitacao);
-
-    // Fechar modal
-    window.closeGenericModal();
-  } else {
-        console.error('[incapacity.js] Função adicionarLimitacao não encontrada');
-    alert('Erro interno. Por favor, recarregue a página.');
-  }
-}
-
-// Função para configurar o modal "Outro Medicamento"
-function setupOutroMedicamentoModal() {
-  // Configurar listener para o select de medicamentos
-  document.addEventListener('change', function(event) {
-    if (event.target.id === 'medicamentos' && event.target.value === 'outro') {
-      showOutroMedicamentoModal();
-    }
-  });
-}
-
-// Função para mostrar o modal "Outro Medicamento"
+/**
+ * Mostra modal para adicionar um medicamento personalizado
+ */
 function showOutroMedicamentoModal() {
-  const conteudoModal = `
-    <div class="space-y-4">
-      <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">
-          Nome do Medicamento
-        </label>
-        <input type="text" id="novoMedicamentoInput"
-               class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white placeholder-gray-400 transition-colors duration-200"
-               placeholder="Digite o nome do medicamento">
-      </div>
-
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p class="text-sm text-blue-800">
-          <i class="fas fa-info-circle text-blue-600 mr-2"></i>
-          Digite o nome completo do medicamento. Ele será adicionado à lista de opções.
-        </p>
-      </div>
-    </div>
-  `;
+  if (typeof window.showGenericModal !== 'function') {
+    console.error('Modal genérico não disponível');
+    return;
+  }
 
   window.showGenericModal({
-    title: 'Adicionar Outro Medicamento',
-    message: '',
-    content: conteudoModal,
+    title: 'Informar Outro Medicamento',
+    message: 'Digite o medicamento que você usa:',
+    content: '<input type="text" id="outroMedicamentoInput" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Dipirona, Paracetamol, Ibuprofeno">',
     buttons: [
       {
         text: 'Cancelar',
@@ -2504,316 +2290,163 @@ function showOutroMedicamentoModal() {
     ]
   });
 
-  // Focar no input após o modal abrir
+  // Configurar eventos adicionais
   setTimeout(() => {
-    const input = document.getElementById('novoMedicamentoInput');
+    const input = document.getElementById('outroMedicamentoInput');
     if (input) {
-      input.focus();
-
-      // Configurar formatação de nome próprio
-      input.addEventListener('input', function() {
-        formatarNomeProprioModal(this);
-      });
-
-      // Salvar com Enter
-      input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
+      // Salvar ao pressionar Enter
+      input.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
           handleSaveOutroMedicamento();
         }
       });
+      
+      // Focar no campo
+      input.focus();
     }
   }, 100);
 }
 
-// Função para lidar com o cancelamento do modal de medicamento
-function handleCancelOutroMedicamento() {
-  const medicamentosSelect = document.getElementById('medicamentos');
-  if (medicamentosSelect) {
-    medicamentosSelect.value = '';
+/**
+ * Manipula o salvamento de uma limitação personalizada
+ */
+function handleSaveOutraLimitacao() {
+  const input = document.getElementById('outraLimitacaoInput');
+  if (!input) return;
+
+  const novaLimitacao = input.value.trim();
+  if (!novaLimitacao) {
+    alert('Por favor, informe a limitação.');
+    input.focus();
+    return;
   }
+
+  // Adicionar limitação ao sistema
+  const success = window.multiLimitacoesManager.addLimitacao(novaLimitacao);
+  if (success) {
+    console.log('[incapacity.js] Limitação personalizada adicionada:', novaLimitacao);
+    
+    // Salvar automaticamente os dados do formulário
+    if (window.formStateManager) {
+      window.formStateManager.captureCurrentFormData();
+    }
+  }
+
   window.closeGenericModal();
 }
 
-// Função para lidar com o salvamento do modal de medicamento
-function handleSaveOutroMedicamento() {
-  const input = document.getElementById('novoMedicamentoInput');
-  const medicamentosSelect = document.getElementById('medicamentos');
+/**
+ * Manipula o cancelamento de limitação personalizada
+ */
+function handleCancelOutraLimitacao() {
+  window.closeGenericModal();
+}
 
-  if (!input || !medicamentosSelect) {
-    console.error('[incapacity.js] Elementos não encontrados no modal de medicamento');
-    return;
-  }
+/**
+ * Manipula o salvamento de um medicamento personalizado
+ */
+function handleSaveOutroMedicamento() {
+  const input = document.getElementById('outroMedicamentoInput');
+  if (!input) return;
 
   const novoMedicamento = input.value.trim();
-
   if (!novoMedicamento) {
+    alert('Por favor, informe o medicamento.');
     input.focus();
-    input.classList.add('border-red-300', 'focus:border-red-600');
-    setTimeout(() => {
-      input.classList.remove('border-red-300', 'focus:border-red-600');
-    }, 3000);
     return;
   }
 
-  // Verificar se não é uma opção padrão
-  if (isDefaultMedicamentoOption(novoMedicamento.toLowerCase())) {
-    input.focus();
-    input.classList.add('border-yellow-300', 'focus:border-yellow-600');
-    setTimeout(() => {
-      input.classList.remove('border-yellow-300', 'focus:border-yellow-600');
-    }, 3000);
-    return;
+  // Adicionar medicamento ao sistema
+  const success = window.multiMedicamentosManager.addMedicamento(novoMedicamento);
+  if (success) {
+    console.log('[incapacity.js] Medicamento personalizado adicionado:', novoMedicamento);
+    
+    // Salvar automaticamente os dados do formulário
+    if (window.formStateManager) {
+      window.formStateManager.captureCurrentFormData();
+    }
   }
-
-  // Adicionar nova opção ao select
-  const novaOpcao = document.createElement('option');
-  novaOpcao.value = novoMedicamento.toLowerCase().replace(/\s+/g, '_');
-  novaOpcao.textContent = novoMedicamento;
-  novaOpcao.selected = true;
-
-  // Inserir antes da opção "Outro"
-  const opcaoOutro = medicamentosSelect.querySelector('option[value="outro"]');
-  if (opcaoOutro) {
-    medicamentosSelect.insertBefore(novaOpcao, opcaoOutro);
-  } else {
-    medicamentosSelect.appendChild(novaOpcao);
-  }
-
-  // Disparar evento change
-  medicamentosSelect.dispatchEvent(new Event('change', { bubbles: true }));
-
-  console.log('[incapacity.js] Novo medicamento adicionado:', novoMedicamento);
 
   window.closeGenericModal();
 }
 
-// Função auxiliar para verificar se um medicamento é uma das opções padrão
-function isDefaultMedicamentoOption(value) {
-  const defaultOptions = [
-    'analgesicos', 'anti-inflamatorios', 'antidepressivos', 'ansiolíticos',
-    'anticonvulsivantes', 'relaxantes_musculares', 'corticoides',
-    'medicamentos_cardiovasculares', 'hipnoticos', 'antipsicoticos', 'outros'
-  ];
-  return defaultOptions.includes(value.toLowerCase().replace(/\s+/g, '_'));
+/**
+ * Manipula o cancelamento de medicamento personalizado
+ */
+function handleCancelOutroMedicamento() {
+  window.closeGenericModal();
 }
 
-// Função para inicializar as novas funcionalidades de limitações e medicamentos
-function initializeLimitacoesAndMedicamentos() {
-  console.log('[incapacity.js] initializeLimitacoesAndMedicamentos: Iniciando...');
+/**
+ * Mostra modal com informações sobre isenção de carência
+ */
+function showIsencaoCarenciaModal() {
+  if (typeof window.showGenericModal !== 'function') {
+    console.error('Modal genérico não disponível');
+    return;
+  }
 
-  // Configurar sistema de limitações diárias
-  setupLimitacoesDiarias();
+  const conteudoModal = `
+    <div class="space-y-3">
+      <!-- Informação Principal -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p class="text-blue-700 text-sm">
+          Para receber o benefício, é necessário ter <strong>12 contribuições mensais</strong> ao INSS. 
+          Porém, algumas situações dispensam esse período de carência.
+        </p>
+      </div>
 
-  // Configurar modal de "Outro Medicamento"
-  setupOutroMedicamentoModal();
-
-  console.log('[incapacity.js] Sistemas de limitações e medicamentos configurados');
-}
-
-// Inicializar as funcionalidades quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('[incapacity.js] DOM carregado, iniciando configuração...');
-
-  // Aguardar um pouco para garantir que outros scripts foram carregados
-  setTimeout(function() {
-    console.log('[incapacity.js] Timeout executado, chamando initializeLimitacoesAndMedicamentos...');
-    initializeLimitacoesAndMedicamentos();
-
-    // Configurar labels fixos
-    setupStickyLabels();
-  }, 100);
-});
-
-// Função para manter títulos fixos nos campos com conteúdo
-function setupStickyLabels() {
-  console.log('[incapacity.js] setupStickyLabels: Configurando labels fixos...');  // Função para atualizar o estado do label
-  function updateLabelState(field) {
-    let label = field.nextElementSibling || field.previousElementSibling;
-
-    if (!label || !label.classList.contains('input-label')) {
-      // Tentar encontrar o label associado pelo 'for'
-      const fieldId = field.id;
-      if (fieldId) {
-        const associatedLabel = document.querySelector(`label[for="${fieldId}"]`);
-        if (associatedLabel) {
-          label = associatedLabel;
-        }
-      }
-    }
-
-    // Tratamento específico para campos doença (que são divs simulando inputs)
-    if (field.id && field.id.startsWith('doenca') && field.tagName.toLowerCase() === 'div') {
-      const fieldContainer = field.closest('.relative');
-      if (fieldContainer) {
-        label = fieldContainer.querySelector('label, .input-label');
-      }
-      
-      if (label) {        // Detecção aprimorada para CIDs: verificar múltiplos indicadores de conteúdo válido
-        const hasValidContent = field.innerHTML && (
-          // Verificar se há elementos CID específicos
-          field.querySelector('.cid-code') !== null ||
-          field.querySelector('[data-code]') !== null ||
-          field.querySelector('.ver-todos-btn') !== null ||
-          field.querySelector('.text-blue-600') !== null ||
-          field.querySelector('span[style*="color"]') !== null ||
-          // Verificar se há spans estruturados (CIDs renderizados)
-          (field.innerHTML.includes('<span') && !field.innerHTML.includes('Adicione CIDs')) ||
-          // Verificar se há divs com estrutura de CID
-          field.innerHTML.includes('text-blue-600') ||
-          field.innerHTML.includes('cid-code') ||
-          field.innerHTML.includes('data-code') ||
-          field.innerHTML.includes('underline') ||
-          // Verificar se há texto substantivo (não placeholder)
-          (field.textContent && 
-           field.textContent.trim() !== '' && 
-           !field.textContent.includes('Adicione CIDs usando o campo ao lado') &&
-           !field.textContent.includes('Selecione') &&
-           field.textContent.trim().length > 3 &&
-           // Verificar se há códigos CID (padrão alfanumérico melhorado)
-           (/[A-Z]\d+(\.\d+)?|[a-z]\d+(\.\d+)?|\d+[A-Z]|\d+[a-z]|[A-Z]\d+[A-Z]?|\d+\.?\d*/.test(field.textContent.trim()) ||
-            // Ou se há texto substantivo sem placeholder
-            (/[a-zA-Z0-9]/.test(field.textContent.trim()) && 
-             !field.textContent.includes('campo ao lado') &&
-             field.textContent.trim().length > 5)))
-        );
+      <!-- Exceções -->
+      <div class="space-y-2">
+        <h4 class="font-semibold text-gray-800 text-sm">Situações que dispensam carência:</h4>
         
-        // Forçar visibilidade se o campo tem conteúdo válido ou está em foco
-        if (hasValidContent || field === document.activeElement) {
-          field.classList.add('field-filled');
-          label.classList.add('text-blue-600');
-          label.classList.remove('text-gray-500', 'text-transparent');
-          label.style.opacity = '1';
-          label.style.visibility = 'visible';
-          label.style.color = 'var(--color-primary)';
-          label.style.background = 'var(--color-bg)';
-          label.style.display = 'block';
-          
-          // Log para debug quando o campo doença está sendo detectado como preenchido
-          console.log(`[updateLabelState] Campo doença ${field.id} detectado como preenchido:`, {
-            hasValidContent,
-            innerHTML: field.innerHTML.substring(0, 100),
-            textContent: field.textContent.substring(0, 50)
-          });
-        } else {
-          field.classList.remove('field-filled');
-          label.classList.remove('text-blue-600');
-          label.classList.add('text-gray-500');
-          label.style.opacity = '0';
-          label.style.visibility = 'hidden';
-        }
-      }
-      return;
-    }
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-2">
+          <p class="font-medium text-orange-800 text-sm mb-1">Acidentes</p>
+          <p class="text-orange-700 text-xs">
+            Acidentes de trabalho, trajeto, domésticos ou doenças ocupacionais sempre dispensam o período de carência.
+          </p>
+        </div>
 
-    // Tratamento para campos normais (input, select, textarea)
-    if (label && label.classList.contains('input-label')) {
-      const hasContent = field.value && field.value.trim() !== '';
-      const isSelect = field.tagName.toLowerCase() === 'select';
-      const isSelectWithValue = isSelect && field.value && field.value !== '';
-
-      if (hasContent || isSelectWithValue || field === document.activeElement) {
-        field.classList.add('field-filled');
-        label.style.opacity = '1';
-        label.style.visibility = 'visible';
-        label.style.color = 'var(--color-primary)';
-        label.style.background = 'var(--color-bg)';
-        label.classList.remove('text-transparent');
-      } else if (field !== document.activeElement) {
-        field.classList.remove('field-filled');
-        if (!hasContent && !isSelectWithValue) {
-          label.style.opacity = '0';
-          label.style.visibility = 'hidden';
-        }
-      }
-    }
-  }
-  // Configurar observadores para todos os campos
-  function setupFieldObservers() {
-    const fields = document.querySelectorAll('input, select, textarea, div[id^="doenca"]');
-
-    fields.forEach(field => {
-      // Estado inicial
-      updateLabelState(field);
-
-      // Eventos de foco e desfoque
-      field.addEventListener('focus', () => updateLabelState(field));
-      field.addEventListener('blur', () => {
-        setTimeout(() => updateLabelState(field), 50);
-      });
-
-      // Eventos de mudança de valor
-      field.addEventListener('input', () => updateLabelState(field));
-      field.addEventListener('change', () => updateLabelState(field));
-
-      // Para campos select
-      if (field.tagName.toLowerCase() === 'select') {
-        field.addEventListener('change', () => {
-          setTimeout(() => updateLabelState(field), 10);
-        });
-      }
-
-      // Para campos doença (divs que simulam inputs), observar mudanças no DOM
-      if (field.id && field.id.startsWith('doenca') && field.tagName.toLowerCase() === 'div') {
-        const observer = new MutationObserver(() => {
-          setTimeout(() => updateLabelState(field), 10);
-        });
-        observer.observe(field, {
-          childList: true,
-          subtree: true,
-          characterData: true
-        });
-      }
-    });
-  }
-  // Configurar observador para novos campos adicionados dinamicamente
-  const observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-      if (mutation.type === 'childList') {
-        mutation.addedNodes.forEach(function(node) {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            const newFields = node.querySelectorAll ? node.querySelectorAll('input, select, textarea, div[id^="doenca"]') : [];
-            newFields.forEach(field => {
-              updateLabelState(field);
-
-              field.addEventListener('focus', () => updateLabelState(field));
-              field.addEventListener('blur', () => {
-                setTimeout(() => updateLabelState(field), 50);
-              });
-              field.addEventListener('input', () => updateLabelState(field));
-              field.addEventListener('change', () => updateLabelState(field));
-
-              // Para campos doença (divs), observar mudanças internas
-              if (field.id && field.id.startsWith('doenca') && field.tagName.toLowerCase() === 'div') {
-                const doencaObserver = new MutationObserver(() => {
-                  setTimeout(() => updateLabelState(field), 10);
-                });
-                doencaObserver.observe(field, {
-                  childList: true,
-                  subtree: true,
-                  characterData: true
-                });
-              }
-            });
-          }
-        });
-      }
-    });
+        <div class="bg-green-50 border border-green-200 rounded-lg p-2">
+          <p class="font-medium text-green-800 text-sm mb-1">Doenças Graves</p>
+          <p class="text-green-700 text-xs">
+            Existe uma lista específica de doenças graves que também dispensam carência.
+          </p>
+        </div>
+      </div>      <!-- Links para mais informações -->
+      <div class="space-y-1">
+        <a href="https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm" 
+           target="_blank" 
+           class="block text-blue-600 hover:text-blue-800 text-sm underline">
+          Lei 8.213/91 - Base legal completa
+        </a>
+        <a href="https://www.planalto.gov.br/ccivil_03/decreto/d3048compilado.htm" 
+           target="_blank" 
+           class="block text-blue-600 hover:text-blue-800 text-sm underline">
+          Decreto nº 3.048/99 (atualizado pelo Decreto nº 10.410/2020)
+        </a>        <a href="https://www.gov.br/inss/pt-br/direitos-e-deveres/beneficios-por-incapacidade/auxilio-por-incapacidade-temporaria" 
+           target="_blank" 
+           class="block text-blue-600 hover:text-blue-800 text-sm underline">
+          Portaria Interministerial MTP/MS nº 22/2022 - Doenças que dispensam carência
+        </a>
+      </div>
+    </div>
+  `;
+  
+  window.showGenericModal({
+    title: 'Informações sobre Isenção de Carência',
+    content: conteudoModal,
+    buttons: []
   });
+}
 
-  // Iniciar observação
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-
-  // Configurar campos existentes
-  setupFieldObservers();
-  // Verificar periodicamente o estado dos campos (fallback)
-  setInterval(() => {
-    const fields = document.querySelectorAll('input, select, textarea, div[id^="doenca"]');
-    fields.forEach(updateLabelState);
-  }, 2000);
-
-  console.log('[incapacity.js] Labels fixos configurados com sucesso');
+// Expor funções para uso global
+if (typeof window !== 'undefined') {
+  window.showOutroMedicamentoModal = showOutroMedicamentoModal;
+  window.showOutraLimitacaoModal = showOutraLimitacaoModal;
+  window.handleSaveOutroMedicamento = handleSaveOutroMedicamento;
+  window.handleCancelOutroMedicamento = handleCancelOutroMedicamento;
+  window.handleSaveOutraLimitacao = handleSaveOutraLimitacao;
+  window.handleCancelOutraLimitacao = handleCancelOutraLimitacao;
+  window.showIsencaoCarenciaModal = showIsencaoCarenciaModal;
 }
