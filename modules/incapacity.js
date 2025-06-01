@@ -1120,13 +1120,13 @@ window.initModule = function() {
 // Função para configurar eventos do módulo
 function setupEvents() {
   console.log('[incapacity.js] Configurando eventos do módulo...');
-  
+
   // Configurar verificação de isenção de carência
   setupIsencaoCarencia();
-  
+
   // Configurar event listeners para limitações e medicamentos
   setupMultiSelectEventListeners();
-  
+
   console.log('[incapacity.js] Eventos do módulo configurados');
 }
 
@@ -1135,7 +1135,7 @@ function setupEvents() {
  */
 function setupDocumentoTipoSelects() {
   console.log('[incapacity.js] Configurando event listeners para tipo de documento...');
-  
+
   document.addEventListener('change', function(event) {
     if (event.target.classList.contains('tipo-documento')) {
       if (event.target.value === 'outro') {
@@ -1144,7 +1144,7 @@ function setupDocumentoTipoSelects() {
       }
     }
   });
-  
+
   console.log('[incapacity.js] Event listeners configurados para tipo de documento');
 }
 
@@ -1189,7 +1189,7 @@ function showOutroDocumentoModal() {
           handleSaveOutroDocumento();
         }
       });
-      
+
       // Focar no campo
       input.focus();
     }
@@ -1252,7 +1252,7 @@ function handleCancelOutroDocumento() {
   if (window.currentDocumentoSelectGlobal && window.currentDocumentoSelectGlobal.value === 'outro') {
     window.currentDocumentoSelectGlobal.value = ""; // Reseta para "Selecione..."
   }
-  
+
   window.currentDocumentoSelectGlobal = null;
   window.closeGenericModal();
 }
@@ -2252,7 +2252,7 @@ function showOutraLimitacaoModal() {
           handleSaveOutraLimitacao();
         }
       });
-      
+
       // Focar no campo
       input.focus();
     }
@@ -2300,7 +2300,7 @@ function showOutroMedicamentoModal() {
           handleSaveOutroMedicamento();
         }
       });
-      
+
       // Focar no campo
       input.focus();
     }
@@ -2325,7 +2325,7 @@ function handleSaveOutraLimitacao() {
   const success = window.multiLimitacoesManager.addLimitacao(novaLimitacao);
   if (success) {
     console.log('[incapacity.js] Limitação personalizada adicionada:', novaLimitacao);
-    
+
     // Salvar automaticamente os dados do formulário
     if (window.formStateManager) {
       window.formStateManager.captureCurrentFormData();
@@ -2360,7 +2360,7 @@ function handleSaveOutroMedicamento() {
   const success = window.multiMedicamentosManager.addMedicamento(novoMedicamento);
   if (success) {
     console.log('[incapacity.js] Medicamento personalizado adicionado:', novoMedicamento);
-    
+
     // Salvar automaticamente os dados do formulário
     if (window.formStateManager) {
       window.formStateManager.captureCurrentFormData();
@@ -2391,7 +2391,7 @@ function showIsencaoCarenciaModal() {
       <!-- Informação Principal -->
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p class="text-blue-700 text-sm">
-          Para receber o benefício, é necessário ter <strong>12 contribuições mensais</strong> ao INSS. 
+          Para receber o benefício, é necessário ter <strong>12 contribuições mensais</strong> ao INSS.
           Porém, algumas situações dispensam esse período de carência.
         </p>
       </div>
@@ -2399,7 +2399,7 @@ function showIsencaoCarenciaModal() {
       <!-- Exceções -->
       <div class="space-y-2">
         <h4 class="font-semibold text-gray-800 text-sm">Situações que dispensam carência:</h4>
-        
+
         <div class="bg-orange-50 border border-orange-200 rounded-lg p-2">
           <p class="font-medium text-orange-800 text-sm mb-1">Acidentes</p>
           <p class="text-orange-700 text-xs">
@@ -2415,24 +2415,24 @@ function showIsencaoCarenciaModal() {
         </div>
       </div>      <!-- Links para mais informações -->
       <div class="space-y-1">
-        <a href="https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm" 
-           target="_blank" 
+        <a href="https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm"
+           target="_blank"
            class="block text-blue-600 hover:text-blue-800 text-sm underline">
           Lei 8.213/91 - Base legal completa
         </a>
-        <a href="https://www.planalto.gov.br/ccivil_03/decreto/d3048compilado.htm" 
-           target="_blank" 
+        <a href="https://www.planalto.gov.br/ccivil_03/decreto/d3048compilado.htm"
+           target="_blank"
            class="block text-blue-600 hover:text-blue-800 text-sm underline">
           Decreto nº 3.048/99 (atualizado pelo Decreto nº 10.410/2020)
-        </a>        <a href="https://www.gov.br/inss/pt-br/direitos-e-deveres/beneficios-por-incapacidade/auxilio-por-incapacidade-temporaria" 
-           target="_blank" 
+        </a>        <a href="https://www.gov.br/inss/pt-br/direitos-e-deveres/beneficios-por-incapacidade/auxilio-por-incapacidade-temporaria"
+           target="_blank"
            class="block text-blue-600 hover:text-blue-800 text-sm underline">
           Portaria Interministerial MTP/MS nº 22/2022 - Doenças que dispensam carência
         </a>
       </div>
     </div>
   `;
-  
+
   window.showGenericModal({
     title: 'Informações sobre Isenção de Carência',
     content: conteudoModal,

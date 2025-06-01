@@ -63,7 +63,7 @@
 </head>
 <body>
     <h1>🔧 Teste das Correções - Módulo de Incapacidade</h1>
-    
+
     <div class="test-section">
         <h2>📋 Resumo das Correções Implementadas</h2>
         <ul>
@@ -74,7 +74,7 @@
 
     <div class="test-section">
         <h2>✅ Correções Aplicadas</h2>
-        
+
         <div class="status success">
             <strong>✓ Função removeCid aprimorada:</strong>
             <ul>
@@ -115,7 +115,7 @@
 
     <div class="test-section">
         <h2>🧪 Cenários de Teste</h2>
-        
+
         <div class="status warning">
             <strong>⚠️ Para testar manualmente:</strong>
             <ol>
@@ -139,7 +139,7 @@
 
     <div class="test-section">
         <h2>🔧 Verificação Técnica</h2>
-        
+
         <div id="verification-results">
             <button onclick="runVerification()">🔍 Executar Verificação</button>
         </div>
@@ -149,7 +149,7 @@
         function runVerification() {
             const results = document.getElementById('verification-results');
             let html = '<h3>Resultados da Verificação:</h3>';
-            
+
             // Verificar se as funções existem
             const checks = [
                 {
@@ -198,7 +198,7 @@
                 const passed = check.test();
                 const statusClass = passed ? 'success' : 'error';
                 const icon = passed ? '✅' : '❌';
-                
+
                 html += `
                     <div class="status ${statusClass}">
                         ${icon} <strong>${check.name}:</strong> ${check.description}
@@ -229,13 +229,13 @@
             ];
 
             html += '<h4>Verificação da Estrutura DOM:</h4>';
-            
+
             domChecks.forEach(check => {
                 const elements = document.querySelectorAll(check.selector);
                 const exists = elements.length > 0;
                 const statusClass = exists ? 'success' : 'warning';
                 const icon = exists ? '✅' : '⚠️';
-                
+
                 html += `
                     <div class="status ${statusClass}">
                         ${icon} <strong>${check.name}:</strong> ${check.description}
