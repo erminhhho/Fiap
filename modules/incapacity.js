@@ -1063,7 +1063,7 @@ function initializeProfissaoAutocomplete() {
       setTimeout(tryInitProfissaoAutocomplete, 100);
       return false;
     } else {
-      console.warn('[incapacity.js] ⚠️  TIMEOUT: Não foi possível inicializar o autocomplete de profissão após', maxTentativas, 'tentativas');
+      console.warn('[incapacity.js] TIMEOUT: Não foi possível inicializar o autocomplete de profissão após', maxTentativas, 'tentativas');
       console.warn('[incapacity.js] Estado final - input:', !!input, 'dropdown:', !!dropdown, 'setupFunction:', !!window.setupProfissaoAutocomplete);
       console.warn('[incapacity.js] Isso pode ser normal se o template atual não contém campos de profissão.');
       profissaoAutocompleteInitialized = true; // Marcar para evitar novas tentativas

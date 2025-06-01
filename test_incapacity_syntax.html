@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Sintaxe Incapacity.js</title>
+</head>
+<body>
+    <h1>Teste de Sintaxe - Incapacity.js</h1>
+    <div id="log"></div>
+
+    <script>
+        // Capturar erros
+        window.onerror = function(msg, url, line, col, error) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += `<p style="color: red;">ERRO: ${msg} em ${url}:${line}:${col}</p>`;
+            console.error('Erro capturado:', msg, url, line, col, error);
+            return false;
+        };
+
+        // Log de sucesso
+        function logSuccess(msg) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += `<p style="color: green;">✅ ${msg}</p>`;
+            console.log('✅', msg);
+        }
+
+        // Testar carregamento do incapacity.js
+        logSuccess('Iniciando teste de carregamento...');
+    </script>
+
+    <!-- Tentar carregar o arquivo incapacity.js -->
+    <script src="modules/incapacity.js"></script>
+
+    <script>
+        // Verificar se carregou com sucesso
+        setTimeout(() => {
+            if (typeof window.multiCIDManager !== 'undefined') {
+                logSuccess('MultiCIDManager carregado com sucesso!');
+                logSuccess(`Tipo: ${typeof window.multiCIDManager}`);
+                logSuccess(`Inicializado: ${window.multiCIDManager.initialized}`);
+            } else {
+                document.getElementById('log').innerHTML += '<p style="color: orange;">⚠️ MultiCIDManager não encontrado</p>';
+            }
+
+            if (typeof window.cidsSemCarencia !== 'undefined') {
+                logSuccess(`CIDs sem carência carregados: ${window.cidsSemCarencia.length} itens`);
+            } else {
+                document.getElementById('log').innerHTML += '<p style="color: orange;">⚠️ cidsSemCarencia não encontrado</p>';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

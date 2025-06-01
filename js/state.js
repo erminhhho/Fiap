@@ -35,8 +35,7 @@ console.log('FIAP.cache (localStorage) inicializado internamente em state.js.');
  * Mantém o estado do formulário durante navegação e refresh
  */
 
-class FormStateManager {
-  constructor() {
+class FormStateManager {  constructor() {
     console.log('[FormStateManager] Constructor chamado.');
     this.currentFormId = null;
     this.formData = {
@@ -50,6 +49,12 @@ class FormStateManager {
     this.isInitialized = false;
     this.initialRestorePending = false;
     this.isRestoring = false;
+
+    // ETAPA 1: Mutex para prevenir race conditions
+    this.operationMutex = false;
+    this.pendingOperations = [];
+    this._lastCapture = 0;
+    this._lastRestore = 0;
 
     // Mapeamento de rotas e seus índices para navegação
     this.stepRoutes = {
@@ -116,11 +121,13 @@ class FormStateManager {
       this.initialRestorePending = false; // Garante que isso seja definido como false mesmo em caso de falha total
     }
   }
-
   /**
    * Configura listeners para eventos de navegação e unload
    */
   setupEventListeners() {
+    // ETAPA 1: Configurar rastreamento de interações do usuário
+    this.setupUserInteractionTracking();
+
     // Salvar estado antes de fechar a página
     window.addEventListener('beforeunload', () => {
       this.captureCurrentFormData();
@@ -155,6 +162,36 @@ class FormStateManager {
 
     // Detectar e corrigir os botões de navegação (próximo/anterior)
     this.fixNavigationButtons();
+  }
+
+  /**
+   * ETAPA 1: Setup para rastreamento de interações do usuário
+   */
+  setupUserInteractionTracking() {
+    // Eventos que indicam interação legítima do usuário
+    const interactionEvents = ['click', 'input', 'change', 'keydown', 'touchstart'];
+
+    interactionEvents.forEach(eventType => {
+      document.addEventListener(eventType, () => {
+        window._lastUserInteraction = performance.now();
+        // Marcar elementos com interação ativa
+        if (event.target) {
+          event.target.setAttribute('data-user-interaction', Date.now());
+        }
+      }, { capture: true, passive: true });
+    });
+
+    // Limpar marcadores antigos periodicamente
+    setInterval(() => {
+      const oldMarkers = document.querySelectorAll('[data-user-interaction]');
+      const now = Date.now();
+      oldMarkers.forEach(element => {
+        const timestamp = parseInt(element.getAttribute('data-user-interaction'));
+        if (now - timestamp > 10000) { // 10 segundos
+          element.removeAttribute('data-user-interaction');
+        }
+      });
+    }, 5000);
   }
 
   /**
@@ -283,22 +320,70 @@ class FormStateManager {
       }
     });
   }
+  /**
+   * Executa operação com mutex para prevenir race conditions
+   */
+  async executeWithMutex(operation, operationName = 'operation') {
+    // Se já há uma operação em andamento, adicionar à fila
+    if (this.operationMutex) {
+      console.log(`[FormStateManager] ${operationName} adicionada à fila (mutex ativo)`);
+      return new Promise((resolve) => {
+        this.pendingOperations.push({ operation, operationName, resolve });
+      });
+    }
+
+    // Ativar mutex
+    this.operationMutex = true;
+    console.log(`[FormStateManager] Mutex ativado para ${operationName}`);
+
+    try {
+      const result = await operation();
+
+      // Processar próxima operação na fila
+      if (this.pendingOperations.length > 0) {
+        const next = this.pendingOperations.shift();
+        setTimeout(() => {
+          this.executeWithMutex(next.operation, next.operationName)
+            .then(next.resolve);
+        }, 50); // Pequeno delay para evitar sobrecarga
+      } else {
+        this.operationMutex = false;
+        console.log(`[FormStateManager] Mutex liberado após ${operationName}`);
+      }
+
+      return result;
+    } catch (error) {
+      this.operationMutex = false;
+      console.error(`[FormStateManager] Erro em ${operationName}:`, error);
+      throw error;
+    }
+  }
 
   /**
    * Captura os dados do formulário atual
    */
-  captureCurrentFormData() {
-    console.log('[FormStateManager] captureCurrentFormData() chamado.');
+  async captureCurrentFormData() {
+    return this.executeWithMutex(async () => {
+      return this._captureCurrentFormDataInternal();
+    }, 'captureCurrentFormData');
+  }
 
-    if (this.initialRestorePending) {
-      console.log('[FormStateManager] Captura ignorada, restauração inicial ainda pendente.');
-      return;
-    }
+  /**
+   * Método interno para captura de dados (sem mutex)
+   */
+  _captureCurrentFormDataInternal() {
+    console.log('[FormStateManager] _captureCurrentFormDataInternal() chamado.');
 
-    // Implementar proteção contra chamadas repetidas
+    // ETAPA 1: Remover proteção problemática que bloqueia salvamento
+    // if (this.initialRestorePending) {
+    //   console.log('[FormStateManager] Captura ignorada, restauração inicial ainda pendente.');
+    //   return;
+    // }
+
+    // Implementar proteção contra chamadas repetidas com timing mais permissivo
     const now = Date.now();
-    if (this._lastCapture && (now - this._lastCapture < 1000)) {
-      console.log(`Captura ignorada - última captura há ${now - this._lastCapture}ms`);
+    if (this._lastCapture && (now - this._lastCapture < 500)) { // Reduzido de 1000ms para 500ms
+      console.log(`[FormStateManager] Captura ignorada - última captura há ${now - this._lastCapture}ms`);
       return;
     }
 
@@ -314,33 +399,60 @@ class FormStateManager {
     if (!currentRoute || !form) {
       console.log('[FormStateManager] Rota atual ou formulário não encontrado, pulando captura.');
       return;
-    }
-
-    // Usar o estado existente como base, se houver, para não perder dados customizados (ex: array de documentos)
+    }    // Usar o estado existente como base, se houver, para não perder dados customizados (ex: array de documentos)
     const existingStepData = this.formData[currentRoute] || {};
     let formData = { ...existingStepData }; // Começa com uma cópia dos dados existentes para a rota
 
-    // --- INÍCIO: Monitoramento de perda de persistência em incapacity ---
+    // --- INÍCIO: Proteção inteligente para incapacity ---
     if (currentRoute === 'incapacity') {
-      // Após a coleta dos dados, checar se todos os campos estão vazios
-      const data = formData;
-      const allEmpty = Object.keys(data).filter(k => k !== '_timestamp').every(k => {
-        const v = data[k];
-        if (Array.isArray(v)) return v.every(i => i === '' || i === null || typeof i === 'undefined');
-        return v === '' || v === null || typeof v === 'undefined';
+      // Verificar se há conteúdo significativo sendo capturado
+      const currentDomData = {};
+
+      // Coletar dados do DOM primeiro para análise
+      form.querySelectorAll('input, select, textarea').forEach(input => {
+        let value = input.value;
+        let key = input.name || input.id;
+        if (key) {
+          if (key.endsWith('[]')) {
+            const baseKey = key.slice(0, -2);
+            if (!currentDomData[baseKey]) currentDomData[baseKey] = [];
+            currentDomData[baseKey].push(value);
+          } else {
+            currentDomData[key] = value;
+          }
+        }
       });
+
+      // Verificar se todos os campos importantes estão vazios
+      const importantFields = ['cids', 'doencas', 'tipoDocumentos', 'dataDocumentos'];
+      const allImportantEmpty = importantFields.every(field => {
+        const data = currentDomData[field];
+        if (Array.isArray(data)) return data.every(i => !i || i.trim() === '');
+        return !data || data.trim() === '';
+      });
+
       const previousData = this.formData['incapacity'] || {};
-      const previousAllEmpty = Object.keys(previousData).filter(k => k !== '_timestamp').every(k => {
-        const v = previousData[k];
-        if (Array.isArray(v)) return v.every(i => i === '' || i === null || typeof i === 'undefined');
-        return v === '' || v === null || typeof v === 'undefined';
+      const previousHasData = importantFields.some(field => {
+        const data = previousData[field];
+        if (Array.isArray(data)) return data.some(i => i && i.trim() !== '');
+        return data && data.trim() !== '';
       });
-      if (allEmpty && !previousAllEmpty) {
-        console.warn('[FormStateManager][PROTEÇÃO] Tentativa de sobrescrever dados válidos de incapacity por dados vazios. Operação ignorada. Dados anteriores preservados.');
-        return; // Não sobrescreve nem salva
+
+      // ETAPA 1: Proteção mais permissiva - só bloqueia se todos os campos importantes estão vazios E havia dados anteriormente
+      if (allImportantEmpty && previousHasData) {
+        // Verificar se não é um caso legítimo de limpeza (usuário realmente removeu dados)
+        const hasInteraction = document.querySelector('[data-user-interaction]') ||
+                              performance.now() - (window._lastUserInteraction || 0) < 5000;
+
+        if (!hasInteraction) {
+          console.warn('[FormStateManager][PROTEÇÃO] Possível perda acidental de dados de incapacity. Dados anteriores preservados.');
+          return; // Não sobrescreve
+        } else {
+          console.log('[FormStateManager] Limpeza legítima detectada em incapacity - permitindo salvamento.');
+        }
       }
     }
-    // --- FIM: Monitoramento de perda de persistência em incapacity ---
+    // --- FIM: Proteção inteligente para incapacity ---
 
     console.log(`[FormStateManager] Capturando dados para a rota: ${currentRoute}`);
 
@@ -405,13 +517,32 @@ class FormStateManager {
 
     this.saveStateToCache();
   }
-
   /**
    * Restaura os dados do formulário para o passo atual
    */
-  restoreFormData(step = this.currentStep) {
-    console.log(`[FormStateManager] restoreFormData() chamado para a etapa: ${step}`);
+  async restoreFormData(step = this.currentStep) {
+    return this.executeWithMutex(async () => {
+      return this._restoreFormDataInternal(step);
+    }, 'restoreFormData');
+  }
+
+  /**
+   * Método interno para restauração de dados (sem mutex)
+   */
+  _restoreFormDataInternal(step = this.currentStep) {
+    console.log(`[FormStateManager] _restoreFormDataInternal() chamado para a etapa: ${step}`);
     this.isRestoring = true;
+
+    // Implementar proteção contra chamadas repetidas
+    const now = Date.now();
+    if (this._lastRestore && (now - this._lastRestore < 300)) {
+      console.log(`[FormStateManager] Restauração ignorada - última restauração há ${now - this._lastRestore}ms`);
+      this.isRestoring = false;
+      return;
+    }
+
+    this._lastRestore = now;
+
     try {
     if (!step) {
       console.warn('[FormStateManager] Etapa não fornecida para restauração, usando currentStep:', this.currentStep);

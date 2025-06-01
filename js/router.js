@@ -59,6 +59,11 @@ let currentRoute = null;
 // Variável para controlar navegações em andamento
 let navigationInProgress = false;
 
+// ETAPA 1: Variável para controlar sincronização de dados
+if (typeof window._syncInProgress === 'undefined') {
+  window._syncInProgress = false;
+}
+
 /**
  * Log condicional com base nas configurações de debug
  * @param {string} message - Mensagem a ser registrada
@@ -101,47 +106,57 @@ function navigateTo(routeName) {
 
     const route = routes[routeName];
     const previousRoute = currentRoute;
-    currentRoute = routeName;
+    currentRoute = routeName;    // ETAPA 1: Proteção contra sincronização conflitante
+    if (window._syncInProgress) {
+      routerLog('Sincronização já em andamento, aguardando...');
+      setTimeout(() => navigateTo(routeName), 100);
+      return false;
+    }
 
     // SINCRONIZAR DADOS DO ASSISTIDO ANTES DE NAVEGAR PARA SOCIAL
     if (routeName === 'social' && window.formStateManager && window.formStateManager.formData) {
-      const personalData = window.formStateManager.formData.personal;
-      const socialData = window.formStateManager.formData.social || {}; // Garante que socialData exista
+      window._syncInProgress = true;
+      try {
+        const personalData = window.formStateManager.formData.personal;
+        const socialData = window.formStateManager.formData.social || {}; // Garante que socialData exista
 
-      if (personalData && personalData.autor_nome && personalData.autor_nome.length > 0) {
-        const assistidoNome = personalData.autor_nome[0] || '';
-        const assistidoCpf = (personalData.autor_cpf && personalData.autor_cpf.length > 0) ? personalData.autor_cpf[0] : '';
-        let assistidoIdade = '';
+        if (personalData && personalData.autor_nome && personalData.autor_nome.length > 0) {
+          const assistidoNome = personalData.autor_nome[0] || '';
+          const assistidoCpf = (personalData.autor_cpf && personalData.autor_cpf.length > 0) ? personalData.autor_cpf[0] : '';
+          let assistidoIdade = '';
 
-        if (personalData.autor_idade && personalData.autor_idade.length > 0) {
-          assistidoIdade = personalData.autor_idade[0] || '';
-        } else if (personalData.autor_nascimento && personalData.autor_nascimento.length > 0) {
-          const dataNascimentoStr = personalData.autor_nascimento[0];
-          if (dataNascimentoStr && typeof calcularIdadeCompleta === 'function') { // Assumindo que calcularIdadeCompleta está global
-            try {
-                const dataNasc = new Date(dataNascimentoStr.split('/').reverse().join('-'));
-                if (!isNaN(dataNasc.getTime())) {
-                    const idadeObj = calcularIdadeCompleta(dataNasc);
-                    assistidoIdade = `${idadeObj.anos} anos`; // Ou formato completo se preferir
-                }
-            } catch(e) { console.error("Erro ao calcular idade para sincronização do assistido:", e); }
+          if (personalData.autor_idade && personalData.autor_idade.length > 0) {
+            assistidoIdade = personalData.autor_idade[0] || '';
+          } else if (personalData.autor_nascimento && personalData.autor_nascimento.length > 0) {
+            const dataNascimentoStr = personalData.autor_nascimento[0];
+            if (dataNascimentoStr && typeof calcularIdadeCompleta === 'function') { // Assumindo que calcularIdadeCompleta está global
+              try {
+                  const dataNasc = new Date(dataNascimentoStr.split('/').reverse().join('-'));
+                  if (!isNaN(dataNasc.getTime())) {
+                      const idadeObj = calcularIdadeCompleta(dataNasc);
+                      assistidoIdade = `${idadeObj.anos} anos`; // Ou formato completo se preferir
+                  }
+              } catch(e) { console.error("Erro ao calcular idade para sincronização do assistido:", e); }
+            }
           }
+
+          // Atualizar os campos do primeiro membro em socialData (o assistido)
+          if (!socialData.familiar_nome) socialData.familiar_nome = [];
+          if (!socialData.familiar_cpf) socialData.familiar_cpf = [];
+          if (!socialData.familiar_idade) socialData.familiar_idade = [];
+          if (!socialData.familiar_parentesco) socialData.familiar_parentesco = [];
+          // Adicionar outros campos do assistido que são fixos ou precisam ser sincronizados aqui
+
+          socialData.familiar_nome[0] = assistidoNome;
+          socialData.familiar_cpf[0] = assistidoCpf;
+          socialData.familiar_idade[0] = assistidoIdade;
+          socialData.familiar_parentesco[0] = 'Assistido'; // Garantir que o parentesco está correto
+
+          window.formStateManager.formData.social = socialData;
+          console.log('[Router] Dados do assistido sincronizados para formStateManager.formData.social:', JSON.parse(JSON.stringify(socialData)));
         }
-
-        // Atualizar os campos do primeiro membro em socialData (o assistido)
-        if (!socialData.familiar_nome) socialData.familiar_nome = [];
-        if (!socialData.familiar_cpf) socialData.familiar_cpf = [];
-        if (!socialData.familiar_idade) socialData.familiar_idade = [];
-        if (!socialData.familiar_parentesco) socialData.familiar_parentesco = [];
-        // Adicionar outros campos do assistido que são fixos ou precisam ser sincronizados aqui
-
-        socialData.familiar_nome[0] = assistidoNome;
-        socialData.familiar_cpf[0] = assistidoCpf;
-        socialData.familiar_idade[0] = assistidoIdade;
-        socialData.familiar_parentesco[0] = 'Assistido'; // Garantir que o parentesco está correto
-
-        window.formStateManager.formData.social = socialData;
-        console.log('[Router] Dados do assistido sincronizados para formStateManager.formData.social:', JSON.parse(JSON.stringify(socialData)));
+      } finally {
+        window._syncInProgress = false;
       }
     }
     // FIM DA SINCRONIZAÇÃO
@@ -401,6 +416,14 @@ async function loadTemplate(url) {
 // Função para carregar um script JavaScript
 async function loadScript(url) {
   return new Promise((resolve, reject) => {
+    // Verificar se o script já foi carregado
+    const existingScript = document.querySelector(`script[src="${url}"]`);
+    if (existingScript) {
+      console.log(`[Router] Script já carregado: ${url}`);
+      resolve();
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = url;
     script.onload = () => resolve();
