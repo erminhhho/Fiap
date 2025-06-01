@@ -1945,16 +1945,15 @@ class MultiMedicamentosManager {
   init() {
     console.log('[MultiMedicamentosManager] Inicializando sistema de múltiplos medicamentos...');
     this.setupMedicamentosMap();
-  }
-  /**
+  }  /**
    * Configura o mapeamento de medicamentos
    */
   setupMedicamentosMap() {
-    this.medicamentosMap.set('analgesico_dor', 'Para dor');
-    this.medicamentosMap.set('anti_inflamatorio', 'Anti-inflamatório');
-    this.medicamentosMap.set('relaxante_muscular', 'Relaxante muscular');
-    this.medicamentosMap.set('antidepressivo', 'Para depressão');
-    this.medicamentosMap.set('ansiolitico', 'Para ansiedade');
+    this.medicamentosMap.set('para_dor', 'Para dor');
+    this.medicamentosMap.set('para_inflamacao', 'Para inflamação');
+    this.medicamentosMap.set('para_relaxamento_muscular', 'Para relaxamento muscular');
+    this.medicamentosMap.set('para_depressao', 'Para depressão');
+    this.medicamentosMap.set('para_ansiedade', 'Para ansiedade');
     this.medicamentosMap.set('para_dormir', 'Para dormir');
     this.medicamentosMap.set('outro', 'Outro');
   }
