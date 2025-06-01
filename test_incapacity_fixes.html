@@ -58,7 +58,7 @@
                 trabalhaTest.innerHTML = '<span class="error">❌ FALHOU: "sim_restricoes" ainda está presente</span>';
             } else {
                 trabalhaTest.innerHTML = '<span class="success">✅ PASSOU: "sim_restricoes" removido com sucesso</span>';
-                
+
                 // Extrair opções atuais
                 const trabalhaMatch = html.match(/<select id="trabalhaAtualmente"[\s\S]*?<\/select>/);
                 if (trabalhaMatch) {
@@ -96,7 +96,7 @@
                 let optionsList = '<ul>';
                 let allCorrect = true;
                 const expectedPattern = /^para_/;
-                
+
                 if (options) {
                     options.forEach(option => {
                         const valueMatch = option.match(/value="([^"]*)"/);
@@ -105,11 +105,11 @@
                             const value = valueMatch[1];
                             const text = textMatch[1];
                             const isCorrect = expectedPattern.test(value) && text.startsWith('Para ');
-                            
+
                             if (!isCorrect && value !== 'outro') allCorrect = false;
-                            
+
                             optionsList += `<li>
-                                <span class="info">${value}</span>: ${text} 
+                                <span class="info">${value}</span>: ${text}
                                 ${isCorrect || value === 'outro' ? '✅' : '❌'}
                             </li>`;
                         }
