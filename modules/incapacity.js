@@ -1744,25 +1744,16 @@ class MultiLimitacoesManager {
    */
   setupDropdownOptions() {
     const limitacoesSelect = document.getElementById('limitacoesSelect');
-    if (!limitacoesSelect) return;
-
-    const limitacoesComuns = [
+    if (!limitacoesSelect) return;    const limitacoesComuns = [
       'Dificuldade para caminhar',
-      'Dificuldade para subir escadas',
       'Não consegue carregar peso',
       'Dificuldade para ficar em pé',
-      'Dificuldade para se sentar',
-      'Não consegue dirigir',
       'Dificuldade para se concentrar',
-      'Dificuldade para dormir',
-      'Limitação de movimentos',
       'Dores constantes',
       'Fadiga extrema',
+      'Limitação de movimentos',
       'Dificuldade respiratória',
-      'Dificuldade visual',
-      'Dificuldade auditiva',
-      'Problemas de equilíbrio',
-      'Limitação de tempo para atividades'
+      'Outro'
     ];    // Limpar opções existentes (exceto a primeira)
     while (limitacoesSelect.children.length > 1) {
       limitacoesSelect.removeChild(limitacoesSelect.lastChild);
@@ -1771,16 +1762,10 @@ class MultiLimitacoesManager {
     // Adicionar opções
     limitacoesComuns.forEach(limitacao => {
       const option = document.createElement('option');
-      option.value = limitacao;
+      option.value = limitacao === 'Outro' ? 'outro' : limitacao;
       option.textContent = limitacao;
       limitacoesSelect.appendChild(option);
     });
-
-    // Adicionar opção "Outro"
-    const outroOption = document.createElement('option');
-    outroOption.value = 'outro';
-    outroOption.textContent = 'Outro';
-    limitacoesSelect.appendChild(outroOption);
   }
 
   /**
@@ -1961,7 +1946,6 @@ class MultiMedicamentosManager {
     console.log('[MultiMedicamentosManager] Inicializando sistema de múltiplos medicamentos...');
     this.setupMedicamentosMap();
   }
-
   /**
    * Configura o mapeamento de medicamentos
    */
@@ -1972,10 +1956,6 @@ class MultiMedicamentosManager {
     this.medicamentosMap.set('antidepressivo', 'Para depressão');
     this.medicamentosMap.set('ansiolitico', 'Para ansiedade');
     this.medicamentosMap.set('para_dormir', 'Para dormir');
-    this.medicamentosMap.set('para_pressao', 'Para pressão alta');
-    this.medicamentosMap.set('para_diabetes', 'Para diabetes');
-    this.medicamentosMap.set('para_coracao', 'Para problemas cardíacos');
-    this.medicamentosMap.set('insulina', 'Insulina');
     this.medicamentosMap.set('outro', 'Outro');
   }
 

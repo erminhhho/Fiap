@@ -127,18 +127,13 @@
           <label for="limitacoesSelect" class="input-label">
             Limitações
           </label>
-          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-            <i class="fas fa-plus"></i>
-          </div>
 
           <!-- Container para tags das limitações selecionadas -->
           <div id="limitacoesSelecionadas" class="mt-3 flex flex-wrap gap-2"></div>
 
           <!-- Campo hidden para envio dos dados -->
           <input type="hidden" id="limitacoesDiarias" name="limitacoesDiarias" value="">
-        </div>
-
-        <!-- Medicamentos atuais - Lista limpa com opção "Outro" -->
+        </div>        <!-- Medicamentos atuais - Lista focada com opção "Outro" -->
         <div class="relative">
           <select id="medicamentosAtuais" name="medicamentosAtuais" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-white transition-colors duration-200">
             <option value="" selected disabled>Selecione...</option>
@@ -148,17 +143,10 @@
             <option value="antidepressivo">Para depressão</option>
             <option value="ansiolitico">Para ansiedade</option>
             <option value="para_dormir">Para dormir</option>
-            <option value="para_pressao">Para pressão alta</option>
-            <option value="para_diabetes">Para diabetes</option>
-            <option value="para_coracao">Para problemas cardíacos</option>
-            <option value="insulina">Insulina</option>
             <option value="outro">Outro</option>
-          </select>          <label for="medicamentosAtuais" class="input-label">
-            Medicamentos por função
+          </select><label for="medicamentosAtuais" class="input-label">
+            Medicamentos
           </label>
-          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-            <i class="fas fa-plus"></i>
-          </div>
 
           <!-- Container para tags dos medicamentos selecionados -->
           <div id="medicamentosSelecionados" class="mt-3 flex flex-wrap gap-2"></div>
