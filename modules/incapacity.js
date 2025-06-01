@@ -1268,13 +1268,12 @@ function initializePageContent() {
   if (window.multiCIDManager) {
     window.multiCIDManager.init();
   }
-
-  // Inicializar sistemas de múltiplas limitações e medicamentos
+  // Inicializar sistemas de múltiplas limitações e medicações
   if (window.multiLimitacoesManager) {
     window.multiLimitacoesManager.init();
   }
-  if (window.multiMedicamentosManager) {
-    window.multiMedicamentosManager.init();
+  if (window.multiMedicacoesManager) {
+    window.multiMedicacoesManager.init();
   }
 
   // Expor addDoencaField globalmente
@@ -1304,14 +1303,12 @@ function initializePageContent() {
     console.log(`[incapacity.js] initModule: Solicitando restauração para a etapa: ${currentStepKey}`);
     window.formStateManager.ensureFormAndRestore(currentStepKey);    // Aplicar validações após a restauração
     setTimeout(function() {
-      console.log('[incapacity.js] Aplicando validações pós-restauração...');
-
-      // Restaurar dados dos managers
+      console.log('[incapacity.js] Aplicando validações pós-restauração...');      // Restaurar dados dos managers
       if (window.multiLimitacoesManager) {
         window.multiLimitacoesManager.restoreFromFormState();
       }
-      if (window.multiMedicamentosManager) {
-        window.multiMedicamentosManager.restoreFromFormState();
+      if (window.multiMedicacoesManager) {
+        window.multiMedicacoesManager.restoreFromFormState();
       }
 
       document.querySelectorAll('.doenca-input').forEach(input => {
@@ -1931,95 +1928,90 @@ class MultiLimitacoesManager {
 }
 
 /**
- * Classe para gerenciar múltiplos medicamentos
+ * Classe para gerenciar múltiplas medicações
  */
-class MultiMedicamentosManager {
-  constructor() {
-    this.medicamentosData = new Set();
-    this.medicamentosMap = new Map(); // Para mapear valores do select para texto
+class MultiMedicacoesManager {  constructor() {
+    this.medicacoesData = new Set();
+    this.medicacoesMap = new Map(); // Para mapear valores do select para texto
   }
-
   /**
    * Inicializa o sistema
    */
   init() {
-    console.log('[MultiMedicamentosManager] Inicializando sistema de múltiplos medicamentos...');
-    this.setupMedicamentosMap();
+    console.log('[MultiMedicacoesManager] Inicializando sistema de múltiplas medicações...');
+    this.setupMedicacoesMap();
   }  /**
-   * Configura o mapeamento de medicamentos
+   * Configura o mapeamento de medicações
    */
-  setupMedicamentosMap() {
-    this.medicamentosMap.set('para_dor', 'Para dor');
-    this.medicamentosMap.set('para_inflamacao', 'Para inflamação');
-    this.medicamentosMap.set('para_relaxamento_muscular', 'Para relaxamento muscular');
-    this.medicamentosMap.set('para_depressao', 'Para depressão');
-    this.medicamentosMap.set('para_ansiedade', 'Para ansiedade');
-    this.medicamentosMap.set('para_dormir', 'Para dormir');
-    this.medicamentosMap.set('outro', 'Outro');
+  setupMedicacoesMap() {
+    this.medicacoesMap.set('para_dor', 'Para dor');
+    this.medicacoesMap.set('para_inflamacao', 'Para inflamação');
+    this.medicacoesMap.set('para_relaxamento_muscular', 'Para relaxamento muscular');
+    this.medicacoesMap.set('para_depressao', 'Para depressão');
+    this.medicacoesMap.set('para_ansiedade', 'Para ansiedade');
+    this.medicacoesMap.set('para_dormir', 'Para dormir');
+    this.medicacoesMap.set('outro', 'Outro');
   }
-
   /**
-   * Adiciona um medicamento
-   * @param {string} medicamento - Medicamento a adicionar
+   * Adiciona uma medicação
+   * @param {string} medicacao - Medicação a adicionar
    * @returns {boolean} - Sucesso da operação
    */
-  addMedicamento(medicamento) {
-    if (!medicamento || typeof medicamento !== 'string') {
-      console.warn('[MultiMedicamentosManager] Medicamento inválido');
+  addMedicacao(medicacao) {
+    if (!medicacao || typeof medicacao !== 'string') {
+      console.warn('[MultiMedicacoesManager] Medicação inválida');
       return false;
     }
 
-    const medicamentoTrimmed = medicamento.trim();
-    if (this.medicamentosData.has(medicamentoTrimmed)) {
-      console.warn('[MultiMedicamentosManager] Medicamento já existe');
+    const medicacaoTrimmed = medicacao.trim();
+    if (this.medicacoesData.has(medicacaoTrimmed)) {
+      console.warn('[MultiMedicacoesManager] Medicação já existe');
       return false;
     }
 
-    this.medicamentosData.add(medicamentoTrimmed);
-    console.log(`[MultiMedicamentosManager] Medicamento adicionado: ${medicamentoTrimmed}`);
+    this.medicacoesData.add(medicacaoTrimmed);
+    console.log(`[MultiMedicacoesManager] Medicação adicionada: ${medicacaoTrimmed}`);
 
-    this.renderMedicamentos();
+    this.renderMedicacoes();
     this.updateFormState();
     this.updateLabelState();
 
     return true;
   }
-
   /**
-   * Remove um medicamento
-   * @param {string} medicamento - Medicamento a remover
+   * Remove uma medicação
+   * @param {string} medicacao - Medicação a remover
    */
-  removeMedicamento(medicamento) {
-    if (!medicamento) return;
+  removeMedicacao(medicacao) {
+    if (!medicacao) return;
 
-    this.medicamentosData.delete(medicamento);
-    console.log(`[MultiMedicamentosManager] Medicamento removido: ${medicamento}`);
+    this.medicacoesData.delete(medicacao);
+    console.log(`[MultiMedicacoesManager] Medicação removida: ${medicacao}`);
 
-    this.renderMedicamentos();
+    this.renderMedicacoes();
     this.updateFormState();
     this.updateLabelState();
   }
-
   /**
-   * Renderiza os medicamentos como tags visuais
+   * Renderiza as medicações como tags visuais
    */
-  renderMedicamentos() {
-    const container = document.getElementById('medicamentosSelecionados');
+  renderMedicacoes() {
+    const container = document.getElementById('medicacoesSelecionadas');
     if (!container) return;
 
     container.innerHTML = '';
 
-    if (this.medicamentosData.size === 0) {
-      container.innerHTML = '<p class="text-gray-500 text-sm italic">Nenhum medicamento selecionado</p>';
+    if (this.medicacoesData.size === 0) {
+      container.innerHTML = '<p class="text-gray-500 text-sm italic">Nenhuma medicação selecionada</p>';
       return;
     }
 
-    this.medicamentosData.forEach(medicamento => {
+    this.medicacoesData.forEach(medicacao => {
       const tag = document.createElement('div');
       tag.className = 'inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm mr-2 mb-2';
       tag.innerHTML = `
-        <span class="mr-2">${medicamento}</span>
-        <button type="button" class="text-green-600 hover:text-green-800 focus:outline-none" title="Remover medicamento">
+        <span class="mr-2">${medicacao}</span>
+        <button type="button" class="text-green-600 hover:text-green-800 focus:outline-none" title="Remover medicação">
           <i class="fas fa-times text-xs"></i>
         </button>
       `;
@@ -2028,13 +2020,12 @@ class MultiMedicamentosManager {
       const removeBtn = tag.querySelector('button');
       removeBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        this.removeMedicamento(medicamento);
+        this.removeMedicacao(medicacao);
       });
 
       container.appendChild(tag);
     });
   }
-
   /**
    * Atualiza estado do formulário
    */
@@ -2042,71 +2033,68 @@ class MultiMedicamentosManager {
     if (!window.formStateManager) return;
 
     const incapacityData = window.formStateManager.formData.incapacity || {};
-    incapacityData.medicamentos = Array.from(this.medicamentosData);
+    incapacityData.medicacoes = Array.from(this.medicacoesData);
     window.formStateManager.formData.incapacity = incapacityData;
 
     // Atualizar também o campo hidden
-    const hiddenField = document.getElementById('medicamentosAtuaisHidden');
+    const hiddenField = document.getElementById('medicacoesAtuaisHidden');
     if (hiddenField) {
-      hiddenField.value = JSON.stringify(Array.from(this.medicamentosData));
+      hiddenField.value = JSON.stringify(Array.from(this.medicacoesData));
     }
   }
-
   /**
    * Restaura dados do estado do formulário
    */
   restoreFromFormState() {
-    if (!window.formStateManager?.formData?.incapacity?.medicamentos) return;
+    if (!window.formStateManager?.formData?.incapacity?.medicacoes) return;
 
-    const savedMedicamentos = window.formStateManager.formData.incapacity.medicamentos;
+    const savedMedicacoes = window.formStateManager.formData.incapacity.medicacoes;
 
-    if (Array.isArray(savedMedicamentos)) {
-      this.medicamentosData.clear();
-      savedMedicamentos.forEach(medicamento => {
-        if (medicamento && typeof medicamento === 'string') {
-          this.medicamentosData.add(medicamento);
+    if (Array.isArray(savedMedicacoes)) {
+      this.medicacoesData.clear();
+      savedMedicacoes.forEach(medicacao => {
+        if (medicacao && typeof medicacao === 'string') {
+          this.medicacoesData.add(medicacao);
         }
       });
 
       // Aguardar DOM estar pronto antes de renderizar
       setTimeout(() => {
-        this.renderMedicamentos();
+        this.renderMedicacoes();
         this.updateLabelState();
       }, 100);
 
-      console.log('[MultiMedicamentosManager] Dados restaurados do formState');
+      console.log('[MultiMedicacoesManager] Dados restaurados do formState');
     }
   }
-
   /**
-   * Obtém todos os medicamentos
-   * @returns {Array} Array com todos os medicamentos
+   * Obtém todas as medicações
+   * @returns {Array} Array com todas as medicações
    */
-  getMedicamentos() {
-    return Array.from(this.medicamentosData);
+  getMedicacoes() {
+    return Array.from(this.medicacoesData);
   }
 
   /**
-   * Limpa todos os medicamentos
+   * Limpa todas as medicações
    */
   clear() {
-    this.medicamentosData.clear();
-    this.renderMedicamentos();
+    this.medicacoesData.clear();
+    this.renderMedicacoes();
     this.updateFormState();
     this.updateLabelState();
   }
-
   /**
    * Atualiza o estado do label
    */
   updateLabelState() {
-    const medicamentosSelect = document.getElementById('medicamentosAtuais');
-    if (!medicamentosSelect) return;
+    const medicacoesSelect = document.getElementById('medicacoesAtuais');
+    if (!medicacoesSelect) return;
 
-    const label = medicamentosSelect.closest('.relative')?.querySelector('label');
+    const label = medicacoesSelect.closest('.relative')?.querySelector('label');
     if (!label) return;
 
-    if (this.medicamentosData.size > 0) {
+    if (this.medicacoesData.size > 0) {
       label.classList.add('text-blue-600');
       label.classList.remove('text-gray-500');
       label.style.opacity = '1';
@@ -2118,26 +2106,25 @@ class MultiMedicamentosManager {
       label.classList.add('text-gray-500');
     }
   }
-
   /**
-   * Obtém o texto do medicamento a partir do valor do select
+   * Obtém o texto da medicação a partir do valor do select
    * @param {string} value - Valor do select
-   * @returns {string} Texto do medicamento
+   * @returns {string} Texto da medicação
    */
-  getMedicamentoText(value) {
-    return this.medicamentosMap.get(value) || value;
+  getMedicacaoText(value) {
+    return this.medicacoesMap.get(value) || value;
   }
 }
 
 // Criar instâncias globais
 window.multiLimitacoesManager = new MultiLimitacoesManager();
-window.multiMedicamentosManager = new MultiMedicamentosManager();
+window.multiMedicacoesManager = new MultiMedicacoesManager();
 
 /**
- * Configura event listeners para os dropdowns de limitações e medicamentos
+ * Configura event listeners para os dropdowns de limitações e medicações
  */
 function setupMultiSelectEventListeners() {
-  console.log('[incapacity.js] Configurando event listeners para limitações e medicamentos...');
+  console.log('[incapacity.js] Configurando event listeners para limitações e medicações...');
 
   // Event listener para limitações
   const limitacoesSelect = document.getElementById('limitacoesSelect');
@@ -2153,40 +2140,54 @@ function setupMultiSelectEventListeners() {
         } else {
           const success = window.multiLimitacoesManager.addLimitacao(value);
           if (success) {
-            // Resetar dropdown após adicionar
-            this.value = '';
             console.log('[incapacity.js] Limitação adicionada via dropdown:', value);
           }
         }
+        // Sempre resetar dropdown para opção padrão após seleção
+        this.value = '';
       }
     });
+
+    // Event listener para reset quando o dropdown for fechado (blur)
+    limitacoesSelect.addEventListener('blur', function() {
+      // Resetar para opção padrão quando perder o foco
+      this.value = '';
+    });
+
     console.log('[incapacity.js] Event listener configurado para limitações');
   }
 
-  // Event listener para medicamentos
-  const medicamentosSelect = document.getElementById('medicamentosAtuais');
-  if (medicamentosSelect) {
-    medicamentosSelect.addEventListener('change', function() {
+  // Event listener para medicações
+  const medicacoesSelect = document.getElementById('medicacoesAtuais');
+  if (medicacoesSelect) {
+    medicacoesSelect.addEventListener('change', function() {
       const value = this.value;
       if (value && value !== '') {
         if (value === 'outro') {
-          // Abrir modal para "Outro medicamento"
-          if (typeof showOutroMedicamentoModal === 'function') {
-            showOutroMedicamentoModal();
+          // Abrir modal para "Outra medicação"
+          if (typeof showOutraMedicacaoModal === 'function') {
+            showOutraMedicacaoModal();
           }
         } else {
-          // Obter texto legível do medicamento
-          const medicamentoText = window.multiMedicamentosManager.getMedicamentoText(value);
-          const success = window.multiMedicamentosManager.addMedicamento(medicamentoText);
+          // Obter texto legível da medicação
+          const medicacaoText = window.multiMedicacoesManager.getMedicacaoText(value);
+          const success = window.multiMedicacoesManager.addMedicacao(medicacaoText);
           if (success) {
-            // Resetar dropdown após adicionar
-            this.value = '';
-            console.log('[incapacity.js] Medicamento adicionado via dropdown:', medicamentoText);
+            console.log('[incapacity.js] Medicação adicionada via dropdown:', medicacaoText);
           }
         }
+        // Sempre resetar dropdown para opção padrão após seleção
+        this.value = '';
       }
     });
-    console.log('[incapacity.js] Event listener configurado para medicamentos');
+
+    // Event listener para reset quando o dropdown for fechado (blur)
+    medicacoesSelect.addEventListener('blur', function() {
+      // Resetar para opção padrão quando perder o foco
+      this.value = '';
+    });
+
+    console.log('[incapacity.js] Event listener configurado para medicações');
   }
 }
 
@@ -2239,31 +2240,31 @@ function showOutraLimitacaoModal() {
 }
 
 /**
- * Mostra modal para adicionar um medicamento personalizado
+ * Mostra modal para adicionar uma medicação personalizada
  */
-function showOutroMedicamentoModal() {
+function showOutraMedicacaoModal() {
   if (typeof window.showGenericModal !== 'function') {
     console.error('Modal genérico não disponível');
     return;
   }
 
   window.showGenericModal({
-    title: 'Informar Outro Medicamento',
-    message: 'Digite o medicamento que você usa:',
-    content: '<input type="text" id="outroMedicamentoInput" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Dipirona, Paracetamol, Ibuprofeno">',
+    title: 'Informar Outra Medicação',
+    message: 'Digite a medicação que você usa:',
+    content: '<input type="text" id="outraMedicacaoInput" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Dipirona, Paracetamol, Ibuprofeno">',
     buttons: [
       {
         text: 'Cancelar',
         className: 'flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center',
         onclick: function() {
-          handleCancelOutroMedicamento();
+          handleCancelOutraMedicacao();
         }
       },
       {
         text: 'Salvar',
         className: 'flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center',
         onclick: function() {
-          handleSaveOutroMedicamento();
+          handleSaveOutraMedicacao();
         }
       }
     ]
@@ -2271,12 +2272,12 @@ function showOutroMedicamentoModal() {
 
   // Configurar eventos adicionais
   setTimeout(() => {
-    const input = document.getElementById('outroMedicamentoInput');
+    const input = document.getElementById('outraMedicacaoInput');
     if (input) {
       // Salvar ao pressionar Enter
       input.addEventListener('keyup', function(event) {
         if (event.key === 'Enter') {
-          handleSaveOutroMedicamento();
+          handleSaveOutraMedicacao();
         }
       });
 
@@ -2322,23 +2323,23 @@ function handleCancelOutraLimitacao() {
 }
 
 /**
- * Manipula o salvamento de um medicamento personalizado
+ * Manipula o salvamento de uma medicação personalizada
  */
-function handleSaveOutroMedicamento() {
-  const input = document.getElementById('outroMedicamentoInput');
+function handleSaveOutraMedicacao() {
+  const input = document.getElementById('outraMedicacaoInput');
   if (!input) return;
 
-  const novoMedicamento = input.value.trim();
-  if (!novoMedicamento) {
-    alert('Por favor, informe o medicamento.');
+  const novaMedicacao = input.value.trim();
+  if (!novaMedicacao) {
+    alert('Por favor, informe a medicação.');
     input.focus();
     return;
   }
 
-  // Adicionar medicamento ao sistema
-  const success = window.multiMedicamentosManager.addMedicamento(novoMedicamento);
+  // Adicionar medicação ao sistema
+  const success = window.multiMedicacoesManager.addMedicacao(novaMedicacao);
   if (success) {
-    console.log('[incapacity.js] Medicamento personalizado adicionado:', novoMedicamento);
+    console.log('[incapacity.js] Medicação personalizada adicionada:', novaMedicacao);
 
     // Salvar automaticamente os dados do formulário
     if (window.formStateManager) {
@@ -2350,9 +2351,9 @@ function handleSaveOutroMedicamento() {
 }
 
 /**
- * Manipula o cancelamento de medicamento personalizado
+ * Manipula o cancelamento de medicação personalizada
  */
-function handleCancelOutroMedicamento() {
+function handleCancelOutraMedicacao() {
   window.closeGenericModal();
 }
 
@@ -2421,10 +2422,10 @@ function showIsencaoCarenciaModal() {
 
 // Expor funções para uso global
 if (typeof window !== 'undefined') {
-  window.showOutroMedicamentoModal = showOutroMedicamentoModal;
+  window.showOutraMedicacaoModal = showOutraMedicacaoModal;
   window.showOutraLimitacaoModal = showOutraLimitacaoModal;
-  window.handleSaveOutroMedicamento = handleSaveOutroMedicamento;
-  window.handleCancelOutroMedicamento = handleCancelOutroMedicamento;
+  window.handleSaveOutraMedicacao = handleSaveOutraMedicacao;
+  window.handleCancelOutraMedicacao = handleCancelOutraMedicacao;
   window.handleSaveOutraLimitacao = handleSaveOutraLimitacao;
   window.handleCancelOutraLimitacao = handleCancelOutraLimitacao;
   window.showIsencaoCarenciaModal = showIsencaoCarenciaModal;

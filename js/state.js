@@ -443,47 +443,44 @@ class FormStateManager {
     const dynamicArrayFieldHandlers = {
       incapacity: {
         // Estes são os nomes base dos campos que vêm como arrays de captureCurrentFormData
-        // e são usados para popular as linhas de doença.
-        // Ex: stepData.cids = ['CID1', 'CID2'], stepData.doencas = ['Doenca1', 'Doenca2']
-        'tipoDocumentos': window.addDoencaField, // Assumindo que addDoencaField cria uma linha completa
-        'cids': window.addDoencaField,
-        'doencas': window.addDoencaField,
-        'dataDocumentos': window.addDoencaField
-      },
-      social: { // Adicionar esta seção para membros da família
-        'familiar_nome': window.addFamilyMember,
-        'familiar_cpf': window.addFamilyMember,
-        'familiar_idade': window.addFamilyMember,
-        'familiar_parentesco': window.addFamilyMember,
-        'familiar_estado_civil': window.addFamilyMember,
-        'familiar_renda': window.addFamilyMember,
-        'familiar_cadunico': window.addFamilyMember
+        // e são usados para popular as linhas de doença.        // Ex: stepData.cids = ['CID1', 'CID2'], stepData.doencas = ['Doenca1', 'Doenca2']
+        'tipoDocumentos': () => window.addDoencaField && window.addDoencaField(), // Assumindo que addDoencaField cria uma linha completa
+        'cids': () => window.addDoencaField && window.addDoencaField(),
+        'doencas': () => window.addDoencaField && window.addDoencaField(),
+        'dataDocumentos': () => window.addDoencaField && window.addDoencaField()
+      },      social: { // Adicionar esta seção para membros da família
+        'familiar_nome': () => window.addFamilyMember && window.addFamilyMember(),
+        'familiar_cpf': () => window.addFamilyMember && window.addFamilyMember(),
+        'familiar_idade': () => window.addFamilyMember && window.addFamilyMember(),
+        'familiar_parentesco': () => window.addFamilyMember && window.addFamilyMember(),
+        'familiar_estado_civil': () => window.addFamilyMember && window.addFamilyMember(),
+        'familiar_renda': () => window.addFamilyMember && window.addFamilyMember(),
+        'familiar_cadunico': () => window.addFamilyMember && window.addFamilyMember()
       },
       professional: { // ADICIONADO PARA ATIVIDADES PROFISSIONAIS
-        'atividade_tipo': window.addAtividade,
-        'atividade_tag_status': window.addAtividade,
-        'atividade_periodo_inicio': window.addAtividade,
-        'atividade_periodo_fim': window.addAtividade,
-        'atividade_prazo': window.addAtividade, // NOVO CAMPO PRAZO
-        'atividade_detalhes': window.addAtividade
-      },
-      personal: { // ADICIONADA PARA AUTORES
+        'atividade_tipo': () => window.addAtividade && window.addAtividade(),
+        'atividade_tag_status': () => window.addAtividade && window.addAtividade(),
+        'atividade_periodo_inicio': () => window.addAtividade && window.addAtividade(),
+        'atividade_periodo_fim': () => window.addAtividade && window.addAtividade(),
+        'atividade_prazo': () => window.addAtividade && window.addAtividade(), // NOVO CAMPO PRAZO
+        'atividade_detalhes': () => window.addAtividade && window.addAtividade()
+      },personal: { // ADICIONADA PARA AUTORES
         // Campos que addAuthor clona e para os quais cria inputs nas novas linhas
-        'autor_relationship': window.addAuthor,
-        'autor_nome': window.addAuthor,
-        'autor_cpf': window.addAuthor,
-        'autor_nascimento': window.addAuthor,
-        'autor_idade': window.addAuthor,
+        // Usando funções wrapper para evitar erro ReferenceError se addAuthor não estiver carregado
+        'autor_relationship': () => window.addAuthor && window.addAuthor(),
+        'autor_nome': () => window.addAuthor && window.addAuthor(),
+        'autor_cpf': () => window.addAuthor && window.addAuthor(),
+        'autor_nascimento': () => window.addAuthor && window.addAuthor(),
+        'autor_idade': () => window.addAuthor && window.addAuthor(),
         // Campos abaixo existem para o primeiro autor (name="autor_...[]") e serão salvos/restaurados no array,
         // mas addAuthor() NÃO os cria para autores subsequentes. Se precisar, expandir addAuthor().
         'autor_apelido': null, // Não mapeado para addAuthor pois não é clonado para novas linhas
         'autor_telefone': null,
         'autor_senha_meuinss': null
-      },
-      documents: { // ADICIONADO PARA DOCUMENTOS
+      },      documents: { // ADICIONADO PARA DOCUMENTOS
         // A chave 'documentos' corresponde ao array de objetos de documento em formData.documents.documentos
         // Cada objeto nesse array será passado para adicionarNovoDocumento (ou deveria ser)
-        'documentos': window.adicionarNovoDocumento
+        'documentos': () => window.adicionarNovoDocumento && window.adicionarNovoDocumento()
       }
       // Adicionar outros módulos e seus campos de array aqui, se necessário
     };
@@ -708,14 +705,24 @@ class FormStateManager {
             if (documentosContainer) {
               documentosContainer.innerHTML = ''; // Limpa para recomeçar
               console.log("[State] Container de documentos limpo para restauração.");
-            }
-            valueToRestore.forEach((docData, index) => {
+            }            valueToRestore.forEach((docData, index) => {
                   if (docData && typeof docData === 'object') {
                 try {
                   console.log(`[State] Chamando adicionarNovoDocumento (idx ${index}) com dados:`, docData);
-                      const newDocElement = addRowFunction(docData);
-                  if (!newDocElement) {
-                    console.warn(`[State] adicionarNovoDocumento não retornou um elemento para o documento idx ${index}`, docData);
+
+                  // Verificar se addRowFunction é uma função wrapper e se a função original está disponível
+                  if (typeof addRowFunction === 'function') {
+                    const newDocElement = addRowFunction(docData);
+                    // Se retornou undefined e era uma função wrapper, a função original não estava disponível
+                    if (newDocElement === undefined && addRowFunction.toString().includes('window.')) {
+                      console.warn(`[State] Função adicionarNovoDocumento não disponível, pulando documento idx ${index}`);
+                      return;
+                    }
+                    if (!newDocElement) {
+                      console.warn(`[State] adicionarNovoDocumento não retornou um elemento para o documento idx ${index}`, docData);
+                    }
+                  } else {
+                    console.warn(`[State] addRowFunction não é uma função válida para documento idx ${index}`);
                   }
                 } catch (e) {
                   console.error(`[FormStateManager] Erro ao chamar addRowFunction para documento (idx ${index}):`, e, docData);
@@ -731,16 +738,26 @@ class FormStateManager {
               } else { // Outros campos com manipuladores de função dinâmicos
             const fieldNameForQuery = `${key}[]`;
                 let currentFieldsForName = form.querySelectorAll(`[name="${fieldNameForQuery}"]`);
-              console.log(`[State] Antes do loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, numValuesNeeded: ${numValues}, step: ${step}`);
-
-              for (let i = currentFieldsForName.length; i < numValues; i++) {
+              console.log(`[State] Antes do loop addRow: ${fieldNameForQuery}, currentInDOM: ${currentFieldsForName.length}, numValuesNeeded: ${numValues}, step: ${step}`);              for (let i = currentFieldsForName.length; i < numValues; i++) {
                   try {
                         let countLog = '';
                         if (step === 'personal' && typeof window.authorCount !== 'undefined') countLog = `, window.authorCount antes: ${window.authorCount}`;
                         else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') countLog = `, window.atividadeCount antes: ${window.atividadeCount || 'N/A'}`;
 
                         console.log(`[State] Chamando addRowFunction para ${key} (idx ${i} de ${numValues -1})${countLog}`);
-                        addRowFunction();
+
+                        // Verificar se addRowFunction é uma função wrapper ou função direta
+                        if (typeof addRowFunction === 'function') {
+                          const result = addRowFunction();
+                          // Se retornou undefined e era uma função wrapper, a função original não estava disponível
+                          if (result === undefined && addRowFunction.toString().includes('window.')) {
+                            console.warn(`[State] Função original não disponível para ${key}, pulando restauração desta linha`);
+                            break;
+                          }
+                        } else {
+                          console.warn(`[State] addRowFunction não é uma função para ${key}`);
+                          break;
+                        }
 
                         if (step === 'personal' && typeof window.authorCount !== 'undefined') countLog = `, window.authorCount depois: ${window.authorCount}`;
                         else if (step === 'professional' && typeof window.atividadeCount !== 'undefined') countLog = `, window.atividadeCount depois: ${window.atividadeCount || 'N/A'}`;

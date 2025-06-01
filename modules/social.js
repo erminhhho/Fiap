@@ -607,6 +607,11 @@ function addFamilyMember() {
 
 window.addFamilyMember = addFamilyMember;
 
+// Exportar outras funções relacionadas à família para o escopo global
+window.removeLastFamilyMember = removeLastFamilyMember;
+window.updateRemoveMemberButton = updateRemoveMemberButton;
+window.removeSpecificFamilyMember = removeSpecificFamilyMember;
+
 // Função para remover o último membro da família (nunca remove o assistido)
 function removeLastFamilyMember() {
   const list = document.getElementById('membros-familia-list');
