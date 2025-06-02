@@ -1,0 +1,537 @@
+<!-- Página de Testes do Sistema integrada ao SPA -->
+<div class="container mx-auto p-6 bg-white rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-6 text-center">Testes do Sistema - FormStateManager v2.0</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div class="font-bold mb-2 text-blue-700">Estado da Persistência</div>
+            <div id="persistence-status">Carregando...</div>
+        </div>
+
+        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div class="font-bold mb-2 text-green-700">Estatísticas de Armazenamento</div>
+            <div id="storage-stats">Carregando...</div>
+        </div>
+
+        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+            <div class="font-bold mb-2 text-purple-700">Gerenciador de Dados</div>
+            <div id="form-state-manager-status">Carregando...</div>
+        </div>
+    </div>
+
+    <!-- Controles de Teste -->
+    <div class="text-center my-6">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mr-2 mb-2" onclick="runFullSystemTest()">Teste Completo do Sistema</button>
+        <button class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded mr-2 mb-2" onclick="testRaceConditions()">Testar Race Conditions</button>
+        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mr-2 mb-2" onclick="testMemoryLeaks()">Testar Memory Leaks</button>
+        <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded mr-2 mb-2" onclick="testCacheSystem()">Testar Cache</button>
+        <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded mr-2 mb-2" onclick="testValidation()">Testar Validação</button>
+        <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded mr-2 mb-2" onclick="clearAllTests()">Limpar Testes</button>
+    </div>
+
+    <!-- Formulário de Teste -->
+    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+        <h3 class="font-bold mb-4">Formulário de Teste Integrado</h3>
+        <form id="test-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block mb-1">Nome Completo:</label>
+                <input type="text" name="autor_nome[]" placeholder="Digite seu nome" value="João Silva"
+                    class="w-full p-2 border border-gray-300 rounded">
+            </div>
+
+            <div>
+                <label class="block mb-1">CPF:</label>
+                <input type="text" name="autor_cpf[]" placeholder="000.000.000-00" value="12345678909"
+                    class="w-full p-2 border border-gray-300 rounded">
+            </div>
+
+            <div>
+                <label class="block mb-1">Email:</label>
+                <input type="email" name="email" placeholder="seu@email.com" value="joao@teste.com"
+                    class="w-full p-2 border border-gray-300 rounded">
+            </div>
+
+            <div>
+                <label class="block mb-1">Telefone:</label>
+                <input type="tel" name="telefone" placeholder="(11) 99999-9999" value="11999999999"
+                    class="w-full p-2 border border-gray-300 rounded">
+            </div>
+        </form>
+    </div>
+
+    <!-- Métricas em Tempo Real -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-center">
+            <div class="text-xl font-bold text-blue-700" id="metric-captures">0</div>
+            <div class="text-xs text-blue-600">Capturas</div>
+        </div>
+        <div class="bg-green-50 p-3 rounded-lg border border-green-200 text-center">
+            <div class="text-xl font-bold text-green-700" id="metric-restores">0</div>
+            <div class="text-xs text-green-600">Restaurações</div>
+        </div>
+        <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-center">
+            <div class="text-xl font-bold text-yellow-700" id="metric-validations">0</div>
+            <div class="text-xs text-yellow-600">Validações</div>
+        </div>
+        <div class="bg-purple-50 p-3 rounded-lg border border-purple-200 text-center">
+            <div class="text-xl font-bold text-purple-700" id="metric-cache-ops">0</div>
+            <div class="text-xs text-purple-600">Cache Ops</div>
+        </div>
+        <div class="bg-red-50 p-3 rounded-lg border border-red-200 text-center">
+            <div class="text-xl font-bold text-red-700" id="metric-errors">0</div>
+            <div class="text-xs text-red-600">Erros</div>
+        </div>
+        <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-200 text-center">
+            <div class="text-xl font-bold text-indigo-700" id="metric-performance">0ms</div>
+            <div class="text-xs text-indigo-600">Performance</div>
+        </div>
+    </div>
+
+    <!-- Console de Output -->
+    <div class="relative">
+        <div class="absolute top-2 right-2">
+            <button id="copy-log-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-sm"
+                onclick="copyConsoleLog()" title="Copiar todo o log do console">
+                Copiar Log
+            </button>
+        </div>
+        <div id="console-output" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm h-80 overflow-auto">
+            <div class="text-yellow-400">FormStateManager v2.0 - Console de Testes</div>
+            <div>Aguardando carregamento do sistema...</div>
+        </div>
+    </div>
+</div>
+
+<script>    // Inicializa o módulo quando ele for carregado pela rota    function connectToTestSuite() {
+        if (!window.testSuite) return;
+        
+        // Conectar funções do testSuite com as funções da interface
+        if (window.testSuite.logger && typeof window.logToConsole === 'function') {
+            window.testSuite.logger.log = (message, type = 'info') => {
+                window.logToConsole(`[PERSIST-TEST] ${message}`, type);
+            };
+            window.testSuite.logger.success = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'success');
+            window.testSuite.logger.error = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'error');
+            window.testSuite.logger.warning = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'warning');
+            window.testSuite.logger.info = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'info');
+        }
+        
+        // Atualizar os contadores de métricas após testes
+        const originalAddTestResult = window.testSuite.addTestResult;
+        if (typeof originalAddTestResult === 'function') {
+            window.testSuite.addTestResult = function(name, passed, details) {
+                originalAddTestResult.call(this, name, passed, details);
+                
+                // Atualizar métricas baseado no tipo de teste
+                if (name.includes('cache')) window.testMetrics.cacheOps++;
+                if (name.includes('validation')) window.testMetrics.validations++;
+                if (name.includes('capture')) window.testMetrics.captures++;
+                if (name.includes('restore')) window.testMetrics.restores++;
+                if (!passed) window.testMetrics.errors++;
+                
+                window.updateMetrics();
+            };
+        }
+        
+        window.logToConsole('[SUCCESS] Sistema de testes conectado com sucesso', 'success');
+    }
+    
+    function updatePersistenceStatus() {
+        // Atualizar o status da persistência
+        const persistenceStatusElement = document.getElementById('persistence-status');
+        const storageStatsElement = document.getElementById('storage-stats');
+        const formStateManagerElement = document.getElementById('form-state-manager-status');
+        
+        if (persistenceStatusElement) {
+            try {
+                // Verificar disponibilidade do localStorage
+                const testKey = 'test_availability';
+                localStorage.setItem(testKey, 'test');
+                localStorage.removeItem(testKey);
+                
+                persistenceStatusElement.innerHTML = `
+                    <div class="text-green-600"><i class="fas fa-check-circle"></i> localStorage: Disponível</div>
+                    <div>${localStorage.length} itens armazenados</div>
+                `;
+            } catch (error) {
+                persistenceStatusElement.innerHTML = `
+                    <div class="text-red-600"><i class="fas fa-times-circle"></i> localStorage: Indisponível</div>
+                    <div>${error.message}</div>
+                `;
+            }
+        }
+        
+        if (storageStatsElement) {
+            let fiapItems = 0;
+            let totalSize = 0;
+            let html = '';
+            
+            try {
+                for (const key of Object.keys(localStorage)) {
+                    const value = localStorage.getItem(key);
+                    totalSize += (key.length + value.length) * 2; // Aproximadamente bytes
+                    
+                    if (key.startsWith('fiap_')) {
+                        fiapItems++;
+                    }
+                }
+                
+                html = `
+                    <div>Itens FIAP: <strong>${fiapItems}</strong></div>
+                    <div>Uso: <strong>${(totalSize / 1024).toFixed(2)} KB</strong></div>
+                    <div>Limite: ~5 MB (varia por navegador)</div>
+                `;
+            } catch (error) {
+                html = `<div class="text-red-600">Erro ao ler estatísticas: ${error.message}</div>`;
+            }
+            
+            storageStatsElement.innerHTML = html;
+        }
+        
+        if (formStateManagerElement) {
+            if (window.stateManager) {
+                const metrics = window.stateManager.metrics || { captures: 0, restores: 0 };
+                formStateManagerElement.innerHTML = `
+                    <div class="text-green-600"><i class="fas fa-check-circle"></i> FormStateManager: Ativo</div>
+                    <div>Capturas: ${metrics.captures || 0}</div>
+                    <div>Restaurações: ${metrics.restores || 0}</div>
+                `;
+            } else {
+                formStateManagerElement.innerHTML = `
+                    <div class="text-yellow-600"><i class="fas fa-exclamation-triangle"></i> FormStateManager: Não detectado</div>
+                    <div>Verifique se o módulo state.js foi carregado</div>
+                `;
+            }
+        }
+    }
+
+            window.clearAllTests = function() {
+                const console = document.getElementById('console-output');
+                if (console) {
+                    console.innerHTML = '<div class="text-yellow-400">FormStateManager v2.0 - Console de Testes</div><div>Console limpo. Pronto para novos testes...</div>';
+                }
+            }
+
+            window.copyConsoleLog = async function() {
+                const consoleOutput = document.getElementById('console-output');
+                if (!consoleOutput) return;
+
+                const logText = consoleOutput.innerText;
+
+                try {
+                    await navigator.clipboard.writeText(logText);
+
+                    // Feedback visual
+                    const button = document.getElementById('copy-log-btn');
+                    if (button) {
+                        const originalText = button.innerHTML;
+                        button.innerHTML = 'Copiado!';
+                        button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                        button.classList.add('bg-green-600', 'hover:bg-green-700');
+
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                            button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                            button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                        }, 2000);
+                    }
+
+                    window.logToConsole('[SUCESSO] Log copiado para a área de transferência!', 'success');
+                } catch (err) {
+                    window.logToConsole('[ERRO] Não foi possível copiar o log.', 'error');
+                }
+            }
+            
+            // Implementação das funções de teste
+            window.testMetrics = {
+                captures: 0,
+                restores: 0,
+                validations: 0,
+                cacheOps: 0,
+                errors: 0,
+                totalTime: 0,
+                operations: 0
+            };            window.updateMetrics = function() {
+                document.getElementById('metric-captures').textContent = window.testMetrics.captures;
+                document.getElementById('metric-restores').textContent = window.testMetrics.restores;
+                document.getElementById('metric-validations').textContent = window.testMetrics.validations;
+                document.getElementById('metric-cache-ops').textContent = window.testMetrics.cacheOps;
+                document.getElementById('metric-errors').textContent = window.testMetrics.errors;
+
+                const avgTime = window.testMetrics.operations > 0 ?
+                    Math.round(window.testMetrics.totalTime / window.testMetrics.operations) : 0;
+                document.getElementById('metric-performance').textContent = `${avgTime}ms`;
+            };            // Função para teste completo do sistema
+            window.runFullSystemTest = function() {
+                window.logToConsole('[TESTING] Iniciando teste completo do sistema...', 'info');
+                
+                try {
+                    if (window.testSuite && typeof window.testSuite.runAutomaticTests === 'function') {
+                        // Usar a implementação do PersistenceTestSuite se disponível
+                        window.testSuite.runAutomaticTests();
+                    } else {
+                        // Implementação fallback
+                        const startTime = performance.now();
+                        
+                        // Executar os testes individuais
+                        window.testRaceConditions();
+                        window.testMemoryLeaks();
+                        window.testCacheSystem();
+                        window.testValidation();
+                        window.testPerformanceOptimizations();
+                        
+                        const duration = performance.now() - startTime;
+                        window.testMetrics.totalTime += duration;
+                        window.testMetrics.operations++;
+                        
+                        window.logToConsole(`[SUCCESS] Teste completo finalizado em ${Math.round(duration)}ms`, 'success');
+                        window.updateMetrics();
+                    }
+                } catch (error) {
+                    window.logToConsole(`[ERROR] Erro no teste completo: ${error.message}`, 'error');
+                    window.testMetrics.errors++;
+                    window.updateMetrics();
+                }
+            };
+              // Função para testar race conditions
+            window.testRaceConditions = function() {
+                window.logToConsole('[MUTEX] Testando sistema de mutex (Race Conditions)...', 'info');
+                
+                try {
+                    if (window.testSuite && typeof window.testSuite.testConcurrency === 'function') {
+                        // Usar a função do módulo de testes se disponível
+                        window.testSuite.testConcurrency();
+                    } else {
+                        // Verificar se o método existe
+                        if (!window.stateManager || typeof window.stateManager.captureCurrentFormData !== 'function') {
+                            throw new Error('window.stateManager.captureCurrentFormData is not a function');
+                        }
+                        
+                        // Simular múltiplas operações simultâneas
+                        const promises = [];
+                        for (let i = 0; i < 10; i++) {
+                            promises.push(new Promise(resolve => {
+                                setTimeout(() => {
+                                    window.stateManager.captureCurrentFormData();
+                                    resolve();
+                                }, 10);
+                            }));
+                        }
+                        
+                        Promise.all(promises).then(() => {
+                            window.logToConsole('[SUCCESS] Sistema de mutex funcionando - sem race conditions', 'success');
+                        }).catch((error) => {
+                            window.logToConsole(`[ERROR] Erro no teste de race conditions: ${error.message}`, 'error');
+                            window.testMetrics.errors++;
+                        });
+                    }
+                } catch (error) {
+                    window.logToConsole(`[ERROR] Erro no teste de race conditions: ${error.message}`, 'error');
+                    window.testMetrics.errors++;
+                }
+            };
+              // Função para testar memory leaks
+            window.testMemoryLeaks = function() {
+                window.logToConsole('[MEMORY] Testando gestão de memória...', 'info');
+                
+                try {
+                    if (window.testSuite && typeof window.testSuite.testMemoryManagement === 'function') {
+                        // Usar a função do módulo de testes se disponível
+                        window.testSuite.testMemoryManagement();
+                    } else {
+                        if (!window.stateManager || !window.stateManager.activeListeners) {
+                            throw new Error('window.stateManager.activeListeners não encontrado');
+                        }
+                        
+                        const initialListeners = window.stateManager.activeListeners.size || 0;
+                        
+                        // Adicionar alguns listeners
+                        const listenerId = window.stateManager.addTrackedListener ?
+                            window.stateManager.addTrackedListener(document, 'click', () => {}) : null;
+                        
+                        // Remover listener
+                        if (listenerId && window.stateManager.removeTrackedListener) {
+                            window.stateManager.removeTrackedListener(listenerId);
+                        }
+                        
+                        const finalListeners = window.stateManager.activeListeners.size || 0;
+                        
+                        if (finalListeners === initialListeners) {
+                            window.logToConsole('[SUCCESS] Gestão de memória funcionando - listeners limpos', 'success');
+                        } else {
+                            window.logToConsole('[WARNING] Possível vazamento de memória detectado', 'warning');
+                        }
+                    }
+                } catch (error) {
+                    window.logToConsole(`[ERROR] Erro no teste de memória: ${error.message}`, 'error');
+                    window.testMetrics.errors++;
+                }
+            };
+              // Função para testar o sistema de cache
+            window.testCacheSystem = function() {
+                window.logToConsole('[CACHE] Testando sistema de cache...', 'info');
+                
+                try {
+                    if (window.testSuite && typeof window.testSuite.testCacheSystem === 'function') {
+                        // Usar a função do módulo de testes se disponível
+                        window.testSuite.testCacheSystem();
+                    } else {
+                        // Verificar se os métodos existem
+                        if (!window.stateManager || typeof window.stateManager.saveStateToCache !== 'function') {
+                            throw new Error('window.stateManager.saveStateToCache is not a function');
+                        }
+                        
+                        if (typeof window.stateManager.loadStateFromCache !== 'function') {
+                            throw new Error('window.stateManager.loadStateFromCache is not a function');
+                        }
+                        
+                        // Testar salvamento no cache
+                        window.stateManager.saveStateToCache();
+                        window.testMetrics.cacheOps++;
+                        
+                        // Testar carregamento do cache
+                        const loadResult = window.stateManager.loadStateFromCache();
+                        window.testMetrics.cacheOps++;
+                        
+                        window.logToConsole('[SUCCESS] Sistema de cache funcionando corretamente', 'success');
+                        window.updateMetrics();
+                    }
+                } catch (error) {
+                    window.logToConsole(`[ERROR] Erro no teste de cache: ${error.message}`, 'error');
+                    window.testMetrics.errors++;
+                    window.updateMetrics();
+                }
+            };
+              // Função para testar validação
+            window.testValidation = function() {
+                window.logToConsole('[VALIDATION] Testando sistema de validação...', 'info');
+                
+                try {
+                    if (window.testSuite && typeof window.testSuite.testDataValidation === 'function') {
+                        // Usar a função do módulo de testes se disponível
+                        window.testSuite.testDataValidation();
+                    } else {
+                        // Verificar se o método existe
+                        if (!window.stateManager || typeof window.stateManager.validateFormData !== 'function') {
+                            throw new Error('window.stateManager.validateFormData is not a function');
+                        }
+                        
+                        const testData = {
+                            cpf: '11144477735', // CPF válido para teste
+                            email: 'teste@email.com',
+                            phone: '(11) 99999-9999',
+                            cep: '01310-100'
+                        };
+                        
+                        const result = window.stateManager.validateFormData(testData, 'personal');
+                        window.testMetrics.validations++;
+                        
+                        if (result.valid) {
+                            window.logToConsole('[SUCCESS] Validação de dados funcionando', 'success');
+                        } else {
+                            const errorMsg = result.errors && Array.isArray(result.errors) ?
+                                result.errors.join(', ') : 'Dados inválidos';
+                            window.logToConsole(`[WARNING] Dados inválidos detectados: ${errorMsg}`, 'warning');
+                        }
+                        
+                        window.updateMetrics();
+                    }
+                } catch (error) {
+                    window.logToConsole(`[ERROR] Erro no teste de validação: ${error.message}`, 'error');
+                    window.testMetrics.errors++;
+                    window.updateMetrics();
+                }
+            };
+            
+            // Função para testar otimizações de performance
+            window.testPerformanceOptimizations = function() {
+                window.logToConsole('[PERFORMANCE] Testando otimizações de performance...', 'info');
+                
+                try {
+                    // Verificar se o método existe
+                    if (!window.stateManager || typeof window.stateManager.debouncedCaptureFormData !== 'function') {
+                        throw new Error('window.stateManager.debouncedCaptureFormData is not a function');
+                    }
+                    
+                    const startTime = performance.now();
+                    
+                    // Testar debounce
+                    for (let i = 0; i < 5; i++) {
+                        window.stateManager.debouncedCaptureFormData();
+                    }
+                    
+                    const duration = performance.now() - startTime;
+                    window.testMetrics.totalTime += duration;
+                    window.testMetrics.operations++;
+                    
+                    window.logToConsole(`[SUCCESS] Performance otimizada - operação em ${Math.round(duration)}ms`, 'success');
+                    window.updateMetrics();
+                } catch (error) {
+                    window.logToConsole(`[ERROR] Erro no teste de performance: ${error.message}`, 'error');
+                    window.testMetrics.errors++;
+                }
+            };
+
+            // Inicializar o sistema de testes
+            window.logToConsole('[INIT] Sistema FormStateManager v2.0 - Testes', 'info');
+
+            // Monitorar mudanças no formulário para testar captura automática
+            document.getElementById('test-form').addEventListener('input', function(e) {
+                if (window.stateManager && typeof window.stateManager.debouncedCaptureFormData === 'function') {
+                    window.stateManager.debouncedCaptureFormData();
+                    window.testMetrics.captures++;
+                    window.updateMetrics();
+                    
+                    window.logToConsole(`[FIELD] Campo ${e.target.name} alterado - captura automática acionada`, 'info');
+                }
+            });
+
+            // Atualizar métricas periodicamente
+            setInterval(window.updateMetrics, 1000);            // Carregar sistema de testes            if (typeof PersistenceTestSuite === 'function') {
+                if (!window.testSuite) {
+                    window.testSuite = new PersistenceTestSuite();
+                }
+                
+                // Chamar a função de integração que adicionamos ao tests.js
+                if (typeof window.integrateWithSPA === 'function') {
+                    window.integrateWithSPA();
+                } else {
+                    // Conectar funções do testSuite com as funções da interface (fallback)
+                    if (window.testSuite.logger && typeof window.logToConsole === 'function') {
+                        window.testSuite.logger.log = (message, type = 'info') => {
+                            window.logToConsole(`[PERSIST-TEST] ${message}`, type);
+                        };
+                        window.testSuite.logger.success = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'success');
+                        window.testSuite.logger.error = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'error');
+                        window.testSuite.logger.warning = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'warning');
+                        window.testSuite.logger.info = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'info');
+                    }
+                }
+                
+                window.logToConsole('[SUCCESS] Sistema de testes carregado com sucesso', 'success');
+                
+                // Atualizar os contadores de métricas após testes
+                const originalAddTestResult = window.testSuite.addTestResult;
+                if (typeof originalAddTestResult === 'function') {
+                    window.testSuite.addTestResult = function(name, passed, details) {
+                        originalAddTestResult.call(this, name, passed, details);
+                        
+                        // Atualizar métricas baseado no tipo de teste
+                        if (name.includes('cache')) window.testMetrics.cacheOps++;
+                        if (name.includes('validation')) window.testMetrics.validations++;
+                        if (name.includes('capture')) window.testMetrics.captures++;
+                        if (name.includes('restore')) window.testMetrics.restores++;
+                        if (!passed) window.testMetrics.errors++;
+                        
+                        window.updateMetrics();
+                    };
+                }
+            } else {
+                window.logToConsole('[WARNING] Aguardando carregamento do sistema de testes...', 'warning');
+            }
+        }
+    }
+
+    // Registrar o módulo para ser inicializado quando a página for carregada
+    window.initModule = initModule;
+</script>

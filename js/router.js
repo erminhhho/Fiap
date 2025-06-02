@@ -40,6 +40,11 @@ const routes = {
     templateUrl: 'templates/documents.html',
     scriptUrl: 'modules/documents.js',
     step: 5
+  },  tests: {
+    title: 'Testes do Sistema',
+    templateUrl: 'templates/tests-spa.html',
+    scriptUrl: 'modules/tests.js',
+    step: 6
   }
 };
 
@@ -50,7 +55,8 @@ const routeSteps = {
   'social': 2,
   'incapacity': 3,
   'professional': 4,
-  'documents': 5
+  'documents': 5,
+  'tests': 6
 };
 
 // Estado atual da navegação
