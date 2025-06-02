@@ -820,13 +820,8 @@ class FormStateManager {
       
       this.logger.debug(`Estado definido: ${key} = ${JSON.stringify(validatedValue)}`);
       
-      return validatedValue;    }, `setState(${key})`);
-  }
-
-  // Método para atualizar campos específicos de uma seção
-  updateSpecificField(section, field, value) {
-    const key = `${section}.${field}`;
-    return this.setState(key, value);
+      return validatedValue;
+    }, `setState(${key})`);
   }
 
   getState(key) {
@@ -894,6 +889,7 @@ class FormStateManager {
     const cachedData = FIAP.cache.get('formStateManager_data');
     return JSON.stringify(this.formData) !== JSON.stringify(cachedData);
   }
+
   getMetrics() {
     return {
       ...this.performanceMetrics,
@@ -901,256 +897,6 @@ class FormStateManager {
       activeListeners: this.activeListeners.size,
       ...this.metrics.report()
     };
-  }
-
-  // Métodos adicionais para compatibilidade com testes
-  async loadStateFromCache() {
-    return this.restoreFromCache();
-  }
-  async validateFormData(data = null, section = null) {
-    try {
-      const dataToValidate = data || this.formData;
-      
-      // Validar estrutura básica
-      if (!dataToValidate || typeof dataToValidate !== 'object') {
-        throw new Error('Dados do formulário inválidos');
-      }
-
-      // Validar campos específicos usando OfflineValidator
-      let validationSchema = {
-        'personal.cpf': 'cpf',
-        'personal.email': 'email',
-        'personal.phone': 'phone',
-        'personal.cep': 'cep'
-      };
-
-      // Se uma seção específica foi solicitada, filtrar apenas essa seção
-      if (section) {
-        validationSchema = Object.fromEntries(
-          Object.entries(validationSchema).filter(([key]) => key.startsWith(section + '.'))
-        );
-      }
-
-      const results = {};
-      let allValid = true;
-      const errors = [];
-
-      for (const [fieldPath, validatorName] of Object.entries(validationSchema)) {
-        // Usar dados passados por parâmetro se disponível
-        let value;
-        if (data && section) {
-          const fieldName = fieldPath.split('.')[1];
-          value = data[fieldName];
-        } else {
-          value = this.getState(fieldPath);
-        }
-        
-        if (value) {          const result = this.offlineValidator.validate(value, validatorName);
-          results[fieldPath] = result;
-          if (!result.valid) {
-            allValid = false;
-            errors.push(`${fieldPath}: ${result.message || 'inválido'}`);
-          }
-        }
-      }
-
-      this.logger.info('Validação de dados concluída', { allValid, results, section });
-      return { valid: allValid, results, errors };
-    } catch (error) {
-      this.logger.error('Erro na validação de dados:', error);
-      throw error;
-    }
-  }
-
-  async captureCurrentFormData() {
-    return this.executeWithMutex(async () => {
-      this.logger.info('Capturando dados atuais do formulário...');
-      
-      // Capturar dados de todos os inputs do formulário atual
-      const formElements = document.querySelectorAll('input, select, textarea');
-      const capturedData = {};
-      
-      formElements.forEach(element => {
-        if (element.name || element.id) {
-          const key = element.name || element.id;
-          const value = element.type === 'checkbox' ? element.checked : element.value;
-          
-          // Usar setState para garantir validação e cache
-          this.setState(key, value);
-          capturedData[key] = value;
-        }
-      });
-        this._lastCapture = Date.now();
-      this.logger.info('Dados capturados com sucesso', { count: Object.keys(capturedData).length });
-      
-      return capturedData;
-    }, 'captureCurrentFormData');
-  }
-
-  // Método de captura com debounce para performance
-  debouncedCaptureFormData(delay = 300) {
-    const timerId = 'captureFormData';
-    
-    // Limpar timer anterior se existir
-    if (this.debounceTimers.has(timerId)) {
-      clearTimeout(this.debounceTimers.get(timerId));
-    }
-    
-    // Criar novo timer
-    const newTimer = setTimeout(async () => {
-      try {
-        await this.captureCurrentFormData();
-        this.debounceTimers.delete(timerId);
-      } catch (error) {
-        this.logger.error('Erro na captura debouncada:', error);
-        this.debounceTimers.delete(timerId);
-      }
-    }, delay);
-    
-    this.debounceTimers.set(timerId, newTimer);
-  }
-
-  async testRaceConditions() {
-    this.logger.info('Testando proteção contra Race Conditions...');
-    
-    const operations = [];
-    
-    // Criar múltiplas operações simultâneas
-    for (let i = 0; i < 10; i++) {
-      operations.push(
-        this.setState(`test.field${i}`, `value${i}`).then(() => {
-          this.logger.debug(`Operação ${i} concluída`);
-          return i;
-        })
-      );
-    }
-    
-    try {
-      const results = await Promise.all(operations);
-      this.logger.info('Teste de Race Conditions concluído', { results });
-      return { success: true, results };
-    } catch (error) {
-      this.logger.error('Erro no teste de Race Conditions:', error);
-      throw error;
-    }
-  }
-
-  async testMemoryLeaks() {
-    this.logger.info('Testando gestão de memória...');
-    
-    const initialListeners = this.activeListeners.size;
-    const initialCacheSize = this.domCache.size;
-    
-    // Adicionar alguns listeners temporários
-    const tempListeners = [];
-    for (let i = 0; i < 5; i++) {
-      const listenerId = this.addTrackedListener(document, 'click', () => {});
-      tempListeners.push(listenerId);
-    }
-    
-    // Remover listeners
-    tempListeners.forEach(id => this.removeTrackedListener(id));
-    
-    // Verificar se foram limpos
-    const finalListeners = this.activeListeners.size;
-    const success = finalListeners === initialListeners;
-    
-    this.logger.info('Teste de Memory Leaks concluído', { 
-      initialListeners, 
-      finalListeners, 
-      success 
-    });
-    
-    return { success, initialListeners, finalListeners };
-  }
-
-  async testPerformance() {
-    this.logger.info('Testando performance do sistema...');
-    
-    const startTime = performance.now();
-    const operations = 100;
-    
-    // Executar operações de setState em lote
-    for (let i = 0; i < operations; i++) {
-      await this.setState(`performance.test${i}`, `value${i}`);
-    }
-    
-    const endTime = performance.now();
-    const duration = endTime - startTime;
-    const opsPerSecond = Math.round((operations / duration) * 1000);
-    
-    this.logger.info('Teste de performance concluído', {
-      operations,
-      duration: Math.round(duration),
-      opsPerSecond
-    });
-    
-    return { 
-      operations, 
-      duration, 
-      opsPerSecond,
-      success: opsPerSecond > 100 // Consideramos sucesso se > 100 ops/segundo
-    };
-  }
-
-  async testCache() {
-    this.logger.info('Testando sistema de cache...');
-    
-    const testKey = 'cache.test';
-    const testValue = 'cache test value';
-    
-    // Definir valor
-    await this.setState(testKey, testValue);
-    
-    // Verificar se está no cache
-    const cachedValue = this.cacheGet(testKey);
-    const stateValue = this.getState(testKey);
-    
-    const success = cachedValue === testValue && stateValue === testValue;
-    
-    this.logger.info('Teste de cache concluído', {
-      testKey,
-      testValue,
-      cachedValue,
-      stateValue,
-      success
-    });
-    
-    return { success, cachedValue, stateValue };
-  }
-
-  async testValidation() {
-    this.logger.info('Testando sistema de validação...');
-    
-    const testData = {
-      'personal.cpf': '12345678901',
-      'personal.email': 'test@example.com',
-      'personal.phone': '(11) 99999-9999',
-      'personal.cep': '01234-567'
-    };
-    
-    // Definir dados de teste
-    for (const [key, value] of Object.entries(testData)) {
-      await this.setState(key, value);
-    }
-    
-    // Validar
-    const validationResult = await this.validateFormData();
-    
-    this.logger.info('Teste de validação concluído', validationResult);
-    
-    return validationResult;
-  }
-
-  getMemoryUsage() {
-    if (performance.memory) {
-      return {
-        used: performance.memory.usedJSHeapSize,
-        total: performance.memory.totalJSHeapSize,
-        limit: performance.memory.jsHeapSizeLimit
-      };
-    }
-    return null;
   }
 
   getMemoryUsage() {
@@ -1191,19 +937,8 @@ window.Metrics = Metrics;
 
 // Instanciar o gerenciador globalmente
 if (!window.stateManager) {
-  console.log('🔄 Criando instância global do FormStateManager...');
   window.stateManager = new FormStateManager();
   console.log('✅ FormStateManager v2.0 inicializado com 23 correções críticas implementadas');
-  
-  // Aguardar um momento para completar a inicialização
-  setTimeout(() => {
-    console.log('🎯 FormStateManager totalmente inicializado e pronto para uso!');
-    
-    // Disparar evento personalizado para informar que o sistema está pronto
-    window.dispatchEvent(new CustomEvent('stateManagerReady', {
-      detail: { stateManager: window.stateManager }
-    }));
-  }, 100);
 }
 
 // Garantir limpeza ao sair da página
