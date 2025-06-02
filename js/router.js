@@ -296,7 +296,7 @@ async function loadModuleWithTemplate(route) {
     // Executar scripts inline para a página de testes
     if (route.scriptUrl.includes('tests.js')) {
       routerLog('Executando scripts inline para módulo de testes');
-      
+
       // Re-executar os scripts inline do tests.html
       const scripts = appContent.querySelectorAll('script');
       scripts.forEach(script => {
@@ -327,10 +327,10 @@ async function loadModuleWithTemplate(route) {
     // Inicializar o módulo se a função estiver definida
     if (typeof window.initModule === 'function') {
       routerLog('Inicializando módulo via window.initModule()');
-      
+
       // Aguardar um pouco mais para páginas de teste
       const delay = isTestsPage ? 500 : 0;
-      
+
       setTimeout(() => {
         window.initModule();
 
@@ -479,28 +479,28 @@ class SPARouter {
             'professional': 'professional',
             'documents': 'documents'
         };
-        
+
         this.init();
     }
-    
+
     init() {
         // Escutar mudanças na URL
         window.addEventListener('hashchange', () => this.handleRoute());
         window.addEventListener('load', () => this.handleRoute());
     }
-    
+
     handleRoute() {
         const hash = window.location.hash.slice(1); // Remove o #
         const route = this.routes[hash] || hash;
-        
+
         console.log(`[ROUTER] Navegando para: ${route}`);
-        
+
         // Usar navigateTo em vez de loadContent
         if (route && typeof navigateTo === 'function') {
             navigateTo(route);
         }
     }
-    
+
     navigate(route) {
         window.location.hash = route;
     }

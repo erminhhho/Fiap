@@ -794,22 +794,22 @@
         // Função específica para inicialização no contexto SPA
         window.initModule = function() {
             console.log('[SPA] Inicializando módulo de testes via SPA...');
-            
+
             // Re-executar a inicialização completa dos testes
             initializeTestSystem();
-            
+
             console.log('[SPA] Módulo de testes inicializado com sucesso');
         };
 
         // Nova função para inicializar todo o sistema de testes
         function initializeTestSystem() {
             console.log('[INIT] Inicializando sistema de testes...');
-            
+
             // Atualizar status da persistência
             if (typeof updatePersistenceStatus === 'function') {
                 updatePersistenceStatus();
             }
-            
+
             // Aguardar StateManager se não estiver carregado
             if (!window.stateManager) {
                 setTimeout(() => {
@@ -822,7 +822,7 @@
                     waitForStateManager();
                 }
             }
-            
+
             // Conectar aos sistemas de teste
             setTimeout(() => {
                 if (typeof integrateWithPersistenceTests === 'function') {

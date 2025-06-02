@@ -1066,12 +1066,12 @@ window.integrateWithSPA = function() {
 // Função específica para inicialização no contexto SPA
 window.initModule = function() {
     console.log('[SPA] Inicializando módulo tests.js via SPA...');
-    
+
     // Integrar com a interface SPA
     if (typeof window.integrateWithSPA === 'function') {
         window.integrateWithSPA();
     }
-    
+
     console.log('[SPA] Módulo tests.js inicializado com sucesso');
 };
 
