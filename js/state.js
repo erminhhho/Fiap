@@ -501,7 +501,7 @@ class Metrics {
 // CLASSE PRINCIPAL - FormStateManager
 // =====================================================================
 
-console.log('🔧 Carregando FormStateManager v2.0 com classes auxiliares...');
+console.log('[FormStateManager] Carregando FormStateManager v2.0 com classes auxiliares...');
 
 /**
  * Gerenciador de Estado do Formulário
@@ -1163,6 +1163,20 @@ class FormStateManager {
     }
     return null;
   }
+
+  // Métodos de compatibilidade para módulos existentes
+  ensureFormAndRestore(stepKey) {
+    this.logger.info(`Restaurando estado para etapa: ${stepKey}`);
+    this.currentStep = stepKey;
+    return this.restoreFromCache();
+  }
+
+  clearCache() {
+    FIAP.cache.remove('formStateManager_data');
+    FIAP.cache.remove('formStateManager_metadata');
+    this.domCache.clear();
+    this.logger.info('Cache limpo completamente');
+  }
 }
 
 // =====================================================================
@@ -1191,17 +1205,21 @@ window.Metrics = Metrics;
 
 // Instanciar o gerenciador globalmente
 if (!window.stateManager) {
-  console.log('🔄 Criando instância global do FormStateManager...');
+  console.log('[FormStateManager] Criando instância global do FormStateManager...');
   window.stateManager = new FormStateManager();
-  console.log('✅ FormStateManager v2.0 inicializado com 23 correções críticas implementadas');
+  
+  // CORREÇÃO: Criar alias para compatibilidade com módulos existentes
+  window.formStateManager = window.stateManager;
+  
+  console.log('[FormStateManager] v2.0 inicializado com 23 correções críticas implementadas');
   
   // Aguardar um momento para completar a inicialização
   setTimeout(() => {
-    console.log('🎯 FormStateManager totalmente inicializado e pronto para uso!');
+    console.log('[FormStateManager] totalmente inicializado e pronto para uso!');
     
     // Disparar evento personalizado para informar que o sistema está pronto
     window.dispatchEvent(new CustomEvent('stateManagerReady', {
-      detail: { stateManager: window.stateManager }
+      detail: { stateManager: window.stateManager, formStateManager: window.formStateManager }
     }));
   }, 100);
 }
@@ -1213,8 +1231,8 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
-console.log('🚀 Sistema de Estado com Correções Críticas carregado com sucesso!');
-console.log('📋 Classes disponíveis globalmente:', Object.keys(window).filter(key => 
+console.log('[FormStateManager] Sistema de Estado com Correções Críticas carregado com sucesso!');
+console.log('[FormStateManager] Classes disponíveis globalmente:', Object.keys(window).filter(key =>
   ['FormStateManager', 'StructuredLogger', 'ModuleSynchronizer', 'OfflineValidator', 
    'UIEnhancer', 'BrowserCompatibility', 'SessionManager', 'BackupManager', 
    'ConflictDetector', 'NetworkOptimizer', 'ErrorMonitor', 'APIIntegrator', 

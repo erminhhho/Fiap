@@ -5,7 +5,7 @@
 
 // Aguarda o carregamento completo do DOM
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Iniciando Suite de Testes do FormStateManager');
+    console.log('[TESTS] Iniciando Suite de Testes do FormStateManager');
     
     const testResults = {
         passed: 0,
@@ -18,10 +18,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         testResults.total++;
         if (passed) {
             testResults.passed++;
-            console.log(`✅ ${testName}: PASSOU ${message}`);
+            console.log(`[SUCCESS] ${testName}: PASSOU ${message}`);
         } else {
             testResults.failed++;
-            console.log(`❌ ${testName}: FALHOU ${message}`);
+            console.log(`[FAILED] ${testName}: FALHOU ${message}`);
         }
         testResults.details.push({ testName, passed, message });
     }
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     if (typeof window.FormStateManager === 'undefined') {
-        console.error('❌ FormStateManager não está disponível globalmente');
+        console.error('[ERROR] FormStateManager não está disponível globalmente');
         return;
     }
 
@@ -310,12 +310,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         logTest('Teste de Integração Global', false, `- Erro: ${error.message}`);
     }
 
-    // Exibe resultados finais
-    console.log('\n📊 RESULTADOS FINAIS DOS TESTES:');
-    console.log(`✅ Testes Aprovados: ${testResults.passed}`);
-    console.log(`❌ Testes Falharam: ${testResults.failed}`);
-    console.log(`📝 Total de Testes: ${testResults.total}`);
-    console.log(`📈 Taxa de Sucesso: ${((testResults.passed / testResults.total) * 100).toFixed(1)}%`);
+    // Exibe resultados finais    console.log('\n[RESULTS] RESULTADOS FINAIS DOS TESTES:');
+    console.log(`[SUCCESS] Testes Aprovados: ${testResults.passed}`);
+    console.log(`[FAILED] Testes Falharam: ${testResults.failed}`);
+    console.log(`[TOTAL] Total de Testes: ${testResults.total}`);
+    console.log(`[STATS] Taxa de Sucesso: ${((testResults.passed / testResults.total) * 100).toFixed(1)}%`);
 
     // Cria relatório detalhado
     const reportElement = document.createElement('div');
@@ -337,18 +336,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         z-index: 10000;
     `;
     
-    reportElement.innerHTML = `
-        <h3 style="margin-top: 0; color: #007acc;">🧪 Relatório de Testes</h3>
+    reportElement.innerHTML = `        <h3 style="margin-top: 0; color: #007acc;">[TESTS] Relatório de Testes</h3>
         <div style="margin-bottom: 10px;">
             <strong>Taxa de Sucesso: ${((testResults.passed / testResults.total) * 100).toFixed(1)}%</strong><br>
-            ✅ Aprovados: ${testResults.passed}<br>
-            ❌ Falharam: ${testResults.failed}<br>
-            📝 Total: ${testResults.total}
+            [SUCCESS] Aprovados: ${testResults.passed}<br>
+            [FAILED] Falharam: ${testResults.failed}<br>
+            [TOTAL] Total: ${testResults.total}
         </div>
         <div style="max-height: 300px; overflow-y: auto;">
             ${testResults.details.map(test => 
                 `<div style="margin: 5px 0; padding: 5px; background: ${test.passed ? '#e8f5e8' : '#ffe8e8'}; border-radius: 3px;">
-                    ${test.passed ? '✅' : '❌'} ${test.testName}<br>
+                    ${test.passed ? '[PASS]' : '[FAIL]'} ${test.testName}<br>
                     <small style="color: #666;">${test.message}</small>
                 </div>`
             ).join('')}

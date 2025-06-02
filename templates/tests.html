@@ -154,7 +154,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🚀 Teste Final - FormStateManager v2.0</h1>
+        <h1>Teste Final - FormStateManager v2.0</h1>
         <p style="text-align: center; font-size: 18px; margin-bottom: 30px;">
             Validação das 23 Correções Críticas Implementadas
         </p>
@@ -162,7 +162,7 @@
         <div class="status-grid">
             <!-- Status das Correções de Alta Prioridade -->
             <div class="status-card">
-                <div class="status-title">⚡ Alta Prioridade (4/4)</div>
+                <div class="status-title">[HIGH] Alta Prioridade (4/4)</div>
                 <div class="status-item">
                     <span>1. Race Conditions</span>
                     <span id="status-race" class="status-ok">✓</span>
@@ -183,7 +183,7 @@
 
             <!-- Status das Correções de Média Prioridade -->
             <div class="status-card">
-                <div class="status-title">🔧 Média Prioridade (6/6)</div>
+                <div class="status-title">Média Prioridade (6/6)</div>
                 <div class="status-item">
                     <span>5. Performance</span>
                     <span id="status-performance" class="status-ok">✓</span>
@@ -212,7 +212,7 @@
 
             <!-- Status das Correções de Baixa Prioridade -->
             <div class="status-card">
-                <div class="status-title">📋 Baixa Prioridade (13/13)</div>
+                <div class="status-title">Baixa Prioridade (13/13)</div>
                 <div class="status-item">
                     <span>11. UI/UX</span>
                     <span id="status-ui" class="status-ok">✓</span>
@@ -238,17 +238,16 @@
 
         <!-- Controles de Teste -->
         <div style="text-align: center; margin: 30px 0;">
-            <button class="test-button" onclick="runFullSystemTest()">🧪 Teste Completo do Sistema</button>
-            <button class="test-button" onclick="testRaceConditions()">⚡ Testar Race Conditions</button>
-            <button class="test-button" onclick="testMemoryLeaks()">🧹 Testar Memory Leaks</button>
-            <button class="test-button" onclick="testCacheSystem()">💾 Testar Cache</button>
-            <button class="test-button" onclick="testValidation()">✅ Testar Validação</button>
-            <button class="test-button" onclick="clearAllTests()">🗑️ Limpar Testes</button>
+            <button class="test-button" onclick="runFullSystemTest()">Teste Completo do Sistema</button>            <button class="test-button" onclick="testRaceConditions()">[RACE] Testar Race Conditions</button>
+            <button class="test-button" onclick="testMemoryLeaks()">[MEMORY] Testar Memory Leaks</button>
+            <button class="test-button" onclick="testCacheSystem()">[CACHE] Testar Cache</button>
+            <button class="test-button" onclick="testValidation()">Testar Validação</button>
+            <button class="test-button" onclick="clearAllTests()">[CLEAR] Limpar Testes</button>
         </div>
 
         <!-- Formulário de Teste -->
         <div class="form-test">
-            <h3>📝 Formulário de Teste Integrado</h3>
+            <h3>Formulário de Teste Integrado</h3>
             <form id="test-form">
                 <label>Nome Completo:</label>
                 <input type="text" name="autor_nome[]" placeholder="Digite seu nome" value="João Silva">
@@ -304,7 +303,7 @@
 
         <!-- Console de Output -->
         <div class="console-output" id="console-output">
-            <div style="color: #FFD700;">🚀 FormStateManager v2.0 - Console de Testes</div>
+            <div style="color: #FFD700;">FormStateManager v2.0 - Console de Testes</div>
             <div>Aguardando carregamento do sistema...</div>
         </div>
     </div>
@@ -352,7 +351,7 @@
 
         function checkSystemStatus() {
             try {
-                logToConsole('🔍 Verificando status do sistema...', 'info');
+                logToConsole('[SYSTEM CHECK] Verificando status do sistema...', 'info');
 
                 // Verificar se todas as classes foram carregadas
                 const requiredClasses = [
@@ -365,38 +364,35 @@
 
                 let allLoaded = true;
                 requiredClasses.forEach(className => {
-                    if (window[className]) {
-                        logToConsole(`✅ ${className} carregada`, 'success');
+                    if (window[className]) {                        logToConsole(`[SUCCESS] ${className} carregada`, 'success');
                     } else {
-                        logToConsole(`❌ ${className} NÃO encontrada`, 'error');
+                        logToConsole(`[ERROR] ${className} NÃO encontrada`, 'error');
                         allLoaded = false;
                     }
                 });
 
                 // Verificar instância principal
                 if (window.stateManager) {
-                    logToConsole('✅ stateManager instanciado com sucesso', 'success');
+                    logToConsole('[SUCCESS] stateManager instanciado com sucesso', 'success');
                     
                     // Testar funcionalidades básicas
                     const testData = { test: 'value', timestamp: Date.now() };
                     window.stateManager.updateSpecificField('personal', 'test_field', 'test_value');
-                    
-                    logToConsole('✅ Teste básico de funcionalidade passou', 'success');
+                      logToConsole('[SUCCESS] Teste básico de funcionalidade passou', 'success');
                 } else {
-                    logToConsole('❌ stateManager NÃO encontrado', 'error');
+                    logToConsole('[ERROR] stateManager NÃO encontrado', 'error');
                     allLoaded = false;
                 }
 
-                if (allLoaded) {
-                    logToConsole('🎉 TODAS AS 23 CORREÇÕES CARREGADAS E FUNCIONAIS!', 'success');
+                if (allLoaded) {                    logToConsole('[SUCCESS] TODAS AS 23 CORREÇÕES CARREGADAS E FUNCIONAIS!', 'success');
                     return true;
                 } else {
-                    logToConsole('⚠️ Alguns componentes não foram carregados corretamente', 'warning');
+                    logToConsole('[WARNING] Alguns componentes não foram carregados corretamente', 'warning');
                     return false;
                 }
 
             } catch (error) {
-                logToConsole(`❌ Erro durante verificação: ${error.message}`, 'error');
+                logToConsole(`[ERROR] Erro durante verificação: ${error.message}`, 'error');
                 testMetrics.errors++;
                 updateMetrics();
                 return false;
@@ -404,7 +400,7 @@
         }
 
         function runFullSystemTest() {
-            logToConsole('🧪 Iniciando teste completo do sistema...', 'info');
+            logToConsole('[TESTING] Iniciando teste completo do sistema...', 'info');
             
             try {
                 const startTime = performance.now();
@@ -431,16 +427,16 @@
                 testMetrics.totalTime += duration;
                 testMetrics.operations++;
                 
-                logToConsole(`✅ Teste completo finalizado em ${Math.round(duration)}ms`, 'success');
+                logToConsole(`[SUCCESS] Teste completo finalizado em ${Math.round(duration)}ms`, 'success');
                 updateMetrics();
                 
             } catch (error) {
-                logToConsole(`❌ Erro no teste completo: ${error.message}`, 'error');
+                logToConsole(`[ERROR] Erro no teste completo: ${error.message}`, 'error');
                 testMetrics.errors++;
                 updateMetrics();
             }
         }        function testRaceConditions() {
-            logToConsole('⚡ Testando sistema de mutex (Race Conditions)...', 'info');
+            logToConsole('[MUTEX] Testando sistema de mutex (Race Conditions)...', 'info');
             
             try {
                 // Verificar se o método existe
@@ -453,22 +449,21 @@
                 for (let i = 0; i < 10; i++) {
                     promises.push(window.stateManager.captureCurrentFormData());
                 }
-                
-                Promise.all(promises).then(() => {
-                    logToConsole('✅ Sistema de mutex funcionando - sem race conditions', 'success');
+                  Promise.all(promises).then(() => {
+                    logToConsole('[SUCCESS] Sistema de mutex funcionando - sem race conditions', 'success');
                 }).catch((error) => {
-                    logToConsole(`❌ Erro no teste de race conditions: ${error.message}`, 'error');
+                    logToConsole(`[ERROR] Erro no teste de race conditions: ${error.message}`, 'error');
                     testMetrics.errors++;
                 });
                 
             } catch (error) {
-                logToConsole(`❌ Erro no teste de race conditions: ${error.message}`, 'error');
+                logToConsole(`[ERROR] Erro no teste de race conditions: ${error.message}`, 'error');
                 testMetrics.errors++;
             }
         }
 
         function testMemoryLeaks() {
-            logToConsole('🧹 Testando gestão de memória...', 'info');
+            logToConsole('[MEMORY] Testando gestão de memória...', 'info');
             
             try {
                 const initialListeners = window.stateManager.activeListeners.size;
@@ -482,19 +477,18 @@
                 window.stateManager.removeTrackedListener(listenerId);
                 
                 const finalListeners = window.stateManager.activeListeners.size;
-                
-                if (finalListeners === initialListeners) {
-                    logToConsole('✅ Gestão de memória funcionando - listeners limpos', 'success');
+                  if (finalListeners === initialListeners) {
+                    logToConsole('[SUCCESS] Gestão de memória funcionando - listeners limpos', 'success');
                 } else {
-                    logToConsole('⚠️ Possível vazamento de memória detectado', 'warning');
+                    logToConsole('[WARNING] Possível vazamento de memória detectado', 'warning');
                 }
                 
             } catch (error) {
-                logToConsole(`❌ Erro no teste de memória: ${error.message}`, 'error');
+                logToConsole(`[ERROR] Erro no teste de memória: ${error.message}`, 'error');
                 testMetrics.errors++;
             }
         }        function testCacheSystem() {
-            logToConsole('💾 Testando sistema de cache...', 'info');
+            logToConsole('[CACHE] Testando sistema de cache...', 'info');
             
             try {
                 // Verificar se os métodos existem
@@ -513,16 +507,15 @@
                 const loadResult = window.stateManager.loadStateFromCache();
                 testMetrics.cacheOps++;
                 
-                logToConsole('✅ Sistema de cache funcionando corretamente', 'success');
+                logToConsole('[SUCCESS] Sistema de cache funcionando corretamente', 'success');
                 updateMetrics();
                 
-            } catch (error) {
-                logToConsole(`❌ Erro no teste de cache: ${error.message}`, 'error');
+            } catch (error) {                logToConsole(`[ERROR] Erro no teste de cache: ${error.message}`, 'error');
                 testMetrics.errors++;
                 updateMetrics();
             }
         }        function testValidation() {
-            logToConsole('✅ Testando sistema de validação...', 'info');
+            logToConsole('[VALIDATION] Testando sistema de validação...', 'info');
             
             try {
                 // Verificar se o método existe
@@ -538,23 +531,23 @@
                 const result = window.stateManager.validateFormData(testData, 'personal');
                 testMetrics.validations++;
                   if (result.valid) {
-                    logToConsole('✅ Validação de dados funcionando', 'success');
+                    logToConsole('[SUCCESS] Validação de dados funcionando', 'success');
                 } else {
                     const errorMsg = result.errors && Array.isArray(result.errors) ? 
                         result.errors.join(', ') : 
                         'Dados inválidos';
-                    logToConsole(`⚠️ Dados inválidos detectados: ${errorMsg}`, 'warning');
+                    logToConsole(`[WARNING] Dados inválidos detectados: ${errorMsg}`, 'warning');
                 }
                 
                 updateMetrics();
                 
             } catch (error) {
-                logToConsole(`❌ Erro no teste de validação: ${error.message}`, 'error');
+                logToConsole(`[ERROR] Erro no teste de validação: ${error.message}`, 'error');
                 testMetrics.errors++;
                 updateMetrics();
             }
         }        function testPerformanceOptimizations() {
-            logToConsole('🚀 Testando otimizações de performance...', 'info');
+            logToConsole('[PERFORMANCE] Testando otimizações de performance...', 'info');
             
             try {
                 // Verificar se o método existe
@@ -573,35 +566,35 @@
                 testMetrics.totalTime += duration;
                 testMetrics.operations++;
                 
-                logToConsole(`✅ Performance otimizada - operação em ${Math.round(duration)}ms`, 'success');
+                logToConsole(`[SUCCESS] Performance otimizada - operação em ${Math.round(duration)}ms`, 'success');
                 updateMetrics();
                 
             } catch (error) {
-                logToConsole(`❌ Erro no teste de performance: ${error.message}`, 'error');
+                logToConsole(`[ERROR] Erro no teste de performance: ${error.message}`, 'error');
                 testMetrics.errors++;
             }
         }
 
         function testUIEnhancements() {
-            logToConsole('🎨 Testando melhorias de UI/UX...', 'info');
+            logToConsole('[UI/UX] Testando melhorias de UI/UX...', 'info');
             
             try {
                 // Testar notificações
                 if (window.UIEnhancer) {
                     const uiEnhancer = new window.UIEnhancer(window.stateManager);
                     uiEnhancer.showNotification('Teste de notificação', 'success', 2000);
-                    logToConsole('✅ Sistema de notificações funcionando', 'success');
+                    logToConsole('[SUCCESS] Sistema de notificações funcionando', 'success');
                 }
                 
             } catch (error) {
-                logToConsole(`❌ Erro no teste de UI: ${error.message}`, 'error');
+                logToConsole(`[ERROR] Erro no teste de UI: ${error.message}`, 'error');
                 testMetrics.errors++;
             }
         }
 
         function clearAllTests() {
             document.getElementById('console-output').innerHTML = 
-                '<div style="color: #FFD700;">🚀 FormStateManager v2.0 - Console de Testes</div><div>Console limpo. Pronto para novos testes...</div>';
+                '[CLEAR] FormStateManager v2.0 - Console de Testes</div><div>Console limpo. Pronto para novos testes...</div>';
             
             testMetrics = {
                 captures: 0, restores: 0, validations: 0, 
@@ -617,18 +610,18 @@
                 testMetrics.captures++;
                 updateMetrics();
                 
-                logToConsole(`📝 Campo ${e.target.name} alterado - captura automática acionada`, 'info');
+                logToConsole(`[FIELD] Campo ${e.target.name} alterado - captura automática acionada`, 'info');
             }
         });
 
         // Executar verificação inicial quando a página carregar
         window.addEventListener('load', function() {
             setTimeout(() => {
-                logToConsole('🔄 Iniciando verificação do sistema...', 'info');
+                logToConsole('[INIT] Iniciando verificação do sistema...', 'info');
                 const systemOk = checkSystemStatus();
                 
                 if (systemOk) {
-                    logToConsole('🎯 Sistema pronto para testes. Use os botões acima!', 'success');
+                    logToConsole('[READY] Sistema pronto para testes. Use os botões acima!', 'success');
                     
                     // Executar teste inicial automático
                     setTimeout(() => {
