@@ -1035,46 +1035,46 @@ window.integrateWithSPA = function() {
         console.error("TestSuite não disponível para integração");
         return;
     }
-    
+
     if (typeof window.logToConsole === 'function') {
         // Conectar os logs com a interface do SPA
         window.testSuite.logger.log = function(message, type = 'info') {
             window.logToConsole(`[PERSIST-TEST] ${message}`, type);
         };
-        
+
         window.testSuite.logger.success = function(message) {
             window.logToConsole(`[PERSIST-TEST] ${message}`, 'success');
         };
-        
+
         window.testSuite.logger.error = function(message) {
             window.logToConsole(`[PERSIST-TEST] ${message}`, 'error');
         };
-        
+
         window.testSuite.logger.warning = function(message) {
             window.logToConsole(`[PERSIST-TEST] ${message}`, 'warning');
         };
-        
+
         window.testSuite.logger.info = function(message) {
             window.logToConsole(`[PERSIST-TEST] ${message}`, 'info');
         };
-        
+
         // Integração concluída com sucesso
         window.logToConsole('[INTEGRATION] TestSuite integrado com sucesso à interface SPA', 'success');
     }
-    
+
     // Expor métodos auxiliares específicos para a interface SPA
     window.testConcurrency = function() {
         window.testSuite.testConcurrencyFunctions();
     };
-    
+
     window.testMemoryManagement = function() {
         window.testSuite.testMemoryManagement();
     };
-    
+
     window.testCacheSystemFunctions = function() {
         window.testSuite.testCacheSystem();
     };
-    
+
     window.testDataValidationFunctions = function() {
         window.testSuite.testDataValidation();
     };

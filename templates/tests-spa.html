@@ -104,7 +104,7 @@
 
 <script>    // Inicializa o módulo quando ele for carregado pela rota    function connectToTestSuite() {
         if (!window.testSuite) return;
-        
+
         // Conectar funções do testSuite com as funções da interface
         if (window.testSuite.logger && typeof window.logToConsole === 'function') {
             window.testSuite.logger.log = (message, type = 'info') => {
@@ -115,40 +115,40 @@
             window.testSuite.logger.warning = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'warning');
             window.testSuite.logger.info = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'info');
         }
-        
+
         // Atualizar os contadores de métricas após testes
         const originalAddTestResult = window.testSuite.addTestResult;
         if (typeof originalAddTestResult === 'function') {
             window.testSuite.addTestResult = function(name, passed, details) {
                 originalAddTestResult.call(this, name, passed, details);
-                
+
                 // Atualizar métricas baseado no tipo de teste
                 if (name.includes('cache')) window.testMetrics.cacheOps++;
                 if (name.includes('validation')) window.testMetrics.validations++;
                 if (name.includes('capture')) window.testMetrics.captures++;
                 if (name.includes('restore')) window.testMetrics.restores++;
                 if (!passed) window.testMetrics.errors++;
-                
+
                 window.updateMetrics();
             };
         }
-        
+
         window.logToConsole('[SUCCESS] Sistema de testes conectado com sucesso', 'success');
     }
-    
+
     function updatePersistenceStatus() {
         // Atualizar o status da persistência
         const persistenceStatusElement = document.getElementById('persistence-status');
         const storageStatsElement = document.getElementById('storage-stats');
         const formStateManagerElement = document.getElementById('form-state-manager-status');
-        
+
         if (persistenceStatusElement) {
             try {
                 // Verificar disponibilidade do localStorage
                 const testKey = 'test_availability';
                 localStorage.setItem(testKey, 'test');
                 localStorage.removeItem(testKey);
-                
+
                 persistenceStatusElement.innerHTML = `
                     <div class="text-green-600"><i class="fas fa-check-circle"></i> localStorage: Disponível</div>
                     <div>${localStorage.length} itens armazenados</div>
@@ -160,22 +160,22 @@
                 `;
             }
         }
-        
+
         if (storageStatsElement) {
             let fiapItems = 0;
             let totalSize = 0;
             let html = '';
-            
+
             try {
                 for (const key of Object.keys(localStorage)) {
                     const value = localStorage.getItem(key);
                     totalSize += (key.length + value.length) * 2; // Aproximadamente bytes
-                    
+
                     if (key.startsWith('fiap_')) {
                         fiapItems++;
                     }
                 }
-                
+
                 html = `
                     <div>Itens FIAP: <strong>${fiapItems}</strong></div>
                     <div>Uso: <strong>${(totalSize / 1024).toFixed(2)} KB</strong></div>
@@ -184,10 +184,10 @@
             } catch (error) {
                 html = `<div class="text-red-600">Erro ao ler estatísticas: ${error.message}</div>`;
             }
-            
+
             storageStatsElement.innerHTML = html;
         }
-        
+
         if (formStateManagerElement) {
             if (window.stateManager) {
                 const metrics = window.stateManager.metrics || { captures: 0, restores: 0 };
@@ -241,7 +241,7 @@
                     window.logToConsole('[ERRO] Não foi possível copiar o log.', 'error');
                 }
             }
-            
+
             // Implementação das funções de teste
             window.testMetrics = {
                 captures: 0,
@@ -264,7 +264,7 @@
             };            // Função para teste completo do sistema
             window.runFullSystemTest = function() {
                 window.logToConsole('[TESTING] Iniciando teste completo do sistema...', 'info');
-                
+
                 try {
                     if (window.testSuite && typeof window.testSuite.runAutomaticTests === 'function') {
                         // Usar a implementação do PersistenceTestSuite se disponível
@@ -272,18 +272,18 @@
                     } else {
                         // Implementação fallback
                         const startTime = performance.now();
-                        
+
                         // Executar os testes individuais
                         window.testRaceConditions();
                         window.testMemoryLeaks();
                         window.testCacheSystem();
                         window.testValidation();
                         window.testPerformanceOptimizations();
-                        
+
                         const duration = performance.now() - startTime;
                         window.testMetrics.totalTime += duration;
                         window.testMetrics.operations++;
-                        
+
                         window.logToConsole(`[SUCCESS] Teste completo finalizado em ${Math.round(duration)}ms`, 'success');
                         window.updateMetrics();
                     }
@@ -296,7 +296,7 @@
               // Função para testar race conditions
             window.testRaceConditions = function() {
                 window.logToConsole('[MUTEX] Testando sistema de mutex (Race Conditions)...', 'info');
-                
+
                 try {
                     if (window.testSuite && typeof window.testSuite.testConcurrency === 'function') {
                         // Usar a função do módulo de testes se disponível
@@ -306,7 +306,7 @@
                         if (!window.stateManager || typeof window.stateManager.captureCurrentFormData !== 'function') {
                             throw new Error('window.stateManager.captureCurrentFormData is not a function');
                         }
-                        
+
                         // Simular múltiplas operações simultâneas
                         const promises = [];
                         for (let i = 0; i < 10; i++) {
@@ -317,7 +317,7 @@
                                 }, 10);
                             }));
                         }
-                        
+
                         Promise.all(promises).then(() => {
                             window.logToConsole('[SUCCESS] Sistema de mutex funcionando - sem race conditions', 'success');
                         }).catch((error) => {
@@ -333,7 +333,7 @@
               // Função para testar memory leaks
             window.testMemoryLeaks = function() {
                 window.logToConsole('[MEMORY] Testando gestão de memória...', 'info');
-                
+
                 try {
                     if (window.testSuite && typeof window.testSuite.testMemoryManagement === 'function') {
                         // Usar a função do módulo de testes se disponível
@@ -342,20 +342,20 @@
                         if (!window.stateManager || !window.stateManager.activeListeners) {
                             throw new Error('window.stateManager.activeListeners não encontrado');
                         }
-                        
+
                         const initialListeners = window.stateManager.activeListeners.size || 0;
-                        
+
                         // Adicionar alguns listeners
                         const listenerId = window.stateManager.addTrackedListener ?
                             window.stateManager.addTrackedListener(document, 'click', () => {}) : null;
-                        
+
                         // Remover listener
                         if (listenerId && window.stateManager.removeTrackedListener) {
                             window.stateManager.removeTrackedListener(listenerId);
                         }
-                        
+
                         const finalListeners = window.stateManager.activeListeners.size || 0;
-                        
+
                         if (finalListeners === initialListeners) {
                             window.logToConsole('[SUCCESS] Gestão de memória funcionando - listeners limpos', 'success');
                         } else {
@@ -370,7 +370,7 @@
               // Função para testar o sistema de cache
             window.testCacheSystem = function() {
                 window.logToConsole('[CACHE] Testando sistema de cache...', 'info');
-                
+
                 try {
                     if (window.testSuite && typeof window.testSuite.testCacheSystem === 'function') {
                         // Usar a função do módulo de testes se disponível
@@ -380,19 +380,19 @@
                         if (!window.stateManager || typeof window.stateManager.saveStateToCache !== 'function') {
                             throw new Error('window.stateManager.saveStateToCache is not a function');
                         }
-                        
+
                         if (typeof window.stateManager.loadStateFromCache !== 'function') {
                             throw new Error('window.stateManager.loadStateFromCache is not a function');
                         }
-                        
+
                         // Testar salvamento no cache
                         window.stateManager.saveStateToCache();
                         window.testMetrics.cacheOps++;
-                        
+
                         // Testar carregamento do cache
                         const loadResult = window.stateManager.loadStateFromCache();
                         window.testMetrics.cacheOps++;
-                        
+
                         window.logToConsole('[SUCCESS] Sistema de cache funcionando corretamente', 'success');
                         window.updateMetrics();
                     }
@@ -405,7 +405,7 @@
               // Função para testar validação
             window.testValidation = function() {
                 window.logToConsole('[VALIDATION] Testando sistema de validação...', 'info');
-                
+
                 try {
                     if (window.testSuite && typeof window.testSuite.testDataValidation === 'function') {
                         // Usar a função do módulo de testes se disponível
@@ -415,17 +415,17 @@
                         if (!window.stateManager || typeof window.stateManager.validateFormData !== 'function') {
                             throw new Error('window.stateManager.validateFormData is not a function');
                         }
-                        
+
                         const testData = {
                             cpf: '11144477735', // CPF válido para teste
                             email: 'teste@email.com',
                             phone: '(11) 99999-9999',
                             cep: '01310-100'
                         };
-                        
+
                         const result = window.stateManager.validateFormData(testData, 'personal');
                         window.testMetrics.validations++;
-                        
+
                         if (result.valid) {
                             window.logToConsole('[SUCCESS] Validação de dados funcionando', 'success');
                         } else {
@@ -433,7 +433,7 @@
                                 result.errors.join(', ') : 'Dados inválidos';
                             window.logToConsole(`[WARNING] Dados inválidos detectados: ${errorMsg}`, 'warning');
                         }
-                        
+
                         window.updateMetrics();
                     }
                 } catch (error) {
@@ -442,28 +442,28 @@
                     window.updateMetrics();
                 }
             };
-            
+
             // Função para testar otimizações de performance
             window.testPerformanceOptimizations = function() {
                 window.logToConsole('[PERFORMANCE] Testando otimizações de performance...', 'info');
-                
+
                 try {
                     // Verificar se o método existe
                     if (!window.stateManager || typeof window.stateManager.debouncedCaptureFormData !== 'function') {
                         throw new Error('window.stateManager.debouncedCaptureFormData is not a function');
                     }
-                    
+
                     const startTime = performance.now();
-                    
+
                     // Testar debounce
                     for (let i = 0; i < 5; i++) {
                         window.stateManager.debouncedCaptureFormData();
                     }
-                    
+
                     const duration = performance.now() - startTime;
                     window.testMetrics.totalTime += duration;
                     window.testMetrics.operations++;
-                    
+
                     window.logToConsole(`[SUCCESS] Performance otimizada - operação em ${Math.round(duration)}ms`, 'success');
                     window.updateMetrics();
                 } catch (error) {
@@ -481,7 +481,7 @@
                     window.stateManager.debouncedCaptureFormData();
                     window.testMetrics.captures++;
                     window.updateMetrics();
-                    
+
                     window.logToConsole(`[FIELD] Campo ${e.target.name} alterado - captura automática acionada`, 'info');
                 }
             });
@@ -491,7 +491,7 @@
                 if (!window.testSuite) {
                     window.testSuite = new PersistenceTestSuite();
                 }
-                
+
                 // Chamar a função de integração que adicionamos ao tests.js
                 if (typeof window.integrateWithSPA === 'function') {
                     window.integrateWithSPA();
@@ -507,22 +507,22 @@
                         window.testSuite.logger.info = (message) => window.logToConsole(`[PERSIST-TEST] ${message}`, 'info');
                     }
                 }
-                
+
                 window.logToConsole('[SUCCESS] Sistema de testes carregado com sucesso', 'success');
-                
+
                 // Atualizar os contadores de métricas após testes
                 const originalAddTestResult = window.testSuite.addTestResult;
                 if (typeof originalAddTestResult === 'function') {
                     window.testSuite.addTestResult = function(name, passed, details) {
                         originalAddTestResult.call(this, name, passed, details);
-                        
+
                         // Atualizar métricas baseado no tipo de teste
                         if (name.includes('cache')) window.testMetrics.cacheOps++;
                         if (name.includes('validation')) window.testMetrics.validations++;
                         if (name.includes('capture')) window.testMetrics.captures++;
                         if (name.includes('restore')) window.testMetrics.restores++;
                         if (!passed) window.testMetrics.errors++;
-                        
+
                         window.updateMetrics();
                     };
                 }
