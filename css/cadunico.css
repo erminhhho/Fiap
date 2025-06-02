@@ -16,7 +16,7 @@
 }
 
 .cadunico-btn.active::after {
-  content: '✓';
+  content: '[OK]';
   position: absolute;
   top: 0;
   right: 0;

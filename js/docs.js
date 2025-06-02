@@ -790,11 +790,9 @@ async function gerarRelatorioPDF() {
 
         // Dados adicionais em linha única (substituindo o grid)
         const telefone = sectionData.autor_telefone?.[0];
-        const telefoneWhatsapp = sectionData.autor_telefone_whatsapp && sectionData.autor_telefone_whatsapp[0] === true;
-
-        let telefoneDisplay = formatValue(telefone);
+        const telefoneWhatsapp = sectionData.autor_telefone_whatsapp && sectionData.autor_telefone_whatsapp[0] === true;        let telefoneDisplay = formatValue(telefone);
         if (telefoneWhatsapp && telefone && telefone.trim() !== '') {
-          telefoneDisplay += ' <span style="font-size:7pt; padding:0 0.2em; color:#25D366; font-weight:bold;">★</span>';
+          telefoneDisplay += ' <span style="font-size:7pt; padding:0 0.2em; color:#25D366; font-weight:bold;">[WA]</span>';
         }
 
         // Container para dados adicionais em linha única

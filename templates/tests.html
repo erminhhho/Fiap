@@ -165,19 +165,19 @@
                 <div class="status-title">[HIGH] Alta Prioridade (4/4)</div>
                 <div class="status-item">
                     <span>1. Race Conditions</span>
-                    <span id="status-race" class="status-ok">✓</span>
+                    <span id="status-race" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>2. Memory Leaks</span>
-                    <span id="status-memory" class="status-ok">✓</span>
+                    <span id="status-memory" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>3. Validação de Dados</span>
-                    <span id="status-validation" class="status-ok">✓</span>
+                    <span id="status-validation" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>4. Cache Inteligente</span>
-                    <span id="status-cache" class="status-ok">✓</span>
+                    <span id="status-cache" class="status-ok">[OK]</span>
                 </div>
             </div>
 
@@ -186,27 +186,27 @@
                 <div class="status-title">Média Prioridade (6/6)</div>
                 <div class="status-item">
                     <span>5. Performance</span>
-                    <span id="status-performance" class="status-ok">✓</span>
+                    <span id="status-performance" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>6. Gestão DOM</span>
-                    <span id="status-dom" class="status-ok">✓</span>
+                    <span id="status-dom" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>7. Navegação</span>
-                    <span id="status-navigation" class="status-ok">✓</span>
+                    <span id="status-navigation" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>8. Logs</span>
-                    <span id="status-logs" class="status-ok">✓</span>
+                    <span id="status-logs" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>9. Sincronização</span>
-                    <span id="status-sync" class="status-ok">✓</span>
+                    <span id="status-sync" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>10. Validação Offline</span>
-                    <span id="status-offline" class="status-ok">✓</span>
+                    <span id="status-offline" class="status-ok">[OK]</span>
                 </div>
             </div>
 
@@ -215,23 +215,23 @@
                 <div class="status-title">Baixa Prioridade (13/13)</div>
                 <div class="status-item">
                     <span>11. UI/UX</span>
-                    <span id="status-ui" class="status-ok">✓</span>
+                    <span id="status-ui" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>12. Compatibilidade</span>
-                    <span id="status-compat" class="status-ok">✓</span>
+                    <span id="status-compat" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>13. Sessão</span>
-                    <span id="status-session" class="status-ok">✓</span>
+                    <span id="status-session" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>14. Backup</span>
-                    <span id="status-backup" class="status-ok">✓</span>
+                    <span id="status-backup" class="status-ok">[OK]</span>
                 </div>
                 <div class="status-item">
                     <span>15-23. Outros</span>
-                    <span id="status-others" class="status-ok">✓</span>
+                    <span id="status-others" class="status-ok">[OK]</span>
                 </div>
             </div>
         </div>
@@ -303,7 +303,7 @@
         <div style="position: relative;">
             <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
                 <button id="copy-log-btn" class="test-button" style="padding: 8px 12px; font-size: 12px; min-width: auto; background: linear-gradient(45deg, #4CAF50, #45a049);" onclick="copyConsoleLog()" title="Copiar todo o log do console">
-                    📋 Copiar Log
+                    [COPIAR] Copiar Log
                 </button>
             </div>
             <div class="console-output" id="console-output">
@@ -628,55 +628,53 @@
                 logToConsole(`[FIELD] Campo ${e.target.name} alterado - captura automática acionada`, 'info');
             }
         });
-        
+
         // Função para copiar todo o log do console
         async function copyConsoleLog() {
             const consoleOutput = document.getElementById('console-output');
             const logText = consoleOutput.innerText;
-            
+
             try {
                 await navigator.clipboard.writeText(logText);
-                
-                // Feedback visual para o usuário
+                  // Feedback visual para o usuário
                 const button = document.getElementById('copy-log-btn');
                 const originalText = button.innerHTML;
-                button.innerHTML = '✅ Copiado!';
+                button.innerHTML = '[COPIADO] Copiado!';
                 button.style.background = 'linear-gradient(45deg, #2196F3, #1976D2)';
-                
+
                 setTimeout(() => {
                     button.innerHTML = originalText;
                     button.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
                 }, 2000);
-                
-                logToConsole('✅ Log copiado para a área de transferência!', 'success');
+
+                logToConsole('[SUCESSO] Log copiado para a área de transferência!', 'success');
             } catch (err) {
                 console.error('Erro ao copiar log:', err);
-                
+
                 // Fallback para browsers mais antigos
                 const textArea = document.createElement('textarea');
                 textArea.value = logText;
                 document.body.appendChild(textArea);
                 textArea.select();
-                
+
                 try {
                     document.execCommand('copy');
-                    
-                    const button = document.getElementById('copy-log-btn');
+                      const button = document.getElementById('copy-log-btn');
                     const originalText = button.innerHTML;
-                    button.innerHTML = '✅ Copiado!';
+                    button.innerHTML = '[COPIADO] Copiado!';
                     button.style.background = 'linear-gradient(45deg, #2196F3, #1976D2)';
-                    
+
                     setTimeout(() => {
                         button.innerHTML = originalText;
                         button.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
                     }, 2000);
-                    
-                    logToConsole('✅ Log copiado para a área de transferência (fallback)!', 'success');
+
+                    logToConsole('[SUCESSO] Log copiado para a área de transferência (fallback)!', 'success');
                 } catch (fallbackErr) {
                     console.error('Erro no fallback:', fallbackErr);
-                    logToConsole('❌ Não foi possível copiar o log. Tente selecionar e copiar manualmente.', 'error');
+                    logToConsole('[ERRO] Não foi possível copiar o log. Tente selecionar e copiar manualmente.', 'error');
                 }
-                
+
                 document.body.removeChild(textArea);
             }
         }
@@ -732,7 +730,7 @@
 
                 // Adicionar botão para testes de persistência
                 const persistenceButton = document.createElement('button');
-                persistenceButton.textContent = '🧪 Testes de Persistência';
+                persistenceButton.textContent = '[TEST] Testes de Persistência';
                 persistenceButton.className = 'test-button';
                 persistenceButton.onclick = async function() {
                     logToConsole('[PERSISTENCE] Iniciando testes de persistência robustos...', 'info');
@@ -744,7 +742,7 @@
 
                 // Botão para teste de cenário real
                 const realWorldButton = document.createElement('button');
-                realWorldButton.textContent = '🌍 Cenário Real';
+                realWorldButton.textContent = '[SCENARIO] Cenário Real';
                 realWorldButton.className = 'test-button';
                 realWorldButton.onclick = async function() {
                     await window.testSuite.testRealWorldScenario();
@@ -753,7 +751,7 @@
 
                 // Botão para teste de stress
                 const stressButton = document.createElement('button');
-                stressButton.textContent = '🔥 Teste de Stress';
+                stressButton.textContent = '[STRESS] Teste de Stress';
                 stressButton.className = 'test-button';
                 stressButton.onclick = async function() {
                     await window.testSuite.runPersistenceStressTest();
@@ -762,7 +760,7 @@
 
                 // Botão para debug de persistência
                 const debugButton = document.createElement('button');
-                debugButton.textContent = '🔍 Debug Persistência';
+                debugButton.textContent = '[DEBUG] Debug Persistência';
                 debugButton.className = 'test-button';
                 debugButton.style.background = 'linear-gradient(45deg, #9C27B0, #673AB7)';
                 debugButton.onclick = function() {

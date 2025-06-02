@@ -9,15 +9,15 @@ class PersistenceTestSuite {
             total: 0,
             details: []
         };
-        
+
         this.testModules = [
-            'personal', 'social', 'incapacity', 
+            'personal', 'social', 'incapacity',
             'professional', 'documents', 'home'
         ];
-        
+
         this.isRunning = false;
         this.originalData = {};
-        
+
         this.logger = {
             log: (message, type = 'info') => {
                 const consoleElement = document.getElementById('console-output');
@@ -43,14 +43,14 @@ class PersistenceTestSuite {
 
         this.isRunning = true;
         this.resetTestResults();
-        
-        this.logger.info('🧪 Iniciando Suite de Testes de Persistência v3.0');
+
+        this.logger.info('[TEST] Iniciando Suite de Testes de Persistência v3.0');
         this.logger.info('─'.repeat(60));
 
         try {
             // Backup dos dados atuais
             await this.backupCurrentData();
-            
+
             // Executar testes em sequência
             await this.testBasicPersistence();
             await this.testModuleSpecificPersistence();
@@ -62,13 +62,13 @@ class PersistenceTestSuite {
             await this.testPerformanceUnderLoad();
             await this.testDataValidation();
             await this.testCacheSystem();
-            
+
             // Restaurar dados originais
             await this.restoreOriginalData();
-            
+
             this.logger.info('─'.repeat(60));
             this.displayTestSummary();
-            
+
         } catch (error) {
             this.logger.error(`Erro geral nos testes: ${error.message}`);
             await this.restoreOriginalData();
@@ -79,8 +79,8 @@ class PersistenceTestSuite {
 
     // Teste 1: Persistência Básica
     async testBasicPersistence() {
-        this.logger.info('🔍 Teste 1: Persistência Básica do localStorage');
-        
+        this.logger.info('[TEST] Teste 1: Persistência Básica do localStorage');
+
         const testKey = 'test_persistence_basic';
         const testData = {
             timestamp: Date.now(),
@@ -91,12 +91,12 @@ class PersistenceTestSuite {
         try {
             // Teste de escrita
             localStorage.setItem(testKey, JSON.stringify(testData));
-            this.logger.success('✓ Escrita no localStorage funcionando');
+            this.logger.success('[OK] Escrita no localStorage funcionando');
 
             // Teste de leitura
             const retrieved = JSON.parse(localStorage.getItem(testKey));
             if (JSON.stringify(retrieved) === JSON.stringify(testData)) {
-                this.logger.success('✓ Leitura do localStorage funcionando');
+                this.logger.success('[OK] Leitura do localStorage funcionando');
                 this.addTestResult('basic_persistence', true, 'Persistência básica funcionando');
             } else {
                 throw new Error('Dados recuperados não coincidem');
@@ -104,49 +104,50 @@ class PersistenceTestSuite {
 
             // Limpeza
             localStorage.removeItem(testKey);
-            this.logger.success('✓ Limpeza do localStorage funcionando');
+            this.logger.success('[OK] Limpeza do localStorage funcionando');
 
         } catch (error) {
-            this.logger.error(`✗ Persistência básica falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Persistência básica falhou: ${error.message}`);
             this.addTestResult('basic_persistence', false, error.message);
         }
     }
 
     // Teste 2: Persistência Específica por Módulo
     async testModuleSpecificPersistence() {
-        this.logger.info('🔍 Teste 2: Persistência Específica por Módulo');
+        this.logger.info('[TEST] Teste 2: Persistência Específica por Módulo');
 
         for (const module of this.testModules) {
             try {
                 await this.testSingleModulePersistence(module);
             } catch (error) {
-                this.logger.error(`✗ Falha no módulo ${module}: ${error.message}`);
+                this.logger.error(`[ERRO] Falha no módulo ${module}: ${error.message}`);
                 this.addTestResult(`module_${module}`, false, error.message);
             }
         }
-    }
-
-    async testSingleModulePersistence(moduleName) {
+    }    async testSingleModulePersistence(moduleName) {
         const testData = this.generateTestDataForModule(moduleName);
         const storageKey = `fiap_form_data_${moduleName}`;
 
         // Teste de salvamento específico por módulo
         if (window.stateManager && typeof window.stateManager.updateSpecificField === 'function') {
-            // Usar StateManager se disponível
+            // CORREÇÃO CRÍTICA: Usar await para updateSpecificField
             for (const [field, value] of Object.entries(testData)) {
-                window.stateManager.updateSpecificField(moduleName, field, value);
+                await window.stateManager.updateSpecificField(moduleName, field, value);
             }
-            
+
+            // CORREÇÃO: Aguardar um momento para garantir que salvou
+            await this.delay(100);
+
             // Verificar se foi salvo
             const saved = localStorage.getItem(storageKey);
             if (saved) {
                 const parsedData = JSON.parse(saved);
-                const hasTestData = Object.keys(testData).some(key => 
+                const hasTestData = Object.keys(testData).some(key =>
                     parsedData.hasOwnProperty(key) && parsedData[key] === testData[key]
                 );
-                
+
                 if (hasTestData) {
-                    this.logger.success(`✓ Módulo ${moduleName}: StateManager funcionando`);
+                    this.logger.success(`[OK] Módulo ${moduleName}: StateManager funcionando`);
                     this.addTestResult(`module_${moduleName}`, true, 'StateManager funcionando');
                 } else {
                     throw new Error('Dados não encontrados no storage após StateManager');
@@ -158,9 +159,9 @@ class PersistenceTestSuite {
             // Teste direto no localStorage
             localStorage.setItem(storageKey, JSON.stringify(testData));
             const retrieved = JSON.parse(localStorage.getItem(storageKey));
-            
+
             if (JSON.stringify(retrieved) === JSON.stringify(testData)) {
-                this.logger.success(`✓ Módulo ${moduleName}: persistência direta funcionando`);
+                this.logger.success(`[OK] Módulo ${moduleName}: persistência direta funcionando`);
                 this.addTestResult(`module_${moduleName}`, true, 'Persistência direta funcionando');
             } else {
                 throw new Error('Dados diretos não coincidem');
@@ -170,7 +171,7 @@ class PersistenceTestSuite {
 
     // Teste 3: Compatibilidade Cross-Browser
     async testCrossBrowserPersistence() {
-        this.logger.info('🔍 Teste 3: Compatibilidade Cross-Browser');
+        this.logger.info('[TEST] Teste 3: Compatibilidade Cross-Browser');
 
         try {
             // Testar diferentes métodos de storage
@@ -181,13 +182,13 @@ class PersistenceTestSuite {
                 if (window[method]) {
                     window[method].setItem('test_cross_browser', JSON.stringify(testData));
                     const retrieved = JSON.parse(window[method].getItem('test_cross_browser'));
-                    
+
                     if (JSON.stringify(retrieved) === JSON.stringify(testData)) {
-                        this.logger.success(`✓ ${method} funcionando`);
+                        this.logger.success(`[OK] ${method} funcionando`);
                     } else {
                         throw new Error(`${method} não funcionando corretamente`);
                     }
-                    
+
                     window[method].removeItem('test_cross_browser');
                 } else {
                     this.logger.warning(`${method} não disponível neste browser`);
@@ -197,25 +198,23 @@ class PersistenceTestSuite {
             this.addTestResult('cross_browser', true, 'Compatibilidade cross-browser OK');
 
         } catch (error) {
-            this.logger.error(`✗ Compatibilidade cross-browser falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Compatibilidade cross-browser falhou: ${error.message}`);
             this.addTestResult('cross_browser', false, error.message);
         }
     }
 
     // Teste 4: Captura de Dados de Formulário
     async testFormDataCapture() {
-        this.logger.info('🔍 Teste 4: Captura de Dados de Formulário');
+        this.logger.info('[TEST] Teste 4: Captura de Dados de Formulário');
 
         try {
             const testForm = document.getElementById('test-form');
             if (!testForm) {
                 throw new Error('Formulário de teste não encontrado');
-            }
-
-            // Preencher formulário com dados de teste
+            }            // Preencher formulário com dados de teste válidos
             const formData = {
                 'autor_nome[]': 'João da Silva Teste',
-                'autor_cpf[]': '11144477735',
+                'autor_cpf[]': '12345678909', // CPF válido
                 'email': 'teste@persistencia.com',
                 'telefone': '11987654321',
                 'estado_civil': 'solteiro',
@@ -238,11 +237,11 @@ class PersistenceTestSuite {
             // Verificar se StateManager capturou os dados
             if (window.stateManager && typeof window.stateManager.captureCurrentFormData === 'function') {
                 await window.stateManager.captureCurrentFormData();
-                this.logger.success('✓ StateManager capturou dados do formulário');
+                this.logger.success('[OK] StateManager capturou dados do formulário');
             }
 
             // Verificar se dados foram persistidos
-            const storageKeys = Object.keys(localStorage).filter(key => 
+            const storageKeys = Object.keys(localStorage).filter(key =>
                 key.startsWith('fiap_form_data_')
             );
 
@@ -250,7 +249,7 @@ class PersistenceTestSuite {
                 let foundTestData = false;
                 for (const key of storageKeys) {
                     const data = JSON.parse(localStorage.getItem(key));
-                    if (Object.values(formData).some(value => 
+                    if (Object.values(formData).some(value =>
                         JSON.stringify(data).includes(value)
                     )) {
                         foundTestData = true;
@@ -259,7 +258,7 @@ class PersistenceTestSuite {
                 }
 
                 if (foundTestData) {
-                    this.logger.success('✓ Dados do formulário foram persistidos');
+                    this.logger.success('[OK] Dados do formulário foram persistidos');
                     this.addTestResult('form_capture', true, 'Captura de formulário funcionando');
                 } else {
                     throw new Error('Dados do formulário não encontrados no storage');
@@ -269,28 +268,28 @@ class PersistenceTestSuite {
             }
 
         } catch (error) {
-            this.logger.error(`✗ Captura de formulário falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Captura de formulário falhou: ${error.message}`);
             this.addTestResult('form_capture', false, error.message);
         }
     }
 
     // Teste 5: Restauração de Estado
     async testStateRestoration() {
-        this.logger.info('🔍 Teste 5: Restauração de Estado');
+        this.logger.info('[TEST] Teste 5: Restauração de Estado');
 
         try {
             // Salvar estado atual
             const currentState = this.captureCurrentState();
-            
+
             // Simular perda de dados (limpar formulários)
             this.clearAllForms();
-            
+
             // Tentar restaurar
             if (window.stateManager && typeof window.stateManager.loadStateFromCache === 'function') {
                 const restored = window.stateManager.loadStateFromCache();
-                
+
                 if (restored) {
-                    this.logger.success('✓ StateManager restaurou estado');
+                    this.logger.success('[OK] StateManager restaurou estado');
                 } else {
                     this.logger.warning('StateManager não encontrou estado para restaurar');
                 }
@@ -298,42 +297,67 @@ class PersistenceTestSuite {
 
             // Verificar se dados foram restaurados via storage direto
             const restoredViaStorage = this.restoreStateFromStorage();
-            
+
             if (restoredViaStorage) {
-                this.logger.success('✓ Restauração via storage direto funcionando');
+                this.logger.success('[OK] Restauração via storage direto funcionando');
                 this.addTestResult('state_restoration', true, 'Restauração funcionando');
             } else {
                 throw new Error('Não foi possível restaurar estado');
             }
 
         } catch (error) {
-            this.logger.error(`✗ Restauração de estado falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Restauração de estado falhou: ${error.message}`);
             this.addTestResult('state_restoration', false, error.message);
         }
-    }
-
-    // Teste 6: Persistência Durante Navegação
+    }    // Teste 6: Persistência Durante Navegação
     async testNavigationPersistence() {
-        this.logger.info('🔍 Teste 6: Persistência Durante Navegação');
+        this.logger.info('[TEST] Teste 6: Persistência Durante Navegação');
 
         try {
             // Simular dados antes da navegação
-            const testData = { navigation_test: Date.now() };
-            
-            // Salvar dados
+            const testData = { navigation_test: Date.now(), test_value: 'navegacao_teste' };
+
+            // Salvar dados usando updateSpecificField de forma assíncrona
             if (window.stateManager) {
-                window.stateManager.updateSpecificField('tests', 'navigation_data', testData);
-                
-                // Simular evento de navegação
-                window.dispatchEvent(new Event('beforeunload'));
-                
-                // Verificar se dados foram salvos
+                await window.stateManager.updateSpecificField('tests', 'navigation_data', testData);
+
+                // Aguardar um momento para garantir que os dados foram salvos
+                await this.delay(50);
+
+                // Verificar se dados foram salvos ANTES de simular a navegação
+                const preNavigationCheck = localStorage.getItem('fiap_form_data_tests');
+                if (!preNavigationCheck || !JSON.parse(preNavigationCheck).navigation_data) {
+                    throw new Error('Dados não foram salvos pelo updateSpecificField');
+                }
+
+                this.logger.info('[OK] Dados confirmados antes da simulação de navegação');
+
+                // Simular evento de navegação (beforeunload)
+                const beforeUnloadEvent = new Event('beforeunload');
+                window.dispatchEvent(beforeUnloadEvent);
+
+                // Aguardar processamento do evento
+                await this.delay(100);
+
+                // Verificar se dados continuam salvos após o evento de navegação
                 const saved = localStorage.getItem('fiap_form_data_tests');
-                if (saved && JSON.parse(saved).navigation_data) {
-                    this.logger.success('✓ Dados salvos antes da navegação');
-                    this.addTestResult('navigation_persistence', true, 'Persistência em navegação funcionando');
+                if (saved) {
+                    const parsedData = JSON.parse(saved);
+                    if (parsedData.navigation_data && parsedData.navigation_data.test_value === 'navegacao_teste') {
+                        this.logger.success('[OK] Dados persistiram durante simulação de navegação');
+
+                        // Verificar também o estado global salvo pelo beforeunload
+                        const globalState = localStorage.getItem('fiap_form_state');
+                        if (globalState) {
+                            this.logger.success('[OK] Estado global também foi salvo no beforeunload');
+                        }
+
+                        this.addTestResult('navigation_persistence', true, 'Persistência em navegação funcionando');
+                    } else {
+                        throw new Error('Dados de navegação não persistiram corretamente');
+                    }
                 } else {
-                    throw new Error('Dados não salvos antes da navegação');
+                    throw new Error('Dados não encontrados após navegação');
                 }
             } else {
                 this.logger.warning('StateManager não disponível para teste de navegação');
@@ -341,27 +365,27 @@ class PersistenceTestSuite {
             }
 
         } catch (error) {
-            this.logger.error(`✗ Persistência de navegação falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Persistência de navegação falhou: ${error.message}`);
             this.addTestResult('navigation_persistence', false, error.message);
         }
     }
 
     // Teste 7: Recuperação de Erros
     async testErrorRecovery() {
-        this.logger.info('🔍 Teste 7: Recuperação de Erros');
+        this.logger.info('[TEST] Teste 7: Recuperação de Erros');
 
         try {
             // Simular dados corrompidos
             localStorage.setItem('fiap_form_data_error_test', 'dados_corrompidos_invalidos');
-            
+
             // Tentar recuperar com StateManager
             if (window.stateManager && typeof window.stateManager.loadStateFromCache === 'function') {
                 try {
                     window.stateManager.loadStateFromCache();
-                    this.logger.success('✓ StateManager lidou com dados corrompidos');
+                    this.logger.success('[OK] StateManager lidou com dados corrompidos');
                 } catch (error) {
                     // Esperado que falhe graciosamente
-                    this.logger.success('✓ StateManager falhou graciosamente com dados corrompidos');
+                    this.logger.success('[OK] StateManager falhou graciosamente com dados corrompidos');
                 }
             }
 
@@ -369,9 +393,9 @@ class PersistenceTestSuite {
             const testData = { recovery_test: true };
             localStorage.setItem('fiap_form_data_recovery_test', JSON.stringify(testData));
             const recovered = JSON.parse(localStorage.getItem('fiap_form_data_recovery_test'));
-            
+
             if (recovered.recovery_test) {
-                this.logger.success('✓ Sistema continua funcionando após erro');
+                this.logger.success('[OK] Sistema continua funcionando após erro');
                 this.addTestResult('error_recovery', true, 'Recuperação de erros funcionando');
             } else {
                 throw new Error('Sistema não se recuperou do erro');
@@ -382,14 +406,14 @@ class PersistenceTestSuite {
             localStorage.removeItem('fiap_form_data_recovery_test');
 
         } catch (error) {
-            this.logger.error(`✗ Recuperação de erros falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Recuperação de erros falhou: ${error.message}`);
             this.addTestResult('error_recovery', false, error.message);
         }
     }
 
     // Teste 8: Performance Sob Carga
     async testPerformanceUnderLoad() {
-        this.logger.info('🔍 Teste 8: Performance Sob Carga');
+        this.logger.info('[TEST] Teste 8: Performance Sob Carga');
 
         try {
             const startTime = performance.now();
@@ -397,15 +421,15 @@ class PersistenceTestSuite {
 
             // Realizar múltiplas operações de persistência
             for (let i = 0; i < operations; i++) {
-                const testData = { 
-                    operation: i, 
-                    data: `test_data_${i}`, 
-                    timestamp: Date.now() 
+                const testData = {
+                    operation: i,
+                    data: `test_data_${i}`,
+                    timestamp: Date.now()
                 };
-                
+
                 localStorage.setItem(`performance_test_${i}`, JSON.stringify(testData));
                 const retrieved = JSON.parse(localStorage.getItem(`performance_test_${i}`));
-                
+
                 if (retrieved.operation !== i) {
                     throw new Error(`Falha na operação ${i}`);
                 }
@@ -414,7 +438,7 @@ class PersistenceTestSuite {
             const duration = performance.now() - startTime;
             const opsPerSecond = (operations / duration) * 1000;
 
-            this.logger.success(`✓ ${operations} operações em ${Math.round(duration)}ms (${Math.round(opsPerSecond)} ops/seg)`);
+            this.logger.success(`[OK] ${operations} operações em ${Math.round(duration)}ms (${Math.round(opsPerSecond)} ops/seg)`);
 
             // Limpeza
             for (let i = 0; i < operations; i++) {
@@ -428,37 +452,50 @@ class PersistenceTestSuite {
             }
 
         } catch (error) {
-            this.logger.error(`✗ Teste de performance falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Teste de performance falhou: ${error.message}`);
             this.addTestResult('performance_load', false, error.message);
         }
-    }
-
-    // Teste 9: Validação de Dados
+    }    // Teste 9: Validação de Dados
     async testDataValidation() {
-        this.logger.info('🔍 Teste 9: Validação de Dados');
+        this.logger.info('[TEST] Teste 9: Validação de Dados');
 
-        try {
+        try {            // CORREÇÃO: Usar dados de teste válidos com CPF conhecido como válido
             const testCases = [
-                { cpf: '11144477735', valid: true },
-                { cpf: '12345678900', valid: false },
-                { email: 'teste@valid.com', valid: true },
-                { email: 'invalid-email', valid: false },
-                { telefone: '11999999999', valid: true },
-                { telefone: '123', valid: false }
-            ];
+                { cpf: '12345678909', valid: true }, // CPF válido calculado
+                { cpf: '12345678900', valid: false }, // CPF inválido
+                { email: 'teste@valid.com', valid: true }, // Email válido
+                { email: 'invalid-email', valid: false }, // Email inválido
+                { telefone: '11999999999', valid: true }, // Telefone válido
+                { telefone: '123', valid: false } // Telefone inválido
+            ];            // CORREÇÃO: Primeiro verificar se temos dados reais para validar
+            if (window.stateManager) {
+                // Definir dados de teste no stateManager com CPF válido
+                await window.stateManager.setState('personal.cpf', '12345678909');
+                await window.stateManager.setState('personal.email', 'teste@valid.com');
+                await window.stateManager.setState('personal.telefone', '11999999999');
+            }
 
             let validationsPassed = 0;
             let validationsTotal = testCases.length;
 
             for (const testCase of testCases) {
                 if (window.stateManager && typeof window.stateManager.validateFormData === 'function') {
-                    const result = window.stateManager.validateFormData(testCase, 'personal');
-                    
-                    if (result.valid === testCase.valid) {
+                    // CORREÇÃO: Usar o sistema de validação diretamente com o OfflineValidator
+                    const fieldName = Object.keys(testCase)[0];
+                    const fieldValue = testCase[fieldName];
+                    const expectedValid = testCase.valid;
+
+                    let validatorName = fieldName;
+                    if (fieldName === 'telefone') validatorName = 'phone';
+
+                    // Usar o validador diretamente
+                    const validationResult = window.stateManager.offlineValidator.validate(fieldValue, validatorName);
+
+                    if (validationResult.valid === expectedValid) {
                         validationsPassed++;
-                        this.logger.success(`✓ Validação correta para ${Object.keys(testCase)[0]}`);
+                        this.logger.success(`[OK] Validação correta para ${fieldName}: ${fieldValue}`);
                     } else {
-                        this.logger.error(`✗ Validação incorreta para ${Object.keys(testCase)[0]}`);
+                        this.logger.error(`[ERRO] Validação incorreta para ${fieldName}: ${fieldValue} (esperado: ${expectedValid}, obtido: ${validationResult.valid})`);
                     }
                 } else {
                     this.logger.warning('Sistema de validação não disponível');
@@ -473,36 +510,36 @@ class PersistenceTestSuite {
             }
 
         } catch (error) {
-            this.logger.error(`✗ Teste de validação falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Teste de validação falhou: ${error.message}`);
             this.addTestResult('data_validation', false, error.message);
         }
     }
 
     // Teste 10: Sistema de Cache
     async testCacheSystem() {
-        this.logger.info('🔍 Teste 10: Sistema de Cache');
+        this.logger.info('[TEST] Teste 10: Sistema de Cache');
 
         try {
             // Testar cache básico
             if (window.FIAP && window.FIAP.cache) {
                 const cacheKey = 'test_cache_key';
                 const cacheData = { test: true, timestamp: Date.now() };
-                
+
                 // Salvar no cache
                 window.FIAP.cache.set(cacheKey, cacheData, 5000); // 5 segundos
-                
+
                 // Recuperar do cache
                 const cached = window.FIAP.cache.get(cacheKey);
-                
+
                 if (cached && cached.test === true) {
-                    this.logger.success('✓ Sistema de cache básico funcionando');
-                    
+                    this.logger.success('[OK] Sistema de cache básico funcionando');
+
                     // Testar expiração
                     await this.delay(100);
                     const stillCached = window.FIAP.cache.get(cacheKey);
-                    
+
                     if (stillCached) {
-                        this.logger.success('✓ Cache com TTL funcionando');
+                        this.logger.success('[OK] Cache com TTL funcionando');
                         this.addTestResult('cache_system', true, 'Sistema de cache funcionando');
                     } else {
                         this.logger.warning('Cache expirou muito rapidamente');
@@ -517,14 +554,14 @@ class PersistenceTestSuite {
             }
 
         } catch (error) {
-            this.logger.error(`✗ Teste de cache falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Teste de cache falhou: ${error.message}`);
             this.addTestResult('cache_system', false, error.message);
         }
     }
 
     // Teste de Cenário do Mundo Real
     async testRealWorldScenario() {
-        this.logger.info('🌍 Executando Cenário do Mundo Real');
+        this.logger.info('[SCENARIO] Executando Cenário do Mundo Real');
         this.logger.info('Simulando preenchimento completo de formulário...');
 
         try {
@@ -537,8 +574,8 @@ class PersistenceTestSuite {
             ];
 
             for (const scenario of scenarios) {
-                this.logger.info(`📝 Preenchendo módulo: ${scenario.module}`);
-                
+                this.logger.info(`[FORM] Preenchendo módulo: ${scenario.module}`);
+
                 // Simular digitação lenta (como usuário real)
                 for (const [field, value] of Object.entries(scenario.data)) {
                     if (window.stateManager) {
@@ -546,7 +583,7 @@ class PersistenceTestSuite {
                     }
                     await this.delay(50); // Simular tempo entre campos
                 }
-                
+
                 // Simular pausa entre módulos
                 await this.delay(200);
             }
@@ -556,28 +593,27 @@ class PersistenceTestSuite {
             for (const scenario of scenarios) {
                 const storageKey = `fiap_form_data_${scenario.module}`;
                 const stored = localStorage.getItem(storageKey);
-                
+
                 if (!stored) {
                     allPersisted = false;
                     break;
                 }
             }
 
-            if (allPersisted) {
-                this.logger.success('✓ Cenário do mundo real completado com sucesso!');
-                this.logger.success('✓ Todos os dados foram persistidos corretamente');
+            if (allPersisted) {                this.logger.success('[OK] Cenário do mundo real completado com sucesso!');
+                this.logger.success('[OK] Todos os dados foram persistidos corretamente');
             } else {
                 throw new Error('Nem todos os módulos foram persistidos');
             }
 
         } catch (error) {
-            this.logger.error(`✗ Cenário do mundo real falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Cenário do mundo real falhou: ${error.message}`);
         }
     }
 
     // Teste de Stress de Persistência
     async runPersistenceStressTest() {
-        this.logger.info('🔥 Executando Teste de Stress de Persistência');
+        this.logger.info('[STRESS] Executando Teste de Stress de Persistência');
 
         try {
             const startTime = performance.now();
@@ -589,7 +625,7 @@ class PersistenceTestSuite {
 
             // Criar múltiplas operações simultâneas
             const promises = [];
-            
+
             for (let i = 0; i < stressOperations; i++) {
                 const promise = this.performStressOperation(i)
                     .then(() => { successfulOps++; })
@@ -602,16 +638,15 @@ class PersistenceTestSuite {
             const duration = performance.now() - startTime;
             const opsPerSecond = (stressOperations / duration) * 1000;
 
-            this.logger.info(`📊 Resultados do Teste de Stress:`);
+            this.logger.info(`[RESULTS] Resultados do Teste de Stress:`);
             this.logger.info(`   • Operações bem-sucedidas: ${successfulOps}`);
             this.logger.info(`   • Operações falhadas: ${failedOps}`);
             this.logger.info(`   • Tempo total: ${Math.round(duration)}ms`);
             this.logger.info(`   • Performance: ${Math.round(opsPerSecond)} ops/seg`);
 
-            if (successfulOps / stressOperations > 0.95) { // 95% de sucesso
-                this.logger.success('✓ Sistema passou no teste de stress!');
+            if (successfulOps / stressOperations > 0.95) { // 95% de sucesso                this.logger.success('[OK] Sistema passou no teste de stress!');
             } else {
-                this.logger.error('✗ Sistema falhou no teste de stress');
+                this.logger.error('[ERRO] Sistema falhou no teste de stress');
             }
 
             // Limpeza
@@ -620,7 +655,7 @@ class PersistenceTestSuite {
             }
 
         } catch (error) {
-            this.logger.error(`✗ Teste de stress falhou: ${error.message}`);
+            this.logger.error(`[ERRO] Teste de stress falhou: ${error.message}`);
         }
     }
 
@@ -635,7 +670,7 @@ class PersistenceTestSuite {
 
         localStorage.setItem(`stress_test_${index}`, JSON.stringify(data));
         const retrieved = JSON.parse(localStorage.getItem(`stress_test_${index}`));
-        
+
         if (retrieved.index !== index) {
             throw new Error(`Falha na operação ${index}`);
         }
@@ -719,34 +754,34 @@ class PersistenceTestSuite {
     }
 
     async backupCurrentData() {
-        this.logger.info('💾 Fazendo backup dos dados atuais...');
+        this.logger.info('[BACKUP] Fazendo backup dos dados atuais...');
         this.originalData = {};
-        
+
         for (const key of Object.keys(localStorage)) {
             if (key.startsWith('fiap_')) {
                 this.originalData[key] = localStorage.getItem(key);
             }
         }
-        
-        this.logger.success(`✓ Backup de ${Object.keys(this.originalData).length} itens realizado`);
+
+        this.logger.success(`[OK] Backup de ${Object.keys(this.originalData).length} itens realizado`);
     }
 
     async restoreOriginalData() {
-        this.logger.info('🔄 Restaurando dados originais...');
-        
+        this.logger.info('[RESTORE] Restaurando dados originais...');
+
         // Limpar dados de teste
         for (const key of Object.keys(localStorage)) {
             if (key.startsWith('fiap_') || key.includes('test')) {
                 localStorage.removeItem(key);
             }
         }
-        
+
         // Restaurar dados originais
         for (const [key, value] of Object.entries(this.originalData)) {
             localStorage.setItem(key, value);
         }
-        
-        this.logger.success('✓ Dados originais restaurados');
+
+        this.logger.success('[OK] Dados originais restaurados');
     }
 
     captureCurrentState() {
@@ -775,10 +810,10 @@ class PersistenceTestSuite {
 
     restoreStateFromStorage() {
         try {
-            const storageKeys = Object.keys(localStorage).filter(key => 
+            const storageKeys = Object.keys(localStorage).filter(key =>
                 key.startsWith('fiap_form_data_')
             );
-            
+
             return storageKeys.length > 0;
         } catch (error) {
             return false;
@@ -801,7 +836,7 @@ class PersistenceTestSuite {
         } else {
             this.testResults.failed++;
         }
-        
+
         this.testResults.details.push({
             name: testName,
             passed: passed,
@@ -811,28 +846,28 @@ class PersistenceTestSuite {
     }
 
     displayTestSummary() {
-        this.logger.info('📊 RESUMO DOS TESTES DE PERSISTÊNCIA');
+        this.logger.info('[SUMMARY] RESUMO DOS TESTES DE PERSISTÊNCIA');
         this.logger.info('═'.repeat(60));
         this.logger.info(`Total de testes: ${this.testResults.total}`);
-        this.logger.success(`✓ Testes aprovados: ${this.testResults.passed}`);
-        
+        this.logger.success(`[OK] Testes aprovados: ${this.testResults.passed}`);
+
         if (this.testResults.failed > 0) {
-            this.logger.error(`✗ Testes falhados: ${this.testResults.failed}`);
+            this.logger.error(`[ERRO] Testes falhados: ${this.testResults.failed}`);
         }
-        
+
         const successRate = ((this.testResults.passed / this.testResults.total) * 100).toFixed(1);
         this.logger.info(`Taxa de sucesso: ${successRate}%`);
-        
+
         if (successRate >= 90) {
-            this.logger.success('🎉 SISTEMA DE PERSISTÊNCIA APROVADO!');
+            this.logger.success('[APROVADO] SISTEMA DE PERSISTÊNCIA APROVADO!');
         } else if (successRate >= 70) {
-            this.logger.warning('⚠️ Sistema de persistência precisa de melhorias');
+            this.logger.warning('[AVISO] Sistema de persistência precisa de melhorias');
         } else {
-            this.logger.error('🚨 Sistema de persistência com problemas críticos');
+            this.logger.error('[CRITICO] Sistema de persistência com problemas críticos');
         }
-        
+
         this.logger.info('═'.repeat(60));
-        
+
         // Mostrar detalhes dos testes falhados
         const failedTests = this.testResults.details.filter(test => !test.passed);
         if (failedTests.length > 0) {
@@ -853,7 +888,7 @@ class PersistenceDebugger {
     constructor() {
         this.isDebugging = false;
         this.debugLog = [];
-        
+
         this.logger = {
             log: (message, type = 'info') => {
                 const consoleElement = document.getElementById('console-output');
@@ -874,47 +909,47 @@ class PersistenceDebugger {
 
         this.isDebugging = true;
         this.debugLog = [];
-        
-        this.logger.log('🔍 Iniciando Debug de Persistência...', 'info');
+
+        this.logger.log('[DEBUG] Iniciando Debug de Persistência...', 'info');
         this.logger.log('─'.repeat(50), 'info');
 
         // Monitor de localStorage
         this.monitorLocalStorage();
-        
+
         // Monitor de StateManager
         this.monitorStateManager();
-        
+
         // Monitor de formulários
         this.monitorForms();
-        
+
         // Status atual
         this.displayCurrentStatus();
     }
 
     monitorLocalStorage() {
-        this.logger.log('📊 Status atual do localStorage:', 'info');
-        
+        this.logger.log('[STATUS] Status atual do localStorage:', 'info');
+
         let fiapItems = 0;
         let totalSize = 0;
-        
+
         for (const key of Object.keys(localStorage)) {
             const value = localStorage.getItem(key);
             totalSize += (key.length + value.length) * 2; // Aproximadamente bytes
-            
+
             if (key.startsWith('fiap_')) {
                 fiapItems++;
                 this.logger.log(`  • ${key}: ${(value.length * 2 / 1024).toFixed(2)}KB`, 'info');
             }
         }
-        
+
         this.logger.log(`Total de itens FIAP: ${fiapItems}`, 'info');
         this.logger.log(`Tamanho total: ${(totalSize / 1024).toFixed(2)}KB`, 'info');
     }
 
     monitorStateManager() {
         if (window.stateManager) {
-            this.logger.log('✓ StateManager detectado e ativo', 'success');
-            
+            this.logger.log('[OK] StateManager detectado e ativo', 'success');
+
             // Verificar métricas se disponível
             if (window.stateManager.metrics) {
                 const metrics = window.stateManager.metrics;
@@ -922,51 +957,48 @@ class PersistenceDebugger {
                 this.logger.log(`  • Operações de restauração: ${metrics.restores || 0}`, 'info');
                 this.logger.log(`  • Cache hits: ${metrics.cacheHits || 0}`, 'info');
             }
-            
+
             // Verificar listeners ativos
             if (window.stateManager.activeListeners) {
                 this.logger.log(`  • Listeners ativos: ${window.stateManager.activeListeners.size}`, 'info');
             }
         } else {
-            this.logger.log('✗ StateManager não encontrado', 'error');
+            this.logger.log('[ERRO] StateManager não encontrado', 'error');
         }
     }
 
     monitorForms() {
         const forms = document.querySelectorAll('form');
-        this.logger.log(`📝 Formulários detectados: ${forms.length}`, 'info');
-        
+        this.logger.log(`[FORMS] Formulários detectados: ${forms.length}`, 'info');
+
         forms.forEach((form, index) => {
             const inputs = form.querySelectorAll('input, select, textarea');
-            const filledInputs = Array.from(inputs).filter(input => 
+            const filledInputs = Array.from(inputs).filter(input =>
                 input.value && input.value.trim() !== ''
             );
-            
+
             this.logger.log(`  • Formulário ${index + 1}: ${filledInputs.length}/${inputs.length} campos preenchidos`, 'info');
         });
     }
 
     displayCurrentStatus() {
         this.logger.log('', 'info');
-        this.logger.log('🔧 DIAGNÓSTICO COMPLETO:', 'info');
+        this.logger.log('[DIAGNOSTIC] DIAGNÓSTICO COMPLETO:', 'info');
         this.logger.log('─'.repeat(30), 'info');
-        
+
         // Status do localStorage
-        const storageAvailable = this.testLocalStorageAvailability();
-        this.logger.log(`localStorage disponível: ${storageAvailable ? '✓' : '✗'}`, 
-                       storageAvailable ? 'success' : 'error');
-        
+        const storageAvailable = this.testLocalStorageAvailability();        this.logger.log(`localStorage disponível: ${storageAvailable ? '[OK]' : '[ERRO]'}`,
+            storageAvailable ? 'success' : 'error');
+
         // Status do StateManager
-        const stateManagerWorking = window.stateManager && 
-                                  typeof window.stateManager.captureCurrentFormData === 'function';
-        this.logger.log(`StateManager funcionando: ${stateManagerWorking ? '✓' : '✗'}`, 
-                       stateManagerWorking ? 'success' : 'error');
-        
+        const stateManagerWorking = window.stateManager &&
+                                  typeof window.stateManager.captureCurrentFormData === 'function';        this.logger.log(`StateManager funcionando: ${stateManagerWorking ? '[OK]' : '[ERRO]'}`,
+            stateManagerWorking ? 'success' : 'error');
+
         // Status do cache
-        const cacheWorking = window.FIAP && window.FIAP.cache;
-        this.logger.log(`Sistema de cache: ${cacheWorking ? '✓' : '✗'}`, 
-                       cacheWorking ? 'success' : 'error');
-        
+        const cacheWorking = window.FIAP && window.FIAP.cache;        this.logger.log(`Sistema de cache: ${cacheWorking ? '[OK]' : '[ERRO]'}`,
+            cacheWorking ? 'success' : 'error');
+
         this.logger.log('─'.repeat(30), 'info');
         this.logger.log('Debug ativo. Monitore as mensagens acima.', 'info');
     }
@@ -984,7 +1016,7 @@ class PersistenceDebugger {
 
     stopDebug() {
         this.isDebugging = false;
-        this.logger.log('🔍 Debug de persistência finalizado.', 'info');
+        this.logger.log('[DEBUG] Debug de persistência finalizado.', 'info');
     }
 }
 
