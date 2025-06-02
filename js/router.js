@@ -40,9 +40,10 @@ const routes = {
     templateUrl: 'templates/documents.html',
     scriptUrl: 'modules/documents.js',
     step: 5
-  },  tests: {
-    title: 'Testes do Sistema',
-    templateUrl: 'templates/tests-spa.html',
+  },
+  tests: {
+    title: 'Sistema de Testes',
+    templateUrl: 'templates/tests.html',
     scriptUrl: 'modules/tests.js',
     step: 6
   }
@@ -56,7 +57,7 @@ const routeSteps = {
   'incapacity': 3,
   'professional': 4,
   'documents': 5,
-  'tests': 6
+  'tests': -1 // Rota especial, não aparece na navegação principal
 };
 
 // Estado atual da navegação
@@ -279,7 +280,6 @@ async function loadModuleWithTemplate(route) {
     const scriptLoadPromise = loadScript(route.scriptUrl);
 
     // Esperar um tempo curto para a animação de fade-out
-    // Isso garante que a transição seja suave
     await new Promise(resolve => setTimeout(resolve, 150));
 
     // Renderizar o template no container
@@ -293,11 +293,32 @@ async function loadModuleWithTemplate(route) {
     // Finalizar barra de progresso
     completeProgressBar();
 
-    // Aplicar fade-in somente após a inicialização do módulo
-    // para o caso da página 'social', que tem inicialização complexa
-    const isSocialPage = route.scriptUrl.includes('social.js');
+    // Executar scripts inline para a página de testes
+    if (route.scriptUrl.includes('tests.js')) {
+      routerLog('Executando scripts inline para módulo de testes');
+      
+      // Re-executar os scripts inline do tests.html
+      const scripts = appContent.querySelectorAll('script');
+      scripts.forEach(script => {
+        if (script.innerHTML.trim()) {
+          try {
+            // Criar novo script para re-executar
+            const newScript = document.createElement('script');
+            newScript.innerHTML = script.innerHTML;
+            document.head.appendChild(newScript);
+            document.head.removeChild(newScript);
+          } catch (error) {
+            console.warn('Erro ao re-executar script inline:', error);
+          }
+        }
+      });
+    }
 
-    if (!isSocialPage) {
+    // Aplicar fade-in somente após a inicialização do módulo
+    const isSocialPage = route.scriptUrl.includes('social.js');
+    const isTestsPage = route.scriptUrl.includes('tests.js');
+
+    if (!isSocialPage && !isTestsPage) {
       // Para outras páginas, aplicar fade-in imediatamente
       appContent.classList.remove('fade-out');
       appContent.classList.add('fade-in');
@@ -306,15 +327,21 @@ async function loadModuleWithTemplate(route) {
     // Inicializar o módulo se a função estiver definida
     if (typeof window.initModule === 'function') {
       routerLog('Inicializando módulo via window.initModule()');
-      window.initModule();
+      
+      // Aguardar um pouco mais para páginas de teste
+      const delay = isTestsPage ? 500 : 0;
+      
+      setTimeout(() => {
+        window.initModule();
 
-      // Para a página social, aplicar fade-in após a inicialização
-      if (isSocialPage) {
-        requestAnimationFrame(() => {
-          appContent.classList.remove('fade-out');
-          appContent.classList.add('fade-in');
-        });
-      }
+        // Para páginas especiais, aplicar fade-in após a inicialização
+        if (isSocialPage || isTestsPage) {
+          requestAnimationFrame(() => {
+            appContent.classList.remove('fade-out');
+            appContent.classList.add('fade-in');
+          });
+        }
+      }, delay);
     } else {
       routerLog('Função window.initModule não encontrada');
       // Garantir que o fade-in seja aplicado mesmo sem initModule
@@ -437,6 +464,51 @@ async function loadScript(url) {
     document.head.appendChild(script);
   });
 }
+
+// Sistema de Roteamento SPA
+
+class SPARouter {
+    constructor() {
+        this.routes = {
+            '': 'home',
+            'home': 'home',
+            'tests': 'tests',
+            'personal': 'personal',
+            'social': 'social',
+            'incapacity': 'incapacity',
+            'professional': 'professional',
+            'documents': 'documents'
+        };
+        
+        this.init();
+    }
+    
+    init() {
+        // Escutar mudanças na URL
+        window.addEventListener('hashchange', () => this.handleRoute());
+        window.addEventListener('load', () => this.handleRoute());
+    }
+    
+    handleRoute() {
+        const hash = window.location.hash.slice(1); // Remove o #
+        const route = this.routes[hash] || hash;
+        
+        console.log(`[ROUTER] Navegando para: ${route}`);
+        
+        // Usar navigateTo em vez de loadContent
+        if (route && typeof navigateTo === 'function') {
+            navigateTo(route);
+        }
+    }
+    
+    navigate(route) {
+        window.location.hash = route;
+    }
+}
+
+// Inicializar roteador
+const router = new SPARouter();
+window.router = router;
 
 // Inicializar o sistema de rotas
 function initRouter() {

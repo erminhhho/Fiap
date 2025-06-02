@@ -185,4 +185,20 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Adicionar estilo para o link de testes */
+.step-link[data-step="6"] {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.step-link[data-step="6"]:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-1px);
+}
+
+.step-link[data-step="6"].active {
+    background: linear-gradient(135deg, #4c63d2 0%, #5e3b7e 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
 /* Fim do CSS customizado de espaçamento entre documentos. Agora o espaçamento é controlado pelo Tailwind no HTML. */

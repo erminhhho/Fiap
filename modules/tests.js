@@ -1061,23 +1061,18 @@ window.integrateWithSPA = function() {
         // Integração concluída com sucesso
         window.logToConsole('[INTEGRATION] TestSuite integrado com sucesso à interface SPA', 'success');
     }
+};
 
-    // Expor métodos auxiliares específicos para a interface SPA
-    window.testConcurrency = function() {
-        window.testSuite.testConcurrencyFunctions();
-    };
-
-    window.testMemoryManagement = function() {
-        window.testSuite.testMemoryManagement();
-    };
-
-    window.testCacheSystemFunctions = function() {
-        window.testSuite.testCacheSystem();
-    };
-
-    window.testDataValidationFunctions = function() {
-        window.testSuite.testDataValidation();
-    };
+// Função específica para inicialização no contexto SPA
+window.initModule = function() {
+    console.log('[SPA] Inicializando módulo tests.js via SPA...');
+    
+    // Integrar com a interface SPA
+    if (typeof window.integrateWithSPA === 'function') {
+        window.integrateWithSPA();
+    }
+    
+    console.log('[SPA] Módulo tests.js inicializado com sucesso');
 };
 
 // Log de inicialização

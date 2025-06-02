@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste Final - FormStateManager v2.0</title>
+    <title>Sistema de Testes - FormStateManager</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com?v=3.3.5"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
@@ -86,14 +86,14 @@
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-gray-800 mb-4">
                     <i class="fas fa-cogs text-blue-600 mr-3"></i>
-                    Teste Final - FormStateManager v2.0
+                    Sistema de Testes
                 </h1>
                 <p class="text-lg text-gray-600 mb-6">
-                    Validação das 23 Correções Críticas Implementadas
+                    FormStateManager - Validação e Monitoramento
                 </p>
                 <div class="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full">
                     <i class="fas fa-check-circle mr-2"></i>
-                    Sistema Totalmente Operacional
+                    Sistema Operacional
                 </div>
             </div>
 
@@ -791,15 +791,83 @@
             }, 1000);
         });
 
-        // Atualizar métricas periodicamente
-        setInterval(updateMetrics, 1000);
+        // Função específica para inicialização no contexto SPA
+        window.initModule = function() {
+            console.log('[SPA] Inicializando módulo de testes via SPA...');
+            
+            // Re-executar a inicialização completa dos testes
+            initializeTestSystem();
+            
+            console.log('[SPA] Módulo de testes inicializado com sucesso');
+        };
+
+        // Nova função para inicializar todo o sistema de testes
+        function initializeTestSystem() {
+            console.log('[INIT] Inicializando sistema de testes...');
+            
+            // Atualizar status da persistência
+            if (typeof updatePersistenceStatus === 'function') {
+                updatePersistenceStatus();
+            }
+            
+            // Aguardar StateManager se não estiver carregado
+            if (!window.stateManager) {
+                setTimeout(() => {
+                    if (typeof waitForStateManager === 'function') {
+                        waitForStateManager();
+                    }
+                }, 500);
+            } else {
+                if (typeof waitForStateManager === 'function') {
+                    waitForStateManager();
+                }
+            }
+            
+            // Conectar aos sistemas de teste
+            setTimeout(() => {
+                if (typeof integrateWithPersistenceTests === 'function') {
+                    integrateWithPersistenceTests();
+                }
+            }, 1000);
+
+            // Inicializar métricas
+            if (typeof updateMetrics === 'function') {
+                updateMetrics();
+                // Atualizar métricas periodicamente
+                setInterval(updateMetrics, 1000);
+            }
+
+            // Configurar eventos do formulário de teste
+            const testForm = document.getElementById('test-form');
+            if (testForm) {
+                testForm.addEventListener('input', function(e) {
+                    if (window.stateManager) {
+                        window.stateManager.debouncedCaptureFormData();
+                        testMetrics.captures++;
+                        updateMetrics();
+
+                        logToConsole(`[FIELD] Campo ${e.target.name} alterado - captura automática acionada`, 'info');
+                    }
+                });
+            }
+
+            console.log('[INIT] Sistema de testes inicializado');
+        }
+
+        // Executar inicialização quando a página carregar diretamente
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeTestSystem);
+        } else {
+            // Se o DOM já estiver carregado (caso SPA)
+            initializeTestSystem();
+        }
     </script>
 
     <!-- Carregar o novo sistema de testes de persistência -->
     <script src="../modules/tests.js"></script>
 
     <script>
-        // Integração entre os sistemas de teste
+        // Integração entre os sistemas de teste (ÚNICA VERSÃO)
         function integrateWithPersistenceTests() {
             if (window.testSuite) {
                 logToConsole('[INTEGRATION] Sistema de Testes de Persistência v3.0 detectado!', 'success');
@@ -808,12 +876,19 @@
                 const buttonContainer = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6');
 
                 if (buttonContainer) {
+                    // Verificar se os botões já foram adicionados para evitar duplicação
+                    if (buttonContainer.querySelector('[data-test="persistence"]')) {
+                        logToConsole('[INTEGRATION] Botões já foram integrados anteriormente', 'warning');
+                        return;
+                    }
+
                     // Criar botões com estilo consistente
-                    const createTestButton = (text, onClick, bgColor) => {
+                    const createTestButton = (text, onClick, bgColor, testAttribute) => {
                         const button = document.createElement('button');
                         button.innerHTML = text;
                         button.className = `test-button ${bgColor} text-white px-4 py-3 rounded-xl font-medium`;
                         button.onclick = onClick;
+                        button.setAttribute('data-test', testAttribute); // Para prevenir duplicação
                         return button;
                     };
 
@@ -824,7 +899,8 @@
                             logToConsole('[PERSISTENCE] Iniciando testes de persistência robustos...', 'info');
                             await window.testSuite.runAutomaticTests();
                         },
-                        'bg-teal-600 hover:bg-teal-700'
+                        'bg-teal-600 hover:bg-teal-700',
+                        'persistence'
                     );
 
                     // Botão para teste de cenário real
@@ -834,7 +910,8 @@
                             logToConsole('[SCENARIO] Iniciando simulação de cenário real...', 'info');
                             await window.testSuite.testRealWorldScenario();
                         },
-                        'bg-orange-600 hover:bg-orange-700'
+                        'bg-orange-600 hover:bg-orange-700',
+                        'real-world'
                     );
 
                     // Botão para teste de stress
@@ -844,7 +921,8 @@
                             logToConsole('[STRESS] Iniciando teste de stress...', 'info');
                             await window.testSuite.runPersistenceStressTest();
                         },
-                        'bg-pink-600 hover:bg-pink-700'
+                        'bg-pink-600 hover:bg-pink-700',
+                        'stress'
                     );
 
                     // Botão para debug de persistência
@@ -858,7 +936,8 @@
                                 logToConsole('[ERROR] Debug de persistência não encontrado', 'error');
                             }
                         },
-                        'bg-violet-600 hover:bg-violet-700'
+                        'bg-violet-600 hover:bg-violet-700',
+                        'debug'
                     );
 
                     // Reorganizar o grid para acomodar os novos botões
@@ -880,7 +959,7 @@
             }
         }
 
-        // Aguarda integração após carregamento
+        // Aguarda integração após carregamento (ÚNICO)
         window.addEventListener('load', function() {
             setTimeout(integrateWithPersistenceTests, 2000);
         });

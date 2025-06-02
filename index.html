@@ -58,7 +58,8 @@
         </div>
 
         <!-- Navegação centralizada -->
-        <div class="flex-grow flex justify-center">          <div class="nav-container main-nav" id="step-map">
+        <div class="flex-grow flex justify-center">
+          <div class="nav-container main-nav" id="step-map">
             <a href="#home" class="step-link" data-step="0" title="Home">
               <i class="fas fa-home"></i>
             </a>
@@ -458,6 +459,51 @@
       const modal = document.getElementById('genericModal');
       modal.classList.add('hidden');
     }
+
+    // Função para carregar conteúdo
+    // async function loadContent(route) {
+    //     const content = document.getElementById('content');
+        
+    //     try {
+    //         let response;
+    //         let html;
+            
+    //         switch(route) {
+    //             case '':
+    //             case 'home':
+    //                 response = await fetch('./templates/home.html');
+    //                 html = await response.text();
+    //                 content.innerHTML = html;
+    //                 if (typeof initHome === 'function') initHome();
+    //                 break;
+                    
+    //             case 'tests':
+    //                 response = await fetch('./templates/tests.html');
+    //                 html = await response.text();
+    //                 content.innerHTML = html;
+    //                 // Executar scripts inline do tests.html após carregamento
+    //                 setTimeout(() => {
+    //                     // Re-executar os scripts do tests.html se necessário
+    //                     if (typeof waitForStateManager === 'function') {
+    //                         waitForStateManager();
+    //                     }
+    //                     // Chamar função de inicialização se existir
+    //                     if (typeof initTestsModule === 'function') {
+    //                         initTestsModule();
+    //                     }
+    //                 }, 100);
+    //                 break;
+                    
+    //             // ...existing code...
+                
+    //             default:
+    //                 content.innerHTML = '<div class="error-page">Página não encontrada</div>';
+    //         }
+    //     } catch (error) {
+    //         console.error('Erro ao carregar conteúdo:', error);
+    //         content.innerHTML = '<div class="error-page">Erro ao carregar a página</div>';
+    //     }
+    // }
   </script>
 </body>
 </html>
