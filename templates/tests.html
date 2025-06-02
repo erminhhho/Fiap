@@ -299,12 +299,17 @@
                 <div class="metric-value" id="metric-performance">0ms</div>
                 <div class="metric-label">Performance Média</div>
             </div>
-        </div>
-
-        <!-- Console de Output -->
-        <div class="console-output" id="console-output">
-            <div style="color: #FFD700;">FormStateManager v2.0 - Console de Testes</div>
-            <div>Aguardando carregamento do sistema...</div>
+        </div>        <!-- Console de Output -->
+        <div style="position: relative;">
+            <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                <button id="copy-log-btn" class="test-button" style="padding: 8px 12px; font-size: 12px; min-width: auto; background: linear-gradient(45deg, #4CAF50, #45a049);" onclick="copyConsoleLog()" title="Copiar todo o log do console">
+                    📋 Copiar Log
+                </button>
+            </div>
+            <div class="console-output" id="console-output">
+                <div style="color: #FFD700;">FormStateManager v2.0 - Console de Testes</div>
+                <div>Aguardando carregamento do sistema...</div>
+            </div>
         </div>
     </div>    <!-- Carregar o sistema corrigido -->
     <script>
@@ -622,7 +627,61 @@
 
                 logToConsole(`[FIELD] Campo ${e.target.name} alterado - captura automática acionada`, 'info');
             }
-        });        // Aguardar o carregamento completo do FormStateManager
+        });
+        
+        // Função para copiar todo o log do console
+        async function copyConsoleLog() {
+            const consoleOutput = document.getElementById('console-output');
+            const logText = consoleOutput.innerText;
+            
+            try {
+                await navigator.clipboard.writeText(logText);
+                
+                // Feedback visual para o usuário
+                const button = document.getElementById('copy-log-btn');
+                const originalText = button.innerHTML;
+                button.innerHTML = '✅ Copiado!';
+                button.style.background = 'linear-gradient(45deg, #2196F3, #1976D2)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+                }, 2000);
+                
+                logToConsole('✅ Log copiado para a área de transferência!', 'success');
+            } catch (err) {
+                console.error('Erro ao copiar log:', err);
+                
+                // Fallback para browsers mais antigos
+                const textArea = document.createElement('textarea');
+                textArea.value = logText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    
+                    const button = document.getElementById('copy-log-btn');
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '✅ Copiado!';
+                    button.style.background = 'linear-gradient(45deg, #2196F3, #1976D2)';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+                    }, 2000);
+                    
+                    logToConsole('✅ Log copiado para a área de transferência (fallback)!', 'success');
+                } catch (fallbackErr) {
+                    console.error('Erro no fallback:', fallbackErr);
+                    logToConsole('❌ Não foi possível copiar o log. Tente selecionar e copiar manualmente.', 'error');
+                }
+                
+                document.body.removeChild(textArea);
+            }
+        }
+
+        // Aguardar o carregamento completo do FormStateManager
         function waitForStateManager() {
             if (window.stateManager && window.FormStateManager) {
                 logToConsole('[INIT] Sistema FormStateManager detectado!', 'success');

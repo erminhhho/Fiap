@@ -207,32 +207,34 @@ class OfflineValidator {
     this.validators = new Map();
     this.setupDefaultValidators();
   }
-
   setupDefaultValidators() {
     // Validador de CPF
     this.validators.set('cpf', (value) => {
-      if (!value || value.length !== 11) return { valid: false, message: 'CPF deve ter 11 dígitos' };
+      if (!value) return { valid: false, message: 'CPF é obrigatório' };
       
       // Remove caracteres não numéricos
       const cpf = value.replace(/\D/g, '');
       
+      // Verifica se tem 11 dígitos
+      if (cpf.length !== 11) return { valid: false, message: 'CPF deve ter 11 dígitos' };
+      
       // Verifica se todos os dígitos são iguais
-      if (/^(.)\1*$/.test(cpf)) return { valid: false, message: 'CPF inválido' };
+      if (/^(.)\1{10}$/.test(cpf)) return { valid: false, message: 'CPF inválido' };
       
       // Valida dígitos verificadores
       let sum = 0;
       for (let i = 0; i < 9; i++) {
         sum += parseInt(cpf.charAt(i)) * (10 - i);
       }
-      let remainder = 11 - (sum % 11);
-      let digit1 = remainder >= 10 ? 0 : remainder;
+      let remainder = sum % 11;
+      let digit1 = remainder < 2 ? 0 : 11 - remainder;
       
       sum = 0;
       for (let i = 0; i < 10; i++) {
         sum += parseInt(cpf.charAt(i)) * (11 - i);
       }
-      remainder = 11 - (sum % 11);
-      let digit2 = remainder >= 10 ? 0 : remainder;
+      remainder = sum % 11;
+      let digit2 = remainder < 2 ? 0 : 11 - remainder;
       
       const isValid = parseInt(cpf.charAt(9)) === digit1 && parseInt(cpf.charAt(10)) === digit2;
       return { valid: isValid, message: isValid ? 'CPF válido' : 'CPF inválido' };
@@ -821,12 +823,40 @@ class FormStateManager {
       this.logger.debug(`Estado definido: ${key} = ${JSON.stringify(validatedValue)}`);
       
       return validatedValue;    }, `setState(${key})`);
-  }
-
-  // Método para atualizar campos específicos de uma seção
-  updateSpecificField(section, field, value) {
+  }  // Método para atualizar campos específicos de uma seção
+  async updateSpecificField(section, field, value) {
     const key = `${section}.${field}`;
-    return this.setState(key, value);
+    
+    // Atualizar estado interno
+    await this.setState(key, value);
+    
+    // CORREÇÃO CRÍTICA: Salvar também no formato esperado pelos módulos
+    const moduleStorageKey = `fiap_form_data_${section}`;
+    
+    try {
+      // Obter dados existentes da seção
+      let sectionData = {};
+      const existingData = localStorage.getItem(moduleStorageKey);
+      if (existingData) {
+        sectionData = JSON.parse(existingData);
+      }
+      
+      // Atualizar campo específico
+      sectionData[field] = value;
+      
+      // Salvar de volta no localStorage
+      localStorage.setItem(moduleStorageKey, JSON.stringify(sectionData));
+      
+      // Também salvar no estado interno imediatamente
+      await this.saveStateImmediately();
+      
+      this.logger.debug(`Campo específico salvo: ${section}.${field} = ${JSON.stringify(value)}`);
+      
+      return value;
+    } catch (error) {
+      this.logger.error(`Erro ao salvar campo específico ${section}.${field}:`, error);
+      throw error;
+    }
   }
 
   getState(key) {
@@ -863,20 +893,70 @@ class FormStateManager {
     });
     
     return () => this.removeTrackedListener(listenerId);
+  }  async saveStateToCache() {
+    return new Promise((resolve) => {
+      this.debounce(() => {
+        try {
+          // Salvar no formato interno do StateManager
+          FIAP.cache.set('formStateManager_data', this.formData);
+          FIAP.cache.set('formStateManager_metadata', {
+            timestamp: Date.now(),
+            currentStep: this.currentStep,
+            currentFormId: this.currentFormId
+          });
+          
+          // CORREÇÃO CRÍTICA: Salvar também no formato esperado pelos módulos
+          const modules = ['personal', 'social', 'incapacity', 'professional', 'documents', 'home'];
+          
+          for (const module of modules) {
+            if (this.formData[module] && Object.keys(this.formData[module]).length > 0) {
+              const moduleStorageKey = `fiap_form_data_${module}`;
+              localStorage.setItem(moduleStorageKey, JSON.stringify(this.formData[module]));
+              this.logger.debug(`Módulo ${module} salvo no localStorage`);
+            }
+          }
+          
+          this.logger.info('Estado salvo em cache com compatibilidade para módulos');
+          resolve(true);
+        } catch (error) {
+          this.logger.error('Erro ao salvar estado com compatibilidade:', error);
+          resolve(false);
+        }
+      }, 100, 'saveState'); // Debounce reduzido para testes
+    });
   }
 
-  async saveStateToCache() {
-    this.debounce(() => {
+  // Método para salvamento imediato (sem debounce) para testes
+  async saveStateImmediately() {
+    try {
+      // Salvar no formato interno do StateManager
       FIAP.cache.set('formStateManager_data', this.formData);
       FIAP.cache.set('formStateManager_metadata', {
         timestamp: Date.now(),
         currentStep: this.currentStep,
         currentFormId: this.currentFormId
       });
-    }, 1000, 'saveState');
+      
+      // Salvar também no formato esperado pelos módulos
+      const modules = ['personal', 'social', 'incapacity', 'professional', 'documents', 'home'];
+      
+      for (const module of modules) {
+        if (this.formData[module] && Object.keys(this.formData[module]).length > 0) {
+          const moduleStorageKey = `fiap_form_data_${module}`;
+          localStorage.setItem(moduleStorageKey, JSON.stringify(this.formData[module]));
+          this.logger.debug(`Módulo ${module} salvo imediatamente no localStorage`);
+        }
+      }
+      
+      this.logger.info('Estado salvo imediatamente');
+      return true;
+    } catch (error) {
+      this.logger.error('Erro ao salvar estado imediatamente:', error);
+      return false;
+    }
   }
-
   async restoreFromCache() {
+    // Restaurar do formato interno do StateManager
     const cachedData = FIAP.cache.get('formStateManager_data');
     const cachedMetadata = FIAP.cache.get('formStateManager_metadata');
     
@@ -886,7 +966,39 @@ class FormStateManager {
         this.currentStep = cachedMetadata.currentStep;
         this.currentFormId = cachedMetadata.currentFormId;
       }
-      this.logger.info('Estado restaurado do cache');
+      this.logger.info('Estado restaurado do cache interno');
+    }
+    
+    // CORREÇÃO CRÍTICA: Restaurar também do formato dos módulos
+    try {
+      const modules = ['personal', 'social', 'incapacity', 'professional', 'documents', 'home'];
+      let restoredAny = false;
+      
+      for (const module of modules) {
+        const moduleStorageKey = `fiap_form_data_${module}`;
+        const moduleData = localStorage.getItem(moduleStorageKey);
+        
+        if (moduleData) {
+          try {
+            const parsedData = JSON.parse(moduleData);
+            if (!this.formData[module]) {
+              this.formData[module] = {};
+            }
+            // Mesclar dados do módulo
+            Object.assign(this.formData[module], parsedData);
+            restoredAny = true;
+            this.logger.debug(`Módulo ${module} restaurado do localStorage`);
+          } catch (parseError) {
+            this.logger.warn(`Erro ao parsear dados do módulo ${module}:`, parseError);
+          }
+        }
+      }
+      
+      if (restoredAny) {
+        this.logger.info('Dados adicionais restaurados dos módulos');
+      }
+    } catch (error) {
+      this.logger.error('Erro ao restaurar dados dos módulos:', error);
     }
   }
 
@@ -902,12 +1014,25 @@ class FormStateManager {
       ...this.metrics.report()
     };
   }
-
   // Métodos adicionais para compatibilidade com testes
   async loadStateFromCache() {
-    return this.restoreFromCache();
-  }
-  async validateFormData(data = null, section = null) {
+    try {
+      await this.restoreFromCache();
+      
+      // Verificar se realmente conseguiu restaurar dados
+      const hasData = Object.keys(this.formData).some(key => 
+        this.formData[key] && 
+        typeof this.formData[key] === 'object' && 
+        Object.keys(this.formData[key]).length > 0
+      );
+      
+      this.logger.info(`Restauração do cache: ${hasData ? 'sucesso' : 'sem dados'}`, this.formData);
+      return hasData;
+    } catch (error) {
+      this.logger.error('Erro ao carregar estado do cache:', error);
+      return false;
+    }
+  }  async validateFormData(data = null, section = null) {
     try {
       const dataToValidate = data || this.formData;
       
@@ -919,7 +1044,7 @@ class FormStateManager {
       // Validar campos específicos usando OfflineValidator
       let validationSchema = {
         'personal.cpf': 'cpf',
-        'personal.email': 'email',
+        'personal.email': 'email', 
         'personal.phone': 'phone',
         'personal.cep': 'cep'
       };
@@ -936,32 +1061,41 @@ class FormStateManager {
       const errors = [];
 
       for (const [fieldPath, validatorName] of Object.entries(validationSchema)) {
-        // Usar dados passados por parâmetro se disponível
+        // Determinar valor com base na estrutura dos dados
         let value;
-        if (data && section) {
+        if (data && section && typeof data === 'object') {
+          // Se dados foram passados diretamente para uma seção
           const fieldName = fieldPath.split('.')[1];
-          value = data[fieldName];
+          value = data[fieldName] || data[fieldPath];
         } else {
+          // Usar getState para navegar pela estrutura aninhada
           value = this.getState(fieldPath);
         }
         
-        if (value) {          const result = this.offlineValidator.validate(value, validatorName);
+        if (value) {
+          const result = this.offlineValidator.validate(value, validatorName);
           results[fieldPath] = result;
           if (!result.valid) {
             allValid = false;
             errors.push(`${fieldPath}: ${result.message || 'inválido'}`);
           }
+        } else {
+          // Marcar campos ausentes como inválidos se a seção foi especificada
+          if (section) {
+            results[fieldPath] = { valid: false, message: 'Campo não encontrado' };
+            allValid = false;
+            errors.push(`${fieldPath}: Campo não encontrado`);
+          }
         }
       }
 
-      this.logger.info('Validação de dados concluída', { allValid, results, section });
+      this.logger.info('Validação de dados concluída', { allValid, results, section, errors });
       return { valid: allValid, results, errors };
     } catch (error) {
       this.logger.error('Erro na validação de dados:', error);
       throw error;
     }
   }
-
   async captureCurrentFormData() {
     return this.executeWithMutex(async () => {
       this.logger.info('Capturando dados atuais do formulário...');
@@ -969,19 +1103,41 @@ class FormStateManager {
       // Capturar dados de todos os inputs do formulário atual
       const formElements = document.querySelectorAll('input, select, textarea');
       const capturedData = {};
+      let capturedCount = 0;
       
       formElements.forEach(element => {
         if (element.name || element.id) {
           const key = element.name || element.id;
           const value = element.type === 'checkbox' ? element.checked : element.value;
           
-          // Usar setState para garantir validação e cache
-          this.setState(key, value);
-          capturedData[key] = value;
+          if (value !== null && value !== undefined && value !== '') {
+            // Determinar seção baseada no nome/id do campo
+            let section = 'general';
+            if (key.includes('autor_') || key.includes('personal') || key.includes('cpf') || key.includes('nascimento')) {
+              section = 'personal';
+            } else if (key.includes('familiar') || key.includes('social')) {
+              section = 'social';
+            } else if (key.includes('incapacity') || key.includes('doenca') || key.includes('cid')) {
+              section = 'incapacity';
+            } else if (key.includes('professional') || key.includes('profissional')) {
+              section = 'professional';
+            } else if (key.includes('document') || key.includes('anexo')) {
+              section = 'documents';
+            }
+            
+            // Usar setState para garantir validação e cache
+            this.setState(`${section}.${key}`, value);
+            capturedData[key] = value;
+            capturedCount++;
+          }
         }
       });
-        this._lastCapture = Date.now();
-      this.logger.info('Dados capturados com sucesso', { count: Object.keys(capturedData).length });
+
+      // Forçar salvamento imediato após captura
+      await this.saveStateToCache();
+      
+      this._lastCapture = Date.now();
+      this.logger.info(`Dados capturados com sucesso: ${capturedCount} campos`, capturedData);
       
       return capturedData;
     }, 'captureCurrentFormData');
