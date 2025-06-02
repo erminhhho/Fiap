@@ -306,10 +306,20 @@
             <div style="color: #FFD700;">FormStateManager v2.0 - Console de Testes</div>
             <div>Aguardando carregamento do sistema...</div>
         </div>
-    </div>
-
-    <!-- Carregar o sistema corrigido -->
-    <script src="js/state.js"></script>
+    </div>    <!-- Carregar o sistema corrigido -->
+    <script>
+        console.log('[DEBUG] Iniciando carregamento do state.js...');
+        
+        // Verificar se o script vai carregar
+        window.addEventListener('error', function(e) {
+            console.error('[DEBUG] Erro de carregamento:', e);
+            if (e.filename && e.filename.includes('state.js')) {
+                document.getElementById('console-output').innerHTML += 
+                    '\n<span style="color: #ff4444;">[ERROR] Falha ao carregar state.js: ' + e.message + '</span>';
+            }
+        }, true);
+    </script>
+    <script src="../js/state.js" onerror="console.error('[DEBUG] Erro direto no carregamento do state.js')" onload="console.log('[DEBUG] state.js carregado com sucesso!')"></script>
 
     <script>
         let testMetrics = {
@@ -612,22 +622,39 @@
                 
                 logToConsole(`[FIELD] Campo ${e.target.name} alterado - captura automática acionada`, 'info');
             }
+        });        // Aguardar o carregamento completo do FormStateManager
+        function waitForStateManager() {
+            if (window.stateManager && window.FormStateManager) {
+                logToConsole('[INIT] Sistema FormStateManager detectado!', 'success');
+                setTimeout(() => {
+                    logToConsole('[INIT] Iniciando verificação do sistema...', 'info');
+                    const systemOk = checkSystemStatus();
+                    
+                    if (systemOk) {
+                        logToConsole('[READY] Sistema pronto para testes. Use os botões acima!', 'success');
+                        
+                        // Executar teste inicial automático
+                        setTimeout(() => {
+                            runFullSystemTest();
+                        }, 2000);
+                    }
+                }, 500);
+            } else {
+                logToConsole('[WAIT] Aguardando carregamento do FormStateManager...', 'warning');
+                setTimeout(waitForStateManager, 500);
+            }
+        }
+
+        // Escutar evento customizado do FormStateManager
+        window.addEventListener('stateManagerReady', function(event) {
+            logToConsole('[EVENT] Evento stateManagerReady recebido!', 'success');
+            waitForStateManager();
         });
 
         // Executar verificação inicial quando a página carregar
         window.addEventListener('load', function() {
             setTimeout(() => {
-                logToConsole('[INIT] Iniciando verificação do sistema...', 'info');
-                const systemOk = checkSystemStatus();
-                
-                if (systemOk) {
-                    logToConsole('[READY] Sistema pronto para testes. Use os botões acima!', 'success');
-                    
-                    // Executar teste inicial automático
-                    setTimeout(() => {
-                        runFullSystemTest();
-                    }, 2000);
-                }
+                waitForStateManager();
             }, 1000);
         });
 
