@@ -921,6 +921,14 @@ class FormStateManager {
     return new Promise((resolve) => {
       this.debounce(() => {
         try {
+          // CORREÇÃO CRÍTICA: Salvamento otimizado e compatível
+          const stateData = {
+            formData: this.formData,
+            currentStep: this.currentStep,
+            currentFormId: this.currentFormId,
+            timestamp: Date.now()
+          };
+
           // Salvar no formato interno do StateManager
           FIAP.cache.set('formStateManager_data', this.formData);
           FIAP.cache.set('formStateManager_metadata', {
@@ -929,25 +937,62 @@ class FormStateManager {
             currentFormId: this.currentFormId
           });
 
-          // CORREÇÃO CRÍTICA: Salvar também no formato esperado pelos módulos
+          // CORREÇÃO CRÍTICA: Salvar no formato esperado pelos módulos COM sincronização
           const modules = ['personal', 'social', 'incapacity', 'professional', 'documents', 'home'];
 
           for (const module of modules) {
             if (this.formData[module] && Object.keys(this.formData[module]).length > 0) {
               const moduleStorageKey = `fiap_form_data_${module}`;
-              localStorage.setItem(moduleStorageKey, JSON.stringify(this.formData[module]));
-              this.logger.debug(`Módulo ${module} salvo no localStorage`);
+              const moduleData = { ...this.formData[module] };
+
+              // NOVO: Aplicar sincronização especial para personal/social
+              if (module === 'social' && this.formData.personal) {
+                this.applySocialPersonalSync(moduleData, this.formData.personal);
+              }
+
+              localStorage.setItem(moduleStorageKey, JSON.stringify(moduleData));
+              this.logger.debug(`Módulo ${module} salvo no localStorage com sincronização`);
             }
           }
 
-          this.logger.info('Estado salvo em cache com compatibilidade para módulos');
+          // NOVO: Salvar estado global também
+          localStorage.setItem('fiap_form_state', JSON.stringify(stateData));
+
+          this.logger.info('Estado salvo com sincronização completa');
           resolve(true);
         } catch (error) {
-          this.logger.error('Erro ao salvar estado com compatibilidade:', error);
+          this.logger.error('Erro ao salvar estado com sincronização:', error);
           resolve(false);
         }
-      }, 100, 'saveState'); // Debounce reduzido para testes
+      }, 100, 'saveState');
     });
+  }
+
+  // NOVO: Método para aplicar sincronização entre personal e social
+  applySocialPersonalSync(socialData, personalData) {
+    if (!personalData || !socialData) return;
+
+    // Sincronizar dados do assistido (primeira posição dos arrays)
+    if (personalData.autor_nome && personalData.autor_nome.length > 0) {
+      if (!socialData.familiar_nome) socialData.familiar_nome = [];
+      socialData.familiar_nome[0] = personalData.autor_nome[0];
+    }
+
+    if (personalData.autor_cpf && personalData.autor_cpf.length > 0) {
+      if (!socialData.familiar_cpf) socialData.familiar_cpf = [];
+      socialData.familiar_cpf[0] = personalData.autor_cpf[0];
+    }
+
+    if (personalData.autor_idade && personalData.autor_idade.length > 0) {
+      if (!socialData.familiar_idade) socialData.familiar_idade = [];
+      socialData.familiar_idade[0] = personalData.autor_idade[0];
+    }
+
+    // Garantir que o assistido tenha o parentesco correto
+    if (!socialData.familiar_parentesco) socialData.familiar_parentesco = [];
+    socialData.familiar_parentesco[0] = 'Assistido';
+
+    this.logger.debug('Sincronização personal→social aplicada');
   }
 
   // Método para salvamento imediato (sem debounce) para testes
@@ -978,25 +1023,26 @@ class FormStateManager {
       this.logger.error('Erro ao salvar estado imediatamente:', error);
       return false;
     }
-  }
-  async restoreFromCache() {
-    // Restaurar do formato interno do StateManager
-    const cachedData = FIAP.cache.get('formStateManager_data');
-    const cachedMetadata = FIAP.cache.get('formStateManager_metadata');
-
-    if (cachedData) {
-      this.formData = cachedData;
-      if (cachedMetadata) {
-        this.currentStep = cachedMetadata.currentStep;
-        this.currentFormId = cachedMetadata.currentFormId;
-      }
-      this.logger.info('Estado restaurado do cache interno');
-    }
-
-    // CORREÇÃO CRÍTICA: Restaurar também do formato dos módulos
+  }  async restoreFromCache() {
     try {
+      // CORREÇÃO CRÍTICA: Restauração otimizada com merge inteligente
+
+      // 1. Restaurar do formato interno do StateManager
+      const cachedData = FIAP.cache.get('formStateManager_data');
+      const cachedMetadata = FIAP.cache.get('formStateManager_metadata');
+
+      if (cachedData) {
+        this.formData = cachedData;
+        if (cachedMetadata) {
+          this.currentStep = cachedMetadata.currentStep;
+          this.currentFormId = cachedMetadata.currentFormId;
+        }
+        this.logger.info('Estado base restaurado do cache interno');
+      }
+
+      // 2. Restaurar e mesclar do formato dos módulos
       const modules = ['personal', 'social', 'incapacity', 'professional', 'documents', 'home'];
-      let restoredAny = false;
+      let mergedAny = false;
 
       for (const module of modules) {
         const moduleStorageKey = `fiap_form_data_${module}`;
@@ -1008,22 +1054,72 @@ class FormStateManager {
             if (!this.formData[module]) {
               this.formData[module] = {};
             }
-            // Mesclar dados do módulo
-            Object.assign(this.formData[module], parsedData);
-            restoredAny = true;
-            this.logger.debug(`Módulo ${module} restaurado do localStorage`);
+
+            // NOVO: Merge inteligente - preservar dados mais recentes
+            const mergedData = this.intelligentMerge(this.formData[module], parsedData);
+            this.formData[module] = mergedData;
+            mergedAny = true;
+
+            this.logger.debug(`Módulo ${module} restaurado e mesclado`);
           } catch (parseError) {
             this.logger.warn(`Erro ao parsear dados do módulo ${module}:`, parseError);
           }
         }
       }
 
-      if (restoredAny) {
-        this.logger.info('Dados adicionais restaurados dos módulos');
+      // 3. Aplicar sincronizações necessárias após restauração
+      if (mergedAny) {
+        this.applyPostRestoreSync();
       }
+
+      this.logger.info('Restauração completa concluída');
     } catch (error) {
-      this.logger.error('Erro ao restaurar dados dos módulos:', error);
+      this.logger.error('Erro na restauração completa:', error);
     }
+  }
+
+  // NOVO: Merge inteligente que preserva dados mais completos
+  intelligentMerge(existingData, newData) {
+    const merged = { ...existingData };
+
+    for (const [key, newValue] of Object.entries(newData)) {
+      const existingValue = existingData[key];
+
+      // Se não existe dados antigos, usar novos
+      if (!existingValue) {
+        merged[key] = newValue;
+        continue;
+      }
+
+      // Para arrays, usar o que tem mais elementos válidos
+      if (Array.isArray(newValue) && Array.isArray(existingValue)) {
+        const newValid = newValue.filter(v => v && v.toString().trim() !== '').length;
+        const existingValid = existingValue.filter(v => v && v.toString().trim() !== '').length;
+        merged[key] = newValid > existingValid ? newValue : existingValue;
+        continue;
+      }
+
+      // Para strings, usar a mais longa (mais provável de estar completa)
+      if (typeof newValue === 'string' && typeof existingValue === 'string') {
+        merged[key] = newValue.length > existingValue.length ? newValue : existingValue;
+        continue;
+      }
+
+      // Para outros tipos, usar novo valor se existir
+      merged[key] = newValue || existingValue;
+    }
+
+    return merged;
+  }
+
+  // NOVO: Aplicar sincronizações após restauração
+  applyPostRestoreSync() {
+    // Sincronizar personal ↔ social
+    if (this.formData.personal && this.formData.social) {
+      this.applySocialPersonalSync(this.formData.social, this.formData.personal);
+    }
+
+    this.logger.debug('Sincronizações pós-restauração aplicadas');
   }
 
   hasUnsavedChanges() {

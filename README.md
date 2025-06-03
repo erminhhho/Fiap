@@ -58,6 +58,52 @@ grep -r -P "[\x{1F000}-\x{1F9FF}]|[\x{2600}-\x{26FF}]|[\x{2700}-\x{27BF}]" --inc
 
 ---
 
+## [PROIBIÇÃO] SISTEMA DE TESTES
+
+**ATENÇÃO: É ESTRITAMENTE PROIBIDA A CRIAÇÃO DE NOVOS ARQUIVOS DE TESTE**
+
+### Regra Obrigatória de Testes:
+- **TODOS os testes devem ser realizados EXCLUSIVAMENTE através dos arquivos `tests.html` e `tests.js`**
+- **É PROIBIDO criar novos arquivos de teste (.test.js, .spec.js, test.html, etc.)**
+- **É PROIBIDO usar frameworks de teste externos (Jest, Mocha, Jasmine, etc.)**
+- **O sistema de testes existente em `tests.html` e `tests.js` é COMPLETO e SUFICIENTE**
+
+### Por que esta restrição existe?
+- O projeto já possui um sistema de testes integrado e funcional
+- Evita fragmentação e duplicação de esforços de teste
+- Mantém consistência na estratégia de validação
+- Garante que todos os testes sejam executados no mesmo ambiente
+- Reduz complexidade de configuração e manutenção
+
+### Como usar o sistema de testes existente:
+1. **Abra APENAS o arquivo `tests.html` no navegador**
+2. **Execute todos os testes através da interface web integrada**
+3. **Adicione novos casos de teste DENTRO dos arquivos `tests.html` e `tests.js` existentes**
+4. **Use as funções de teste já implementadas no `tests.js`**
+
+### O que o sistema `tests.html` e `tests.js` oferece:
+- Testes completos de navegação entre etapas
+- Validação de formulários e campos obrigatórios
+- Testes de integração com APIs (CEP, etc.)
+- Interface visual para acompanhar resultados
+- Relatórios detalhados de sucesso/falha
+- Cobertura completa de funcionalidades
+
+### Consequências de violação:
+- **Pull Requests com novos arquivos de teste serão REJEITADOS imediatamente**
+- **Código que ignore os arquivos `tests.html` e `tests.js` será REMOVIDO**
+- **Esta regra é INEGOCIÁVEL e se aplica a TODOS os contribuidores**
+
+### Verificação de compliance:
+```bash
+# Verificar se existem arquivos de teste não autorizados
+find . -name "*.test.js" -o -name "*.spec.js" -o -name "*test*.html" | grep -v "tests.html"
+```
+
+**LEMBRE-SE: Use APENAS `tests.html` e `tests.js` - São os únicos arquivos de teste autorizados!**
+
+---
+
 ## Organização de Arquivos
 
 - Usar nomes de arquivos em inglês, minimalistas e não compostos.

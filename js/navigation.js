@@ -28,13 +28,19 @@ const Navigation = {
     fadeTransitionTime: 200,
     enableDebugLogs: true
   },
-
-  // Mapeamento de etapas e módulos
+  // Mapeamento de etapas e módulos - UNIFICADO
   stepMap: {
+    'home': {
+      index: 0,
+      next: 'personal',
+      prev: null,
+      initFunction: 'initHomeModule',
+      contentReady: () => document.getElementById('attendances-table-body')
+    },
     'personal': {
       index: 1,
       next: 'social',
-      prev: null,
+      prev: 'home',
       initFunction: 'initPersonalModule',
       contentReady: () => document.getElementById('autores-list')
     },
@@ -64,7 +70,16 @@ const Navigation = {
       next: null,
       prev: 'professional',
       initFunction: 'initDocumentsModule',
-      contentReady: () => document.getElementById('documentos-list')
+      contentReady: () => document.getElementById('documentos-list'),
+      isFinalStep: true
+    },
+    'tests': {
+      index: -1,
+      next: null,
+      prev: null,
+      initFunction: 'initTestsModule',
+      contentReady: () => document.getElementById('test-results'),
+      isSpecialRoute: true
     }
   },
 
@@ -304,9 +319,8 @@ const Navigation = {
       this.error('Erro ao aplicar validações pós-inicialização:', error);
     }
   },
-
   /**
-   * Navega para uma etapa específica de forma segura
+   * Navega para uma etapa específica de forma segura - CORREÇÃO CRÍTICA
    */
   async navigateToStep(targetStep, sourceButton = null) {
     // Verificar se já está navegando
@@ -329,27 +343,35 @@ const Navigation = {
       // Aplicar feedback visual no botão
       this.setButtonLoadingState(sourceButton, true);
 
-      // Salvar dados do formulário atual
-      await this.saveCurrentFormData();
+      // CORREÇÃO CRÍTICA: Capturar e salvar dados antes da navegação
+      await this.captureAndSaveCurrentFormData();
 
-      // Aguardar um pouco para garantir que o salvamento foi processado
-      await new Promise(resolve => setTimeout(resolve, this.config.navigationDelay));
+      // Aguardar processamento
+      await new Promise(resolve => setTimeout(resolve, this.config.navigationDelay));      // CORREÇÃO: Usar sistema de navegação apropriado baseado na disponibilidade
+      let navigationSuccess = false;
 
-      // Navegar usando o sistema de roteamento existente
-      if (typeof navigateTo === 'function') {
-        this.log(`Chamando navigateTo('${targetStep}')`);
-        await navigateTo(targetStep);
-
-        // Aguardar a inicialização do novo módulo
-        await this.initializeModuleContent(targetStep);
-
-        this.state.currentStep = targetStep;
-        this.log(`Navegação para ${targetStep} concluída com sucesso`);
-        return true;
-
-      } else {
-        throw new Error('Função navigateTo não encontrada');
+      // Tentar usar router.js primeiro (se disponível)
+      if (typeof navigateToLegacy === 'function') {
+        this.log(`Usando navigateToLegacy para: ${targetStep}`);
+        navigationSuccess = navigateToLegacy(targetStep); // CORREÇÃO: Remover await - função é síncrona
       }
+      // Fallback para navigateTo
+      else if (typeof navigateTo === 'function') {
+        this.log(`Usando navigateTo para: ${targetStep}`);
+        navigationSuccess = navigateTo(targetStep); // CORREÇÃO: Remover await - função é síncrona
+      }
+      // Último recurso: navegação manual
+      else {
+        this.log(`Usando navegação manual para: ${targetStep}`);
+        navigationSuccess = await this.manualNavigation(targetStep);
+      }
+
+      if (!navigationSuccess) {
+        throw new Error('Falha na navegação');
+      }
+
+      this.log(`Navegação para ${targetStep} concluída com sucesso`);
+      return true;
 
     } catch (error) {
       this.error('Erro durante navegação:', error);
@@ -361,6 +383,68 @@ const Navigation = {
         this.setButtonLoadingState(sourceButton, false);
         this.state.isNavigating = false;
       }, 500);
+    }
+  },
+
+  /**
+   * NOVO: Capturar e salvar dados do formulário atual
+   */
+  async captureAndSaveCurrentFormData() {
+    try {
+      // Usar FormStateManager se disponível
+      if (window.formStateManager && typeof window.formStateManager.captureCurrentFormData === 'function') {
+        this.log('Capturando dados via FormStateManager...');
+        await window.formStateManager.captureCurrentFormData();
+        await window.formStateManager.saveStateImmediately();
+        this.log('Dados capturados e salvos via FormStateManager');
+        return;
+      }
+
+      // Fallback: captura manual básica
+      this.log('Capturando dados manualmente...');
+      const formData = {};
+      const formElements = document.querySelectorAll('input, select, textarea');
+
+      for (const element of formElements) {
+        if (element.name || element.id) {
+          const key = element.name || element.id;
+          const value = element.type === 'checkbox' ? element.checked : element.value;
+          if (value !== null && value !== undefined && value !== '') {
+            formData[key] = value;
+          }
+        }
+      }
+
+      // Salvar no localStorage
+      const currentStep = this.getCurrentStep();
+      if (currentStep) {
+        localStorage.setItem(`fiap_form_data_${currentStep}`, JSON.stringify(formData));
+        this.log(`Dados salvos manualmente para: ${currentStep}`);
+      }
+
+    } catch (error) {
+      this.error('Erro ao capturar dados do formulário:', error);
+    }
+  },
+
+  /**
+   * NOVO: Navegação manual como último recurso
+   */
+  async manualNavigation(targetStep) {
+    try {
+      // Atualizar hash
+      window.location.hash = targetStep;
+
+      // Aguardar mudança
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verificar se mudou
+      const currentHash = window.location.hash.substring(1);
+      return currentHash === targetStep;
+
+    } catch (error) {
+      this.error('Erro na navegação manual:', error);
+      return false;
     }
   },
 
@@ -412,55 +496,55 @@ const Navigation = {
     // Fallback para 'personal'
     return 'personal';
   },
-
   /**
-   * Configura os botões de navegação de forma padronizada
+   * Configura os botões de navegação de forma padronizada - CORREÇÃO CRÍTICA
    */
   setupNavigationButtons() {
     this.log('Configurando botões de navegação...');
 
-    // Configurar botão "Próximo"
-    const nextButton = document.getElementById('btn-next');
-    if (nextButton) {
-      // Remover eventos existentes
-      const newNextBtn = nextButton.cloneNode(true);
-      nextButton.parentNode.replaceChild(newNextBtn, nextButton);
+    // CORREÇÃO: Usar sistema de event delegation para evitar duplicação
+    const existingHandler = document._navigationButtonsConfigured;
 
-      // Aplicar estilos
-      if (window.tw && typeof window.tw.applyTo === 'function') {
-        window.tw.applyTo(newNextBtn, 'button.primary');
-      }
-
-      // Adicionar evento
-      newNextBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        await this.navigateNext(newNextBtn);
-      });
-
-      this.log('Botão "Próximo" configurado');
+    if (existingHandler) {
+      this.log('Botões já configurados, pulando reconfiguração');
+      return;
     }
 
-    // Configurar botão "Voltar"
-    const backButton = document.getElementById('btn-back');
-    if (backButton) {
-      // Remover eventos existentes
-      const newBackBtn = backButton.cloneNode(true);
-      backButton.parentNode.replaceChild(newBackBtn, backButton);
+    // Configurar event delegation no documento
+    document.addEventListener('click', this.handleNavigationClick.bind(this));
+    document._navigationButtonsConfigured = true;
 
-      // Aplicar estilos
-      if (window.tw && typeof window.tw.applyTo === 'function') {
-        window.tw.applyTo(newBackBtn, 'button.secondary');
+    this.log('Event delegation para navegação configurado');
+  },
+
+  /**
+   * NOVO: Handler unificado para clicks de navegação
+   */
+  async handleNavigationClick(e) {
+    // Verificar se é um botão de navegação
+    const target = e.target.closest('#btn-next, #btn-back');
+    if (!target) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Evitar múltiplos clicks
+    if (this.state.isNavigating || target.disabled) return;
+
+    const isNext = target.id === 'btn-next';
+
+    try {
+      this.setButtonLoadingState(target, true);
+
+      if (isNext) {
+        await this.navigateNext(target);
+      } else {
+        await this.navigatePrevious(target);
       }
-
-      // Adicionar evento
-      newBackBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        await this.navigatePrevious(newBackBtn);
-      });
-
-      this.log('Botão "Voltar" configurado');
+    } finally {
+      setTimeout(() => {
+        this.setButtonLoadingState(target, false);
+      }, 500);
     }
   },
 

@@ -5,6 +5,11 @@
 
 // Função para consultar CEP via API ViaCEP e preencher campos
 function consultarCEP(cepInput) { // Alterado para receber o elemento HTML
+  // CORREÇÃO: Verificar se cepInput existe e tem valor
+  if (!cepInput || !cepInput.value) {
+    return false;
+  }
+
   // Limpar formatação do CEP
   let cep = cepInput.value.replace(/\D/g, ''); // Correção: remover barras invertidas duplicadas
 

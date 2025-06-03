@@ -49,7 +49,7 @@ const routes = {
   }
 };
 
-// Mapa de rotas com seus respectivos números de etapas
+// CORREÇÃO CRÍTICA: Mapa unificado com navigation.js para eliminar inconsistências
 const routeSteps = {
   'home': 0,
   'personal': 1,
@@ -59,6 +59,19 @@ const routeSteps = {
   'documents': 5,
   'tests': -1 // Rota especial, não aparece na navegação principal
 };
+
+// Verificar e sincronizar com navigation.js se disponível
+if (window.Navigation && window.Navigation.stepMap) {
+  console.log('[Router] Sincronizando mapeamento com Navigation.js...');
+  for (const [step, config] of Object.entries(window.Navigation.stepMap)) {
+    if (routeSteps.hasOwnProperty(step) && config.index !== undefined) {
+      if (routeSteps[step] !== config.index) {
+        console.warn(`[Router] Inconsistência detectada para "${step}": router.js=${routeSteps[step]}, navigation.js=${config.index}`);
+        routeSteps[step] = config.index; // Usar valor do navigation.js como autoridade
+      }
+    }
+  }
+}
 
 // Estado atual da navegação
 let currentRoute = null;
@@ -91,8 +104,27 @@ function routerLog(message, error) {
   }
 }
 
-// Função para navegar para uma rota
+// Função para navegar para uma rota - CORRIGIDA PARA ELIMINAR CONFLITOS
 function navigateTo(routeName) {
+  // CORREÇÃO CRÍTICA: Usar apenas um sistema de navegação
+  routerLog(`Navegação solicitada para: ${routeName}`);
+
+  // Verificar se Navigation.js está disponível e funcional
+  if (window.Navigation &&
+      typeof window.Navigation.navigateToStep === 'function' &&
+      !window.Navigation.state.isNavigating) {
+
+    routerLog(`Delegando para Navigation.js: ${routeName}`);
+    return window.Navigation.navigateToStep(routeName);
+  }
+
+  // Se Navigation.js não estiver disponível ou estiver ocupado, usar sistema legado
+  routerLog(`Usando sistema legado para: ${routeName}`);
+  return navigateToLegacy(routeName);
+}
+
+// Sistema legado de navegação (mantido como fallback)
+function navigateToLegacy(routeName) {
   // Evitar navegações múltiplas para a mesma rota ou durante uma navegação em andamento
   if (navigationInProgress || currentRoute === routeName) {
     routerLog(`Navegação ignorada: ${navigationInProgress ? 'navegação em andamento' : 'mesma rota'}`);
@@ -118,14 +150,14 @@ function navigateTo(routeName) {
       routerLog('Sincronização já em andamento, aguardando...');
       setTimeout(() => navigateTo(routeName), 100);
       return false;
-    }
+    }    // CORREÇÃO CRÍTICA: Sincronização bidireccional entre módulos
+    if ((routeName === 'social' && previousRoute === 'personal') ||
+        (routeName === 'personal' && previousRoute === 'social')) {
 
-    // SINCRONIZAR DADOS DO ASSISTIDO ANTES DE NAVEGAR PARA SOCIAL
-    if (routeName === 'social' && window.formStateManager && window.formStateManager.formData) {
       window._syncInProgress = true;
       try {
         const personalData = window.formStateManager.formData.personal;
-        const socialData = window.formStateManager.formData.social || {}; // Garante que socialData exista
+        const socialData = window.formStateManager.formData.social || {};
 
         if (personalData && personalData.autor_nome && personalData.autor_nome.length > 0) {
           const assistidoNome = personalData.autor_nome[0] || '';
@@ -136,31 +168,48 @@ function navigateTo(routeName) {
             assistidoIdade = personalData.autor_idade[0] || '';
           } else if (personalData.autor_nascimento && personalData.autor_nascimento.length > 0) {
             const dataNascimentoStr = personalData.autor_nascimento[0];
-            if (dataNascimentoStr && typeof calcularIdadeCompleta === 'function') { // Assumindo que calcularIdadeCompleta está global
+            if (dataNascimentoStr && typeof calcularIdadeCompleta === 'function') {
               try {
-                  const dataNasc = new Date(dataNascimentoStr.split('/').reverse().join('-'));
-                  if (!isNaN(dataNasc.getTime())) {
-                      const idadeObj = calcularIdadeCompleta(dataNasc);
-                      assistidoIdade = `${idadeObj.anos} anos`; // Ou formato completo se preferir
-                  }
-              } catch(e) { console.error("Erro ao calcular idade para sincronização do assistido:", e); }
+                const dataNasc = new Date(dataNascimentoStr.split('/').reverse().join('-'));
+                if (!isNaN(dataNasc.getTime())) {
+                  const idadeObj = calcularIdadeCompleta(dataNasc);
+                  assistidoIdade = `${idadeObj.anos} anos`;
+                }
+              } catch(e) { console.error("Erro ao calcular idade para sincronização:", e); }
             }
           }
 
-          // Atualizar os campos do primeiro membro em socialData (o assistido)
+          // Atualizar dados do assistido em ambas as direções
           if (!socialData.familiar_nome) socialData.familiar_nome = [];
           if (!socialData.familiar_cpf) socialData.familiar_cpf = [];
           if (!socialData.familiar_idade) socialData.familiar_idade = [];
           if (!socialData.familiar_parentesco) socialData.familiar_parentesco = [];
-          // Adicionar outros campos do assistido que são fixos ou precisam ser sincronizados aqui
 
           socialData.familiar_nome[0] = assistidoNome;
           socialData.familiar_cpf[0] = assistidoCpf;
           socialData.familiar_idade[0] = assistidoIdade;
-          socialData.familiar_parentesco[0] = 'Assistido'; // Garantir que o parentesco está correto
+          socialData.familiar_parentesco[0] = 'Assistido';
 
           window.formStateManager.formData.social = socialData;
-          console.log('[Router] Dados do assistido sincronizados para formStateManager.formData.social:', JSON.parse(JSON.stringify(socialData)));
+
+          // NOVO: Sincronização reversa (social → personal)
+          if (routeName === 'personal' && socialData.familiar_nome && socialData.familiar_nome[0]) {
+            if (!personalData.autor_nome) personalData.autor_nome = [];
+            if (!personalData.autor_cpf) personalData.autor_cpf = [];
+            if (!personalData.autor_idade) personalData.autor_idade = [];
+
+            personalData.autor_nome[0] = socialData.familiar_nome[0];
+            if (socialData.familiar_cpf && socialData.familiar_cpf[0]) {
+              personalData.autor_cpf[0] = socialData.familiar_cpf[0];
+            }
+            if (socialData.familiar_idade && socialData.familiar_idade[0]) {
+              personalData.autor_idade[0] = socialData.familiar_idade[0];
+            }
+
+            window.formStateManager.formData.personal = personalData;
+          }
+
+          routerLog(`Sincronização bidireccional concluída: ${previousRoute} ↔ ${routeName}`);
         }
       } finally {
         window._syncInProgress = false;
@@ -213,13 +262,11 @@ function navigateTo(routeName) {
           <pre class="mt-2 bg-red-100 p-2 rounded text-xs overflow-auto">${error.stack}</pre>
         </div>
       `;
-    }
-
-    // Desbloquear navegação em caso de erro
+    }    // Desbloquear navegação em caso de erro
     navigationInProgress = false;
     return false;
   }
-}
+} // Fim da função navigateToLegacy
 
 // Funções para barra de progresso e fade
 function showProgressBar() {
