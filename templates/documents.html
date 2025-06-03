@@ -1,0 +1,180 @@
+<form id="documents-form" autocomplete="off">
+  <div class="bg-white rounded-2xl shadow p-8 mb-8">
+    <div class="flex items-center justify-between gap-2 mb-6">
+      <div class="flex items-center gap-2">
+      <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
+      <h2 class="text-xl font-semibold text-blue-600">Documentos</h2>
+      </div>
+      <i class="fas fa-eraser cursor-pointer text-gray-400 hover:text-red-500 text-xl transition" title="Limpar seção" onclick="showClearConfirmation(event, 'documentos')"></i>
+    </div>
+
+    <!-- Lista de Documentos -->
+    <div id="documentsList" class="space-y-1">      <!-- Campo de pesquisa centralizado com design mais compacto -->
+      <div class="relative mb-8 max-w-lg mx-auto">
+        <input type="text" id="documento-pesquisa" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 text-base" placeholder="Digite o nome do documento para pesquisar ou adicionar..." oninput="formatarNomeProprio(this)">
+        <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <i class="fas fa-search"></i>
+        </div>
+      </div>
+
+      <!-- Resultados da pesquisa (aparecerão abaixo do campo) -->
+      <div id="resultados-pesquisa" class="max-w-lg mx-auto hidden">
+        <!-- Essa div será preenchida via JavaScript -->
+      </div>
+
+      <!-- Lista de documentos adicionados com espaçamento padronizado -->
+      <div id="documentos-container" class="space-y-5 my-3">
+        <!-- Documentos adicionados serão inseridos aqui -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Observações -->
+  <div class="relative mt-6">
+    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200 text-base" placeholder="Observações sobre os documentos..." oninput="capitalizeFirstLetterOnly(this)"></textarea>
+    <label for="observacoes" class="input-label text-base">
+      Observações
+    </label>
+  </div>
+
+  <!-- Botões de navegação -->
+  <div class="flex justify-between mt-6">
+    <button type="button" id="btn-back" class="bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2">
+      <i class="fas fa-arrow-left"></i> Anterior
+    </button>
+
+    <div class="flex-grow"></div>
+    <div id="document-actions" class="flex items-center space-x-3">
+        <button id="imprimir-btn"
+            onclick="gerarRelatorioPDF()"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2 print-hidden">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Relatório</span>
+        </button>
+    </div>
+  </div>
+</form>
+
+<!-- Template para novo documento adicionado -->
+<template id="documentoTemplate">
+  <div class="documento-item flex items-center gap-3">
+    <!-- Ícone de informação -->
+    <div class="flex-shrink-0">
+      <i class="fas fa-info-circle text-blue-400 hover:text-blue-600 text-lg cursor-pointer info-documento-btn" title="Ver descrição do documento"></i>
+    </div>    <!-- Nome do documento -->
+    <div class="flex-grow relative">
+      <input type="text" class="nome-documento w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Nome do documento" oninput="formatarNomeProprio(this)">
+
+      <!-- Tags como dropdown na borda superior direita (melhor posicionado) -->
+      <div class="relationship-select absolute -top-3 -right-8 z-10" data-selected="Obter" data-value="Obter" onclick="toggleDocumentStatusTag(this)">
+        <select class="documento-status" onchange="updateDocumentStatusTag(this)">
+          <option value="Recebido">Recebido</option>
+          <option value="Solicitado">Solicitado</option>
+          <option value="Obter" selected>Obter</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Ano do documento -->
+    <div class="flex-shrink-0 w-24">
+      <input type="number" min="1900" max="2099" class="ano-documento w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Ano">
+    </div>
+
+    <!-- Botão de remover (padrão do projeto) -->
+    <div class="flex-shrink-0 flex items-center justify-center">
+      <button type="button" class="remover-documento bg-red-500 hover:bg-red-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Remover documento">
+        <i class="fas fa-minus"></i>
+      </button>
+    </div>    <!-- Campo de detalhes oculto (será exibido no popup) -->
+    <div class="detalhes-documento-container hidden w-0 h-0 overflow-hidden">
+      <textarea class="detalhes-documento" rows="2" placeholder="Detalhes adicionais sobre o documento..." oninput="formatarNomeProprio(this)"></textarea>
+    </div>
+
+    <!-- Campo de descrição oculto para o popup de informações -->
+    <div class="descricao-documento-container hidden w-0 h-0 overflow-hidden">
+      <div class="descricao-documento"></div>
+    </div>
+  </div>
+</template>
+
+<!-- Modal de informações do documento -->
+<div id="documento-info-popup" class="fixed inset-0 bg-gray-800 bg-opacity-60 flex items-center justify-center p-4 hidden z-50 print-hidden">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold text-gray-700 documento-info-popup-titulo"></h3>
+      <button type="button" class="fechar-info-popup text-gray-400 hover:text-gray-600 transition-colors">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="mb-4">
+      <div id="documento-info-popup-descricao" class="text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-200"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.initModule) {
+      window.initModule();
+    }
+  });
+
+  // Funções movidas para /js/docs.js
+  // window.toggleDocumentStatus = function(button) { ... };
+  // window.toggleDocumentStatusTag = function(element) { ... };
+  // window.updateDocumentStatusTag = function(select) { ... };
+  // window.toggleDocumentFields = function(button) { ... };
+</script>
+
+<style>
+  /* Estilo para o select do status */
+  .relationship-select {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: none;
+  }
+
+  /* Remover borda e fundo padrão do select dentro da tag */
+  .documento-status {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 1rem;
+    padding-left: 0.5rem;
+    outline: none;
+  }
+
+  /* Remover qualquer borda lateral ou inferior */
+  .documento-item {
+    border-left: none !important;
+    border-bottom: none !important;
+  }
+
+  /* Animação do modal */
+  @keyframes modal-fade-in {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #documento-info-modal .bg-white, #documento-info-popup .bg-white {
+    animation: modal-fade-in 0.3s ease-out forwards;
+  }
+</style>
+
+

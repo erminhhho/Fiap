@@ -1,0 +1,75 @@
+/*
+ * Estilos de Navegação
+ * Este arquivo contém estilos relacionados à navegação, menus e barras de navegação
+ */
+
+/* NAVBAR COM EFEITO SLIDE */
+.nav-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.step-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.5rem;
+  color: #6B7280;
+  background: none;
+  z-index: 2;
+  font-size: 1.5rem;
+  transition: color 0.3s, background 0.3s, box-shadow 0.3s, font-size 0.3s;
+  opacity: 0.85;
+}
+
+.step-link i {
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.step-link:hover {
+  color: #2563eb; /* blue-600 */
+}
+
+.step-link.active {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.08); /* azul bem suave, quase cinza-azulado */
+  box-shadow: 0 2px 8px 0 rgba(37,99,235,0.06);
+  font-size: 1.6rem;
+  opacity: 1;
+  border-radius: 0.5rem;
+  transition: color 0.3s, background 0.3s, box-shadow 0.3s, font-size 0.3s;
+}
+
+/* Slider animado (pill) */
+.nav-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2.4rem; /* ajuste para igualar ao .step-link */
+  border-radius: 0.5rem;
+  background: rgba(37, 99, 235, 0.08); /* azul clarinho igual ao .step-link.active */
+  opacity: 1;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* Remove gradiente e efeitos antigos */
+.step-link:not(.active) {
+  background: none !important;
+  box-shadow: none !important;
+  color: #6B7280 !important;
+  font-size: 1.5rem;
+  opacity: 0.85;
+}
+
+/* Sombra mais pronunciada abaixo do cabeçalho - reduzida em 25% */
+#main-navbar {
+  box-shadow: 0 2.25px 3px rgba(0,0,0,0.1125), 0 4.5px 6.75px rgba(0,0,0,0.0825) !important;
+}

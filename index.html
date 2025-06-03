@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ficha de Atendimento Previdenciário</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS via CDN (apenas para desenvolvimento - substituir em produção) -->
+  <script src="https://cdn.tailwindcss.com?v=3.3.5" onload="console.info('Tailwind carregado via CDN')"></script>
+  <!-- Configuração do Tailwind -->
+  <script>
+    // Configurar Tailwind e suprimir aviso de desenvolvimento
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            whatsapp: '#25D366',
+            'form-bg': '#f3f6fb',
+            'filled-bg': '#f7f9ff'
+          },
+          gridTemplateColumns: {
+            '24': 'repeat(24, minmax(0, 1fr))',
+          }
+        }
+      }
+    };
+
+    // Interceptar console.warn para suprimir avisos específicos do Tailwind em desenvolvimento
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      const message = args.join(' ');
+      if (message.includes('cdn.tailwindcss.com should not be used in production')) {
+        return; // Suprimir este aviso específico
+      }
+      originalWarn.apply(console, args);
+    };
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/search.css">
+  <link rel="stylesheet" href="css/cadunico.css">
+</head>
+<body class="bg-white">
+  <!-- Navbar fixa no topo -->
+  <div id="main-navbar" class="fixed top-0 left-0 right-0 bg-white/30 backdrop-blur-md shadow-sm z-50 transition-all duration-300 ease-in-out" style="scrollbar-gutter: stable;">
+    <div class="max-w-[1440px] mx-auto px-4 py-2">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 cursor-pointer" id="logo-container">
+          <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center shadow-sm">
+            <span class="font-bold text-lg">FIAP</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-semibold text-gray-600 text-sm">Ficha Inteligente de</span>
+            <span class="font-semibold text-gray-600 text-sm">Atendimento Previdenciário</span>
+          </div>
+        </div>
+
+        <!-- Navegação centralizada -->
+        <div class="flex-grow flex justify-center">
+          <div class="nav-container main-nav" id="step-map">
+            <a href="#home" class="step-link" data-step="0" title="Home">
+              <i class="fas fa-home"></i>
+            </a>
+            <a href="#personal" class="step-link" data-step="1" title="Dados Pessoais">
+              <i class="fas fa-user"></i>
+            </a>
+            <a href="#social" class="step-link" data-step="2" title="Perfil Social">
+              <i class="fas fa-users"></i>
+            </a>
+            <a href="#incapacity" class="step-link" data-step="3" title="Incapacidades">
+              <i class="fas fa-heartbeat"></i>
+            </a>
+            <a href="#professional" class="step-link" data-step="4" title="Atividades Profissionais">
+              <i class="fas fa-hands-helping"></i>
+            </a>
+            <a href="#documents" class="step-link" data-step="5" title="Documentos e Conclusão">
+              <i class="fas fa-file-alt"></i>
+            </a>
+            <div class="nav-slider"></div>
+          </div>
+        </div>        <!-- Botões de ação no canto superior direito -->
+        <div class="flex items-center gap-3">
+          <!-- Indicador de status de conexão -->
+          <div id="connection-status" class="flex items-center text-sm mr-2">
+            <span id="online-indicator" class="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+            <span id="online-text" class="text-xs text-gray-600">Online</span>
+          </div>
+
+          <!-- Ações essenciais -->
+          <button type="button" class="navbar-action" title="Buscar formulário" id="btn-search">
+            <i class="fas fa-search text-lg"></i>
+          </button>
+          <button type="button" class="navbar-action" title="Novo formulário" id="btn-new">
+            <i class="fas fa-file-medical text-lg"></i>
+          </button>
+          <button type="button" class="navbar-action" title="Salvar formulário" id="btn-save">
+            <i class="fas fa-save text-lg"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo principal - onde os módulos serão carregados -->
+  <div class="pt-16">
+    <div class="max-w-[1440px] mx-auto p-4">
+      <div id="app-content" class="content-wrapper">
+        <!-- O conteúdo dos módulos será carregado aqui pelo router -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para buscar formulário por CPF -->
+  <div id="searchFormModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-700">Buscar Formulário</h2>
+        <button id="closeSearchModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>      <p class="text-gray-600 mb-4">Digite o CPF ou identificador do formulário que deseja carregar:</p>
+
+      <div class="mb-4">
+        <input type="text" id="searchFormCPF" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Ex: 123.456.789-00" oninput="FIAP.masks.cpf(this)">
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <button id="cancelSearchForm" class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center">
+          Cancelar
+        </button>
+        <button id="searchFormButton" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center">
+          <i class="fas fa-search mr-1"></i> Buscar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para confirmar Novo Formulário -->
+  <div id="newFormConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-gray-700">Novo Formulário</h2>
+        <button id="closeNewFormModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <p class="text-gray-600 mb-6">Você tem certeza que deseja criar um novo formulário? Qualquer alteração não salva no formulário atual será perdida.</p>
+      <div class="flex items-center space-x-3">
+        <button id="cancelNewForm" class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 text-center">
+          Cancelar
+        </button>
+        <button id="confirmNewForm" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-center">
+          <i class="fas fa-file-medical mr-1"></i> Confirmar Novo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Genérico Reutilizável -->
+  <div id="genericModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="genericModalTitle" class="text-xl font-bold text-gray-700">Título</h2>
+        <button id="closeGenericModal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <p id="genericModalMessage" class="text-gray-600 mb-4">Mensagem</p>
+      <div id="genericModalContent" class="mb-4">
+        <!-- Conteúdo dinâmico será inserido aqui -->
+      </div>      <div id="genericModalButtons" class="flex items-center space-x-3">
+        <!-- Botões dinâmicos serão inseridos aqui -->
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <!-- Scripts do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-analytics-compat.js"></script>
+
+    <!-- Scripts da aplicação existente -->    <script src="js/config.js"></script>
+    <script src="js/cache.js"></script>
+    <script src="js/mask.js"></script>
+    <script src="js/check.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/tailwind.js"></script>
+    <script src="js/forms.js"></script>
+    <script src="js/clear.js"></script>
+    <script src="js/address.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/cid.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/docs.js"></script>
+
+    <!-- Biblioteca para geração de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Novo sistema de persistência complementar (carregado depois) -->
+  </div>
+
+  <script>
+    // Inicialização da aplicação
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicia o router
+      initRouter();
+
+      // Inicializar o sistema de destaque de campos
+      if (typeof setupFieldHighlighting === 'function') {
+        setupFieldHighlighting();
+      }
+
+      // Configuração dos botões da navbar
+      document.getElementById('btn-new').addEventListener('click', openNewFormModal); // Modificado
+      document.getElementById('btn-save').addEventListener('click', saveForm);
+      document.getElementById('btn-search').addEventListener('click', openSearchFormModal);
+
+      // Adicionar evento de clique no logo para ir para a home
+      document.getElementById('logo-container').addEventListener('click', function() {
+        navigateTo('home');
+      });
+
+      // Configuração do modal de busca
+      const searchModal = document.getElementById('searchFormModal');
+      const closeSearchModalButton = document.getElementById('closeSearchModal');
+      const cancelSearchButton = document.getElementById('cancelSearchForm');
+      const searchFormButton = document.getElementById('searchFormButton');
+      const searchFormInput = document.getElementById('searchFormCPF');
+
+      // Configurar eventos do modal de busca
+      closeSearchModalButton.addEventListener('click', closeSearchFormModal);
+      cancelSearchButton.addEventListener('click', closeSearchFormModal);
+      searchFormButton.addEventListener('click', () => {
+        const key = searchFormInput.value.trim();
+        if (key) {
+          closeSearchFormModal();
+          loadFormByKey(key);
+        } else {
+          showError('Por favor, informe um CPF ou identificador válido');
+        }
+      });
+
+      searchFormInput.addEventListener('keyup', function(event) {
+        if (event.key === 'Enter') {
+          searchFormButton.click();
+        }
+      });
+
+      // Configuração do modal de confirmação de Novo Formulário
+      const newFormModal = document.getElementById('newFormConfirmModal');
+      const closeNewFormModalButton = document.getElementById('closeNewFormModal');
+      const cancelNewFormButton = document.getElementById('cancelNewForm');
+      const confirmNewFormButton = document.getElementById('confirmNewForm');
+
+      // Configurar eventos do modal de Novo Formulário
+      closeNewFormModalButton.addEventListener('click', closeNewFormModal);
+      cancelNewFormButton.addEventListener('click', closeNewFormModal);
+      confirmNewFormButton.addEventListener('click', () => {
+        closeNewFormModal();
+        newForm(); // Chama a função original newForm
+      });
+
+      // Fechar modais ao clicar fora deles
+      window.addEventListener('click', function(event) {
+        if (event.target === searchModal) {
+          closeSearchFormModal();
+        }
+        if (event.target === newFormModal) {
+          closeNewFormModal();
+        }
+      });
+
+      // Configurar o indicador de status de conexão
+      setupConnectionStatus();
+
+      // Verificar compatibilidade do navegador
+      checkBrowserCompatibility();
+    });
+
+    // Função para configurar o indicador de status de conexão
+    function setupConnectionStatus() {
+      const indicator = document.getElementById('online-indicator');
+      const text = document.getElementById('online-text');
+
+      function updateConnectionStatus() {
+        if (navigator.onLine) {
+          indicator.classList.remove('bg-red-500');
+          indicator.classList.add('bg-green-500');
+          text.textContent = 'Online';
+          text.classList.remove('text-red-600');
+          text.classList.add('text-gray-600');
+        } else {
+          indicator.classList.remove('bg-green-500');
+          indicator.classList.add('bg-red-500');
+          text.textContent = 'Offline';
+          text.classList.remove('text-gray-600');
+          text.classList.add('text-red-600');
+        }
+      }
+
+      // Atualizar status inicial
+      updateConnectionStatus();
+
+      // Adicionar listeners para eventos de mudança de conexão
+      window.addEventListener('online', updateConnectionStatus);
+      window.addEventListener('offline', updateConnectionStatus);
+    }
+
+    // Função para verificar compatibilidade do navegador
+    function checkBrowserCompatibility() {
+      // Verificar suporte a IntersectionObserver (exemplo de outra verificação)
+      if (!('IntersectionObserver' in window)) {
+        const warningDiv = document.createElement('div');
+        warningDiv.className = 'fixed bottom-4 left-4 right-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-lg z-50';
+        warningDiv.innerHTML = `
+          <div class="flex items-center">
+            <div class="text-yellow-500 rounded-full p-1">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <span class="ml-2">Seu navegador não suporta IntersectionObserver. A persistência de dados pode não funcionar corretamente.</span>
+          </div>
+        `;
+        document.body.appendChild(warningDiv);
+      }
+    }
+
+    // Funções para Modal Genérico
+    window.showGenericModal = function(options) {
+      const modal = document.getElementById('genericModal');
+      const title = document.getElementById('genericModalTitle');
+      const message = document.getElementById('genericModalMessage');
+      const content = document.getElementById('genericModalContent');
+      const buttons = document.getElementById('genericModalButtons');
+
+      if (!modal) return;
+
+      // Configurar título
+      if (title && options.title) {
+        title.textContent = options.title;
+      }
+
+      // Configurar mensagem
+      if (message && options.message) {
+        message.textContent = options.message;
+        message.style.display = 'block';
+      } else if (message) {
+        message.style.display = 'none';
+      }
+
+      // Configurar conteúdo personalizado
+      if (content) {
+        content.innerHTML = options.content || '';
+      }
+
+      // Configurar botões
+      if (buttons) {
+        buttons.innerHTML = '';
+        if (options.buttons && Array.isArray(options.buttons)) {
+          options.buttons.forEach(button => {
+            const btn = document.createElement('button');
+            btn.className = button.className || 'px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700';
+            btn.textContent = button.text;
+            if (button.onclick) {
+              btn.addEventListener('click', button.onclick);
+            }
+            buttons.appendChild(btn);
+          });
+        }
+      }
+
+      // Mostrar modal
+      modal.classList.remove('hidden');
+
+      // Focar no primeiro input se existir
+      const firstInput = modal.querySelector('input');
+      if (firstInput) {
+        setTimeout(() => firstInput.focus(), 100);
+      }
+
+      return modal;
+    };
+
+    window.closeGenericModal = function() {
+      const modal = document.getElementById('genericModal');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    };
+
+    // Configurar eventos do modal genérico
+    document.getElementById('closeGenericModal').addEventListener('click', window.closeGenericModal);
+
+    // Fechar modal clicando fora dele
+    document.getElementById('genericModal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        window.closeGenericModal();
+      }
+    });
+
+    // Funções para manipulação do modal de busca
+    function openSearchFormModal() {
+      const modal = document.getElementById('searchFormModal');
+      modal.classList.remove('hidden');
+      document.getElementById('searchFormCPF').focus();
+    }
+
+    function closeSearchFormModal() {
+      const modal = document.getElementById('searchFormModal');
+      modal.classList.add('hidden');
+    }
+
+    // Funções para manipulação do modal de Novo Formulário
+    function openNewFormModal() {
+      const modal = document.getElementById('newFormConfirmModal');
+      modal.classList.remove('hidden');
+    }
+
+    function closeNewFormModal() {
+      const modal = document.getElementById('newFormConfirmModal');
+      modal.classList.add('hidden');
+    }
+
+    // Funções para manipulação do modal genérico
+    function openGenericModal(title, message, content = '', buttons = []) {
+      const modal = document.getElementById('genericModal');
+      const modalTitle = document.getElementById('genericModalTitle');
+      const modalMessage = document.getElementById('genericModalMessage');
+      const modalContent = document.getElementById('genericModalContent');
+      const modalButtons = document.getElementById('genericModalButtons');
+
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      modalContent.innerHTML = content;
+
+      // Limpar botões existentes
+      modalButtons.innerHTML = '';
+
+      // Adicionar novos botões
+      buttons.forEach(button => {
+        const btn = document.createElement('button');
+        btn.textContent = button.text;
+        btn.className = 'px-4 py-2 rounded-lg text-white ' + (button.type === 'cancel' ? 'bg-gray-200 hover:bg-gray-300 text-gray-700' : 'bg-blue-600 hover:bg-blue-700');
+        btn.addEventListener('click', button.action);
+        modalButtons.appendChild(btn);
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeGenericModal() {
+      const modal = document.getElementById('genericModal');
+      modal.classList.add('hidden');
+    }
+
+    // Função para carregar conteúdo
+    // async function loadContent(route) {
+    //     const content = document.getElementById('content');
+
+    //     try {
+    //         let response;
+    //         let html;
+
+    //         switch(route) {
+    //             case '':
+    //             case 'home':
+    //                 response = await fetch('./templates/home.html');
+    //                 html = await response.text();
+    //                 content.innerHTML = html;
+    //                 if (typeof initHome === 'function') initHome();
+    //                 break;
+
+    //             case 'tests':
+    //                 response = await fetch('./templates/tests.html');
+    //                 html = await response.text();
+    //                 content.innerHTML = html;
+    //                 // Executar scripts inline do tests.html após carregamento
+    //                 setTimeout(() => {
+    //                     // Re-executar os scripts do tests.html se necessário
+    //                     if (typeof waitForStateManager === 'function') {
+    //                         waitForStateManager();
+    //                     }
+    //                     // Chamar função de inicialização se existir
+    //                     if (typeof initTestsModule === 'function') {
+    //                         initTestsModule();
+    //                     }
+    //                 }, 100);
+    //                 break;
+
+    //             // ...existing code...
+
+    //             default:
+    //                 content.innerHTML = '<div class="error-page">Página não encontrada</div>';
+    //         }
+    //     } catch (error) {
+    //         console.error('Erro ao carregar conteúdo:', error);
+    //         content.innerHTML = '<div class="error-page">Erro ao carregar a página</div>';
+    //     }
+    // }
+  </script>
+</body>
+</html>

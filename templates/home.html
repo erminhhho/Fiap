@@ -1,0 +1,425 @@
+<!-- Dashboard para Atendentes -->
+<div class="bg-white rounded-2xl shadow p-6 mb-6">
+  <div class="flex items-center justify-between mb-8">
+    <div class="flex items-center gap-3">
+      <i class="fas fa-clipboard-list text-blue-600 text-3xl"></i>
+      <h1 class="text-2xl font-bold text-gray-800">Gerenciamento de Atendimentos</h1>
+    </div>
+  </div>
+
+  <!-- Estatísticas rápidas -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
+      <h3 class="text-sm text-gray-500 mb-1">Atendimentos Hoje</h3>
+      <p class="text-2xl font-bold text-blue-700" id="today-count">0</p>
+    </div>
+    <div class="bg-green-50 rounded-lg p-4 border border-green-100">
+      <h3 class="text-sm text-gray-500 mb-1">Concluídos</h3>
+      <p class="text-2xl font-bold text-green-700" id="completed-count">0</p>
+    </div>
+    <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
+      <h3 class="text-sm text-gray-500 mb-1">Em Andamento</h3>
+      <p class="text-2xl font-bold text-yellow-700" id="in-progress-count">0</p>
+    </div>
+    <div class="bg-orange-50 rounded-lg p-4 border border-orange-100">
+      <h3 class="text-sm text-gray-500 mb-1">Total de Atendimentos</h3>
+      <p class="text-2xl font-bold text-orange-700" id="total-count">0</p>
+    </div>
+  </div>
+
+  <!-- Ferramentas de busca -->
+  <div class="flex flex-col md:flex-row gap-4 mb-6">
+    <div class="flex-grow">
+      <div class="relative">
+        <input type="text" id="search-attendances" class="w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 pr-10 text-gray-800 bg-gray-50" placeholder="Buscar por nome, CPF ou data...">
+        <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <i class="fas fa-search"></i>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <select id="filter-status" class="rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50">
+        <option value="all">Todos os Status</option>
+        <option value="new">Novos</option>
+        <option value="in-progress">Em Andamento</option>
+        <option value="completed">Concluídos</option>
+      </select>
+      <select id="filter-date" class="rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50">
+        <option value="all">Todas as Datas</option>
+        <option value="today">Hoje</option>
+        <option value="week">Esta Semana</option>
+        <option value="month">Este Mês</option>
+      </select>
+      <button id="btn-new-attendance" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" onclick="window.location.href = '#personal';">
+        <i class="fas fa-plus"></i> Novo
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabela de Atendimentos -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+      <thead class="bg-gray-100 text-gray-600 text-sm">
+        <tr>
+          <th class="py-3 px-4 text-left font-semibold">Nome</th>
+          <th class="py-3 px-4 text-left font-semibold">CPF</th>
+          <th class="py-3 px-4 text-left font-semibold">Data</th>
+          <th class="py-3 px-4 text-left font-semibold">Status</th>
+          <th class="py-3 px-4 text-left font-semibold">Progresso</th>
+          <th class="py-3 px-4 text-left font-semibold">Ações</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200" id="attendances-table-body">
+        <!-- Linhas de exemplo - serão substituídas dinamicamente -->
+        <tr class="hover:bg-gray-50 transition-colors text-gray-700">
+          <td class="py-3 px-4 font-medium">Carregando...</td>
+          <td class="py-3 px-4">-</td>
+          <td class="py-3 px-4">-</td>
+          <td class="py-3 px-4">-</td>
+          <td class="py-3 px-4">-</td>
+          <td class="py-3 px-4">-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginação -->
+  <div class="flex justify-between items-center mt-4">
+    <div class="text-sm text-gray-600">
+      Mostrando <span id="showing-count">0</span> de <span id="total-items">0</span> atendimentos
+    </div>
+    <div class="flex gap-2">
+      <button id="prev-page" class="bg-white hover:bg-gray-100 text-gray-700 font-semibold rounded-lg px-4 py-2 text-sm border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="fas fa-chevron-left mr-1"></i> Anterior
+      </button>
+      <button id="next-page" class="bg-white hover:bg-gray-100 text-gray-700 font-semibold rounded-lg px-4 py-2 text-sm border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+        Próximo <i class="fas fa-chevron-right ml-1"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Template de linha da tabela -->
+<template id="attendance-row-template">
+  <tr class="hover:bg-gray-50 transition-colors text-gray-700">
+    <td class="py-3 px-4 font-medium attendance-name">Maria Silva</td>
+    <td class="py-3 px-4 attendance-cpf">123.456.789-00</td>
+    <td class="py-3 px-4 attendance-date">12/05/2023</td>
+    <td class="py-3 px-4">
+      <span class="attendance-status px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Concluído</span>
+    </td>
+    <td class="py-3 px-4">
+      <div class="w-full bg-gray-200 rounded-full h-2.5">
+        <div class="attendance-progress bg-blue-600 h-2.5 rounded-full" style="width: 45%"></div>
+      </div>
+    </td>
+    <td class="py-3 px-4">
+      <div class="flex gap-2">
+        <button class="btn-continue text-blue-600 hover:text-blue-800" title="Continuar">
+          <i class="fas fa-pen"></i>
+        </button>
+        <button class="btn-print bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-2 flex items-center justify-center" title="Imprimir">
+          <i class="fas fa-print"></i>
+        </button>
+        <button class="btn-delete text-red-600 hover:text-red-800" title="Excluir">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+    </td>
+  </tr>
+</template>
+
+<!-- Scripts específicos da home -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se as dependências estão carregadas corretamente
+    function checkDependencies() {
+      console.log("Verificando dependências...");
+      let status = {
+        router: typeof window.navigateTo === 'function',
+        formStateManager: window.formStateManager !== undefined,
+        hashChange: true // Assumimos que sempre funciona
+      };
+
+      console.log("Status das dependências (sem localStorage):", status);
+
+      return status;
+    }
+
+    // Carregar dados iniciais
+    loadAttendances();
+
+    // Configurar eventos
+    document.getElementById('search-attendances').addEventListener('input', filterAttendances);
+    document.getElementById('filter-status').addEventListener('change', filterAttendances);
+    document.getElementById('filter-date').addEventListener('change', filterAttendances);
+
+    // Configurar paginação
+    document.getElementById('prev-page').addEventListener('click', function() {
+      if (typeof goToPrevPage === 'function') {
+        goToPrevPage();
+      }
+    });
+    document.getElementById('next-page').addEventListener('click', function() {
+      if (typeof goToNextPage === 'function') {
+        goToNextPage();
+      }
+    });
+  });
+
+  // Função para carregar atendimentos
+  async function loadAttendances() {
+    try {
+      // Mostrar carregamento
+      const tableBody = document.getElementById('attendances-table-body');
+      tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Carregando dados...</td></tr>`;
+
+      // Verificar se estamos online
+      if (navigator.onLine && window.FIAP && window.FIAP.firebase && window.FIAP.firebase.db) {
+        // Carregar do Firebase
+        const snapshot = await window.FIAP.firebase.db.collection('formularios').orderBy('ultimaAtualizacao', 'desc').get();
+
+        if (snapshot.empty) {
+          tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Nenhum atendimento encontrado</td></tr>`;
+          updateCounts({ today: 0, completed: 0, inProgress: 0, total: 0 });
+          return;
+        }
+
+        // Processar dados
+        const attendances = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const personal = data.dados?.personal || {};
+
+          attendances.push({
+            id: doc.id,
+            name: personal.nome || 'Sem nome',
+            cpf: personal.cpf || '-',
+            date: formatDate(data.ultimaAtualizacao),
+            status: getStatusFromData(data),
+            progress: calculateProgress(data),
+            formData: data
+          });
+        });
+
+        // Renderizar dados
+        renderAttendances(attendances);
+
+        // Atualizar contadores
+        updateCountsFromData(attendances);
+      } else {
+        tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Funcionalidade de carregamento offline de atendimentos não está mais disponível.</td></tr>`;
+        updateCounts({ today: 0, completed: 0, inProgress: 0, total: 0 });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar atendimentos:', error);
+      document.getElementById('attendances-table-body').innerHTML =
+        `<tr><td colspan="6" class="py-4 text-center text-red-500">Erro ao carregar dados: ${error.message}</td></tr>`;
+    }
+  }
+
+  // Funções auxiliares
+  function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+    return date.toLocaleDateString('pt-BR');
+  }
+
+  function getStatusFromData(data) {
+    if (!data.currentStep) return 'Novo';
+    if (data.currentStep === 'documents') return 'Concluído';
+    return 'Em andamento';
+  }
+
+  function calculateProgress(data) {
+    const steps = ['personal', 'social', 'incapacity', 'professional', 'documents'];
+    const currentStepIndex = steps.indexOf(data.currentStep || 'personal');
+    return Math.round(((currentStepIndex + 1) / steps.length) * 100);
+  }
+
+  function calculateProgressFromLocalData(data) {
+    const steps = ['personal', 'social', 'incapacity', 'professional', 'documents'];
+    let completedSteps = 0;
+
+    for (const step of steps) {
+      if (data[step] && Object.keys(data[step]).length > 0) {
+        completedSteps++;
+      }
+    }
+
+    return Math.round((completedSteps / steps.length) * 100);
+  }
+
+  function renderAttendances(attendances) {
+    const tableBody = document.getElementById('attendances-table-body');
+    const template = document.getElementById('attendance-row-template');
+
+    // Limpar tabela
+    tableBody.innerHTML = '';
+
+    if (attendances.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-500">Nenhum atendimento encontrado</td></tr>`;
+      return;
+    }
+
+    // Renderizar cada linha
+    attendances.forEach(attendance => {
+      const clone = template.content.cloneNode(true);
+
+      // Preencher dados
+      clone.querySelector('.attendance-name').textContent = attendance.name;
+      clone.querySelector('.attendance-cpf').textContent = attendance.cpf;
+      clone.querySelector('.attendance-date').textContent = attendance.date;
+
+      // Status
+      const statusEl = clone.querySelector('.attendance-status');
+      if (attendance.status === 'Concluído') {
+        statusEl.classList.add('bg-green-100', 'text-green-800');
+      } else if (attendance.status === 'Em andamento') {
+        statusEl.classList.add('bg-yellow-100', 'text-yellow-800');
+      } else {
+        statusEl.classList.add('bg-blue-100', 'text-blue-800');
+      }
+      statusEl.textContent = attendance.status;
+
+      // Progresso
+      clone.querySelector('.attendance-progress').style.width = `${attendance.progress}%`;
+
+      // Botões de ação
+      clone.querySelector('.btn-continue').addEventListener('click', function() {
+        continueAttendance(attendance.id);
+      });
+
+      clone.querySelector('.btn-print').addEventListener('click', function() {
+        printAttendance(attendance.id);
+      });
+
+      clone.querySelector('.btn-delete').addEventListener('click', function() {
+        deleteAttendance(attendance.id);
+      });
+
+      // Adicionar à tabela
+      tableBody.appendChild(clone);
+    });
+  }
+
+  function updateCounts(counts) {
+    document.getElementById('today-count').textContent = counts.today;
+    document.getElementById('completed-count').textContent = counts.completed;
+    document.getElementById('in-progress-count').textContent = counts.inProgress;
+    document.getElementById('total-count').textContent = counts.total;
+    document.getElementById('showing-count').textContent = counts.total;
+    document.getElementById('total-items').textContent = counts.total;
+  }
+
+  function updateCountsFromData(attendances) {
+    const today = new Date().toLocaleDateString('pt-BR');
+    const counts = {
+      today: attendances.filter(a => a.date === today).length,
+      completed: attendances.filter(a => a.status === 'Concluído').length,
+      inProgress: attendances.filter(a => a.status === 'Em andamento').length,
+      total: attendances.length
+    };
+
+    updateCounts(counts);
+  }
+
+  function continueAttendance(id) {
+    // Primeiro tentar carregar do Firebase se online
+    if (navigator.onLine && window.FIAP && window.FIAP.firebase && window.FIAP.firebase.db) {
+      // Mostrar carregando
+      showLoading('Carregando atendimento...');
+
+      window.FIAP.firebase.db.collection('formularios').doc(id).get()
+        .then(doc => {
+          hideLoading();
+
+          if (doc.exists) {
+            const data = doc.data();
+
+            // Configurar o formStateManager
+            if (window.formStateManager) {
+              window.formStateManager.currentFormId = id;
+              window.formStateManager.formData = data.dados || {
+                personal: {},
+                social: {},
+                incapacity: {},
+                professional: {},
+                documents: {}
+              };
+              window.formStateManager.currentStep = data.currentStep || 'personal';
+              window.formStateManager.isInitialized = true;
+            }
+
+            // Navegar para a etapa atual ou a primeira
+            navigateTo(data.currentStep || 'personal');
+          } else {
+            showError('Atendimento não encontrado');
+          }
+        })
+        .catch(error => {
+          hideLoading();
+          showError('Erro ao carregar atendimento: ' + error.message);
+        });
+    } else {
+      showError('Conexão offline. Não é possível carregar atendimentos.');
+    }
+  }
+
+  function printAttendance(id) {
+    // Implementar impressão
+    window.print();
+  }
+
+  function deleteAttendance(id) {
+    if (confirm('Tem certeza que deseja excluir este atendimento? Esta ação não pode ser desfeita.')) {
+      // Verificar se estamos online
+      if (navigator.onLine && window.FIAP && window.FIAP.firebase && window.FIAP.firebase.db) {
+        // Excluir do Firebase
+        window.FIAP.firebase.db.collection('formularios').doc(id).delete()
+          .then(() => {
+            showSuccess('Atendimento excluído com sucesso');
+            loadAttendances(); // Recarregar a lista
+          })
+          .catch(error => {
+            showError('Erro ao excluir atendimento: ' + error.message);
+          });
+      } else {
+        showError('Conexão offline. Não é possível excluir atendimentos.');
+      }
+    }
+  }
+
+  // Funções de paginação e filtro
+  function filterAttendances() {
+    // A ser implementado com dados reais
+    console.log('Filtrando atendimentos...');
+  }
+
+  // Função para mostrar erro
+  function showError(message) {
+    if (typeof window.showError === 'function') {
+      window.showError(message);
+    } else {
+      alert(message);
+    }
+  }
+
+  // Função para mostrar carregamento
+  function showLoading(message) {
+    if (typeof window.showLoading === 'function') {
+      window.showLoading(message);
+    } else {
+      console.log('Carregando: ' + message);
+    }
+  }
+
+  // Função para esconder carregamento
+  function hideLoading() {
+    if (typeof window.hideLoading === 'function') {
+      window.hideLoading();
+    } else {
+      console.log('Carregamento concluído');
+    }
+  }
+</script>

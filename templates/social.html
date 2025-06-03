@@ -1,0 +1,283 @@
+<form id="social-form" autocomplete="off">
+  <!-- Card do Perfil Social -->
+  <div class="bg-white rounded-2xl shadow p-8 mb-8">
+    <div class="mb-8">      <!-- Título alinhado com a mesma estrutura da página pessoal -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-users text-blue-500 text-2xl"></i>
+          <h2 class="text-lg font-semibold text-blue-600">Composição Familiar</h2>
+        </div>
+        <i class="fas fa-eraser cursor-pointer text-gray-400 hover:text-red-500 text-xl transition" title="Limpar seção" onclick="showClearConfirmation(event, 'familia')"></i>
+      </div>
+
+      <!-- Container para os membros da família -->
+      <div id="membros-familia-container">
+        <!-- Lista de membros da família -->
+        <div id="membros-familia-list" class="space-y-5">
+          <!-- O assistido será adicionado aqui automaticamente via JS -->
+        </div>
+      </div>
+
+      <!-- Template para o assistido (primeira linha fixa) -->
+      <template id="assistido-template">
+        <div class="membro-familia mb-6 relative assistido">
+          <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
+            <!-- Nome do assistido - 6 colunas (preenchido automaticamente) -->
+            <div class="relative md:col-span-6">
+              <input type="text" name="familiar_nome[]" id="assistido_nome" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
+              <label class="input-label">
+                Nome do Assistido
+              </label>
+            </div>
+
+            <!-- CPF - 3 colunas (preenchido automaticamente) - reduzido -->
+            <div class="relative md:col-span-3">
+              <input type="text" name="familiar_cpf[]" id="assistido_cpf" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
+              <label class="input-label">
+                CPF
+              </label>
+            </div>
+
+            <!-- Idade - 2 colunas (preenchido automaticamente) -->
+            <div class="relative md:col-span-2">
+              <input type="text" name="familiar_idade[]" id="assistido_idade" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 placeholder-gray-400 transition-colors duration-200" readonly />
+              <label class="input-label">
+                Idade
+              </label>
+            </div>
+
+            <!-- Parentesco - 4 colunas (fixo como "Assistido") -->
+            <div class="relative md:col-span-4">
+              <input type="text" name="familiar_parentesco[]" value="Assistido" class="peer w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-gray-800 transition-colors duration-200" readonly />
+              <label class="input-label">
+                Parentesco
+              </label>
+            </div>
+
+            <!-- Estado Civil - 4 colunas (pode ser editado) -->
+            <div class="relative md:col-span-4">
+              <select name="familiar_estado_civil[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+                <option value="" selected disabled>Selecione...</option>
+                <option value="Solteiro(a)">Solteiro(a)</option>
+                <option value="Casado(a)">Casado(a)</option>
+                <option value="União Estável">União Estável</option>
+                <option value="Divorciado(a)">Divorciado(a)</option>
+                <option value="Viúvo(a)">Viúvo(a)</option>
+              </select>
+              <label class="input-label">
+                Estado Civil
+              </label>
+            </div>            <!-- Renda Mensal - 2 colunas (pode ser editado) -->
+            <div class="relative md:col-span-2">
+              <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') FIAP.masks.moneyInteger(this)" />
+              <label class="input-label">
+                Renda
+              </label>
+            </div><!-- CadÚnico - 2 colunas -->
+            <div class="relative md:col-span-2 flex items-center justify-center">
+              <input type="hidden" name="familiar_cadunico[]" value="Não">
+              <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
+                CadÚnico
+              </button>
+            </div>            <!-- Botão de adicionar membro ao lado do assistido -->
+            <div class="relative md:col-span-1 flex items-center justify-center">
+              <button type="button" class="add-family-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar membro" onclick="addFamilyMember()">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Template para membro da família (oculto) -->
+      <template id="membro-familia-template">
+        <div class="membro-familia mb-6 relative">
+          <div class="grid grid-cols-1 md:grid-cols-24 gap-4">
+            <!-- Nome do membro - 6 colunas -->
+            <div class="relative md:col-span-6">
+              <input type="text" name="familiar_nome[]"
+                oninput="formatarNomeProprio(this)"
+                onblur="formatarNomeProprio(this)"
+                class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200"
+                placeholder="Nome completo" />
+              <label class="input-label">
+                Nome completo
+              </label>
+            </div>
+
+            <!-- CPF - 3 colunas (reduzido) -->
+            <div class="relative md:col-span-3">
+              <input type="text" name="familiar_cpf[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="000.000.000-00" oninput="maskCPF(this)" />
+              <label class="input-label">
+                CPF
+              </label>
+            </div>
+
+            <!-- Idade - 2 colunas -->
+            <div class="relative md:col-span-2">
+              <input type="text" name="familiar_idade[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Idade" oninput="maskNumericAge(this)" onblur="formatAgeWithSuffix(this)" />
+              <label class="input-label">
+                Idade
+              </label>
+            </div>            <!-- Parentesco - 4 colunas -->
+            <div class="relative md:col-span-4">
+              <select name="familiar_parentesco[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200 parentesco-select">
+                <option value="" selected disabled>Selecione...</option>
+                <option value="Cônjuge">Cônjuge</option>
+                <option value="Companheiro">Companheiro</option>
+                <option value="Companheira">Companheira</option>
+                <option value="Filho">Filho</option>
+                <option value="Filha">Filha</option>
+                <option value="Pai">Pai</option>
+                <option value="Mãe">Mãe</option>
+                <option value="Irmão">Irmão</option>
+                <option value="Irmã">Irmã</option>
+                <option value="Enteado">Enteado</option>
+                <option value="Enteada">Enteada</option>
+                <option value="Outro">Outro</option>
+              </select>
+              <label class="input-label">
+                Parentesco
+              </label>
+            </div>
+
+            <!-- Estado Civil - 4 colunas -->
+            <div class="relative md:col-span-4">
+              <select name="familiar_estado_civil[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 transition-colors duration-200">
+                <option value="" selected disabled>Selecione...</option>
+                <option value="Solteiro(a)">Solteiro(a)</option>
+                <option value="Casado(a)">Casado(a)</option>
+                <option value="União Estável">União Estável</option>
+                <option value="Divorciado(a)">Divorciado(a)</option>
+                <option value="Viúvo(a)">Viúvo(a)</option>
+              </select>
+              <label class="input-label">
+                Estado Civil
+              </label>
+            </div>            <!-- Renda Mensal - 2 colunas -->
+            <div class="relative md:col-span-2">
+              <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') FIAP.masks.moneyInteger(this)" />
+              <label class="input-label">
+                Renda
+              </label>
+            </div>
+
+            <!-- CadÚnico - 2 colunas -->
+            <div class="relative md:col-span-2 flex items-center justify-center">
+              <input type="hidden" name="familiar_cadunico[]" value="Não">
+              <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
+                CadÚnico
+              </button>
+            </div>
+
+            <!-- Botão de remover (somente nas linhas secundárias) - 1 coluna -->
+            <div class="relative md:col-span-1 flex items-center justify-center">
+              <button type="button" class="remove-familiar-btn bg-red-500 hover:bg-red-600 text-white rounded-full p-1 ml-2 flex items-center justify-center w-8 h-8" title="Remover membro" onclick="removeSpecificFamilyMember(this)">
+                <i class="fas fa-minus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>    </div>
+
+    <!-- Seção de Renda Familiar -->
+    <div class="mt-8 border-t pt-6 border-gray-200">
+      <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-chart-bar text-blue-500 text-2xl"></i>
+            <h2 class="text-lg font-semibold text-blue-600">Renda Per Capita</h2>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="text-sm font-medium">
+              <span class="text-gray-600">Renda Total:</span>
+              <span id="renda_total_display" class="text-blue-700 ml-1">R$ 0</span>
+            </div>
+            <div class="text-sm font-medium">
+              <span class="text-gray-600">Renda Per Capita:</span>
+              <span id="renda_per_capita_display" class="text-blue-700 ml-1">R$ 0</span>
+            </div>
+            <div class="text-sm font-medium">
+              <span class="text-gray-600">Salário Mínimo:</span>
+              <span id="salario-minimo-display" class="text-blue-700 ml-1"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos ocultos para armazenar valores -->
+        <input type="hidden" id="renda_total_familiar" name="renda_total_familiar" value="0" />
+        <input type="hidden" id="renda_per_capita" name="renda_per_capita" value="0" />
+
+        <!-- Gráfico melhorado -->
+        <div class="relative flex flex-col items-center mb-2 mt-3">
+          <!-- Barra de fundo com gradiente suave -->
+          <div class="h-5 rounded-full border border-gray-300 relative w-full overflow-hidden" style="background: linear-gradient(to right, #ef4444, #facc15 60%, #22c55e 100%);">
+            <div id="renda-indicator" class="absolute top-1/2 left-0 transform -translate-y-1/2 flex items-center justify-center opacity-70" style="pointer-events: none; left: 0%;">
+              <!-- Removido o indicador visual (bolinha) -->
+            </div>
+            <div id="renda-progress" class="absolute top-0 right-0 h-5 bg-white opacity-80" style="width: 100%; transition: width 0.3s;"></div>
+            <span class="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 text-xs font-semibold text-gray-700 select-none opacity-85">1/4 SM</span>
+            <span class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-semibold text-gray-700 select-none opacity-85">1/2 SM</span>
+            <span class="absolute top-1/2 left-3/4 transform -translate-x-1/2 -translate-y-1/2 text-xs font-semibold text-gray-700 select-none opacity-85">3/4 SM</span>
+          </div>
+        </div>
+
+        <!-- Legenda compacta com valores de referência -->
+        <div class="flex w-full text-xs mt-0.5 mb-0.5">
+          <div class="flex-1 flex items-center justify-start">
+            <span class="font-bold" style="color: #b91c1c;">Extrema Pobreza</span>
+          </div>
+          <div class="flex-1 flex items-center justify-center">
+            <span class="font-bold" style="color: #b45309;">Pobreza</span>
+          </div>
+          <div class="flex-1 flex items-center justify-end">
+            <span class="font-bold" style="color: #15803d;">Acima da Linha de Pobreza</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Observações -->
+  <div class="relative mt-8">
+    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre o perfil social..." oninput="capitalizeFirstLetterOnly(this)"></textarea>
+    <label for="observacoes" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+      Observações
+    </label>
+  </div>
+
+  <div class="flex justify-between mt-8">
+    <button type="button" class="bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-lg px-8 py-3 text-base shadow border border-blue-200 transition focus:outline-none focus:ring-2 focus:ring-blue-100 flex items-center gap-2" id="btn-back">
+      <i class="fas fa-arrow-left"></i> Anterior
+    </button>
+    <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-base shadow transition focus:outline-none focus:ring-2 focus:ring-blue-300 flex items-center gap-2" id="btn-next">
+      Próximo <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+</form>
+
+<!-- Modal para Outro Parentesco -->
+<div id="outroParentescoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] hidden">
+  <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-gray-700">Informar Parentesco</h2>
+      <button id="closeOutroParentescoModal" class="text-gray-500 hover:text-gray-700">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <p class="text-gray-600 mb-4">Digite o parentesco desejado:</p>
+    <div class="mb-4">
+      <input type="text" id="outroParentescoInput" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ex: Vizinho">
+    </div>
+    <div class="flex justify-end space-x-2">
+      <button id="cancelOutroParentesco" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700">
+        Cancelar
+      </button>
+      <button id="saveOutroParentesco" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white">
+        <i class="fas fa-save mr-1"></i> Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Nota: js/social.js não é mais necessário, pois o módulo é carregado automaticamente pelo router -->

@@ -1,0 +1,294 @@
+/*
+ * Estilos de Labels (Rótulos)
+ * Este arquivo contém todos os estilos relacionados a rótulos de campos
+ */
+
+/* Regras universais para labels em campos de formulário */
+label, .input-label {
+  position: absolute !important;
+  left: 1rem !important;
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  font-size: var(--label-font-size) !important;
+  color: var(--color-primary) !important;
+  background: var(--label-bg-gradient) !important;
+  padding: var(--label-padding) !important;
+  border-radius: var(--label-border-radius) !important;
+  z-index: var(--label-z-index) !important;
+  pointer-events: none !important;
+  transition: var(--label-transition) !important;
+  opacity: 0 !important; /* Começa invisível */
+}
+
+/* Aplicar o estilo base a todos os labels de campos */
+label,
+.input-label,
+textarea ~ label,
+input ~ label,
+select ~ label {
+  position: absolute !important;
+  left: 1rem !important;
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  font-size: var(--label-font-size) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: var(--label-padding) !important;  border-radius: var(--label-border-radius) !important;
+  background: var(--label-bg-gradient) !important;
+  box-shadow: none !important;
+  color: var(--color-primary) !important;
+  z-index: var(--label-z-index) !important;
+  pointer-events: none !important;
+  transition: var(--label-transition) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: var(--label-transition), opacity 0.3s ease, visibility 0.3s ease !important;
+}
+
+/* Float Label - Ajustes para alinhamento preciso com a borda */
+.input-label {
+  position: absolute;
+  left: 1rem;
+  top: 0; /* Alinhamento ao topo da borda */
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, visibility 0.3s ease;
+  background-color: white;
+  padding: 0 0.2rem;
+  z-index: 10;
+  border-radius: 4px;
+  letter-spacing: 0.01em;
+  box-shadow: none;
+  height: auto;
+  line-height: 1;
+  display: inline-block;
+}
+
+/* Correção para alinhamento preciso dos títulos dos campos */
+.input-label,
+label[for] {
+  position: absolute !important;
+  left: 1rem !important;
+  top: 0 !important;
+  line-height: 1 !important;
+  transform: translateY(-50%) !important;
+  font-size: 0.82rem !important;
+  margin: 0 !important;
+  z-index: 10 !important;
+  border-radius: 4px !important;  padding: 0.12rem 0.28rem !important;
+  background: var(--color-bg) !important;
+  box-shadow: none !important;
+  color: var(--color-primary) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Mostrar label quando o campo está em foco ou preenchido */
+input:focus ~ label,
+input:focus ~ .input-label,
+textarea:focus ~ label,
+textarea:focus ~ .input-label,
+select:focus ~ label,
+select:focus ~ .input-label,
+input:not(:placeholder-shown) ~ label,
+input:not(:placeholder-shown) ~ .input-label,
+textarea:not(:placeholder-shown) ~ label,
+textarea:not(:placeholder-shown) ~ .input-label,
+select:not(:placeholder-shown) ~ label,
+select:not(:placeholder-shown) ~ .input-label,
+.field-filled ~ label,
+.field-filled ~ .input-label {
+  opacity: 1 !important;
+  visibility: visible !important;
+  color: var(--color-primary) !important;
+}
+
+/* Garantir que os labels permaneçam transparentes quando campo não selecionado */
+.peer:placeholder-shown ~ .input-label {
+  color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Estado dos labels quando o campo está focado ou preenchido */
+.peer:focus ~ .input-label,
+.peer:not(:placeholder-shown) ~ .input-label,
+.peer-focus ~ .input-label,
+.field-filled ~ .input-label {
+  background: var(--color-bg) !important;
+  color: var(--color-primary) !important;
+}
+
+/* Garantir que os labels permaneçam visíveis quando o campo for preenchido */
+.peer:not(:placeholder-shown) ~ .input-label {
+  color: var(--color-primary) !important;
+  opacity: 1 !important;
+  background: var(--color-bg) !important;
+}
+
+/* Garantir que todos os estados mantenham o label exatamente sobre a borda */
+.peer:focus ~ .input-label,
+.peer:not(:placeholder-shown) ~ .input-label,
+.peer-focus ~ .input-label,
+.field-filled ~ .input-label,
+.field-invalid ~ .input-label,
+.field-valid ~ .input-label,
+.cpf-valid ~ .input-label,
+.cpf-invalid ~ .input-label,
+.cep-valid ~ .input-label,
+.cep-invalid ~ .input-label {
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  background: var(--color-bg) !important;
+  color: var(--color-primary) !important;
+  box-shadow: none !important;
+}
+
+/* Estilo da linha do campo como suporte para o texto */
+.line-support input,
+.line-support select,
+.line-support textarea {
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  border-bottom: 2px solid #E5E7EB;
+  background-color: transparent;
+  padding-left: 0;
+  transition: all 0.2s ease-in-out;
+}
+
+.line-support input:focus,
+.line-support select:focus,
+.line-support textarea:focus {
+  border-bottom-color: #3B82F6;
+  box-shadow: 0 2px 0 0 rgba(59, 130, 246, 0.2);
+  outline: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  background-color: transparent !important;
+}
+
+/* Ajustar tamanho do container de campo para acomodar o novo layout */
+.line-support {
+  margin-top: 1rem;
+}
+
+/* Comportamento para campos de observação */
+textarea#observacao:focus ~ label[for="observacao"],
+textarea#observacao:not(:placeholder-shown) ~ label[for="observacao"],
+textarea[id*="observacao"]:focus ~ label,
+textarea[id*="observacao"]:not(:placeholder-shown) ~ label,
+textarea[id*="observacoes"]:focus ~ label,
+textarea[id*="observacoes"]:not(:placeholder-shown) ~ label,
+textarea[id*="obs_"]:focus ~ label,
+textarea[id*="obs_"]:not(:placeholder-shown) ~ label {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Label flutuante à direita */
+.right-label {
+  position: relative;
+}
+
+.right-label input,
+.right-label textarea,
+.right-label select {
+  width: 100%;
+  border-radius: var(--border-radius-base);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-md) var(--spacing-base);
+  background-color: var(--color-bg-light);
+  color: var(--color-text);
+  transition: var(--transition-base);
+}
+
+.right-label input:focus,
+.right-label textarea:focus,
+.right-label select:focus {
+  border-color: var(--color-primary);
+  box-shadow: none;
+  outline: none;
+}
+
+.right-label .label {
+  position: absolute;
+  right: 10px;
+  top: 0px;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  background-color: transparent;
+  padding: 0 var(--spacing-sm);
+  pointer-events: none;
+  transition: var(--transition-base);
+  transform: translateY(-50%);
+}
+
+/* Sistema de labels clean */
+.form-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+/* Estilos específicos para campos de observação */
+textarea[id*="observacao"] ~ label,
+textarea[id*="observacoes"] ~ label,
+textarea[id*="obs_"] ~ label,
+textarea#observacao ~ label[for="observacao"] {  font-size: var(--font-size-sm) !important;
+  background-color: var(--color-bg) !important;
+  color: var(--color-primary) !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+/* SOLUÇÃO DEFINITIVA PARA OS CAMPOS DE OBSERVAÇÃO */
+textarea#observacao ~ label[for="observacao"],
+textarea#observacoesIncapacidade ~ label[for="observacoesIncapacidade"],
+textarea#observacoesPericia ~ label[for="observacoesPericia"],
+textarea#obs_saude ~ label[for="obs_saude"],
+textarea#obs_sociais ~ label[for="obs_sociais"],
+textarea[id*="observacao"] ~ label,
+textarea[id*="observacoes"] ~ label,
+textarea[id*="obs_"] ~ label {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  background: var(--label-bg-gradient) !important;
+  color: var(--color-primary) !important;
+  padding: var(--label-padding) !important;
+  font-size: var(--label-font-size) !important;
+  pointer-events: none !important;
+  z-index: 50 !important;
+  position: absolute !important;  left: var(--spacing-base) !important;
+  top: 0 !important;
+  transform: translateY(-50%) !important;
+  box-shadow: none !important;
+}
+
+/* ESTILO PARA CAMPOS PREENCHIDOS COM FUNDO BRANCO PURO */
+.field-filled,
+input.field-filled,
+select.field-filled,
+textarea.field-filled {
+  background-color: var(--color-bg) !important; /* Branco puro (#FFFFFF) */
+}
+
+/* SOBRESCREVER TAILWIND CSS PARA CAMPOS PREENCHIDOS */
+/* Garantir que campos preenchidos tenham fundo branco puro independente de outras classes */
+.field-filled.bg-gray-50,
+input.field-filled.bg-gray-50,
+select.field-filled.bg-gray-50,
+textarea.field-filled.bg-gray-50,
+.bg-gray-50.field-filled {
+  background-color: var(--color-bg) !important; /* Branco puro (#FFFFFF) */
+}
+
+/* Remover a classe bg-gray-50 automaticamente quando o campo for preenchido */
+input:not(:placeholder-shown),
+select:not(:placeholder-shown),
+textarea:not(:placeholder-shown) {
+  background-color: var(--color-bg) !important; /* Branco puro quando preenchido */
+}
