@@ -69,14 +69,7 @@ const routes = {
     title: 'Documentos e Conclusão',
     templateUrl: 'templates/documents.html',
     scriptUrl: 'modules/documents.js',
-    step: 5
-  },
-  tests: {
-    title: 'Sistema de Testes',
-    templateUrl: 'templates/tests.html',
-    scriptUrl: 'modules/tests.js',
-    step: -1 // Atualizado para corresponder ao Navigation.js
-  }
+    step: 5  }
 };
 
 // Estado atual da navegação
@@ -167,7 +160,14 @@ function navigateToLegacy(routeName) {
     if ((routeName === 'social' && previousRoute === 'personal') ||
         (routeName === 'personal' && previousRoute === 'social')) {
 
+      // Garantir que a sincronização seja feita ANTES de carregar o template
+      routerLog('Executando sincronização bidirecional antes da navegação');
       syncPersonalAndSocialData(routeName, previousRoute);
+      // Forçar salvamento imediato após sincronização
+      if (window.formStateManager && typeof window.formStateManager.saveStateImmediately === 'function') {
+        routerLog('Forçando salvamento imediato após sincronização');
+        window.formStateManager.saveStateImmediately();
+      }
     }
     // FIM DA SINCRONIZAÇÃO
 
@@ -296,43 +296,18 @@ async function loadModuleWithTemplate(route) {
 
     // Aguardar o carregamento completo do script
     await scriptLoadPromise;
-    routerLog('Script do módulo carregado com sucesso');
-
-    // Finalizar barra de progresso
+    routerLog('Script do módulo carregado com sucesso');    // Finalizar barra de progresso
     completeProgressBar();
 
-    // Executar scripts inline para a página de testes
-    if (route.scriptUrl.includes('tests.js')) {
-      routerLog('Executando scripts inline para módulo de testes');
-
-      // Re-executar os scripts inline do tests.html
-      const scripts = appContent.querySelectorAll('script');
-      scripts.forEach(script => {
-        if (script.innerHTML.trim()) {
-          try {
-            // Criar novo script para re-executar
-            const newScript = document.createElement('script');
-            newScript.innerHTML = script.innerHTML;
-            document.head.appendChild(newScript);
-            document.head.removeChild(newScript);
-          } catch (error) {
-            console.warn('Erro ao re-executar script inline:', error);
-          }
-        }
-      });    }
-
     // Aplicar fade-in somente após a inicialização do módulo
-    const isSocialPage = route.scriptUrl.includes('social.js');
-    const isTestsPage = route.scriptUrl.includes('tests.js');
-
-    if (!isSocialPage && !isTestsPage) {
+    const isSocialPage = route.scriptUrl.includes('social.js');    if (!isSocialPage) {
       // Para outras páginas, aplicar fade-in imediatamente
       appContent.classList.remove('fade-out');
       appContent.classList.add('fade-in');
     }
 
     // Determinar atraso apropriado com base no tipo de página
-    const delay = isTestsPage ? 500 : 0;
+    const delay = 0;
 
     setTimeout(async () => {
       // Inicializar o módulo usando nossa função centralizada
@@ -344,10 +319,8 @@ async function loadModuleWithTemplate(route) {
       if (route.scriptUrl.includes('incapacity.js') && typeof window.initCidSystem === 'function') {
         routerLog('Inicializando sistema CID');
         await window.initCidSystem();
-      }
-
-      // Aplicar fade-in após inicialização para páginas especiais
-      if (isSocialPage || isTestsPage || !initSuccess) {
+      }      // Aplicar fade-in após inicialização para páginas especiais
+      if (isSocialPage || !initSuccess) {
         requestAnimationFrame(() => {
           appContent.classList.remove('fade-out');
           appContent.classList.add('fade-in');
@@ -365,10 +338,8 @@ async function loadModuleWithTemplate(route) {
       document.dispatchEvent(new CustomEvent('moduleLoaded', {
         detail: { route: currentRoute, timestamp: Date.now() }
       }));
-    }, delay);
-
-    // Para páginas não especiais, aplicar fade-in imediatamente
-    if (!isSocialPage && !isTestsPage) {
+    }, delay);    // Para páginas não especiais, aplicar fade-in imediatamente
+    if (!isSocialPage) {
       appContent.classList.remove('fade-out');
       appContent.classList.add('fade-in');
     }
@@ -474,11 +445,9 @@ async function loadScript(url) {
 // Sistema de Roteamento SPA
 
 class SPARouter {
-    constructor() {
-        this.routes = {
+    constructor() {        this.routes = {
             '': 'home',
             'home': 'home',
-            'tests': 'tests',
             'personal': 'personal',
             'social': 'social',
             'incapacity': 'incapacity',
@@ -647,6 +616,21 @@ function syncPersonalAndSocialData(targetRoute, previousRoute) {
       syncFamiliarToAssistido(socialData, personalData);
     }
 
+    // MELHORIA: Salvar imediatamente o estado após a sincronização
+    if (window.formStateManager && typeof window.formStateManager.saveStateImmediately === 'function') {
+      routerLog('Salvando estado imediatamente após sincronização');
+      window.formStateManager.saveStateImmediately();
+    } else {
+      // Fallback: salvar diretamente no localStorage se o saveStateImmediately não estiver disponível
+      try {
+        localStorage.setItem('fiap_form_data_personal', JSON.stringify(personalData));
+        localStorage.setItem('fiap_form_data_social', JSON.stringify(socialData));
+        routerLog('Dados sincronizados salvos diretamente no localStorage (método alternativo)');
+      } catch (e) {
+        routerLog('Erro ao salvar no localStorage durante sincronização', e);
+      }
+    }
+
     // Notificar que os dados foram sincronizados
     document.dispatchEvent(new CustomEvent('dataSynchronized', {
       detail: {
@@ -655,7 +639,7 @@ function syncPersonalAndSocialData(targetRoute, previousRoute) {
       }
     }));
 
-    routerLog(`Sincronização bidireccional concluída: ${previousRoute} ↔ ${targetRoute}`);
+    routerLog(`Sincronização bidirecional concluída: ${previousRoute} ↔ ${targetRoute}`);
   } catch (error) {
     routerLog('Erro durante sincronização de dados', error);
   } finally {

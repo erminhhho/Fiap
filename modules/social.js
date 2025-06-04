@@ -25,6 +25,13 @@ window.initModule = function() {
 
   // Inicializar o conteúdo da página de forma estruturada
   initializePageContent();
+  
+  // Adicionar listener para o evento de sincronização de dados
+  document.addEventListener('dataSynchronized', function(event) {
+    console.log('[social.js] Evento de sincronização de dados detectado:', event.detail);
+    // Recarregar os dados do assistido após a sincronização
+    setTimeout(preencherDadosAssistido, 50); // Pequeno timeout para garantir que a sincronização foi concluída
+  });
 
   // Limpar flag quando a página mudar
   document.addEventListener('stepChanged', function handleStepChange() {
@@ -49,6 +56,10 @@ function initializePageContent() {
   // Verificar se o formStateManager existe
   if (window.formStateManager && window.formStateManager.formData) {
     console.log('[social.js] initModule: formStateManager.formData existe.');
+    
+    // Verificar se há dados do assistido a serem preenchidos
+    preencherDadosAssistido();
+    
     if (window.formStateManager.formData.personal) {
       console.log('[social.js] initModule: formStateManager.formData.personal encontrado:',
                   JSON.parse(JSON.stringify(window.formStateManager.formData.personal)));
@@ -442,126 +453,287 @@ function inicializarAssistido() {
 
 // Função para preencher os dados do assistido baseado na primeira página
 function preencherDadosAssistido() {
-  console.log('[social.js] preencherDadosAssistido: Tentando preencher dados do assistido.');
+  console.log('[social.js] preencherDadosAssistido: Iniciando preenchimento de dados do assistido.');
 
   const nomeInput = document.getElementById('assistido_nome');
   const cpfInput = document.getElementById('assistido_cpf');
   const idadeInput = document.getElementById('assistido_idade');
 
+  // Valores padrão
   let nomeValue = 'Assistido';
   let cpfValue = '';
   let idadeValue = '';
+  
+  // Flag para registro da fonte de dados utilizada
+  let fonteUtilizada = 'padrão';
 
-  if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.personal) {
-    const personalData = window.formStateManager.formData.personal;
-    console.log('[social.js] preencherDadosAssistido: Dados encontrados em formStateManager.formData.personal:', JSON.parse(JSON.stringify(personalData)));
+  try {    // ESTRATÉGIA DE BUSCA CORRIGIDA:
+    // 1. PRIMEIRO verificar no formStateManager.formData.personal (dados mais recentes vindos do personal)
+    // 2. Se não encontrar, verificar no localStorage de personal
+    // 3. Se não encontrar, verificar no formStateManager.formData.social
+    // 4. Por último, verificar no localStorage de social
 
-    // Assumindo que o assistido é o primeiro autor
-    if (personalData.autor_nome && personalData.autor_nome.length > 0) {
-      nomeValue = personalData.autor_nome[0] || nomeValue;
-    }
-    if (personalData.autor_cpf && personalData.autor_cpf.length > 0) {
-      cpfValue = personalData.autor_cpf[0] || cpfValue;
-    }
-    // Para idade, usar autor_idade se disponível, caso contrário tentar calcular a partir de autor_nascimento
-    if (personalData.autor_idade && personalData.autor_idade.length > 0) {
-      idadeValue = personalData.autor_idade[0] || idadeValue;
-    } else if (personalData.autor_nascimento && personalData.autor_nascimento.length > 0) {
-      const dataNascimentoStr = personalData.autor_nascimento[0];
-      if (dataNascimentoStr) {
-        // Tentar usar a função calcularIdadeCompleta se existir e for robusta
-        if (typeof calcularIdadeCompleta === 'function') {
-          const dataNasc = new Date(dataNascimentoStr.split('/').reverse().join('-')); // DD/MM/YYYY para YYYY-MM-DD
-          if (!isNaN(dataNasc.getTime())) {
-            const idadeObj = calcularIdadeCompleta(dataNasc);
-            idadeValue = `${idadeObj.anos} anos`; // Simplificando para apenas anos por enquanto
-          } else {
-            console.warn('[preencherDadosAssistido] Data de nascimento inválida:', dataNascimentoStr);
+    // Inicializar flag para cada campo
+    let nomeEncontrado = false;
+    let cpfEncontrado = false;
+    let idadeEncontrada = false;
+
+    // Função auxiliar para obter e formatar idade a partir de uma data de nascimento
+    const processarDataNascimento = (dataNascimentoStr) => {
+      if (!dataNascimentoStr || typeof calcularIdadeCompleta !== 'function') return null;
+      
+      try {
+        // Converter de DD/MM/YYYY para Date object
+        const dataNasc = new Date(dataNascimentoStr.split('/').reverse().join('-'));
+        if (!isNaN(dataNasc.getTime())) {
+          const idadeObj = calcularIdadeCompleta(dataNasc);
+          return `${idadeObj.anos} anos`;
+        }
+      } catch(e) {
+        console.warn("[social.js] Erro ao calcular idade a partir da data de nascimento:", e);
+      }
+      return null;
+    };
+
+    // ==== FONTE 1: formStateManager.formData.personal (PRIORIDADE MÁXIMA) ====
+    if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.personal) {
+      const personalData = window.formStateManager.formData.personal;
+      console.log('[social.js] Verificando formStateManager.formData.personal (PRIORIDADE):', JSON.parse(JSON.stringify(personalData)));        // Verificar nome
+        if (!nomeEncontrado && personalData['autor_nome[]'] && personalData['autor_nome[]'].length > 0 && personalData['autor_nome[]'][0]) {
+          nomeValue = personalData['autor_nome[]'][0];
+          nomeEncontrado = true;
+          console.log('[social.js] Nome encontrado em formStateManager.formData.personal (PRIORIDADE):', nomeValue);
+          fonteUtilizada = 'formStateManager.personal';
+        }
+        
+        // Verificar CPF
+        if (!cpfEncontrado && personalData['autor_cpf[]'] && personalData['autor_cpf[]'].length > 0 && personalData['autor_cpf[]'][0]) {
+          cpfValue = personalData['autor_cpf[]'][0];
+          cpfEncontrado = true;
+          console.log('[social.js] CPF encontrado em formStateManager.formData.personal (PRIORIDADE):', cpfValue);
+          fonteUtilizada = 'formStateManager.personal';
+        }
+        
+        // Verificar idade
+        if (!idadeEncontrada) {
+          // Primeiro tentar com autor_idade[]
+          if (personalData['autor_idade[]'] && personalData['autor_idade[]'].length > 0 && personalData['autor_idade[]'][0]) {
+            idadeValue = personalData['autor_idade[]'][0];
+            idadeEncontrada = true;
+            console.log('[social.js] Idade encontrada em formStateManager.formData.personal (autor_idade[] - PRIORIDADE):', idadeValue);
+            fonteUtilizada = 'formStateManager.personal';
+          } 
+          // Se não encontrar, tentar calcular a partir da data de nascimento
+          else if (personalData['autor_nascimento[]'] && personalData['autor_nascimento[]'].length > 0 && personalData['autor_nascimento[]'][0]) {
+            const idadeCalculada = processarDataNascimento(personalData['autor_nascimento[]'][0]);
+            if (idadeCalculada) {
+              idadeValue = idadeCalculada;
+              idadeEncontrada = true;
+              console.log('[social.js] Idade calculada a partir de formStateManager.formData.personal (autor_nascimento[] - PRIORIDADE):', idadeValue);
+              fonteUtilizada = 'formStateManager.personal (data de nascimento)';
+            }
           }
-        } else {
-            console.warn('[preencherDadosAssistido] Função calcularIdadeCompleta não encontrada. Idade não pode ser calculada.');
+        }
+    }
+
+    // ==== FONTE 2: localStorage do módulo personal ====
+    if (!nomeEncontrado || !cpfEncontrado || !idadeEncontrada) {
+      try {
+        const personalModuleData = localStorage.getItem('fiap_form_data_personal');
+        if (personalModuleData) {
+          const personalData = JSON.parse(personalModuleData);
+          console.log('[social.js] Verificando localStorage personal:', personalData);
+            // Verificar nome
+          if (!nomeEncontrado && personalData['autor_nome[]'] && personalData['autor_nome[]'].length > 0 && personalData['autor_nome[]'][0]) {
+            nomeValue = personalData['autor_nome[]'][0];
+            nomeEncontrado = true;
+            console.log('[social.js] Nome encontrado em localStorage personal:', nomeValue);
+            fonteUtilizada = 'localStorage.personal';
+          }
+          
+          // Verificar CPF
+          if (!cpfEncontrado && personalData['autor_cpf[]'] && personalData['autor_cpf[]'].length > 0 && personalData['autor_cpf[]'][0]) {
+            cpfValue = personalData['autor_cpf[]'][0];
+            cpfEncontrado = true;
+            console.log('[social.js] CPF encontrado em localStorage personal:', cpfValue);
+            fonteUtilizada = 'localStorage.personal';
+          }
+          
+          // Verificar idade
+          if (!idadeEncontrada) {
+            // Primeiro tentar com autor_idade[]
+            if (personalData['autor_idade[]'] && personalData['autor_idade[]'].length > 0 && personalData['autor_idade[]'][0]) {
+              idadeValue = personalData['autor_idade[]'][0];
+              idadeEncontrada = true;
+              console.log('[social.js] Idade encontrada em localStorage personal (autor_idade[]):', idadeValue);
+              fonteUtilizada = 'localStorage.personal';
+            } 
+            // Se não encontrar, tentar calcular a partir da data de nascimento
+            else if (personalData['autor_nascimento[]'] && personalData['autor_nascimento[]'].length > 0 && personalData['autor_nascimento[]'][0]) {
+              const idadeCalculada = processarDataNascimento(personalData['autor_nascimento[]'][0]);
+              if (idadeCalculada) {
+                idadeValue = idadeCalculada;
+                idadeEncontrada = true;
+                console.log('[social.js] Idade calculada a partir de localStorage personal (autor_nascimento[]):', idadeValue);
+                fonteUtilizada = 'localStorage.personal (data de nascimento)';
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[social.js] Erro ao ler dados do localStorage personal:', e);
+      }
+    }
+
+    // ==== FONTE 3: formStateManager.formData.social ====
+    if (!nomeEncontrado || !cpfEncontrado || !idadeEncontrada) {
+      if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.social) {
+        const socialData = window.formStateManager.formData.social;
+        console.log('[social.js] Verificando formStateManager.formData.social (FALLBACK):', JSON.parse(JSON.stringify(socialData)));
+        
+        // Verificar nome
+        if (!nomeEncontrado && socialData.familiar_nome && socialData.familiar_nome.length > 0 && socialData.familiar_nome[0] && socialData.familiar_nome[0] !== 'Assistido') {
+          nomeValue = socialData.familiar_nome[0];
+          nomeEncontrado = true;
+          console.log('[social.js] Nome encontrado em formStateManager.formData.social (FALLBACK):', nomeValue);
+          fonteUtilizada = 'formStateManager.social';
+        }
+        
+        // Verificar CPF
+        if (!cpfEncontrado && socialData.familiar_cpf && socialData.familiar_cpf.length > 0 && socialData.familiar_cpf[0]) {
+          cpfValue = socialData.familiar_cpf[0];
+          cpfEncontrado = true;
+          console.log('[social.js] CPF encontrado em formStateManager.formData.social (FALLBACK):', cpfValue);
+          fonteUtilizada = 'formStateManager.social';
+        }
+        
+        // Verificar idade
+        if (!idadeEncontrada && socialData.familiar_idade && socialData.familiar_idade.length > 0 && socialData.familiar_idade[0]) {
+          idadeValue = socialData.familiar_idade[0];
+          idadeEncontrada = true;
+          console.log('[social.js] Idade encontrada em formStateManager.formData.social (FALLBACK):', idadeValue);
+          fonteUtilizada = 'formStateManager.social';
         }
       }
     }
 
-  } else {
-    // Fallback se formStateManager não tiver os dados
-    console.warn('[social.js] preencherDadosAssistido: formStateManager.formData.personal não encontrado. Tentando obter dos elementos do DOM da página anterior (personal).');
-    const nomePaginaAnterior = document.getElementById('nome');
-    const cpfPaginaAnterior = document.getElementById('cpf');
-    const idadePaginaAnterior = document.getElementById('idade');
+    // ==== FONTE 4: localStorage do módulo social ====
+    if (!nomeEncontrado || !cpfEncontrado || !idadeEncontrada) {
+      try {
+        const socialModuleData = localStorage.getItem('fiap_form_data_social');
+        if (socialModuleData) {
+          const socialData = JSON.parse(socialModuleData);
+          console.log('[social.js] Verificando localStorage social (FALLBACK):', socialData);
+          
+          // Verificar nome
+          if (!nomeEncontrado && socialData.familiar_nome && socialData.familiar_nome.length > 0 && socialData.familiar_nome[0] && socialData.familiar_nome[0] !== 'Assistido') {
+            nomeValue = socialData.familiar_nome[0];
+            nomeEncontrado = true;
+            console.log('[social.js] Nome encontrado em localStorage social (FALLBACK):', nomeValue);
+            fonteUtilizada = 'localStorage.social';
+          }
+          
+          // Verificar CPF
+          if (!cpfEncontrado && socialData.familiar_cpf && socialData.familiar_cpf.length > 0 && socialData.familiar_cpf[0]) {
+            cpfValue = socialData.familiar_cpf[0];
+            cpfEncontrado = true;
+            console.log('[social.js] CPF encontrado em localStorage social (FALLBACK):', cpfValue);
+            fonteUtilizada = 'localStorage.social';
+          }
+          
+          // Verificar idade
+          if (!idadeEncontrada && socialData.familiar_idade && socialData.familiar_idade.length > 0 && socialData.familiar_idade[0]) {
+            idadeValue = socialData.familiar_idade[0];
+            idadeEncontrada = true;
+            console.log('[social.js] Idade encontrada em localStorage social (FALLBACK):', idadeValue);
+            fonteUtilizada = 'localStorage.social';
+          }
+        }
+      } catch (e) {
+        console.error('[social.js] Erro ao ler dados do localStorage social:', e);
+      }    }
 
-    if (nomePaginaAnterior) {
-      nomeValue = nomePaginaAnterior.value || nomeValue;
-      console.log('[social.js] preencherDadosAssistido (fallback): Nome da página anterior:', nomeValue);
-    } else {
-      console.warn('[social.js] preencherDadosAssistido (fallback): Campo #nome da página anterior não encontrado.');
-    }
-    if (cpfPaginaAnterior) {
-      cpfValue = cpfPaginaAnterior.value || cpfValue;
-      console.log('[social.js] preencherDadosAssistido (fallback): CPF da página anterior:', cpfValue);
-    } else {
-      console.warn('[social.js] preencherDadosAssistido (fallback): Campo #cpf da página anterior não encontrado.');
-    }
-    if (idadePaginaAnterior) {
-      idadeValue = idadePaginaAnterior.value || idadeValue;
-      console.log('[social.js] preencherDadosAssistido (fallback): Idade da página anterior:', idadeValue);
-    } else {
-      console.warn('[social.js] preencherDadosAssistido (fallback): Campo #idade da página anterior não encontrado.');
-    }
-  }
-
-  if (nomeInput) {
-    nomeInput.value = nomeValue;
-    console.log('Nome do assistido preenchido:', nomeValue);
-  }
-
-  if (cpfInput) {
-    cpfInput.value = cpfValue;
-    console.log('CPF do assistido preenchido:', cpfValue);
-  }
-
-  if (idadeInput) {
-    console.log('[social.js] preencherDadosAssistido: Valor de idadeValue ANTES da formatação:', idadeValue);
-
-    let idadeFormatada = '';
-    // Extrair apenas o número de anos, ignorando meses ou qualquer outra informação
-    const matchAnos = idadeValue.match(/(\d+)\s*ano(s)?/);
-    if (matchAnos && matchAnos[1]) {
-      idadeFormatada = matchAnos[1] + " anos";
-    } else if (idadeValue && !isNaN(parseInt(idadeValue.trim()))) {
-      // Se for apenas um número, adiciona " anos"
-      idadeFormatada = parseInt(idadeValue.trim()) + " anos";
-    } else {
-      const justDigits = idadeValue.replace(/\D/g, '');
-      if (justDigits) {
+    // Formatação padronizada da idade
+    if (idadeValue) {
+      let idadeFormatada = '';
+      // Extrair apenas o número de anos, ignorando meses ou qualquer outra informação
+      const matchAnos = idadeValue.match(/(\d+)\s*ano(s)?/);
+      if (matchAnos && matchAnos[1]) {
+        idadeFormatada = matchAnos[1] + " anos";
+      } else if (idadeValue && !isNaN(parseInt(idadeValue.trim()))) {
+        // Se for apenas um número, adiciona " anos"
+        idadeFormatada = parseInt(idadeValue.trim()) + " anos";
+      } else {
+        const justDigits = idadeValue.replace(/\D/g, '');
+        if (justDigits) {
           const firstDigitSequence = justDigits.match(/\d+/);
           if (firstDigitSequence) {
             idadeFormatada = firstDigitSequence[0] + " anos";
-          } else {
-            idadeFormatada = '';
           }
-      } else {
-          idadeFormatada = '';
+        }
+      }
+      
+      if (idadeFormatada) {
+        idadeValue = idadeFormatada;
       }
     }
 
-    idadeInput.value = idadeFormatada;
-    console.log('[social.js] preencherDadosAssistido: Idade do assistido preenchida no DOM com:', idadeFormatada);
-
-    // Atualizar também o formStateManager para que a restauração subsequente use o valor formatado
-    if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.social) {
-      if (window.formStateManager.formData.social.familiar_idade && window.formStateManager.formData.social.familiar_idade.length > 0) {
-        window.formStateManager.formData.social.familiar_idade[0] = idadeFormatada;
-        console.log('[social.js] preencherDadosAssistido: formStateManager.formData.social.familiar_idade[0] atualizado para:', idadeFormatada);
-      } else {
-        // Se familiar_idade não existir ou estiver vazio, inicialize-o
-        window.formStateManager.formData.social.familiar_idade = [idadeFormatada];
-        console.log('[social.js] preencherDadosAssistido: formStateManager.formData.social.familiar_idade inicializado e [0] atualizado para:', idadeFormatada);
-      }
-    } else {
-      console.warn('[social.js] preencherDadosAssistido: Não foi possível atualizar formStateManager.formData.social.familiar_idade[0] - estado não encontrado.');
+    // Preencher os inputs com os valores encontrados
+    if (nomeInput) {
+      nomeInput.value = nomeValue;
+      console.log('[social.js] Nome do assistido preenchido:', nomeValue);
     }
+
+    if (cpfInput) {
+      cpfInput.value = cpfValue;
+      console.log('[social.js] CPF do assistido preenchido:', cpfValue);
+    }
+
+    if (idadeInput) {
+      idadeInput.value = idadeValue;
+      console.log('[social.js] Idade do assistido preenchida:', idadeValue);
+    }
+
+    // Atualizar o formStateManager para refletir os valores recuperados
+    // Isso garante que as informações estarão disponíveis para acesso futuro
+    if (window.formStateManager && window.formStateManager.formData) {
+      if (!window.formStateManager.formData.social) {
+        window.formStateManager.formData.social = {};
+      }
+      
+      if (!window.formStateManager.formData.social.familiar_nome) {
+        window.formStateManager.formData.social.familiar_nome = [];
+      }
+      
+      if (!window.formStateManager.formData.social.familiar_cpf) {
+        window.formStateManager.formData.social.familiar_cpf = [];
+      }
+      
+      if (!window.formStateManager.formData.social.familiar_idade) {
+        window.formStateManager.formData.social.familiar_idade = [];
+      }
+      
+      if (!window.formStateManager.formData.social.familiar_parentesco) {
+        window.formStateManager.formData.social.familiar_parentesco = [];
+      }
+      
+      // Atualizar os dados no formStateManager
+      window.formStateManager.formData.social.familiar_nome[0] = nomeValue;
+      window.formStateManager.formData.social.familiar_cpf[0] = cpfValue;
+      window.formStateManager.formData.social.familiar_idade[0] = idadeValue;
+      window.formStateManager.formData.social.familiar_parentesco[0] = 'Assistido';
+      
+      // Salvar imediatamente para garantir persistência
+      if (typeof window.formStateManager.saveStateImmediately === 'function') {
+        window.formStateManager.saveStateImmediately();
+        console.log('[social.js] Dados atualizados no formStateManager e salvos imediatamente');
+      }
+    }
+
+    console.log(`[social.js] Preenchimento de dados do assistido concluído. Fonte principal utilizada: ${fonteUtilizada}`);
+
+  } catch (error) {
+    console.error('[social.js] Erro durante o preenchimento dos dados do assistido:', error);
   }
 }
 

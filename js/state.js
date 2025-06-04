@@ -449,28 +449,7 @@ class APIIntegrator {
   }
 }
 
-class Tester {
-  constructor() {
-    this.tests = [];
-    this.results = [];
-  }
 
-  addTest(name, testFunction) {
-    this.tests.push({ name, testFunction });
-  }
-
-  async runTests() {
-    for (const test of this.tests) {
-      try {
-        await test.testFunction();
-        this.results.push({ name: test.name, passed: true });
-      } catch (error) {
-        this.results.push({ name: test.name, passed: false, error: error.message });
-      }
-    }
-    return this.results;
-  }
-}
 
 class Documentation {
   constructor() {
@@ -573,13 +552,11 @@ class FormStateManager {
     this.offlineValidator = new OfflineValidator();
     this.uiEnhancer = new UIEnhancer();
     this.browserCompatibility = new BrowserCompatibility();
-    this.sessionManager = new SessionManager();
-    this.backupManager = new BackupManager(this);
+    this.sessionManager = new SessionManager();    this.backupManager = new BackupManager(this);
     this.conflictDetector = new ConflictDetector();
     this.networkOptimizer = new NetworkOptimizer();
     this.errorMonitor = new ErrorMonitor();
     this.apiIntegrator = new APIIntegrator();
-    this.tester = new Tester();
     this.documentation = new Documentation();
     this.configurator = new Configurator();
     this.metrics = new Metrics(this);
@@ -1271,7 +1248,7 @@ class FormStateManager {
       this.logger.error('Erro na validação de dados:', error);
       throw error;
     }
-  }async captureCurrentFormData() {
+  }  async captureCurrentFormData() {
     return this.executeWithMutex(async () => {
       this.logger.debug('Capturando dados atuais do formulário...');
 
@@ -1281,43 +1258,67 @@ class FormStateManager {
         const capturedData = {};
         let capturedCount = 0;
 
-        // CORREÇÃO: Processo mais rápido e direto
+        // CORREÇÃO CRÍTICA: Agrupar campos por name para tratar arrays adequadamente
+        const fieldGroups = new Map();
+
+        // Primeira passagem: agrupar elementos por name
         for (const element of formElements) {
           if (element.name || element.id) {
             const key = element.name || element.id;
             const value = element.type === 'checkbox' ? element.checked : element.value;
 
+            // Só processar se o valor não estiver vazio
             if (value !== null && value !== undefined && value !== '') {
-              // Determinar seção baseada no nome/id do campo
-              let section = 'general';
-              if (key.includes('autor_') || key.includes('personal') || key.includes('cpf') || key.includes('nascimento')) {
-                section = 'personal';
-              } else if (key.includes('familiar') || key.includes('social')) {
-                section = 'social';
-              } else if (key.includes('incapacity') || key.includes('doenca') || key.includes('cid')) {
-                section = 'incapacity';
-              } else if (key.includes('professional') || key.includes('profissional')) {
-                section = 'professional';
-              } else if (key.includes('document') || key.includes('anexo')) {
-                section = 'documents';
+              if (!fieldGroups.has(key)) {
+                fieldGroups.set(key, []);
               }
-
-              // CORREÇÃO: Evitar setState durante captura para prevenir recursão
-              if (!this.formData[section]) {
-                this.formData[section] = {};
-              }
-              this.formData[section][key] = value;
-              capturedData[key] = value;
-              capturedCount++;
+              fieldGroups.get(key).push(value);
             }
           }
+        }
+
+        // Segunda passagem: processar os grupos de campos
+        for (const [key, values] of fieldGroups) {
+          // Determinar seção baseada no nome/id do campo
+          let section = 'general';
+          if (key.includes('autor_') || key.includes('personal') || key.includes('cpf') || key.includes('nascimento')) {
+            section = 'personal';
+          } else if (key.includes('familiar') || key.includes('social')) {
+            section = 'social';
+          } else if (key.includes('incapacity') || key.includes('doenca') || key.includes('cid')) {
+            section = 'incapacity';
+          } else if (key.includes('professional') || key.includes('profissional')) {
+            section = 'professional';
+          } else if (key.includes('document') || key.includes('anexo')) {
+            section = 'documents';
+          }
+
+          // CORREÇÃO: Evitar setState durante captura para prevenir recursão
+          if (!this.formData[section]) {
+            this.formData[section] = {};
+          }
+
+          // CORREÇÃO CRÍTICA: Para campos de array (terminam com []), armazenar como array
+          if (key.endsWith('[]')) {
+            this.formData[section][key] = values;
+            capturedData[key] = values;
+            this.logger.debug(`Campo array capturado: ${key} = [${values.join(', ')}]`);
+          } else {
+            // Para campos únicos, usar o último valor (ou primeiro se só há um)
+            const finalValue = values.length === 1 ? values[0] : values[values.length - 1];
+            this.formData[section][key] = finalValue;
+            capturedData[key] = finalValue;
+            this.logger.debug(`Campo único capturado: ${key} = ${finalValue}`);
+          }
+          
+          capturedCount++;
         }
 
         // CORREÇÃO: Salvamento mais rápido e direto
         await this.saveStateImmediately();
 
         this._lastCapture = Date.now();
-        this.logger.debug(`Dados capturados: ${capturedCount} campos`);
+        this.logger.debug(`Dados capturados: ${capturedCount} campos (incluindo arrays)`);
 
         return capturedData;
       } catch (error) {
@@ -1635,30 +1636,65 @@ class FormStateManager {
       this.logger.error('Erro no auto-restore:', error);
     }
   }
-
   // Popular campos do formulário com dados restaurados
   async populateFormFields() {
     try {
       const formElements = document.querySelectorAll('input, select, textarea');
       let populatedCount = 0;
 
+      // Agrupar elementos por name para tratar arrays
+      const elementGroups = new Map();
+      
       for (const element of formElements) {
         if (element.name || element.id) {
           const fieldName = element.name || element.id;
-
-          // Tentar encontrar valor nos dados restaurados
-          let value = null;
-
-          // Procurar em todas as seções
-          for (const section of Object.keys(this.formData)) {
-            if (this.formData[section] && this.formData[section][fieldName]) {
-              value = this.formData[section][fieldName];
-              break;
-            }
+          
+          if (!elementGroups.has(fieldName)) {
+            elementGroups.set(fieldName, []);
           }
+          elementGroups.get(fieldName).push(element);
+        }
+      }
 
-          // Se encontrou valor, popular o campo
-          if (value !== null && value !== undefined && value !== '') {
+      // Processar cada grupo de elementos
+      for (const [fieldName, elements] of elementGroups) {
+        let value = null;
+
+        // Procurar em todas as seções
+        for (const section of Object.keys(this.formData)) {
+          if (this.formData[section] && this.formData[section][fieldName]) {
+            value = this.formData[section][fieldName];
+            break;
+          }
+        }
+
+        // Se encontrou valor, popular os campos
+        if (value !== null && value !== undefined) {
+          // Se o valor é um array e temos múltiplos elementos com mesmo name
+          if (Array.isArray(value)) {
+            for (let i = 0; i < elements.length && i < value.length; i++) {
+              const element = elements[i];
+              const arrayValue = value[i];
+              
+              if (arrayValue !== null && arrayValue !== undefined && arrayValue !== '') {
+                if (element.type === 'checkbox') {
+                  element.checked = Boolean(arrayValue);
+                } else {
+                  element.value = arrayValue;
+                }
+
+                // Disparar eventos para notificar mudança
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+
+                populatedCount++;
+                this.logger.debug(`Campo array populado: ${fieldName}[${i}] = ${arrayValue}`);
+              }
+            }
+          } 
+          // Se o valor não é um array, popular o primeiro elemento
+          else if (value !== '') {
+            const element = elements[0];
             if (element.type === 'checkbox') {
               element.checked = Boolean(value);
             } else {
@@ -1670,6 +1706,7 @@ class FormStateManager {
             element.dispatchEvent(new Event('change', { bubbles: true }));
 
             populatedCount++;
+            this.logger.debug(`Campo único populado: ${fieldName} = ${value}`);
           }
         }
       }
@@ -1827,7 +1864,7 @@ window.ConflictDetector = ConflictDetector;
 window.NetworkOptimizer = NetworkOptimizer;
 window.ErrorMonitor = ErrorMonitor;
 window.APIIntegrator = APIIntegrator;
-window.Tester = Tester;
+
 window.Documentation = Documentation;
 window.Configurator = Configurator;
 window.Metrics = Metrics;
@@ -1865,5 +1902,5 @@ console.log('[FormStateManager] Classes disponíveis globalmente:', Object.keys(
   ['FormStateManager', 'StructuredLogger', 'ModuleSynchronizer', 'OfflineValidator',
    'UIEnhancer', 'BrowserCompatibility', 'SessionManager', 'BackupManager',
    'ConflictDetector', 'NetworkOptimizer', 'ErrorMonitor', 'APIIntegrator',
-   'Tester', 'Documentation', 'Configurator', 'Metrics'].includes(key)
+   'Documentation', 'Configurator', 'Metrics'].includes(key)
 ));

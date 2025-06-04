@@ -97,16 +97,7 @@ const Navigation = {
       prev: 'professional',
       initFunction: 'initDocumentsModule',
       contentReady: () => document.getElementById('documentos-list'),
-      isFinalStep: true
-    },
-    'tests': {
-      index: -1,
-      next: null,
-      prev: null,
-      initFunction: 'initTestsModule',
-      contentReady: () => document.getElementById('test-results'),
-      isSpecialRoute: true
-    }
+      isFinalStep: true    }
   },
 
   /**
