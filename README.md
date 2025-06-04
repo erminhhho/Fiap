@@ -1,3 +1,21 @@
+# Projeto FIAP
+
+## Visão Geral
+Este é o repositório do projeto FIAP.
+
+## Diretrizes para Contribuição
+
+Ao contribuir para este projeto, lembre-se das seguintes regras:
+
+- **Não crie arquivos novos sem autorização prévia** - Qualquer novo arquivo deve ser discutido e aprovado antes de ser adicionado ao repositório.
+- Mantenha o código limpo e bem documentado
+- Siga os padrões de codificação estabelecidos no projeto
+
+## Licença
+[Informações sobre licença aqui]
+
+---
+
 # Boas Práticas do Projeto
 
 Este projeto segue um conjunto de diretrizes que visam manter o código limpo, consistente e sustentável. As práticas descritas aqui devem ser seguidas sempre que algo novo for desenvolvido ou modificado.
@@ -131,23 +149,33 @@ find . -name "*.test.js" -o -name "*.spec.js" -o -name "*test*.html" | grep -v "
 - Adicionar apenas dependências necessárias e justificadas.
 - Priorizar bibliotecas bem mantidas e amplamente utilizadas.
 - Manter os arquivos de gerenciamento de dependências atualizados.
-
-## Scripts e Automação
+adicionado ao repositório.
+## Scripts e Automação- Mantenha o código limpo e bem documentado
 
 - Criar scripts para tarefas repetitivas sempre que fizer sentido.
 - Padronizar processos como build, lint, deploy ou outros para evitar inconsistências.
 
 ## Colaboração
 
-- Commits devem ser claros, objetivos e escritos no imperativo (ex: `Add login validation`).
-- Usar branches descritivas com prefixos temáticos como `feature/`, `fix/`, `refactor/`.
-- Pull Requests devem ser pequenos, focados e fáceis de revisar.
 
----
 
-## [PROIBIDO] LEMBRETE FINAL: ZERO EMOJIS
 
-**ESTE PROJETO ESTÁ 100% LIVRE DE EMOJIS E DEVE PERMANECER ASSIM**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Estas práticas são parte essencial da manutenção de um código sustentável. Ao contribuir, respeite e preserve essas diretrizes.---**Não há exceções para esta regra. Emojis = Código rejeitado.**Se você encontrar qualquer emoji em qualquer arquivo, remova-o IMEDIATAMENTE usando as tags de texto recomendadas acima.**ESTE PROJETO ESTÁ 100% LIVRE DE EMOJIS E DEVE PERMANECER ASSIM**## [PROIBIDO] LEMBRETE FINAL: ZERO EMOJIS---- Pull Requests devem ser pequenos, focados e fáceis de revisar.- Usar branches descritivas com prefixos temáticos como `feature/`, `fix/`, `refactor/`.- Commits devem ser claros, objetivos e escritos no imperativo (ex: `Add login validation`).**ESTE PROJETO ESTÁ 100% LIVRE DE EMOJIS E DEVE PERMANECER ASSIM**
 
 Se você encontrar qualquer emoji em qualquer arquivo, remova-o IMEDIATAMENTE usando as tags de texto recomendadas acima.
 
