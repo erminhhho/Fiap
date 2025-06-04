@@ -13,11 +13,9 @@ window.executeClearSection = function(section) {
   // Limpa os dados da seção no gerenciador de estado
   if (window.formStateManager) {
     // Não limpa completamente, apenas os campos específicos em cada seção
-    const formData = window.formStateManager.formData;
-
-    if (section === 'personal') {
+    const formData = window.formStateManager.formData;    if (section === 'personal') {
       // Limpar apenas os campos, não a estrutura
-      const fields = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes', 'colaborador'];
+      const fields = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes', 'colaborador', 'observacoes_personal'];
       fields.forEach(field => {
         if (formData.personal && formData.personal[field]) {
           formData.personal[field] = '';
@@ -41,12 +39,26 @@ window.executeClearSection = function(section) {
             }
           });
         });
-      }
-    } else if (section === 'renda') {
+      }    } else if (section === 'renda') {
       // Limpar valores de renda
       if (formData.renda) {
         formData.renda.renda_total_familiar = '';
         formData.renda.renda_per_capita = '';
+      }
+    } else if (section === 'social') {
+      // Limpar campos sociais
+      if (formData.social) {
+        formData.social.observacoes_social = '';
+      }
+    } else if (section === 'professional') {
+      // Limpar campos profissionais
+      if (formData.professional) {
+        formData.professional.observacoes_professional = '';
+      }
+    } else if (section === 'incapacity') {
+      // Limpar campos de incapacidades
+      if (formData.incapacity) {
+        formData.incapacity.observacoes_incapacity = '';
       }
     } else if (section === 'doencas') {
       // Limpar dados das doenças, mas manter a estrutura
@@ -90,22 +102,20 @@ window.executeClearSection = function(section) {
               doc[key] = '';
             }
           });
-        });
-        // Limpar observações
-        if (formData.documents.observacoes) {
-          formData.documents.observacoes = '';
+        });        // Limpar observações
+        if (formData.documents.observacoes_documents) {
+          formData.documents.observacoes_documents = '';
         }
       }
     }
   }
 
   // Limpar os campos da interface sem remover elementos adicionados
-  const form = document.querySelector('form');
-  if (form) {
+  const form = document.querySelector('form');    if (form) {
     // Seleciona todos os campos que pertencem à seção pelo id ou name
     let fields = [];
     if (section === 'personal') {
-      fields = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes', 'colaborador'];
+      fields = ['nome', 'cpf', 'nascimento', 'idade', 'apelido', 'telefone', 'telefone_detalhes', 'colaborador', 'observacoes_personal'];
     } else if (section === 'address') {
       fields = ['cep', 'bairro', 'cidade', 'uf', 'endereco', 'numero'];
     } else if (section === 'familia') {
@@ -120,12 +130,17 @@ window.executeClearSection = function(section) {
         });
       });
     } else if (section === 'renda') {
-      fields = ['renda_total_familiar', 'renda_per_capita'];
-      // Resetar displays
+      fields = ['renda_total_familiar', 'renda_per_capita'];      // Resetar displays
       const rendaDisplay = document.getElementById('renda_total_display');
       const percapitaDisplay = document.getElementById('renda_per_capita_display');
       if (rendaDisplay) rendaDisplay.textContent = 'R$ 0';
       if (percapitaDisplay) percapitaDisplay.textContent = 'R$ 0';
+    } else if (section === 'social') {
+      fields = ['observacoes_social'];
+    } else if (section === 'professional') {
+      fields = ['observacoes_professional'];
+    } else if (section === 'incapacity') {
+      fields = ['observacoes_incapacity'];
     } else if (section === 'doencas') {
       // Limpar campos nas linhas de doenças, mas não remover as linhas
       const doencasInputs = document.querySelectorAll('#doencasList input, #doencasList select, #doencasList textarea');
@@ -157,11 +172,10 @@ window.executeClearSection = function(section) {
       // Limpar campos de documentos, mas não remover os documentos
       const documentosInputs = document.querySelectorAll('#documentos-container input, #documentos-container textarea');
       documentosInputs.forEach(input => {
-        input.value = '';
-      });
+        input.value = '';      });
 
-      // Limpar o campo de observações
-      const observacoes = document.getElementById('observacoes');
+      // Limpar o campo de observações específico de documentos
+      const observacoes = document.getElementById('observacoes_documents');
       if (observacoes) {
         observacoes.value = '';
       }

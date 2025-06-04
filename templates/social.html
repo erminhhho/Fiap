@@ -67,19 +67,13 @@
               <label class="input-label">
                 Estado Civil
               </label>
-            </div>            <!-- Renda Mensal - 2 colunas (pode ser editado) -->
-            <div class="relative md:col-span-2">
+            </div>            <!-- Renda Mensal - 4 colunas (aumentado de 2 para 4) -->
+            <div class="relative md:col-span-4">
               <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') FIAP.masks.moneyInteger(this)" />
               <label class="input-label">
                 Renda
               </label>
-            </div><!-- CadÚnico - 2 colunas -->
-            <div class="relative md:col-span-2 flex items-center justify-center">
-              <input type="hidden" name="familiar_cadunico[]" value="Não">
-              <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
-                CadÚnico
-              </button>
-            </div>            <!-- Botão de adicionar membro ao lado do assistido -->
+            </div><!-- Botão de adicionar membro ao lado do assistido -->
             <div class="relative md:col-span-1 flex items-center justify-center">
               <button type="button" class="add-family-btn bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 flex items-center justify-center w-8 h-8" title="Adicionar membro" onclick="addFamilyMember()">
                 <i class="fas fa-plus"></i>
@@ -154,20 +148,12 @@
               <label class="input-label">
                 Estado Civil
               </label>
-            </div>            <!-- Renda Mensal - 2 colunas -->
-            <div class="relative md:col-span-2">
+            </div>            <!-- Renda Mensal - 4 colunas (aumentado de 2 para 4) -->
+            <div class="relative md:col-span-4">
               <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') FIAP.masks.moneyInteger(this)" />
               <label class="input-label">
                 Renda
               </label>
-            </div>
-
-            <!-- CadÚnico - 2 colunas -->
-            <div class="relative md:col-span-2 flex items-center justify-center">
-              <input type="hidden" name="familiar_cadunico[]" value="Não">
-              <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
-                CadÚnico
-              </button>
             </div>
 
             <!-- Botão de remover (somente nas linhas secundárias) - 1 coluna -->
@@ -237,11 +223,10 @@
       </div>
     </div>
   </div>
-
   <!-- Observações -->
   <div class="relative mt-8">
-    <textarea id="observacoes" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre o perfil social..." oninput="capitalizeFirstLetterOnly(this)"></textarea>
-    <label for="observacoes" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
+    <textarea id="observacoes_social" name="observacoes_social" rows="3" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="Observações sobre o perfil social..." oninput="capitalizeFirstLetterOnly(this)"></textarea>
+    <label for="observacoes_social" class="absolute left-4 -top-3 px-1 text-sm text-transparent bg-transparent rounded-t-lg rounded-b-none transition-all duration-200 pointer-events-none peer-focus:text-blue-600 peer-focus:-top-3 peer-focus:bg-gray-50 peer-focus:text-blue-600 peer-focus:rounded-t-lg peer-focus:rounded-b-none peer-focus:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:bg-transparent peer-placeholder-shown:rounded-none peer-placeholder-shown:text-transparent input-label">
       Observações
     </label>
   </div>
