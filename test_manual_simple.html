@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Manual - Dados Personal</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .form-section { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+        input, button { padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Teste Manual - Dados Personal</h1>
+
+        <div class="form-section">
+            <h3>Simular Formulário Personal</h3>
+            <form id="personal-form">
+                <input type="text" name="autor_nome[]" placeholder="Nome" value="João Silva Santos">
+                <input type="text" name="autor_cpf[]" placeholder="CPF" value="123.456.789-00">
+                <input type="text" name="autor_idade[]" placeholder="Idade" value="45">
+                <button type="button" onclick="capturarDados()">Capturar Dados</button>
+            </form>
+        </div>
+
+        <div class="form-section">
+            <h3>Simular Formulário Social</h3>
+            <form id="social-form">
+                <input type="text" name="familiar_nome[]" id="assistido_nome" placeholder="Nome do Assistido" readonly>
+                <input type="text" name="familiar_cpf[]" id="assistido_cpf" placeholder="CPF do Assistido" readonly>
+                <input type="text" name="familiar_idade[]" id="assistido_idade" placeholder="Idade do Assistido" readonly>
+                <button type="button" onclick="preencherAssistido()">Preencher Assistido</button>
+            </form>
+        </div>
+
+        <div class="form-section">
+            <h3>Testes de Sistema</h3>
+            <button onclick="verificarEstado()">Verificar Estado</button>
+            <button onclick="limparEstado()">Limpar Estado</button>
+            <button onclick="testarCaptura()">Testar Captura Arrays</button>
+        </div>
+
+        <div id="logs" class="log">
+            Logs aparecerão aqui...
+        </div>
+    </div>
+
+    <!-- Carregar scripts necessários -->
+    <script src="js/state.js"></script>
+    <script>
+        function log(message) {
+            const logsDiv = document.getElementById('logs');
+            logsDiv.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+            console.log(message);
+        }
+
+        window.onload = function() {
+            log('🚀 Teste manual carregado');
+            log('FormStateManager disponível: ' + (typeof window.FormStateManager !== 'undefined'));
+            log('formStateManager disponível: ' + (typeof window.formStateManager !== 'undefined'));
+            log('stateManager disponível: ' + (typeof window.stateManager !== 'undefined'));
+        };
+
+        function capturarDados() {
+            log('📝 Capturando dados do formulário personal...');
+
+            try {
+                if (window.formStateManager) {
+                    const dadosCapturados = window.formStateManager.captureCurrentFormData();
+
+                    // Simular que estamos na página personal
+                    if (!window.formStateManager.formData) {
+                        window.formStateManager.formData = {};
+                    }
+                    window.formStateManager.formData.personal = dadosCapturados;
+
+                    log('✅ Dados capturados e salvos em formData.personal:');
+                    log(JSON.stringify(dadosCapturados, null, 2));
+
+                    // Salvar também no localStorage
+                    localStorage.setItem('fiap_form_data_personal', JSON.stringify(dadosCapturados));
+                    log('💾 Dados salvos no localStorage personal');
+
+                } else {
+                    log('❌ FormStateManager não disponível');
+                }
+            } catch (error) {
+                log('❌ Erro na captura: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        function preencherAssistido() {
+            log('👥 Preenchendo dados do assistido...');
+
+            try {
+                // Simular a função preencherDadosAssistido do social.js
+                const nomeInput = document.getElementById('assistido_nome');
+                const cpfInput = document.getElementById('assistido_cpf');
+                const idadeInput = document.getElementById('assistido_idade');
+
+                let nomeValue = 'Assistido';
+                let cpfValue = '';
+                let idadeValue = '';
+                let fonteUtilizada = 'padrão';
+
+                // Verificar formStateManager.formData.personal
+                if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.personal) {
+                    const personalData = window.formStateManager.formData.personal;
+                    log('🔍 Dados encontrados em formStateManager.formData.personal:');
+                    log(JSON.stringify(personalData, null, 2));
+
+                    if (personalData['autor_nome[]'] && personalData['autor_nome[]'].length > 0) {
+                        nomeValue = personalData['autor_nome[]'][0];
+                        fonteUtilizada = 'formStateManager.personal';
+                        log('✅ Nome encontrado: ' + nomeValue);
+                    }
+
+                    if (personalData['autor_cpf[]'] && personalData['autor_cpf[]'].length > 0) {
+                        cpfValue = personalData['autor_cpf[]'][0];
+                        log('✅ CPF encontrado: ' + cpfValue);
+                    }
+
+                    if (personalData['autor_idade[]'] && personalData['autor_idade[]'].length > 0) {
+                        idadeValue = personalData['autor_idade[]'][0];
+                        log('✅ Idade encontrada: ' + idadeValue);
+                    }
+                } else {
+                    log('❌ Dados personal não encontrados em formStateManager');
+
+                    // Tentar localStorage
+                    const personalStorage = localStorage.getItem('fiap_form_data_personal');
+                    if (personalStorage) {
+                        const personalData = JSON.parse(personalStorage);
+                        log('🔍 Tentando localStorage personal:');
+                        log(JSON.stringify(personalData, null, 2));
+
+                        if (personalData['autor_nome[]'] && personalData['autor_nome[]'].length > 0) {
+                            nomeValue = personalData['autor_nome[]'][0];
+                            fonteUtilizada = 'localStorage.personal';
+                            log('✅ Nome encontrado no localStorage: ' + nomeValue);
+                        }
+
+                        if (personalData['autor_cpf[]'] && personalData['autor_cpf[]'].length > 0) {
+                            cpfValue = personalData['autor_cpf[]'][0];
+                            log('✅ CPF encontrado no localStorage: ' + cpfValue);
+                        }
+
+                        if (personalData['autor_idade[]'] && personalData['autor_idade[]'].length > 0) {
+                            idadeValue = personalData['autor_idade[]'][0];
+                            log('✅ Idade encontrada no localStorage: ' + idadeValue);
+                        }
+                    }
+                }
+
+                // Preencher os campos
+                nomeInput.value = nomeValue;
+                cpfInput.value = cpfValue;
+                idadeInput.value = idadeValue;
+
+                log(`📋 Campos preenchidos - Fonte: ${fonteUtilizada}`);
+                log(`Nome: ${nomeValue}, CPF: ${cpfValue}, Idade: ${idadeValue}`);
+
+            } catch (error) {
+                log('❌ Erro no preenchimento: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        function verificarEstado() {
+            log('📊 Verificando estado do sistema...');
+
+            try {
+                if (window.formStateManager) {
+                    const estado = window.formStateManager.getState();
+                    log('🗂️ Estado atual do formStateManager:');
+                    log(JSON.stringify(estado, null, 2));
+
+                    if (window.formStateManager.formData) {
+                        log('📁 FormData disponível:');
+                        log(JSON.stringify(window.formStateManager.formData, null, 2));
+                    }
+                } else {
+                    log('❌ FormStateManager não disponível');
+                }
+
+                // Verificar localStorage
+                const personalStorage = localStorage.getItem('fiap_form_data_personal');
+                const socialStorage = localStorage.getItem('fiap_form_data_social');
+
+                log('💾 LocalStorage personal: ' + (personalStorage ? 'Dados encontrados' : 'Vazio'));
+                log('💾 LocalStorage social: ' + (socialStorage ? 'Dados encontrados' : 'Vazio'));
+
+            } catch (error) {
+                log('❌ Erro na verificação: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        function limparEstado() {
+            log('🗑️ Limpando estado...');
+
+            try {
+                localStorage.removeItem('fiap_form_data_personal');
+                localStorage.removeItem('fiap_form_data_social');
+                localStorage.removeItem('fiap_form_data');
+
+                if (window.formStateManager) {
+                    window.formStateManager.formData = {};
+                }
+
+                // Limpar campos
+                document.getElementById('assistido_nome').value = '';
+                document.getElementById('assistido_cpf').value = '';
+                document.getElementById('assistido_idade').value = '';
+
+                log('✅ Estado limpo');
+
+            } catch (error) {
+                log('❌ Erro na limpeza: ' + error.message);
+            }
+        }
+
+        function testarCaptura() {
+            log('🧪 Testando captura de arrays...');
+
+            try {
+                const form = document.getElementById('personal-form');
+                if (window.formStateManager) {
+                    const dados = window.formStateManager.captureCurrentFormData();
+                    log('📋 Dados capturados:');
+                    log(JSON.stringify(dados, null, 2));
+
+                    // Verificar se arrays foram detectados
+                    const temArrays = Object.keys(dados).some(key => Array.isArray(dados[key]));
+                    log('🔍 Arrays detectados: ' + (temArrays ? 'SIM' : 'NÃO'));
+
+                } else {
+                    log('❌ FormStateManager não disponível');
+                }
+            } catch (error) {
+                log('❌ Erro no teste: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

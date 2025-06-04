@@ -1310,7 +1310,7 @@ class FormStateManager {
             capturedData[key] = finalValue;
             this.logger.debug(`Campo único capturado: ${key} = ${finalValue}`);
           }
-          
+
           capturedCount++;
         }
 
@@ -1644,11 +1644,11 @@ class FormStateManager {
 
       // Agrupar elementos por name para tratar arrays
       const elementGroups = new Map();
-      
+
       for (const element of formElements) {
         if (element.name || element.id) {
           const fieldName = element.name || element.id;
-          
+
           if (!elementGroups.has(fieldName)) {
             elementGroups.set(fieldName, []);
           }
@@ -1675,7 +1675,7 @@ class FormStateManager {
             for (let i = 0; i < elements.length && i < value.length; i++) {
               const element = elements[i];
               const arrayValue = value[i];
-              
+
               if (arrayValue !== null && arrayValue !== undefined && arrayValue !== '') {
                 if (element.type === 'checkbox') {
                   element.checked = Boolean(arrayValue);
@@ -1691,7 +1691,7 @@ class FormStateManager {
                 this.logger.debug(`Campo array populado: ${fieldName}[${i}] = ${arrayValue}`);
               }
             }
-          } 
+          }
           // Se o valor não é um array, popular o primeiro elemento
           else if (value !== '') {
             const element = elements[0];

@@ -25,7 +25,7 @@ window.initModule = function() {
 
   // Inicializar o conteúdo da página de forma estruturada
   initializePageContent();
-  
+
   // Adicionar listener para o evento de sincronização de dados
   document.addEventListener('dataSynchronized', function(event) {
     console.log('[social.js] Evento de sincronização de dados detectado:', event.detail);
@@ -56,10 +56,10 @@ function initializePageContent() {
   // Verificar se o formStateManager existe
   if (window.formStateManager && window.formStateManager.formData) {
     console.log('[social.js] initModule: formStateManager.formData existe.');
-    
+
     // Verificar se há dados do assistido a serem preenchidos
     preencherDadosAssistido();
-    
+
     if (window.formStateManager.formData.personal) {
       console.log('[social.js] initModule: formStateManager.formData.personal encontrado:',
                   JSON.parse(JSON.stringify(window.formStateManager.formData.personal)));
@@ -463,7 +463,7 @@ function preencherDadosAssistido() {
   let nomeValue = 'Assistido';
   let cpfValue = '';
   let idadeValue = '';
-  
+
   // Flag para registro da fonte de dados utilizada
   let fonteUtilizada = 'padrão';
 
@@ -481,7 +481,7 @@ function preencherDadosAssistido() {
     // Função auxiliar para obter e formatar idade a partir de uma data de nascimento
     const processarDataNascimento = (dataNascimentoStr) => {
       if (!dataNascimentoStr || typeof calcularIdadeCompleta !== 'function') return null;
-      
+
       try {
         // Converter de DD/MM/YYYY para Date object
         const dataNasc = new Date(dataNascimentoStr.split('/').reverse().join('-'));
@@ -505,7 +505,7 @@ function preencherDadosAssistido() {
           console.log('[social.js] Nome encontrado em formStateManager.formData.personal (PRIORIDADE):', nomeValue);
           fonteUtilizada = 'formStateManager.personal';
         }
-        
+
         // Verificar CPF
         if (!cpfEncontrado && personalData['autor_cpf[]'] && personalData['autor_cpf[]'].length > 0 && personalData['autor_cpf[]'][0]) {
           cpfValue = personalData['autor_cpf[]'][0];
@@ -513,7 +513,7 @@ function preencherDadosAssistido() {
           console.log('[social.js] CPF encontrado em formStateManager.formData.personal (PRIORIDADE):', cpfValue);
           fonteUtilizada = 'formStateManager.personal';
         }
-        
+
         // Verificar idade
         if (!idadeEncontrada) {
           // Primeiro tentar com autor_idade[]
@@ -522,7 +522,7 @@ function preencherDadosAssistido() {
             idadeEncontrada = true;
             console.log('[social.js] Idade encontrada em formStateManager.formData.personal (autor_idade[] - PRIORIDADE):', idadeValue);
             fonteUtilizada = 'formStateManager.personal';
-          } 
+          }
           // Se não encontrar, tentar calcular a partir da data de nascimento
           else if (personalData['autor_nascimento[]'] && personalData['autor_nascimento[]'].length > 0 && personalData['autor_nascimento[]'][0]) {
             const idadeCalculada = processarDataNascimento(personalData['autor_nascimento[]'][0]);
@@ -550,7 +550,7 @@ function preencherDadosAssistido() {
             console.log('[social.js] Nome encontrado em localStorage personal:', nomeValue);
             fonteUtilizada = 'localStorage.personal';
           }
-          
+
           // Verificar CPF
           if (!cpfEncontrado && personalData['autor_cpf[]'] && personalData['autor_cpf[]'].length > 0 && personalData['autor_cpf[]'][0]) {
             cpfValue = personalData['autor_cpf[]'][0];
@@ -558,7 +558,7 @@ function preencherDadosAssistido() {
             console.log('[social.js] CPF encontrado em localStorage personal:', cpfValue);
             fonteUtilizada = 'localStorage.personal';
           }
-          
+
           // Verificar idade
           if (!idadeEncontrada) {
             // Primeiro tentar com autor_idade[]
@@ -567,7 +567,7 @@ function preencherDadosAssistido() {
               idadeEncontrada = true;
               console.log('[social.js] Idade encontrada em localStorage personal (autor_idade[]):', idadeValue);
               fonteUtilizada = 'localStorage.personal';
-            } 
+            }
             // Se não encontrar, tentar calcular a partir da data de nascimento
             else if (personalData['autor_nascimento[]'] && personalData['autor_nascimento[]'].length > 0 && personalData['autor_nascimento[]'][0]) {
               const idadeCalculada = processarDataNascimento(personalData['autor_nascimento[]'][0]);
@@ -590,7 +590,7 @@ function preencherDadosAssistido() {
       if (window.formStateManager && window.formStateManager.formData && window.formStateManager.formData.social) {
         const socialData = window.formStateManager.formData.social;
         console.log('[social.js] Verificando formStateManager.formData.social (FALLBACK):', JSON.parse(JSON.stringify(socialData)));
-        
+
         // Verificar nome
         if (!nomeEncontrado && socialData.familiar_nome && socialData.familiar_nome.length > 0 && socialData.familiar_nome[0] && socialData.familiar_nome[0] !== 'Assistido') {
           nomeValue = socialData.familiar_nome[0];
@@ -598,7 +598,7 @@ function preencherDadosAssistido() {
           console.log('[social.js] Nome encontrado em formStateManager.formData.social (FALLBACK):', nomeValue);
           fonteUtilizada = 'formStateManager.social';
         }
-        
+
         // Verificar CPF
         if (!cpfEncontrado && socialData.familiar_cpf && socialData.familiar_cpf.length > 0 && socialData.familiar_cpf[0]) {
           cpfValue = socialData.familiar_cpf[0];
@@ -606,7 +606,7 @@ function preencherDadosAssistido() {
           console.log('[social.js] CPF encontrado em formStateManager.formData.social (FALLBACK):', cpfValue);
           fonteUtilizada = 'formStateManager.social';
         }
-        
+
         // Verificar idade
         if (!idadeEncontrada && socialData.familiar_idade && socialData.familiar_idade.length > 0 && socialData.familiar_idade[0]) {
           idadeValue = socialData.familiar_idade[0];
@@ -624,7 +624,7 @@ function preencherDadosAssistido() {
         if (socialModuleData) {
           const socialData = JSON.parse(socialModuleData);
           console.log('[social.js] Verificando localStorage social (FALLBACK):', socialData);
-          
+
           // Verificar nome
           if (!nomeEncontrado && socialData.familiar_nome && socialData.familiar_nome.length > 0 && socialData.familiar_nome[0] && socialData.familiar_nome[0] !== 'Assistido') {
             nomeValue = socialData.familiar_nome[0];
@@ -632,7 +632,7 @@ function preencherDadosAssistido() {
             console.log('[social.js] Nome encontrado em localStorage social (FALLBACK):', nomeValue);
             fonteUtilizada = 'localStorage.social';
           }
-          
+
           // Verificar CPF
           if (!cpfEncontrado && socialData.familiar_cpf && socialData.familiar_cpf.length > 0 && socialData.familiar_cpf[0]) {
             cpfValue = socialData.familiar_cpf[0];
@@ -640,7 +640,7 @@ function preencherDadosAssistido() {
             console.log('[social.js] CPF encontrado em localStorage social (FALLBACK):', cpfValue);
             fonteUtilizada = 'localStorage.social';
           }
-          
+
           // Verificar idade
           if (!idadeEncontrada && socialData.familiar_idade && socialData.familiar_idade.length > 0 && socialData.familiar_idade[0]) {
             idadeValue = socialData.familiar_idade[0];
@@ -672,7 +672,7 @@ function preencherDadosAssistido() {
           }
         }
       }
-      
+
       if (idadeFormatada) {
         idadeValue = idadeFormatada;
       }
@@ -700,29 +700,29 @@ function preencherDadosAssistido() {
       if (!window.formStateManager.formData.social) {
         window.formStateManager.formData.social = {};
       }
-      
+
       if (!window.formStateManager.formData.social.familiar_nome) {
         window.formStateManager.formData.social.familiar_nome = [];
       }
-      
+
       if (!window.formStateManager.formData.social.familiar_cpf) {
         window.formStateManager.formData.social.familiar_cpf = [];
       }
-      
+
       if (!window.formStateManager.formData.social.familiar_idade) {
         window.formStateManager.formData.social.familiar_idade = [];
       }
-      
+
       if (!window.formStateManager.formData.social.familiar_parentesco) {
         window.formStateManager.formData.social.familiar_parentesco = [];
       }
-      
+
       // Atualizar os dados no formStateManager
       window.formStateManager.formData.social.familiar_nome[0] = nomeValue;
       window.formStateManager.formData.social.familiar_cpf[0] = cpfValue;
       window.formStateManager.formData.social.familiar_idade[0] = idadeValue;
       window.formStateManager.formData.social.familiar_parentesco[0] = 'Assistido';
-      
+
       // Salvar imediatamente para garantir persistência
       if (typeof window.formStateManager.saveStateImmediately === 'function') {
         window.formStateManager.saveStateImmediately();
