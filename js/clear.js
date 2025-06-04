@@ -130,17 +130,12 @@ window.executeClearSection = function(section) {
         });
       });
     } else if (section === 'renda') {
-      fields = ['renda_total_familiar', 'renda_per_capita'];      // Resetar displays
+      fields = ['renda_total_familiar', 'renda_per_capita'];
+      // Resetar displays
       const rendaDisplay = document.getElementById('renda_total_display');
       const percapitaDisplay = document.getElementById('renda_per_capita_display');
       if (rendaDisplay) rendaDisplay.textContent = 'R$ 0';
       if (percapitaDisplay) percapitaDisplay.textContent = 'R$ 0';
-    } else if (section === 'social') {
-      fields = ['observacoes_social'];
-    } else if (section === 'professional') {
-      fields = ['observacoes_professional'];
-    } else if (section === 'incapacity') {
-      fields = ['observacoes_incapacity'];
     } else if (section === 'doencas') {
       // Limpar campos nas linhas de doenças, mas não remover as linhas
       const doencasInputs = document.querySelectorAll('#doencasList input, #doencasList select, #doencasList textarea');
