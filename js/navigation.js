@@ -7,6 +7,32 @@
  * - Feedback visual consistente
  * - Salvamento automático de dados
  * - Retry automático em caso de falhas
+ *
+ * IMPORTANTE: Este arquivo trabalha em conjunto com router.js.
+ * - Navigation.js gerencia o estado de navegação e a lógica de interface do usuário
+ * - Router.js gerencia a mudança efetiva de rotas e o carregamento de templates/scripts
+ *
+ * ARQUITETURA DE NAVEGAÇÃO:
+ * 1. Navigation.js é responsável por:
+ *    - Controlar o estado interno da navegação (carregando, etapa atual, etc.)
+ *    - Fornecer feedback visual (botões de loading, alertas, etc.)
+ *    - Gerenciar a persistência de dados entre navegações
+ *    - Lidar com casos de erro e retentativas
+ *    - Fornecer API pública para os módulos (navigateNext, navigatePrevious, etc.)
+ *
+ * 2. Router.js é responsável por:
+ *    - Carregar os templates HTML das páginas
+ *    - Carregar os scripts dos módulos
+ *    - Gerenciar a URL e hash de navegação
+ *    - Inicializar os módulos após carregamento
+ *    - Sincronizar dados entre módulos relacionados
+ *
+ * FLUXO DE INTEGRAÇÃO:
+ * 1. O usuário aciona um botão de navegação que chama Navigation.navigateToStep()
+ * 2. Navigation.js valida, salva dados e delega para router.js através de navigateToLegacy()
+ * 3. Router.js carrega o template e script necessários
+ * 4. Router.js notifica de volta o Navigation.js através de eventos 'stepChanged'
+ * 5. Navigation.js restaura o estado da UI e dados do formulário
  */
 
 // Namespace para o sistema de navegação
@@ -318,9 +344,19 @@ const Navigation = {
     } catch (error) {
       this.error('Erro ao aplicar validações pós-inicialização:', error);
     }
-  },
-  /**
-   * Navega para uma etapa específica de forma segura - CORREÇÃO CRÍTICA
+  },  /**
+   * Navega para uma etapa específica de forma segura
+   *
+   * FLUXO DE INTEGRAÇÃO COM ROUTER.JS:
+   * 1. Verifica o estado atual da navegação (bloqueios, validações)
+   * 2. Inicia o feedback visual (botões, barra de progresso)
+   * 3. Salva os dados do formulário atual
+   * 4. Delega para router.js através de navigateToLegacy
+   * 5. Retorna o resultado da navegação
+   *
+   * @param {string} targetStep - O ID da etapa de destino
+   * @param {HTMLElement} sourceButton - O botão que iniciou a navegação (opcional)
+   * @returns {Promise<boolean>} - Sucesso ou falha da navegação
    */
   async navigateToStep(targetStep, sourceButton = null) {
     // Verificar se já está navegando
@@ -343,22 +379,19 @@ const Navigation = {
       // Aplicar feedback visual no botão
       this.setButtonLoadingState(sourceButton, true);
 
-      // CORREÇÃO CRÍTICA: Capturar e salvar dados antes da navegação
+      // Capturar e salvar dados antes da navegação
       await this.captureAndSaveCurrentFormData();
 
       // Aguardar processamento
-      await new Promise(resolve => setTimeout(resolve, this.config.navigationDelay));      // CORREÇÃO: Usar sistema de navegação apropriado baseado na disponibilidade
+      await new Promise(resolve => setTimeout(resolve, this.config.navigationDelay));
+
+      // Sistema de navegação simplificado
       let navigationSuccess = false;
 
-      // Tentar usar router.js primeiro (se disponível)
+      // Usar sistema legado se disponível
       if (typeof navigateToLegacy === 'function') {
         this.log(`Usando navigateToLegacy para: ${targetStep}`);
-        navigationSuccess = navigateToLegacy(targetStep); // CORREÇÃO: Remover await - função é síncrona
-      }
-      // Fallback para navigateTo
-      else if (typeof navigateTo === 'function') {
-        this.log(`Usando navigateTo para: ${targetStep}`);
-        navigationSuccess = navigateTo(targetStep); // CORREÇÃO: Remover await - função é síncrona
+        navigationSuccess = navigateToLegacy(targetStep);
       }
       // Último recurso: navegação manual
       else {
@@ -367,7 +400,7 @@ const Navigation = {
       }
 
       if (!navigationSuccess) {
-        throw new Error('Falha na navegação');
+        throw new Error(`Falha na navegação para ${targetStep}`);
       }
 
       this.log(`Navegação para ${targetStep} concluída com sucesso`);
@@ -547,7 +580,6 @@ const Navigation = {
       }, 500);
     }
   },
-
   /**
    * Inicializa o sistema de navegação
    */
@@ -560,12 +592,97 @@ const Navigation = {
     });
 
     // Reconfigurar botões após mudanças de rota
-    document.addEventListener('stepChanged', () => {
-      setTimeout(() => this.setupNavigationButtons(), 100);
+    document.addEventListener('stepChanged', (event) => {
+      this.handleStepChangedEvent(event);
+    });
+
+    // Ouvir eventos de inicialização de módulo
+    document.addEventListener('moduleInitialized', (event) => {
+      this.handleModuleInitializedEvent(event);
+    });
+
+    // Ouvir eventos de sincronização de dados
+    document.addEventListener('dataSynchronized', (event) => {
+      this.handleDataSynchronizedEvent(event);
     });
 
     this.log('Sistema de navegação inicializado');
-  }
+  },
+
+  /**
+   * NOVO: Manipulador do evento stepChanged
+   * @param {Event} event - Evento disparado pelo router.js
+   */
+  handleStepChangedEvent(event) {
+    const detail = event.detail || {};
+    const route = detail.route;
+
+    this.log(`Evento stepChanged recebido para rota: ${route}`);
+
+    // Atualizar estado interno
+    this.state.currentStep = route;
+
+    // Reconfigurar botões
+    setTimeout(() => this.setupNavigationButtons(), 100);
+
+    // Atualizar botões de navegação conforme a etapa
+    this.updateNavigationButtons(route);
+  },
+
+  /**
+   * NOVO: Manipulador do evento moduleInitialized
+   * @param {Event} event - Evento disparado após inicialização do módulo
+   */
+  handleModuleInitializedEvent(event) {
+    const detail = event.detail || {};
+    const module = detail.module;
+
+    this.log(`Módulo inicializado: ${module}`);
+
+    // Verificar se precisamos aplicar validações específicas
+    if (this.state.currentStep) {
+      this.applyPostInitValidations(this.state.currentStep);
+    }
+  },
+
+  /**
+   * NOVO: Manipulador do evento dataSynchronized
+   * @param {Event} event - Evento disparado após sincronização de dados
+   */
+  handleDataSynchronizedEvent(event) {
+    const detail = event.detail || {};
+
+    this.log(`Dados sincronizados: ${detail.direction}`);
+
+    // Podemos adicionar lógica adicional aqui se necessário
+  },
+
+  /**
+   * NOVO: Atualiza botões de navegação baseado na etapa atual
+   * @param {string} step - Etapa atual de navegação
+   */
+  updateNavigationButtons(step) {
+    if (!step) return;
+
+    const stepConfig = this.stepMap[step];
+    if (!stepConfig) return;
+
+    const btnNext = document.getElementById('btn-next');
+    const btnBack = document.getElementById('btn-back');
+
+    if (btnNext) {
+      btnNext.disabled = !stepConfig.next;
+      if (stepConfig.isFinalStep) {
+        btnNext.textContent = 'Finalizar';
+      } else {
+        btnNext.textContent = 'Próximo';
+      }
+    }
+
+    if (btnBack) {
+      btnBack.disabled = !stepConfig.prev;
+    }
+  },
 };
 
 // Expor para o escopo global
@@ -573,6 +690,11 @@ window.Navigation = Navigation;
 window.navigateToStep = Navigation.navigateToStep.bind(Navigation);
 window.navigateNext = Navigation.navigateNext.bind(Navigation);
 window.navigatePrevious = Navigation.navigatePrevious.bind(Navigation);
+
+// Expor funções adicionais para integração com router.js
+window.handleStepChangedEvent = Navigation.handleStepChangedEvent.bind(Navigation);
+window.handleModuleInitializedEvent = Navigation.handleModuleInitializedEvent.bind(Navigation);
+window.updateNavigationButtons = Navigation.updateNavigationButtons.bind(Navigation);
 
 // Inicializar automaticamente
 Navigation.init();
