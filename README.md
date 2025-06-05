@@ -159,10 +159,11 @@ find . -name "*.test.js" -o -name "*.spec.js" -o -name "*test*.html" | grep -v "
 ## Colaboração
 
 - Pull Requests devem ser pequenos, focados e fáceis de revisar.
-- Usar branches descritivas com prefixos temáticos como `feature/`, `fix/`, `refactor/`.
-- Commits devem ser claros, objetivos e escritos no imperativo (ex: `Add login validation`).
+- Usar branches descritivas com prefixos temáticos.
+- Commits devem ser claros, objetivos e escritos no imperativo.
 
-**Não há exceções para esta regra. Emojis = Código rejeitado.**Se você encontrar qualquer emoji em qualquer arquivo, remova-o IMEDIATAMENTE usando as tags de texto recomendadas acima.**ESTE PROJETO ESTÁ 100% LIVRE DE EMOJIS E DEVE PERMANECER ASSIM**## [PROIBIDO] LEMBRETE FINAL: ZERO EMOJIS---- Pull Requests devem ser pequenos, focados e fáceis de revisar.- Usar branches descritivas com prefixos temáticos como `feature/`, `fix/`, `refactor/`.- Commits devem ser claros, objetivos e escritos no imperativo (ex: `Add login validation`).**ESTE PROJETO ESTÁ 100% LIVRE DE EMOJIS E DEVE PERMANECER ASSIM**
+**Não há exceções para esta regra. Emojis = Código rejeitado.**Se você encontrar qualquer emoji em qualquer arquivo, remova-o IMEDIATAMENTE usando as tags de texto recomendadas acima.**ESTE PROJETO ESTÁ 100% LIVRE DE EMOJIS E DEVE PERMANECER ASSIM**## [PROIBIDO] LEMBRETE FINAL: ZERO EMOJIS---- Pull Requests devem ser pequenos, focados e fáceis de revisar.- Usar branches descritivas com prefixos temáticos.
+Commits devem ser claros, objetivos e escritos no imperativo.**ESTE PROJETO ESTÁ 100% LIVRE DE EMOJIS E DEVE PERMANECER ASSIM**
 
 Se você encontrar qualquer emoji em qualquer arquivo, remova-o IMEDIATAMENTE usando as tags de texto recomendadas acima.
 
