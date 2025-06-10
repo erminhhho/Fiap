@@ -758,9 +758,7 @@ function addFamilyMember() {
   memberDiv.innerHTML = template.innerHTML.trim();
   const newMemberElement = memberDiv.firstChild;
 
-  list.appendChild(newMemberElement);
-
-  // Aplicar máscaras aos novos campos
+  list.appendChild(newMemberElement);  // Aplicar máscaras aos novos campos
   if (typeof maskCPF === 'function') {
     newMemberElement.querySelectorAll('input[name="familiar_cpf[]"]').forEach(input => {
       input.addEventListener('input', function() {
@@ -769,10 +767,55 @@ function addFamilyMember() {
     });
   }
 
+  // Aplicar máscaras de idade nos novos membros
+  newMemberElement.querySelectorAll('input[name="familiar_idade[]"]').forEach(input => {
+    input.addEventListener('input', function() {
+      if (typeof maskNumericAge === 'function') maskNumericAge(this);
+    });
+    input.addEventListener('blur', function() {
+      if (typeof formatAgeWithSuffix === 'function') formatAgeWithSuffix(this);
+    });
+  });
+
+  // Aplicar máscaras de renda nos novos membros
+  newMemberElement.querySelectorAll('input[name="familiar_renda[]"]').forEach(input => {
+    input.addEventListener('input', function() {
+      if (FIAP && FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
+        FIAP.masks.moneyInteger(this);
+      }
+    });
+  });
+
+  // Aplicar formatação de nome próprio nos novos membros
+  newMemberElement.querySelectorAll('input[name="familiar_nome[]"]').forEach(input => {
+    input.addEventListener('input', function() {
+      if (typeof formatarNomeProprio === 'function') formatarNomeProprio(this);
+    });
+    input.addEventListener('blur', function() {
+      if (typeof formatarNomeProprio === 'function') formatarNomeProprio(this);
+    });
+  });
+
+  // Configurar evento do botão CadÚnico no novo membro
+  const cadUnicoBtn = newMemberElement.querySelector('.cadunico-btn');
+  if (cadUnicoBtn) {
+    // Garantir que o evento onclick está funcionando
+    cadUnicoBtn.onclick = function() {
+      toggleCadUnico(this);
+    };
+    console.log('Botão CadÚnico configurado para novo membro:', cadUnicoBtn);
+  }
   // Destacar campos
   if (typeof destacarCamposPreenchidos === 'function') {
     destacarCamposPreenchidos();
   }
+
+  // Recalcular renda familiar após adicionar novo membro
+  setTimeout(() => {
+    if (typeof calcularRendaTotal === 'function') {
+      calcularRendaTotal();
+    }
+  }, 100);
 
   updateRemoveMemberButton();
 }

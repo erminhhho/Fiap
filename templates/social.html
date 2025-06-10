@@ -148,12 +148,20 @@
               <label class="input-label">
                 Estado Civil
               </label>
-            </div>            <!-- Renda Mensal - 4 colunas (aumentado de 2 para 4) -->
-            <div class="relative md:col-span-4">
+            </div>            <!-- Renda Mensal - 2 colunas (corrigido para 2) -->
+            <div class="relative md:col-span-2">
               <input type="text" name="familiar_renda[]" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') FIAP.masks.moneyInteger(this)" />
               <label class="input-label">
                 Renda
               </label>
+            </div>
+
+            <!-- CadÚnico - 2 colunas (ADICIONADO) -->
+            <div class="relative md:col-span-2 flex items-center justify-center">
+              <input type="hidden" name="familiar_cadunico[]" value="Não" data-no-mask="true">
+              <button type="button" class="cadunico-btn rounded-lg border border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600" title="Possui CadÚnico?" onclick="toggleCadUnico(this)">
+                CadÚnico
+              </button>
             </div>
 
             <!-- Botão de remover (somente nas linhas secundárias) - 1 coluna -->
