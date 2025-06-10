@@ -15,19 +15,6 @@
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
-.cadunico-btn.active::after {
-  content: '[OK]';
-  position: absolute;
-  top: 0;
-  right: 0;
-  background-color: #059669;
-  color: white;
-  border-bottom-left-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
-  font-size: 0.75rem;
-  padding: 0.125rem 0.25rem;
-}
-
 /* Hover state */
 .cadunico-btn:hover:not(.active) {
   border-color: #3b82f6 !important;

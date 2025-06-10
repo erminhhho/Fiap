@@ -95,13 +95,12 @@ function initializePageContent() {
     });
     document.querySelectorAll('input[name="familiar_idade[]"]').forEach(input => {
       if (typeof formatAgeWithSuffix === 'function') formatAgeWithSuffix(input);
-    });
-    // Reaplicar máscara de renda inteira após restauração
+    });    // Reaplicar máscara de renda inteira após restauração
     document.querySelectorAll('input[name="familiar_renda[]"]').forEach(input => {
-      if (FIAP && FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
-        FIAP.masks.moneyInteger(input);
-      } else if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
+      if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
         Mask.moneyInteger(input);
+      } else if (FIAP && FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
+        FIAP.masks.moneyInteger(input);
       }
     });
   } else {
@@ -168,31 +167,29 @@ function setupEvents() {
       if (input) {
         // Remover event listener antigo para evitar duplicidade ou conflito
         const new_input = input.cloneNode(true);
-        input.parentNode.replaceChild(new_input, input);
-
-        new_input.addEventListener('input', function() {
-          if (FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
-            FIAP.masks.moneyInteger(this);
-          } else if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
+        input.parentNode.replaceChild(new_input, input);        new_input.addEventListener('input', function() {
+          if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
             Mask.moneyInteger(this);
+          } else if (FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
+            FIAP.masks.moneyInteger(this);
           }
         });
         // Adicionar também no blur para garantir a formatação correta ao sair do campo
         new_input.addEventListener('blur', function() {
-          if (FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
-            FIAP.masks.moneyInteger(this);
-          } else if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
+          if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
             Mask.moneyInteger(this);
+          } else if (FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
+            FIAP.masks.moneyInteger(this);
           }
         });
       }
-    });
-
-    // Campo de renda total
+    });    // Campo de renda total
     const rendaTotalInput = document.getElementById('renda_total_familiar');
     if (rendaTotalInput) {
       rendaTotalInput.addEventListener('input', function() {
-        if (FIAP.masks && typeof FIAP.masks.money === 'function') {
+        if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
+          Mask.moneyInteger(this);
+        } else if (FIAP.masks && typeof FIAP.masks.money === 'function') {
           FIAP.masks.money(this);
         }
       });
@@ -424,7 +421,7 @@ function inicializarAssistido() {
           </label>
         </div>        <!-- Renda Mensal - 2 colunas (editável) -->
         <div class="relative md:col-span-2">
-          <input type="text" name="familiar_renda[]" id="assistido_renda" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(FIAP.masks && typeof FIAP.masks.money === 'function') FIAP.masks.money(this)" />
+          <input type="text" name="familiar_renda[]" id="assistido_renda" class="peer w-full rounded-lg border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 px-4 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-colors duration-200" placeholder="R$ 0" oninput="if(typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') Mask.moneyInteger(this)" />
           <label class="absolute left-4 -top-3 px-1 text-sm text-blue-600 bg-gray-50 rounded-t-lg rounded-b-none">
             Renda
           </label>
@@ -776,11 +773,12 @@ function addFamilyMember() {
       if (typeof formatAgeWithSuffix === 'function') formatAgeWithSuffix(this);
     });
   });
-
   // Aplicar máscaras de renda nos novos membros
   newMemberElement.querySelectorAll('input[name="familiar_renda[]"]').forEach(input => {
     input.addEventListener('input', function() {
-      if (FIAP && FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
+      if (typeof Mask !== 'undefined' && typeof Mask.moneyInteger === 'function') {
+        Mask.moneyInteger(this);
+      } else if (FIAP && FIAP.masks && typeof FIAP.masks.moneyInteger === 'function') {
         FIAP.masks.moneyInteger(this);
       }
     });

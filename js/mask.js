@@ -327,10 +327,8 @@ const Mask = {
     if (isNaN(value)) {
       input.value = '';
       return;
-    }
-
-    // Formatar com pontos como separadores de milhar
-    value = value.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ".");
+    }    // Formatar com pontos como separadores de milhar
+    value = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     input.value = 'R$ ' + value;
   },
 
